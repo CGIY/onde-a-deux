@@ -10,7 +10,7 @@
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=21">
+  <link rel="stylesheet" href="styles.css?v=22">
   <title>ONDE — on décide</title>
 </head>
 <body>
@@ -31,6 +31,11 @@
         <button class="player-choice-button" data-player="J1" type="button"><span class="diode diode-a" aria-hidden="true"></span><strong>A</strong><small>J1</small></button>
         <button class="player-choice-button" data-player="J2" type="button"><span class="diode diode-c" aria-hidden="true"></span><strong>C</strong><small>J2</small></button>
       </div>
+      <div class="room-controls">
+        <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" placeholder="Code de session" aria-label="Code de session">
+        <button id="roomButton" class="text-button" type="button">Créer / rejoindre</button>
+      </div>
+      <p class="room-status" id="roomStatus" role="status">Crée une session ou entre le code de l’autre téléphone.</p>
       <p class="welcome-status" id="welcomeStatus" role="status">J1 et J2 doivent choisir pour continuer.</p>
       <button class="primary-button" id="startButton" type="button" disabled>Entrer dans ONDE</button>
       <button class="text-button" id="resumeButton" type="button" hidden>Reprendre</button>
@@ -105,6 +110,8 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
   <script src="media-catalog.js?v=21"></script>
-  <script src="app.js?v=21"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="live.js?v=1"></script>
+  <script src="app.js?v=22"></script>
 </body>
 </html>
