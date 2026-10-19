@@ -88,6 +88,11 @@ const categories = [
         ["Golden hour en silhouette", "Contre-jour au coucher du soleil, silhouettes entrelacées à la limite du montrable."],
         ["Néons underground", "Parking souterrain, enseignes colorées, cuir et poses contre les piliers."]
       ].map(([title, description]) => ({ title, description, subtype: "Fujifilm", art: "linear-gradient(145deg, #f4d35e, #e76f51)" }))
+      , ...[
+        "Eden Ivy", "First Bang - OnlyFans", "Tushy - Scène 1", "Tushy - Scène 2", "Tushy - Scène 3", "Tushy - Scène 4", "Tushy - 2025-11-16", "Tushy - 2026-06-21", "Ma Première Double Pénétration",
+        "Freeze - Prison Bitch - Veronica Leal", "Freeze - Becoming Superhuman - Little Puck", "Freeze - Squatters Revenge - Clemence Audiard", "Freeze - The Hustle - Fanta Sie", "Freeze - Witchs Gift - Clea Gaultier", "Freeze - Dont Waste Time - Chanel Camryn", "Freeze - Spoiled Brat - Bunny Brownie Sarah Heizel", "Freeze - Ghost Hunter - Tiffany Tatum", "Freeze - Stressed - Matty Mila Perez", "Freeze - LinkedIn Profile - Tiffany Tatum", "Freeze - Domestic Dynamics - Melody Marks", "Freeze - Corrupted Priest - Chloe Temple", "Freeze - Breast Pump - Veronica Leal", "Freeze - Ouija - Norah Juliette", "Freeze - Soho Spiral - Bella Spark", "Freeze - The Lab Rat - Barbie Brill",
+        "Je m’éclate comme une pornstar", "Les fantasmes de Lexi", "Nata Ocean, ma femme sexy", "Les fantasmes d’Alice Martin", "Megan Fiore, ma petite amie sexy", "Last splash", "Epouses Indecentes", "Room 212 - Part 1", "Room 212 - Part 2", "Room 212 - Part 3", "Room 212 - Part 4", "Room 212 - Part 5", "Boldness - Part 1", "Boldness - Part 2", "Boldness - Part 3", "Boldness - Part 4", "Boldness - Part 5", "Ines - Part 1", "Ines - Part 2", "Ines - Part 3", "Ines - Part 4", "Ines - Part 5", "La ferme - Partie 1", "La ferme - Partie 2", "La ferme - Partie 3", "La ferme - Partie 4", "La ferme - Partie 5", "La ferme - Partie 6"
+      ].map((title) => ({ title, description: "Un film adulte de votre bibliothèque, à choisir ensemble.", subtype: "Adulte", art: "linear-gradient(145deg, #c96b3d, #7b2342)" }))
     ]
   }
 ];
