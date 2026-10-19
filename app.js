@@ -585,11 +585,12 @@ function showToast(message) {
 const welcomeChoices = { J1: null, J2: null };
 const welcomeStatus = document.getElementById("welcomeStatus");
 const startButton = document.getElementById("startButton");
+startButton.hidden = true;
 function updateWelcomeEntry() {
   const ownRole = window.ondeLive?.role;
   const canEnter = Boolean(ownRole && welcomeChoices[ownRole] && window.ondeLive?.ready);
   startButton.disabled = !canEnter;
-  if (canEnter) welcomeStatus.textContent = "Les deux téléphones sont connectés. Vous pouvez entrer.";
+  if (canEnter) welcomeStatus.textContent = "Les deux téléphones sont connectés. Entrée automatique dans ONDE.";
 }
 
 function enterWhenBothConnected() {
