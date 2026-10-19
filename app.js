@@ -615,11 +615,17 @@ document.getElementById("startButton").addEventListener("click", () => {
 });
 window.ondeLive?.onChange((remoteState) => {
   updateWelcomeEntry();
-  if (!remoteState || JSON.stringify(remoteState) === JSON.stringify(decision)) return;
-  decision = remoteState;
+  const otherRole = window.ondeLive?.role === "J1" ? "J2" : "J1";
+  const other = remoteState?.players?.[otherRole];
+  if (!other) return;
+  decision.picks[otherRole] = other.picks?.[otherRole] || decision.picks[otherRole];
+  const bothComplete = Boolean(decision.complete && other.complete);
+  if (bothComplete) {
+    decision.complete = true;
+    renderResolution();
+    showScreen("summary");
+  }
   localStorage.setItem(stateKey, JSON.stringify(decision));
-  if (decision.complete) { renderResolution(); showScreen("summary"); }
-  else if (screens.game && !screens.game.hidden) renderDeck();
 });
 els.resumeButton.addEventListener("click", resumeDecision);
 els.undoButton.addEventListener("click", undoRemove);
@@ -629,16 +635,11 @@ document.getElementById("restartButton").addEventListener("click", startNewDecis
 const hasSavedDecision = loadDecision();
 els.resumeButton.hidden = !hasSavedDecision;
 const savedWelcome = JSON.parse(sessionStorage.getItem(welcomeKey) || "null");
-if (savedWelcome?.J1 && savedWelcome?.J2) {
-  welcomeChoices.J1 = savedWelcome.J1;
-  welcomeChoices.J2 = savedWelcome.J2;
-  document.querySelectorAll(".player-choice-button").forEach((button) => button.classList.add("selected"));
-  startButton.disabled = false;
-  welcomeStatus.textContent = "Les deux diodes sont allumées. Vous pouvez entrer.";
-  if (hasSavedDecision) resumeDecision();
-} else {
-  showScreen("intro");
+if (savedWelcome?.J1 && savedWelcome?.J2 && window.ondeLive?.role) {
+  const ownButton = document.querySelector(`.player-choice-button[data-player="${window.ondeLive.role}"]`);
+  if (ownButton) ownButton.click();
 }
+showScreen("intro");
 updateWelcomeEntry();
 
 if ("serviceWorker" in navigator) {
