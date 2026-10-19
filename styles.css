@@ -175,6 +175,11 @@ h1 {
   font-size: .82rem !important;
 }
 
+.room-controls { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 2px 0 6px; }
+.room-controls input { min-width: 0; min-height: 46px; padding: 0 15px; border: 1px solid rgba(116,70,94,.16); border-radius: 16px; color: var(--ink); background: rgba(255,255,255,.72); text-transform: uppercase; letter-spacing: .1em; font-weight: 800; }
+.room-controls .text-button { width: auto; min-height: 46px; margin: 0; padding: 0 14px; border-radius: 16px; background: rgba(255,255,255,.62); font-size: .76rem; }
+.room-status { min-height: 20px; margin: 0 0 16px !important; color: var(--muted); font-size: .72rem !important; }
+
 .primary-button:disabled { cursor: not-allowed; opacity: .38; box-shadow: none; }
 
 .intro-orbit {
