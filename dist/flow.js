@@ -12,6 +12,15 @@
   const validPick = (category, index) => Number.isInteger(index) && index >= 0 && index < category.cards.length;
   const validDecision = value => ["A", "C", "pass"].includes(value);
   const historyKey = "onde-recent-v1";
+  const logoDot = document.querySelector(".wordmark .logo-dot");
+  const refreshDotBounce = () => {
+    if (!logoDot || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    logoDot.style.setProperty("--dot-drift", `${(0.16 + Math.random() * 0.18).toFixed(2)}em`);
+    logoDot.style.setProperty("--dot-fall", `${(1.78 + Math.random() * 0.22).toFixed(2)}em`);
+    logoDot.style.setProperty("--dot-tilt", `${Math.round(-8 + Math.random() * 16)}deg`);
+  };
+  refreshDotBounce();
+  logoDot?.addEventListener("animationiteration", refreshDotBounce);
   function recentHistory() {
     try {
       const records = JSON.parse(localStorage.getItem(historyKey) || "[]");

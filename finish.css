@@ -7,7 +7,7 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 80; pointer-event
 .wordmark > span:nth-child(2) { --delay: .07s; }
 .wordmark > span:nth-child(3) { --delay: .14s; }
 .wordmark > span:nth-child(4) { --delay: .21s; }
-.wordmark .logo-dot { --delay: .3s; }
+.wordmark .logo-dot { --delay: .3s; position: relative; z-index: 10; pointer-events: none; will-change: transform, opacity; }
 .topbar { gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 18px; }
 .live-presence { display: grid; gap: 6px; justify-items: end; min-width: 0; }
 .live-presence small { max-width: 190px; color: var(--muted); font-size: .63rem; text-align: right; }
@@ -104,7 +104,7 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 80; pointer-event
 .summary-status { font-size: .78rem; color: var(--muted); text-align: center; margin-top: 12px; }
 @media (prefers-reduced-motion: no-preference) {
   .wordmark > span { animation: ondeRoll 2.6s cubic-bezier(.2,.8,.2,1) infinite; animation-delay: var(--delay, 0s); }
-  .wordmark .logo-dot { animation-name: ondeDot; }
+  .wordmark .logo-dot { animation-name: ondeDotDrop; animation-timing-function: cubic-bezier(.32,.04,.68,.25); }
   .tile-card { animation: cardArrives .32s ease-out both; transition: transform .3s cubic-bezier(.2,.85,.25,1), opacity .23s ease; }
   .tile-card.removing, .tile-card.keeping, .tile-card.cycling { transition: transform .23s cubic-bezier(.35,.05,.8,.5), opacity .23s ease; }
   .tile-card.dragging { animation: none; }
@@ -123,7 +123,16 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 80; pointer-event
   .presence-pill[data-status="saving"] i { animation: syncBlink .9s ease-in-out infinite; }
 }
 @keyframes ondeRoll { 0%, 30%, 100% { transform: translateY(0) rotate(0); } 12% { transform: translateY(-.12em) rotate(-5deg); } 22% { transform: translateY(.015em) rotate(1deg); } }
-@keyframes ondeDot { 0%, 36%, 100% { transform: scale(1); } 16% { transform: scale(1.45) translateY(-.08em); } 27% { transform: scale(.92); } }
+@keyframes ondeDotDrop {
+  0%, 34% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
+  42% { opacity: 1; transform: translate(calc(var(--dot-drift, .24em) * .25), .1em) rotate(calc(var(--dot-tilt, 4deg) * .25)) scale(1.16); }
+  57% { opacity: 1; transform: translate(var(--dot-drift, .24em), var(--dot-fall, 1.9em)) rotate(var(--dot-tilt, 4deg)) scale(1.12, .79); }
+  64% { opacity: 1; transform: translate(calc(var(--dot-drift, .24em) * .82), calc(var(--dot-fall, 1.9em) - .31em)) rotate(calc(var(--dot-tilt, 4deg) * -.55)) scale(.84, 1.17); }
+  71% { opacity: 1; transform: translate(calc(var(--dot-drift, .24em) * 1.05), calc(var(--dot-fall, 1.9em) - .04em)) rotate(calc(var(--dot-tilt, 4deg) * .3)) scale(1.03, .9); }
+  77% { opacity: .92; transform: translate(var(--dot-drift, .24em), var(--dot-fall, 1.9em)) rotate(0) scale(.9); }
+  84%, 99% { opacity: 0; transform: translate(var(--dot-drift, .24em), var(--dot-fall, 1.9em)) rotate(0) scale(.18); }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
+}
 @keyframes cardArrives { from { filter: brightness(.94); } to { filter: brightness(1); } }
 @keyframes syncBlink { 50% { opacity: .4; } }
 @keyframes focusIn { from { opacity: .65; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
