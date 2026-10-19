@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f0e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ONDE">
+  <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=34">
+  <title>ONDE — on décide</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">On décide</p>
+        <h1>ONDE<span class="logo-dot">.</span></h1>
+      </div>
+      <span class="presence-pill"><i aria-hidden="true"></i> À deux</span>
+    </header>
+
+    <section class="intro welcome" id="introScreen">
+      <p class="kicker">Une décision à deux</p>
+      <h2>ONDE<span class="logo-dot">.</span></h2>
+      <p>Choisis ta diode. L’autre choisira la sienne sur son téléphone.</p>
+      <div class="player-choice" role="group" aria-label="Choix des participants">
+        <button class="player-choice-button" data-player="J1" type="button"><span class="diode diode-a" aria-hidden="true"></span><strong>A</strong><small>J1</small></button>
+        <button class="player-choice-button" data-player="J2" type="button"><span class="diode diode-c" aria-hidden="true"></span><strong>C</strong><small>J2</small></button>
+      </div>
+      <div class="room-controls">
+        <button id="createRoomButton" class="primary-button" type="button">Créer une session</button>
+        <div class="room-join">
+          <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code reçu" aria-label="Code de session reçu">
+          <button id="joinRoomButton" class="text-button" type="button">Rejoindre</button>
+        </div>
+      </div>
+      <div class="session-code" id="sessionCodeBox" hidden>
+        <span>Code à envoyer à l’autre téléphone</span>
+        <strong id="sessionCodeValue"></strong>
+        <button id="copyInviteButton" class="text-button" type="button">Copier le lien d’invitation</button>
+      </div>
+      <p class="room-status" id="roomStatus" role="status">Premier téléphone : crée une session. Second téléphone : rejoins-la avec le code ou le lien.</p>
+      <p class="welcome-status" id="welcomeStatus" role="status">Choisis A ou C sur chaque téléphone.</p>
+    </section>
+
+    <section class="game" id="gameScreen" hidden aria-live="polite">
+      <div class="game-meta">
+        <div>
+          <p class="step-label" id="stepLabel">Catégorie 1 sur 5</p>
+          <h2 id="categoryTitle">Film</h2>
+        </div>
+        <span class="for-pill" id="playerPill">A choisit</span>
+      </div>
+
+      <div class="category-track" id="categoryTrack" aria-label="Progression des catégories"></div>
+
+      <div class="deck-wrap">
+        <svg class="gesture-sketch" viewBox="0 0 440 520" aria-hidden="true">
+          <g class="sketch-up">
+            <path d="M232 34 C229 25 230 15 232 5 M232 5 L224 16 M232 5 L240 16"/>
+            <path class="echo" d="M236 34 C233 24 234 15 236 7"/>
+            <text x="216" y="19" text-anchor="end" transform="rotate(-3 216 19)">suivante</text>
+          </g>
+          <g class="sketch-left">
+            <path d="M61 268 C46 264 31 266 14 270 M14 270 L27 260 M14 270 L27 280"/>
+            <path class="echo" d="M61 273 C46 269 31 271 16 274"/>
+            <text x="22" y="334" text-anchor="middle" transform="rotate(-90 22 334)">éliminer</text>
+          </g>
+          <g class="sketch-right">
+            <path d="M379 268 C394 264 409 266 426 270 M426 270 L413 260 M426 270 L413 280"/>
+            <path class="echo" d="M379 273 C394 269 409 271 424 274"/>
+            <text x="418" y="334" text-anchor="middle" transform="rotate(90 418 334)">valider</text>
+          </g>
+        </svg>
+        <div class="deck" id="deck" aria-label="Propositions"></div>
+      </div>
+
+      <div class="deck-status">
+        <button class="undo-link" id="undoButton" type="button" disabled>↶ Annuler</button>
+      </div>
+
+    </section>
+
+    <section class="kept" id="keptScreen" hidden aria-live="polite">
+      <div class="sealed-card">
+        <span class="sealed-icon" aria-hidden="true">✦</span>
+        <p id="keptCategory">Film</p>
+        <h2 id="keptTitle">Choix enregistré</h2>
+        <p id="keptMessage">Une catégorie à la fois.</p>
+      </div>
+      <button class="primary-button" id="nextCategoryButton" type="button">Catégorie suivante</button>
+    </section>
+
+    <section class="waiting" id="waitingScreen" hidden aria-live="polite">
+      <div class="waiting-orbit" aria-hidden="true">✦</div>
+      <p class="kicker">Tes choix sont enregistrés</p>
+      <h2>On attend l’autre.</h2>
+      <p>La résolution s’ouvrira ici dès que vous aurez tous les deux choisi dans chaque catégorie.</p>
+      <p class="waiting-status" id="waitingStatus" role="status">Connexion en cours…</p>
+    </section>
+
+    <section class="summary" id="summaryScreen" hidden>
+      <p class="kicker">Résolution à deux</p>
+      <h2>Voici là où vos envies se rejoignent.</h2>
+      <p class="summary-lead">Vos choix communs sont retenus. Pour les autres, chacun règle sa jauge : un choix n’est retenu que si son poids dépasse 70 % du total. Les cartes Mystère se dévoilent sur l’image finale.</p>
+
+      <section class="result-section" id="matchSection">
+        <div class="result-heading"><span aria-hidden="true">◎</span><div><small>En commun</small><h3>Vos accords</h3></div></div>
+        <div class="match-grid" id="matchGrid"></div>
+      </section>
+
+      <section class="result-section" id="decisionSection">
+        <div class="result-heading"><span aria-hidden="true">↔</span><div><small>À rapprocher</small><h3>Décidez ensemble</h3></div></div>
+        <div class="decision-list" id="decisionList"></div>
+      </section>
+
+      <button class="primary-button" id="showPlanButton" type="button" disabled>Voir notre feuille du jour</button>
+      <p class="summary-status" id="summaryStatus" role="status">Répondez chacun aux décisions restantes.</p>
+    </section>
+
+    <section class="plan-screen" id="planScreen" hidden>
+      <p class="kicker">Votre feuille du jour</p>
+      <h2>On a décidé.</h2>
+      <p>Tout tient dans une image à garder ou à partager.</p>
+      <canvas id="planCanvas" width="1200" height="1600" role="img" aria-label="Récapitulatif de vos décisions"></canvas>
+      <button class="primary-button" id="savePlanButton" type="button">Enregistrer l’image</button>
+      <button class="text-button" id="backToSummaryButton" type="button">Revoir les décisions</button>
+      <button class="text-button" id="restartButton" type="button">Nouvelle session</button>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script src="media-catalog.js?v=21"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="live.js?v=34"></script>
+  <script src="app.js?v=34"></script>
+  <script src="flow.js?v=34"></script>
+</body>
+</html>
