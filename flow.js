@@ -446,7 +446,7 @@
   $("restartButton").addEventListener("click", () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=30";
+    location.href = location.pathname + "?v=31";
   });
 
   live.onChange((rows, info) => {
@@ -469,16 +469,20 @@
         $("keptCategory").textContent = category.name;
         $("keptTitle").textContent = "Choix enregistré";
         $("keptMessage").textContent = "Tu peux passer à la catégorie suivante.";
+        $("nextCategoryButton").textContent = state.own.position === catalog.length - 1 ? "Terminer mes choix" : "Catégorie suivante";
       } else { show("game"); renderDeck(); }
     } else if (state.own?.finished) maybeResolve();
     if (state.screen === "summary") renderSummary();
     if (state.screen === "plan") drawPlan();
   });
 
-  if (sessionStorage.getItem("onde-role")) {
-    document.querySelector(`.player-choice-button[data-player="${sessionStorage.getItem("onde-role")}"]`)?.click();
-    $("roomCodeInput").value = sessionStorage.getItem("onde-room") || "";
+  const savedRole = sessionStorage.getItem("onde-role");
+  const savedRoom = sessionStorage.getItem("onde-room");
+  if (savedRole && savedRoom) {
+    document.querySelector(`.player-choice-button[data-player="${savedRole}"]`)?.click();
+    $("roomCodeInput").value = savedRoom;
   }
   show("intro");
+  if (savedRole && savedRoom) live.connect(savedRoom, savedRole, false);
   if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(() => {}));
 })();
