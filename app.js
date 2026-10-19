@@ -591,6 +591,15 @@ function updateWelcomeEntry() {
   startButton.disabled = !canEnter;
   if (canEnter) welcomeStatus.textContent = "Les deux téléphones sont connectés. Vous pouvez entrer.";
 }
+
+function enterWhenBothConnected() {
+  const ownRole = window.ondeLive?.role;
+  if (!ownRole || !welcomeChoices[ownRole] || !window.ondeLive?.ready || screens.intro.hidden) return;
+  if (sessionStorage.getItem("onde-live-entered") === window.ondeLive.roomCode) return;
+  sessionStorage.setItem("onde-live-entered", window.ondeLive.roomCode);
+  sessionStorage.setItem(welcomeKey, JSON.stringify(welcomeChoices));
+  startNewDecision();
+}
 document.querySelectorAll(".player-choice-button").forEach((button) => {
   button.addEventListener("click", () => {
     const player = button.dataset.player;
@@ -620,6 +629,7 @@ document.getElementById("startButton").addEventListener("click", () => {
 });
 window.ondeLive?.onChange((remoteState) => {
   updateWelcomeEntry();
+  enterWhenBothConnected();
   const otherRole = window.ondeLive?.role === "J1" ? "J2" : "J1";
   const other = remoteState?.players?.[otherRole];
   if (!other) return;
