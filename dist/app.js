@@ -49,12 +49,12 @@ const categories = [
     ]
   },
   {
-    id: "jeu", name: "Jeu", icon: "◆", color: "#7d9a86",
+    id: "jeu", name: "Jeu", icon: "J", color: "#7d9a86",
     art: "linear-gradient(145deg, #8baa94, #486d56)",
     cards: [
       ...["Minecraft Dungeon 2", "Minecraft", "Mario Tennis", "Mario Kart", "Baldurs Gate", "Cult of the Lamb", "Mini-jeu Switch"].map((title) => ({ title, description: "Un jeu vidéo à choisir et partager à deux.", subtype: "Jeu vidéo", visual: visualForTitle("jeu", title) })),
       ...[
-        "Jaipur", "Trio", "That's Not a Hat", "District Noir", "Mantis", "Compagnons", "Athlètes de Compète", "CT Words", "Les Aventuriers du Rail", "Fire Tower", "Après-Ski", "Regicide", "Cérébré", "Eternal Decks", "DOS", "Zenith", "Coffee Rush", "Captain Flip", "Ink It", "Hues and Cues", "Red Notice", "The Vale of Eternity", "7 Wonders", "Agent Avenue", "iKnow", "Redac Chef", "Happy Salmon", "Locus", "Gourmands", "Cat in the Box", "Cités Royales", "Splendor Duel", "The Gang", "Sky Team", "e-pense", "Flowers", "Splendor", "Cocoon", "7 Wonders Dice", "Take Time", "Harmonies", "Finspan", "Rebirth", "Bomb Busters", "Art Society", "Kronologic", "Dracula vs Van Helsing", "Mad Trip", "Reykholt", "Carnival of Monsters", "Marrakech", "Codenames", "Bunker", "Code Names", "Échecs", "Faraway", "Codex Naturalis"
+        "Jaipur", "Trio", "That's Not a Hat", "District Noir", "Mantis", "Compagnons", "Athlètes de Compète", "CT Words", "Les Aventuriers du Rail", "Fire Tower", "Après-Ski", "Regicide", "Cérébré", "Eternal Decks", "DOS", "Zenith", "Coffee Rush", "Captain Flip", "Ink It", "Hues and Cues", "Red Notice", "The Vale of Eternity", "7 Wonders", "Agent Avenue", "iKnow", "Redac Chef", "Happy Salmon", "Locus", "Cat in the Box", "Cités Royales", "Splendor Duel", "The Gang", "Sky Team", "e-pense", "Flowers", "Splendor", "Cocoon", "7 Wonders Dice", "Take Time", "Harmonies", "Finspan", "Rebirth", "Bomb Busters", "Art Society", "Kronologic", "Dracula vs Van Helsing", "Mad Trip", "Reykholt", "Carnival of Monsters", "Marrakech", "Codenames", "Bunker", "Code Names", "Échecs", "Faraway", "Codex Naturalis"
       ].map((title) => ({ title, description: "Un jeu de société de votre collection.", subtype: "Jeu de société", visual: visualForTitle("jeu", title) }))
     ]
   },
