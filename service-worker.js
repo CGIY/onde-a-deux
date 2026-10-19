@@ -1,5 +1,5 @@
 const CACHE = "onde-v28";
-const ASSETS = ["./", "index.html", "styles.css?v=22", "media-catalog.js?v=21", "app.js?v=28", "live.js?v=1", "manifest.webmanifest", "icon.svg"];
+const ASSETS = ["./", "index.html", "styles.css?v=23", "media-catalog.js?v=21", "app.js?v=28", "live.js?v=1", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
