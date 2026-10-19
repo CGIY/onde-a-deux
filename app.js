@@ -580,22 +580,32 @@ function showToast(message) {
 const welcomeChoices = { J1: null, J2: null };
 const welcomeStatus = document.getElementById("welcomeStatus");
 const startButton = document.getElementById("startButton");
+function updateWelcomeEntry() {
+  const ownRole = window.ondeLive?.role;
+  const canEnter = Boolean(ownRole && welcomeChoices[ownRole] && window.ondeLive?.ready);
+  startButton.disabled = !canEnter;
+  if (canEnter) welcomeStatus.textContent = "Les deux téléphones sont connectés. Vous pouvez entrer.";
+}
 document.querySelectorAll(".player-choice-button").forEach((button) => {
   button.addEventListener("click", () => {
     const player = button.dataset.player;
     welcomeChoices[player] = button.querySelector("strong").textContent;
+    document.querySelectorAll(".player-choice-button").forEach((other) => {
+      other.classList.toggle("selected", other === button);
+      other.setAttribute("aria-pressed", String(other === button));
+    });
     button.classList.add("selected");
     button.setAttribute("aria-pressed", "true");
-    const bothReady = welcomeChoices.J1 && welcomeChoices.J2;
-    startButton.disabled = !bothReady;
-    welcomeStatus.textContent = bothReady
-      ? "Les deux diodes sont allumées. Vous pouvez entrer."
-      : `${player} est prêt. Il manque encore le choix de l’autre participant.`;
+    welcomeStatus.textContent = `${player} sélectionné sur ce téléphone. Rejoins ensuite la session.`;
+    updateWelcomeEntry();
   });
 });
 
 document.getElementById("startButton").addEventListener("click", () => {
-  if (!welcomeChoices.J1 || !welcomeChoices.J2) return;
+  if (!window.ondeLive?.role || !welcomeChoices[window.ondeLive.role]) {
+    welcomeStatus.textContent = "Choisis A ou C sur ce téléphone, puis rejoins la session.";
+    return;
+  }
   if (!window.ondeLive?.ready) {
     welcomeStatus.textContent = "Les deux téléphones doivent être connectés à la même session.";
     return;
@@ -604,6 +614,7 @@ document.getElementById("startButton").addEventListener("click", () => {
   startNewDecision();
 });
 window.ondeLive?.onChange((remoteState) => {
+  updateWelcomeEntry();
   if (!remoteState || JSON.stringify(remoteState) === JSON.stringify(decision)) return;
   decision = remoteState;
   localStorage.setItem(stateKey, JSON.stringify(decision));
@@ -628,6 +639,7 @@ if (savedWelcome?.J1 && savedWelcome?.J2) {
 } else {
   showScreen("intro");
 }
+updateWelcomeEntry();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(() => {}));
