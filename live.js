@@ -31,6 +31,7 @@ const ondeLive = (() => {
     if (error) { setStatus("Impossible de joindre cette session."); return; }
     row = data;
     setStatus(`${roomCode} · ${role} connecté. En attente de l’autre téléphone.`, true);
+    listener?.(row.state || null, row);
     channel?.unsubscribe();
     channel = client.channel(`onde:${roomCode}`).on("postgres_changes", { event: "UPDATE", schema: "public", table: "onde_sessions", filter: `room_code=eq.${roomCode}` }, (payload) => {
       row = payload.new;
@@ -54,7 +55,11 @@ const ondeLive = (() => {
     get ready() { return Boolean(row?.j1_online && row?.j2_online); },
     async push(state) {
       if (!roomCode || !role) return;
-      await client.from("onde_sessions").update({ state, updated_at: new Date().toISOString() }).eq("room_code", roomCode);
+      const players = row?.state?.players || {};
+      players[role] = state;
+      const nextState = { players };
+      row = { ...(row || {}), state: nextState };
+      await client.from("onde_sessions").update({ state: nextState, updated_at: new Date().toISOString() }).eq("room_code", roomCode);
     },
     onChange(callback) { listener = callback; },
     connect,
