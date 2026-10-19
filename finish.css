@@ -20,6 +20,8 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 80; pointer-event
 .expired-banner button { min-height: 44px; border: 0; border-radius: 10px; color: #fffaf1; background: #643e36; font-weight: 750; }
 .welcome h2.wordmark { max-width: none; font-size: clamp(4rem, 22vw, 6rem); line-height: 1; }
 .welcome > p:not(.kicker) { margin-bottom: 20px; }
+.tmdb-credit { margin-top: 9px; color: var(--muted); font-size: .58rem; letter-spacing: .06em; text-decoration: none; opacity: .72; }
+.tmdb-credit:focus-visible, .tmdb-credit:hover { color: var(--plum); opacity: 1; text-decoration: underline; }
 .player-choice-button { background: #fffaf2; box-shadow: 0 8px 22px #5948320d; border-color: #bcae9d55; }
 .player-choice-button.selected { background: #fffcf6; }
 .primary-button { background: #3c3733; border-radius: 18px; box-shadow: 0 8px 20px #3c37331a; }

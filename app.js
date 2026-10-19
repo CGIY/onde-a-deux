@@ -1,4 +1,5 @@
 const mediaCatalog = window.ONDE_MEDIA_CATALOG || { film: [], serie: [], spectacle: [] };
+const titleArtwork = window.ONDE_ARTWORK || {};
 
 const posterByType = {
   film: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=500&q=80",
@@ -29,6 +30,8 @@ const posterPool = {
 };
 
 function visualForTitle(type, title) {
+  const artwork = titleArtwork[type]?.[title];
+  if (artwork) return artwork;
   const pool = posterPool[type] || [posterByType[type]];
   const hash = Array.from(title).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return pool[hash % pool.length];

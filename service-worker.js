@@ -1,5 +1,5 @@
-const CACHE = "onde-v39";
-const ASSETS = ["./", "index.html", "styles.css?v=37", "finish.css?v=39", "grain.svg", "media-catalog.js?v=22", "app.js?v=38", "live.js?v=37", "flow.js?v=39", "manifest.webmanifest", "icon.svg"];
+const CACHE = "onde-v40";
+const ASSETS = ["./", "index.html", "styles.css?v=37", "finish.css?v=40", "grain.svg", "media-catalog.js?v=22", "media-artwork.js?v=40", "app.js?v=40", "live.js?v=37", "flow.js?v=39", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
