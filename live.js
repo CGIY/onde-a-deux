@@ -4,7 +4,12 @@ const ONDE_SUPABASE_KEY = "sb_publishable_GhmpioVNsGFgHtJsaGXqsg__P3DRtpA";
 window.ondeLive = (() => {
   const client = window.supabase?.createClient(ONDE_SUPABASE_URL, ONDE_SUPABASE_KEY);
   const input = document.getElementById("roomCodeInput");
-  const button = document.getElementById("roomButton");
+  const controls = document.querySelector(".room-controls");
+  const createButton = document.getElementById("createRoomButton");
+  const joinButton = document.getElementById("joinRoomButton");
+  const codeBox = document.getElementById("sessionCodeBox");
+  const codeValue = document.getElementById("sessionCodeValue");
+  const copyButton = document.getElementById("copyInviteButton");
   const status = document.getElementById("roomStatus");
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let roomCode = "";
@@ -27,6 +32,9 @@ window.ondeLive = (() => {
 
   function announce() {
     if (!roomCode) return;
+    controls.hidden = true;
+    codeBox.hidden = false;
+    codeValue.textContent = roomCode;
     setStatus(ready() ? `${roomCode} · A et C sont connectés.` : `${roomCode} · ${role === "J1" ? "A" : "C"} connecté. En attente de l’autre téléphone.`, ready());
     listener({ ...rows }, { roomCode, role, ready: ready() });
   }
@@ -51,8 +59,10 @@ window.ondeLive = (() => {
       setStatus("Choisis ta diode et saisis un code de 6 à 8 caractères.");
       return false;
     }
-    button.disabled = true;
+    createButton.disabled = true;
+    joinButton.disabled = true;
     setStatus("Connexion en cours…");
+    clearInterval(pollTimer);
     roomCode = normalized;
     role = selectedRole;
     const tokenKey = `onde-token:${roomCode}:${role}`;
@@ -72,20 +82,49 @@ window.ondeLive = (() => {
       roomCode = "";
       role = "";
       token = "";
+      controls.hidden = false;
+      codeBox.hidden = true;
       if (error.message?.includes("role_taken")) setStatus("Cette diode est déjà active sur l’autre téléphone.");
-      else if (error.message?.includes("room_missing")) setStatus("Code inconnu. Vérifie le code affiché sur l’autre téléphone.");
+      else if (error.message?.includes("room_missing")) setStatus("Session introuvable. Sur le premier téléphone, appuie sur « Créer une session », puis utilise le code affiché.");
       else setStatus("Connexion impossible. Réessaie dans un instant.");
       return false;
     } finally {
-      button.disabled = false;
+      createButton.disabled = false;
+      joinButton.disabled = false;
     }
   }
 
-  button.addEventListener("click", async () => {
+  function selectedRole() {
     const selected = document.querySelector(".player-choice-button.selected");
-    if (!selected) { setStatus("Choisis A ou C sur ce téléphone."); return; }
-    const supplied = input.value.trim();
-    await connect(supplied || newCode(), selected.dataset.player, !supplied);
+    if (!selected) setStatus("Choisis A ou C sur ce téléphone.");
+    return selected?.dataset.player;
+  }
+
+  createButton.addEventListener("click", async () => {
+    const selected = selectedRole();
+    if (selected) await connect(newCode(), selected, true);
+  });
+
+  joinButton.addEventListener("click", async () => {
+    const selected = selectedRole();
+    if (selected) await connect(input.value, selected, false);
+  });
+
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter") joinButton.click();
+  });
+
+  copyButton.addEventListener("click", async () => {
+    const invite = new URL(location.href);
+    invite.search = "";
+    invite.searchParams.set("v", "32");
+    invite.searchParams.set("room", roomCode);
+    try {
+      await navigator.clipboard.writeText(invite.href);
+      copyButton.textContent = "Lien copié ✓";
+    } catch {
+      setStatus(`Copie indisponible. Transmets le code ${roomCode} à l’autre téléphone.`);
+    }
   });
 
   return {

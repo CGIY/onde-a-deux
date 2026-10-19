@@ -10,7 +10,7 @@
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=31">
+  <link rel="stylesheet" href="styles.css?v=32">
   <title>ONDE — on décide</title>
 </head>
 <body>
@@ -32,11 +32,19 @@
         <button class="player-choice-button" data-player="J2" type="button"><span class="diode diode-c" aria-hidden="true"></span><strong>C</strong><small>J2</small></button>
       </div>
       <div class="room-controls">
-        <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" placeholder="Code de session" aria-label="Code de session">
-        <button id="roomButton" class="text-button" type="button">Créer / rejoindre</button>
+        <button id="createRoomButton" class="primary-button" type="button">Créer une session</button>
+        <div class="room-join">
+          <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code reçu" aria-label="Code de session reçu">
+          <button id="joinRoomButton" class="text-button" type="button">Rejoindre</button>
+        </div>
       </div>
-      <p class="room-status" id="roomStatus" role="status">Crée une session ou entre le code de l’autre téléphone.</p>
-      <p class="welcome-status" id="welcomeStatus" role="status">Chacun rejoint avec le même code.</p>
+      <div class="session-code" id="sessionCodeBox" hidden>
+        <span>Code à envoyer à l’autre téléphone</span>
+        <strong id="sessionCodeValue"></strong>
+        <button id="copyInviteButton" class="text-button" type="button">Copier le lien d’invitation</button>
+      </div>
+      <p class="room-status" id="roomStatus" role="status">Premier téléphone : crée une session. Second téléphone : rejoins-la avec le code ou le lien.</p>
+      <p class="welcome-status" id="welcomeStatus" role="status">Choisis A ou C sur chaque téléphone.</p>
     </section>
 
     <section class="game" id="gameScreen" hidden aria-live="polite">
@@ -128,8 +136,8 @@
   </main>
   <script src="media-catalog.js?v=21"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="live.js?v=31"></script>
+  <script src="live.js?v=32"></script>
   <script src="app.js?v=31"></script>
-  <script src="flow.js?v=31"></script>
+  <script src="flow.js?v=32"></script>
 </body>
 </html>

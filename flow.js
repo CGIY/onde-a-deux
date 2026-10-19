@@ -446,7 +446,7 @@
   $("restartButton").addEventListener("click", () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=31";
+    location.href = location.pathname + "?v=32";
   });
 
   live.onChange((rows, info) => {
@@ -478,11 +478,14 @@
 
   const savedRole = sessionStorage.getItem("onde-role");
   const savedRoom = sessionStorage.getItem("onde-room");
-  if (savedRole && savedRoom) {
+  const invitedRoom = new URLSearchParams(location.search).get("room")?.trim().toUpperCase();
+  const inviteIsDifferent = invitedRoom && invitedRoom !== savedRoom;
+  if (invitedRoom && /^[A-Z0-9]{6,8}$/.test(invitedRoom)) $("roomCodeInput").value = invitedRoom;
+  if (savedRole && savedRoom && !inviteIsDifferent) {
     document.querySelector(`.player-choice-button[data-player="${savedRole}"]`)?.click();
     $("roomCodeInput").value = savedRoom;
   }
   show("intro");
-  if (savedRole && savedRoom) live.connect(savedRoom, savedRole, false);
+  if (savedRole && savedRoom && !inviteIsDifferent) live.connect(savedRoom, savedRole, false);
   if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(() => {}));
 })();
