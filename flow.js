@@ -4,13 +4,20 @@
   const byId = Object.fromEntries(catalog.map(category => [category.id, category]));
   const screens = Object.fromEntries(["intro", "game", "kept", "waiting", "summary", "plan"].map(name => [name, document.getElementById(`${name}Screen`)]));
   const $ = id => document.getElementById(id);
-  const state = { own: null, other: null, role: "", room: "", screen: "intro", busy: false, summarySignature: "" };
+  const state = { own: null, other: null, role: "", room: "", ready: false, screen: "intro", busy: false, summarySignature: "", planSignature: "", recorded: false };
   const categoryIds = catalog.map(category => category.id);
   const mysteryCache = new Map();
   const otherRole = () => state.role === "J1" ? "J2" : "J1";
   const ownLabel = () => state.role === "J1" ? "A" : "C";
   const validPick = (category, index) => Number.isInteger(index) && index >= 0 && index < category.cards.length;
-  const validVote = value => Number.isInteger(value) && value >= 0 && value <= 100;
+  const validDecision = value => ["A", "C", "pass"].includes(value);
+  const historyKey = "onde-recent-v1";
+  function recentHistory() {
+    try {
+      const records = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      return Array.isArray(records) ? records.filter(item => typeof item.title === "string" && Number.isFinite(item.at) && Date.now() - item.at < 7 * 86400000).slice(-160) : [];
+    } catch { return []; }
+  }
   const escape = value => String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
 
   function show(name) {
@@ -46,16 +53,46 @@
   }
 
   function deckFor(category) {
+    const shared = state.role === "J1" ? state.own?.offers : state.other?.offers;
+    if (Array.isArray(shared?.[category.id])) return shared[category.id].slice(0, 3);
+    return sampleDeck(category);
+  }
+
+  function sampleDeck(category, history = []) {
     const rng = random(seedFor(`${state.room}:${category.id}:v2`));
+    const recent = new Map(history.map(item => [item.title, item.at]));
+    const preferred = indices => {
+      const unseen = indices.filter(index => !recent.has(category.cards[index].title));
+      const seen = indices.filter(index => recent.has(category.cards[index].title)).sort((a, b) => recent.get(category.cards[a].title) - recent.get(category.cards[b].title));
+      return [...sample(unseen, unseen.length, rng), ...seen];
+    };
     if (category.id === "jeu") {
       const board = category.cards.flatMap((card, index) => card.subtype === "Jeu de société" ? [index] : []);
       const video = category.cards.flatMap((card, index) => card.subtype === "Jeu vidéo" ? [index] : []);
-      return sample([...sample(board, 2, rng), ...sample(video, 1, rng)], 3, rng);
+      return sample([...preferred(board).slice(0, 2), ...preferred(video).slice(0, 1)], 3, rng);
     }
-    return sample(category.cards.map((_, index) => index), 3, rng);
+    return preferred(category.cards.map((_, index) => index)).slice(0, 3);
+  }
+
+  function prepareOffers() {
+    if (state.role !== "J1" || state.own.offers) return;
+    const history = [...(state.own.recent || []), ...(state.other?.recent || [])].filter(item => typeof item?.title === "string" && Number.isFinite(item.at) && Date.now() - item.at < 7 * 86400000).sort((a, b) => a.at - b.at);
+    state.own.offers = Object.fromEntries(catalog.map(category => {
+      const visible = state.own.decks[category.id]?.remaining?.length ? deckFor(category) : sampleDeck(category, history);
+      const unseen = category.cards.map((_, index) => index).filter(index => !visible.includes(index));
+      const recentTitles = new Set(history.map(item => item.title));
+      const fresh = unseen.filter(index => !recentTitles.has(category.cards[index].title));
+      const previousMystery = state.own.decks[category.id]?.mystery ?? state.other?.decks?.[category.id]?.mystery;
+      const mystery = validPick(category, previousMystery) ? previousMystery : sample(fresh.length ? fresh : unseen, 1, random(seedFor(`${state.room}:${category.id}:mystery:v1`)))[0];
+      return [category.id, [...visible, mystery]];
+    }));
+    mysteryCache.clear();
+    save();
   }
 
   function mysteryFor(category) {
+    const shared = state.role === "J1" ? state.own?.offers : state.other?.offers;
+    if (Array.isArray(shared?.[category.id])) return shared[category.id][3];
     const key = `${state.room}:${category.id}`;
     if (mysteryCache.has(key)) return mysteryCache.get(key);
     const visible = new Set(deckFor(category));
@@ -71,7 +108,7 @@
   }
 
   function freshProgress() {
-    return { version: 2, position: 0, decks: {}, picks: {}, votes: {}, skips: {}, finished: false };
+    return { version: 2, position: 0, decks: {}, picks: {}, votes: {}, skips: {}, decisions: {}, recent: recentHistory(), finished: false };
   }
 
   function progressFrom(raw) {
@@ -126,6 +163,8 @@
       const hiddenMystery = index === deck.mystery;
       const card = document.createElement("article");
       card.className = `tile-card${hiddenMystery ? " mystery-card" : ""}`;
+      card.setAttribute("aria-hidden", String(depth !== 0));
+      card.inert = depth !== 0;
       card.dataset.depth = String(depth);
       card.style.setProperty("--card-art", hiddenMystery ? "linear-gradient(145deg, #70506f, #33243f)" : item.art || category.art);
       if (!hiddenMystery && item.visual) {
@@ -148,9 +187,17 @@
       title.textContent = hiddenMystery ? "Mystère" : item.title;
       title.classList.toggle("long-title", !hiddenMystery && item.title.length > 32);
       const description = document.createElement("p");
-      description.textContent = hiddenMystery ? "Son contenu sera révélé sur l’image finale." : item.description;
+      description.textContent = hiddenMystery ? "Tu sauras à la fin. Oui, c’est le principe." : item.description;
+      const number = document.createElement("span");
+      number.className = "tile-number";
+      number.textContent = hiddenMystery ? "? / ONDE" : `${String(deckFor(category).indexOf(index) + 1).padStart(2, "0")} / ONDE`;
+      card.dataset.intensity = ["Simple", "Fun", "Hardcore"].includes(item.subtype) && !hiddenMystery ? item.subtype.toLowerCase() : "";
+      card.style.setProperty("--category-color", hiddenMystery ? "#74465e" : category.color);
       content.append(subtype, title, description);
-      card.append(icon, content);
+      const signal = document.createElement("span");
+      signal.className = "swipe-signal";
+      signal.setAttribute("aria-hidden", "true");
+      card.append(icon, number, content, signal);
       if (depth === 0) bindGesture(card);
       holder.append(card);
     });
@@ -160,15 +207,21 @@
   function animate(action, mutate) {
     if (state.busy) return;
     state.busy = true;
-    $("deck").querySelector('[data-depth="0"]')?.classList.add(action);
+    const top = $("deck").querySelector('[data-depth="0"]');
+    if (top) {
+      top.dataset.swipe = action === "keeping" ? "right" : action === "removing" ? "left" : "up";
+      top.style.setProperty("--swipe-progress", "1");
+      top.classList.add(action);
+    }
     setTimeout(() => {
       mutate();
       state.busy = false;
       if (state.screen === "game") renderDeck();
-    }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 190);
+    }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 230);
   }
 
   function eliminate() {
+    if (!state.ready) return toast("L’autre a décroché. Deux secondes.");
     const deck = currentDeck();
     if (deck.remaining.length <= 1) return toast("Il faut garder une tuile");
     animate("removing", () => {
@@ -178,6 +231,7 @@
   }
 
   function cycle() {
+    if (!state.ready) return toast("L’autre a décroché. Deux secondes.");
     const deck = currentDeck();
     if (deck.remaining.length <= 1) return toast("C’est la dernière tuile");
     animate("cycling", () => {
@@ -187,6 +241,7 @@
   }
 
   function choose() {
+    if (!state.ready) return toast("L’autre a décroché. Deux secondes.");
     const deck = currentDeck();
     if (!deck.remaining.length) return;
     animate("keeping", () => {
@@ -194,11 +249,11 @@
       state.own.picks[category.id] = deck.remaining[0];
       save();
       $("keptCategory").textContent = `${category.name} · ${ownLabel()}`;
-      $("keptTitle").textContent = "Choix enregistré";
+      $("keptTitle").textContent = "C’est dans la boîte.";
       $("keptMessage").textContent = state.own.position === catalog.length - 1
-        ? "Tu as terminé tes catégories. On attend maintenant l’autre téléphone."
-        : `Encore ${catalog.length - state.own.position - 1} catégorie${catalog.length - state.own.position - 1 > 1 ? "s" : ""} à découvrir.`;
-      $("nextCategoryButton").textContent = state.own.position === catalog.length - 1 ? "Terminer mes choix" : "Catégorie suivante";
+        ? "Ton casting est bouclé. Place au duo."
+        : `Plus que ${catalog.length - state.own.position - 1}. T’as du goût, assume.`;
+      $("nextCategoryButton").textContent = state.own.position === catalog.length - 1 ? "Place au verdict" : "La suite →";
       show("kept");
     });
   }
@@ -208,7 +263,18 @@
     card.setAttribute("role", "button");
     card.setAttribute("aria-label", "Glisser à gauche pour éliminer, en haut pour voir la suivante, à droite pour valider");
     let drag = null;
+    let frame = null;
+    const reset = () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+      drag = null;
+      card.classList.remove("dragging");
+      card.style.transform = "";
+      card.style.setProperty("--swipe-progress", "0");
+      delete card.dataset.swipe;
+    };
     card.addEventListener("pointerdown", event => {
+      if (state.busy || event.button !== 0 || event.isPrimary === false) return;
       drag = { id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, dy: 0 };
       card.setPointerCapture(event.pointerId);
       card.classList.add("dragging");
@@ -217,20 +283,27 @@
       if (!drag || drag.id !== event.pointerId) return;
       drag.dx = event.clientX - drag.x;
       drag.dy = event.clientY - drag.y;
-      card.style.transform = `translate3d(${drag.dx}px, ${drag.dy}px, 0) rotate(${Math.max(-9, Math.min(9, drag.dx / 20))}deg)`;
+      if (frame === null) frame = requestAnimationFrame(() => {
+        frame = null;
+        if (!drag) return;
+        const { dx, dy } = drag;
+        card.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotate(${Math.max(-12, Math.min(12, dx / 17))}deg)`;
+        const up = dy < -15 && Math.abs(dy) > Math.abs(dx);
+        card.dataset.swipe = up ? "up" : dx < 0 ? "left" : "right";
+        card.style.setProperty("--swipe-progress", String(Math.min(1, (up ? -dy : Math.abs(dx)) / 85)));
+      });
     });
     card.addEventListener("pointerup", event => {
       if (!drag || drag.id !== event.pointerId) return;
       const { dx, dy } = drag;
-      drag = null;
-      card.classList.remove("dragging");
-      card.style.transform = "";
+      reset();
       if (dy < -60 && Math.abs(dy) > Math.abs(dx)) cycle();
       else if (dx < -65) eliminate();
       else if (dx > 65) choose();
     });
-    card.addEventListener("pointercancel", () => { drag = null; card.classList.remove("dragging"); card.style.transform = ""; });
+    card.addEventListener("pointercancel", reset);
     card.addEventListener("keydown", event => {
+      if (["ArrowLeft", "ArrowUp", "ArrowRight", "Enter"].includes(event.key)) event.preventDefault();
       if (event.key === "ArrowLeft") eliminate();
       if (event.key === "ArrowUp") cycle();
       if (event.key === "ArrowRight" || event.key === "Enter") choose();
@@ -246,6 +319,7 @@
   }
 
   function moveNext() {
+    if (!state.ready) return toast("On attend la reconnexion de l’autre.");
     state.own.position += 1;
     if (state.own.position >= catalog.length) {
       state.own.finished = true;
@@ -262,7 +336,7 @@
   function maybeResolve() {
     if (!state.own?.finished) return;
     if (!state.other?.finished || !catalog.every(category => validPick(category, state.other.picks?.[category.id]))) {
-      $("waitingStatus").textContent = `Tes ${catalog.length} choix sont prêts. L’autre avance à son rythme.`;
+      $("waitingStatus").textContent = "T’es prêt. L’autre peaufine son casting.";
       if (state.screen !== "waiting") show("waiting");
       return;
     }
@@ -282,57 +356,49 @@
     const [a, c] = picksFor(category);
     if (!validPick(category, a) || !validPick(category, c)) return null;
     if (a === c) return { title: titleFor(category, a, revealMystery), kind: "accord", mystery: isMystery(category, a) };
-    if (state.own.skips[category.id] && state.other.skips?.[category.id]) return { title: "Pas aujourd’hui", kind: "reporté" };
-    const ownVote = state.own.votes[category.id];
-    const otherVote = state.other.votes?.[category.id];
-    if (!validVote(ownVote) || !validVote(otherVote)) return null;
-    const voteA = state.role === "J1" ? ownVote : otherVote;
-    const voteC = state.role === "J2" ? ownVote : otherVote;
-    if (Math.max(voteA, voteC) * 10 <= (voteA + voteC) * 7) return { title: "Écart insuffisant", kind: "écart" };
-    const chosen = voteA > voteC ? a : c;
+    const ownDecision = state.own.decisions[category.id];
+    const otherDecision = state.other.decisions?.[category.id];
+    if (ownDecision === "pass" || otherDecision === "pass") return { title: "Pas aujourd’hui", kind: "reporté" };
+    if (!validDecision(ownDecision) || ownDecision !== otherDecision) return null;
+    const chosen = ownDecision === "A" ? a : c;
     return { title: titleFor(category, chosen, revealMystery), kind: "choisi", mystery: isMystery(category, chosen) };
   }
 
   function refreshSummary() {
     for (const duel of $("decisionList").children) {
       const category = byId[duel.dataset.category];
-      const ownVote = state.own.votes[category.id];
-      const otherVote = state.other.votes?.[category.id];
-      const bothVoted = validVote(ownVote) && validVote(otherVote);
-      const ownSkipped = Boolean(state.own.skips[category.id]);
-      const otherSkipped = Boolean(state.other.skips?.[category.id]);
+      const ownDecision = state.own.decisions[category.id];
+      const otherDecision = state.other.decisions?.[category.id];
       const result = resultFor(category);
-      const skipButton = duel.querySelector(".skip-own");
-      skipButton.classList.toggle("pressed", ownSkipped);
-      skipButton.setAttribute("aria-pressed", String(ownSkipped));
-      skipButton.textContent = `${ownSkipped ? "✓ " : ""}Pas aujourd’hui · ${ownLabel()}`;
-      duel.querySelector(".skip-note").textContent = otherSkipped
-        ? "L’autre a aussi choisi « pas aujourd’hui »."
-        : "Mis de côté si vous le choisissez tous les deux.";
-      duel.querySelector(".vote-confirm").textContent = validVote(ownVote) ? "Modifier ma jauge" : "Valider ma jauge";
-      if (bothVoted) {
-        const voteA = state.role === "J1" ? ownVote : otherVote;
-        const voteC = state.role === "J2" ? ownVote : otherVote;
-        const share = voteA + voteC ? Math.round(voteA / (voteA + voteC) * 100) : 50;
-        duel.querySelector(".gauge-j1").style.width = `${share}%`;
-        duel.querySelector(".gauge-marker").style.left = `${share}%`;
-        duel.querySelector(".gauge-score").textContent = `${voteA} / ${voteC}`;
-      } else {
-        duel.querySelector(".gauge-score").textContent = "En attente des deux jauges";
-      }
-      duel.querySelector(".gauge-result").textContent = result
-        ? result.kind === "reporté" ? "Mis de côté aujourd’hui"
-          : result.kind === "écart" ? "Écart de 70 % ou moins · absent de l’image finale"
-          : result.mystery ? "Mystère retenu · révélation sur l’image finale"
-          : `${result.title} est retenu`
-        : validVote(ownVote) ? "En attente de la jauge de l’autre"
-          : "Chacun valide sa propre jauge";
+      const conflict = validDecision(ownDecision) && validDecision(otherDecision) && ownDecision !== otherDecision && !result;
+      duel.classList.toggle("resolved", Boolean(result));
+      duel.classList.toggle("discarded", result?.kind === "reporté");
+      duel.querySelectorAll("[data-decision]").forEach(button => {
+        const selected = button.dataset.decision === ownDecision;
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-pressed", String(selected));
+        button.disabled = !state.ready;
+      });
+      const nudge = duel.querySelector(".duel-nudge");
+      nudge.hidden = !conflict;
+      nudge.textContent = category.id === "sexualite"
+        ? "Pas le même oui ? Discutez. Un non suffit pour passer."
+        : "Parfois, on lâche le morceau. Tu lui laisses la main ?";
+      duel.querySelector(".concede-actions").hidden = !conflict;
+      const message = result ? result.kind === "reporté" ? "On zappe. Zéro justification."
+        : result.mystery ? "Mystère retenu. Suspense jusqu’au bout."
+        : "Ça matche. C’est plié."
+        : conflict ? "Choisissez la même carte pour trancher."
+        : validDecision(ownDecision) ? "Ton vote est posé. À l’autre."
+        : "Une carte. Un vote. À toi.";
+      const status = duel.querySelector(".duel-status");
+      if (status.textContent !== message) status.textContent = message;
     }
     const count = catalog.filter(category => resultFor(category)).length;
-    $("showPlanButton").disabled = count !== catalog.length;
+    $("showPlanButton").disabled = count !== catalog.length || !state.ready;
     $("summaryStatus").textContent = count === catalog.length
-      ? "Tout est décidé. Votre feuille du jour est prête."
-      : `${count} décision${count > 1 ? "s" : ""} sur ${catalog.length} finalisée${count > 1 ? "s" : ""}.`;
+      ? "Bouclé. Sortez le programme."
+      : `${count} / ${catalog.length} · Ça se précise.`;
   }
 
   function renderSummary() {
@@ -354,37 +420,27 @@
           continue;
         }
         differences++;
-        const ownVote = state.own.votes[category.id];
         const duel = document.createElement("article");
         duel.className = "decision-card";
         duel.dataset.category = category.id;
         duel.innerHTML = `<div class="decision-category"><span>${escape(category.icon)}</span><strong>${escape(category.name)}</strong></div>
           <div class="duel-options">
-            <div class="result-card duel-option${isMystery(category, a) ? " mystery-result" : ""}" style="--item-bg:${category.art}"><small>Choix de A</small><strong>${escape(titleFor(category, a))}</strong></div>
-            <div class="result-card duel-option${isMystery(category, c) ? " mystery-result" : ""}" style="--item-bg:${category.art}"><small>Choix de C</small><strong>${escape(titleFor(category, c))}</strong></div>
+            <button type="button" data-decision="A" class="result-card duel-option${isMystery(category, a) ? " mystery-result" : ""}" style="--item-bg:${category.art}"><small>Le choix de A</small><strong>${escape(titleFor(category, a))}</strong><span class="duel-cta">Je vote A <span aria-hidden="true">↗</span></span></button>
+            <button type="button" data-decision="C" class="result-card duel-option${isMystery(category, c) ? " mystery-result" : ""}" style="--item-bg:${category.art}"><small>Le choix de C</small><strong>${escape(titleFor(category, c))}</strong><span class="duel-cta">Je vote C <span aria-hidden="true">↗</span></span></button>
           </div>
-          <div class="own-vote"><label for="vote-${category.id}">Ta jauge · ${ownLabel()} <output>${validVote(ownVote) ? ownVote : 50}</output></label>
-            <input id="vote-${category.id}" type="range" min="0" max="100" value="${validVote(ownVote) ? ownVote : 50}">
-            <button type="button" class="vote-confirm">Valider ma jauge</button>
-          </div>
-          <div class="combined-gauge"><div class="gauge-track"><span class="gauge-j1"></span><i class="gauge-marker"></i></div>
-            <div class="gauge-labels"><span>A</span><strong class="gauge-score">En attente des deux jauges</strong><span>C</span></div>
-            <p class="gauge-result">Chacun valide sa propre jauge</p></div>
-          <button type="button" class="skip-own">Pas aujourd’hui · ${ownLabel()}</button>
-          <p class="skip-note">Mis de côté si vous le choisissez tous les deux.</p>`;
-        const slider = duel.querySelector("input");
-        const output = duel.querySelector("output");
-        slider.addEventListener("input", () => { output.value = slider.value; });
-        duel.querySelector(".vote-confirm").addEventListener("click", () => {
-          state.own.votes[category.id] = Number(slider.value);
+          <p class="duel-nudge" hidden></p>
+          <div class="concede-actions" hidden><button type="button" class="follow-choice">Je te suis ♥</button><button type="button" class="keep-choice">Je garde mon choix</button></div>
+          <button type="button" class="pass-choice" data-decision="pass">Pas aujourd’hui · On zappe</button>
+          <p class="duel-status" role="status"></p>`;
+        const vote = value => {
+          if (!state.ready) return toast("On attend la reconnexion de l’autre.");
+          state.own.decisions[category.id] = value;
           save();
           refreshSummary();
-        });
-        duel.querySelector(".skip-own").addEventListener("click", () => {
-          state.own.skips[category.id] = !state.own.skips[category.id];
-          save();
-          refreshSummary();
-        });
+        };
+        duel.querySelectorAll("[data-decision]").forEach(button => button.addEventListener("click", () => vote(button.dataset.decision)));
+        duel.querySelector(".follow-choice").addEventListener("click", () => vote(ownLabel() === "A" ? "C" : "A"));
+        duel.querySelector(".keep-choice").addEventListener("click", () => vote(ownLabel()));
         $("decisionList").append(duel);
       }
       $("matchSection").hidden = !$("matchGrid").children.length;
@@ -421,49 +477,103 @@
   }
 
   function drawPlan() {
+    const oldLink = $("planDownloadLink");
+    if (oldLink) { URL.revokeObjectURL(oldLink.href); oldLink.remove(); }
+    state.planSignature = JSON.stringify(catalog.map(category => resultFor(category, true)));
     const canvas = $("planCanvas");
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#f7f0e8";
+    ctx.fillStyle = "#f6f0e6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#74465e";
-    ctx.font = "700 30px system-ui";
-    ctx.fillText("ON DÉCIDE · À DEUX", 90, 100);
+    ctx.font = "700 22px system-ui";
+    ctx.fillText("TIRAGE À DEUX     /     ÉDITION DU JOUR", 82, 82);
     ctx.fillStyle = "#252222";
-    ctx.font = "800 100px system-ui";
-    ctx.fillText("ONDE.", 82, 215);
-    ctx.font = "500 30px system-ui";
+    ctx.font = "900 138px system-ui";
+    ctx.fillText("ONDE", 72, 220);
+    ctx.fillStyle = "#cc6f59";
+    ctx.fillText(".", 485, 220);
+    ctx.font = "600 24px system-ui";
     ctx.fillStyle = "#746e69";
-    ctx.fillText(new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date()), 90, 270);
+    ctx.fillText(new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date()).toUpperCase(), 82, 277);
+    ctx.textAlign = "right";
+    ctx.fillText("A + C  /  C’EST PLIÉ.", 1118, 277);
+    ctx.textAlign = "left";
+    ctx.strokeStyle = "#d7ccbe";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(82, 303); ctx.lineTo(1118, 303); ctx.stroke();
     const today = catalog.filter(category => {
       const kind = resultFor(category)?.kind;
       return kind && kind !== "reporté" && kind !== "écart";
     });
     if (!today.length) {
       ctx.font = "650 42px system-ui";
-      ctx.fillText("Rien à prévoir aujourd’hui.", 90, 420, 990);
+      ctx.fillText("Rien d’imposé. Juste nous.", 90, 470, 990);
+      ctx.font = "500 28px system-ui";
+      ctx.fillStyle = "#746e69";
+      ctx.fillText("Le meilleur programme, parfois, c’est aucun.", 90, 530, 990);
     }
     today.forEach((category, index) => {
       const result = resultFor(category, true);
-      const y = 330 + index * 228;
-      ctx.fillStyle = "#ffffff";
-      rounded(ctx, 82, y, 1036, 200, 30);
+      const y = 336 + index * 222;
+      ctx.fillStyle = "#fffcf6";
+      rounded(ctx, 82, y, 1036, 204, 24);
       ctx.fill();
+      ctx.strokeStyle = "#ded4c7";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      const gradient = ctx.createLinearGradient(102, y + 20, 264, y + 184);
+      gradient.addColorStop(0, category.color);
+      gradient.addColorStop(1, category.id === "sexualite" ? "#8f3745" : "#514c49");
+      ctx.fillStyle = gradient;
+      rounded(ctx, 102, y + 20, 142, 164, 15);
+      ctx.fill();
+      ctx.save();
+      ctx.beginPath(); rounded(ctx, 102, y + 20, 142, 164, 15); ctx.clip();
+      ctx.strokeStyle = "#ffffff25";
+      ctx.lineWidth = 17;
+      ctx.beginPath(); ctx.arc(218, y + 80, 70, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = "#fff8ec";
+      ctx.font = "750 44px system-ui";
+      ctx.fillText(String(index + 1).padStart(2, "0"), 121, y + 145);
       ctx.fillStyle = category.color;
-      rounded(ctx, 82, y, 12, 200, 6);
-      ctx.fill();
-      ctx.fillStyle = "#74465e";
-      ctx.font = "700 25px system-ui";
-      ctx.fillText(result?.mystery ? `${category.name.toUpperCase()} · MYSTÈRE RÉVÉLÉ` : category.name.toUpperCase(), 122, y + 50);
+      ctx.font = "750 20px system-ui";
+      ctx.fillText(result?.mystery ? `${category.name.toUpperCase()} · SURPRISE !` : category.name.toUpperCase(), 276, y + 42);
       ctx.fillStyle = "#252222";
-      ctx.font = "700 42px system-ui";
-      drawText(ctx, result?.title || "À décider", 122, y + 112, 930, 48, 2);
+      const longTitle = result.title.length > 65;
+      ctx.font = `750 ${longTitle ? 30 : 39}px system-ui`;
+      drawText(ctx, result?.title || "À décider", 276, y + 88, 810, longTitle ? 34 : 42, 3);
       ctx.fillStyle = "#746e69";
-      ctx.font = "500 22px system-ui";
-      ctx.fillText(result?.kind === "reporté" ? "D’un commun accord" : result?.kind === "accord" ? "Choisi ensemble" : "Décidé à deux", 122, y + 171);
+      ctx.font = "600 18px system-ui";
+      ctx.fillText(result?.kind === "accord" ? "MÊME ENVIE. ÉVIDEMMENT." : "ON EST DEUX À DIRE OUI.", 276, y + 184);
     });
     ctx.fillStyle = "#746e69";
-    ctx.font = "500 26px system-ui";
-    ctx.fillText(`${today.length} idée${today.length > 1 ? "s" : ""} à vivre · une chose à la fois, ensemble.`, 90, 1550);
+    ctx.font = "700 24px system-ui";
+    ctx.fillText(`${today.length} ENVIE${today.length > 1 ? "S" : ""}. ZÉRO OBLIGATION.`, 82, 1510);
+    ctx.textAlign = "right";
+    ctx.font = "500 22px system-ui";
+    ctx.fillText("Maintenant, profitez. Bordel.", 1118, 1510);
+    ctx.textAlign = "left";
+    const noise = document.createElement("canvas");
+    noise.width = noise.height = 180;
+    const noiseCtx = noise.getContext("2d");
+    const pixels = noiseCtx.createImageData(180, 180);
+    const rng = random(197904);
+    for (let p = 0; p < pixels.data.length; p += 4) {
+      const shade = rng() > .5 ? 255 : 35;
+      pixels.data[p] = pixels.data[p + 1] = pixels.data[p + 2] = shade;
+      pixels.data[p + 3] = Math.floor(rng() * 30);
+    }
+    noiseCtx.putImageData(pixels, 0, 0);
+    ctx.fillStyle = ctx.createPattern(noise, "repeat");
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function rememberSession() {
+    const records = recentHistory();
+    const titles = catalog.flatMap(category => [...deckFor(category), mysteryFor(category)].map(index => category.cards[index]?.title).filter(Boolean));
+    const remaining = records.filter(item => !titles.includes(item.title));
+    try { localStorage.setItem(historyKey, JSON.stringify([...remaining, ...titles.map(title => ({ title, at: Date.now() }))].slice(-160))); } catch {}
   }
 
   async function savePlan() {
@@ -471,16 +581,21 @@
     const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
     if (!blob) return toast("Impossible de créer l’image");
     const file = new File([blob], `ONDE-${new Date().toISOString().slice(0, 10)}.png`, { type: "image/png" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const oldLink = $("planDownloadLink");
+    if (oldLink) { URL.revokeObjectURL(oldLink.href); oldLink.remove(); }
+    link.id = "planDownloadLink";
+    link.className = "download-link";
+    link.href = url;
+    link.download = file.name;
+    link.textContent = "Image prête · Télécharger ↓";
+    $("savePlanButton").after(link);
     if (navigator.canShare?.({ files: [file] })) {
       try { await navigator.share({ files: [file], title: "ONDE · notre feuille du jour" }); return; }
       catch (error) { if (error.name === "AbortError") return; }
     }
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = file.name;
     link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
   document.querySelectorAll(".player-choice-button").forEach(button => button.addEventListener("click", () => {
@@ -488,7 +603,7 @@
       item.classList.toggle("selected", item === button);
       item.setAttribute("aria-pressed", String(item === button));
     });
-    $("welcomeStatus").textContent = `${button.dataset.player === "J1" ? "A" : "C"} sélectionné sur ce téléphone.`;
+    $("welcomeStatus").textContent = `${button.dataset.player === "J1" ? "A" : "C"}. C’est toi. On y va.`;
   }));
   $("undoButton").addEventListener("click", () => {
     const deck = currentDeck();
@@ -498,26 +613,38 @@
     renderDeck();
   });
   $("nextCategoryButton").addEventListener("click", moveNext);
-  $("showPlanButton").addEventListener("click", () => { drawPlan(); show("plan"); });
+    $("showPlanButton").addEventListener("click", () => { if (state.ready) { drawPlan(); show("plan"); } });
   $("savePlanButton").addEventListener("click", savePlan);
   $("backToSummaryButton").addEventListener("click", () => { show("summary"); renderSummary(); });
   $("restartButton").addEventListener("click", () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=34";
+    location.href = location.pathname + "?v=36";
   });
 
   live.onChange((rows, info) => {
     state.room = info.roomCode;
     state.role = info.role;
+    state.ready = info.ready;
     const ownRow = rows[info.role];
     const otherRow = rows[info.role === "J1" ? "J2" : "J1"];
-    if (!state.own && ownRow) state.own = progressFrom(ownRow.state);
+    if (!state.own && ownRow) {
+      state.own = progressFrom(ownRow.state);
+      if (ownRow.state?.version !== 2) save();
+    }
     state.other = otherRow?.state?.version === 2 ? progressFrom(otherRow.state) : null;
+    const otherName = ownLabel() === "A" ? "C" : "A";
+    $("partnerActivity").textContent = !info.ready ? "L’autre arrive…" : state.other?.finished ? `${otherName} a fini son casting` : `${otherName} choisit à son rythme`;
     if (!info.ready) {
-      if (state.screen === "intro") $("welcomeStatus").textContent = "Ta diode est prête. L’autre téléphone peut rejoindre.";
+      if (state.screen === "intro") $("welcomeStatus").textContent = "T’es là. Fais venir ta moitié.";
+      if (state.screen === "summary") refreshSummary();
       return;
     }
+    if (!state.other) return;
+    prepareOffers();
+    const sharedOffers = state.role === "J1" ? state.own.offers : state.other.offers;
+    if (!sharedOffers) { $("welcomeStatus").textContent = "On mélange les envies…"; return; }
+    if (!state.recorded) { rememberSession(); state.recorded = true; }
     if (state.screen === "intro") {
       if (!state.own) state.own = freshProgress();
       if (state.own.finished) maybeResolve();
@@ -525,13 +652,13 @@
         show("kept");
         const category = currentCategory();
         $("keptCategory").textContent = category.name;
-        $("keptTitle").textContent = "Choix enregistré";
-        $("keptMessage").textContent = "Tu peux passer à la catégorie suivante.";
-        $("nextCategoryButton").textContent = state.own.position === catalog.length - 1 ? "Terminer mes choix" : "Catégorie suivante";
+        $("keptTitle").textContent = "C’est dans la boîte.";
+        $("keptMessage").textContent = "On continue ?";
+        $("nextCategoryButton").textContent = state.own.position === catalog.length - 1 ? "Place au verdict" : "La suite →";
       } else { show("game"); renderDeck(); }
     } else if (state.own?.finished) maybeResolve();
     if (state.screen === "summary") renderSummary();
-    if (state.screen === "plan") drawPlan();
+    if (state.screen === "plan" && state.planSignature !== JSON.stringify(catalog.map(category => resultFor(category, true)))) drawPlan();
   });
 
   const savedRole = sessionStorage.getItem("onde-role");

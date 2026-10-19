@@ -19,11 +19,15 @@ window.ondeLive = (() => {
   let pollTimer = null;
   let writeQueue = Promise.resolve();
   let listener = () => {};
+  let networkOK = false;
+  let pendingPayload = null;
+  let generation = 0;
+  const badge = document.getElementById("syncLabel");
 
   const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), value => alphabet[value % alphabet.length]).join("");
   const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), value => value.toString(16).padStart(2, "0")).join("");
-  const fresh = row => row && Date.now() - new Date(row.last_seen).getTime() < 45000;
-  const ready = () => Boolean(fresh(rows.J1) && fresh(rows.J2));
+  const fresh = row => row && Date.now() - new Date(row.last_seen).getTime() < 15000;
+  const ready = () => networkOK && Boolean(fresh(rows.J1) && fresh(rows.J2));
 
   function setStatus(message, good = false) {
     status.textContent = message;
@@ -35,7 +39,11 @@ window.ondeLive = (() => {
     controls.hidden = true;
     codeBox.hidden = false;
     codeValue.textContent = roomCode;
-    setStatus(ready() ? `${roomCode} · A et C sont connectés.` : `${roomCode} · ${role === "J1" ? "A" : "C"} connecté. En attente de l’autre téléphone.`, ready());
+    setStatus(!networkOK ? "Ça capte mal. On retente…" : ready() ? `${roomCode} · Duo connecté.` : `${roomCode} · L’autre arrive…`, ready());
+    if (badge) {
+      badge.textContent = !networkOK ? "Reconnexion…" : pendingPayload ? "Sauvegarde…" : ready() ? "Synchronisé" : "L’autre arrive…";
+      badge.parentElement.dataset.status = !networkOK ? "offline" : pendingPayload ? "saving" : ready() ? "online" : "waiting";
+    }
     listener({ ...rows }, { roomCode, role, ready: ready() });
   }
 
@@ -48,8 +56,23 @@ window.ondeLive = (() => {
       p_state: state
     });
     if (error) throw error;
+    networkOK = true;
     rows = Object.fromEntries((data || []).map(row => [row.role, row]));
-    announce();
+  }
+
+  function enqueue(payload = null, create = false) {
+    const current = generation;
+    const run = writeQueue.catch(() => {}).then(async () => {
+      if (current !== generation) return;
+      await exchange(payload, create);
+      if (payload && pendingPayload === payload) pendingPayload = null;
+      announce();
+    }).catch(error => {
+      if (current === generation) { networkOK = false; announce(); }
+      throw error;
+    });
+    writeQueue = run;
+    return run;
   }
 
   async function connect(code, selectedRole, create) {
@@ -63,19 +86,22 @@ window.ondeLive = (() => {
     joinButton.disabled = true;
     setStatus("Connexion en cours…");
     clearInterval(pollTimer);
+    generation++;
+    rows = {};
+    pendingPayload = null;
     roomCode = normalized;
     role = selectedRole;
     const tokenKey = `onde-token:${roomCode}:${role}`;
     token = sessionStorage.getItem(tokenKey) || newToken();
     try {
-      await exchange(null, create);
+      await enqueue(null, create);
       sessionStorage.setItem(tokenKey, token);
       sessionStorage.setItem("onde-room", roomCode);
       sessionStorage.setItem("onde-role", role);
       input.value = roomCode;
       clearInterval(pollTimer);
       pollTimer = setInterval(() => {
-        exchange().catch(() => setStatus("Connexion interrompue. Nouvelle tentative en cours…"));
+        enqueue(pendingPayload).catch(() => {});
       }, 3000);
       return true;
     } catch (error) {
@@ -117,7 +143,7 @@ window.ondeLive = (() => {
   copyButton.addEventListener("click", async () => {
     const invite = new URL(location.href);
     invite.search = "";
-    invite.searchParams.set("v", "33");
+    invite.searchParams.set("v", "36");
     invite.searchParams.set("room", roomCode);
     try {
       await navigator.clipboard.writeText(invite.href);
@@ -135,9 +161,10 @@ window.ondeLive = (() => {
     async push(state) {
       if (!roomCode || !role) return false;
       const payload = JSON.parse(JSON.stringify(state));
-      writeQueue = writeQueue.catch(() => {}).then(() => exchange(payload));
-      try { await writeQueue; return true; }
-      catch { setStatus("Sauvegarde interrompue. Vérifie la connexion."); return false; }
+      pendingPayload = payload;
+      if (badge) { badge.textContent = "Sauvegarde…"; badge.parentElement.dataset.status = "saving"; }
+      try { await enqueue(payload); return true; }
+      catch { return false; }
     },
     setStatus,
     connect

@@ -10,41 +10,38 @@
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=34">
+  <link rel="stylesheet" href="styles.css?v=36">
+  <link rel="stylesheet" href="finish.css?v=36">
   <title>ONDE — on décide</title>
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">On décide</p>
-        <h1>ONDE<span class="logo-dot">.</span></h1>
-      </div>
-      <span class="presence-pill"><i aria-hidden="true"></i> À deux</span>
+      <div class="live-presence"><span class="presence-pill" data-status="waiting" role="status"><i aria-hidden="true"></i><span id="syncLabel">À deux, bordel.</span></span><small id="partnerActivity"></small></div>
     </header>
 
     <section class="intro welcome" id="introScreen">
-      <p class="kicker">Une décision à deux</p>
-      <h2>ONDE<span class="logo-dot">.</span></h2>
-      <p>Choisis ta diode. L’autre choisira la sienne sur son téléphone.</p>
+      <p class="kicker">Nos envies. Notre bordel.</p>
+      <h2 class="wordmark" aria-label="ONDE"><span aria-hidden="true">O</span><span aria-hidden="true">N</span><span aria-hidden="true">D</span><span aria-hidden="true">E</span><span class="logo-dot" aria-hidden="true">.</span></h2>
+      <p>Ta diode. Ton téléphone. À toi de jouer.</p>
       <div class="player-choice" role="group" aria-label="Choix des participants">
         <button class="player-choice-button" data-player="J1" type="button"><span class="diode diode-a" aria-hidden="true"></span><strong>A</strong><small>J1</small></button>
         <button class="player-choice-button" data-player="J2" type="button"><span class="diode diode-c" aria-hidden="true"></span><strong>C</strong><small>J2</small></button>
       </div>
       <div class="room-controls">
-        <button id="createRoomButton" class="primary-button" type="button">Créer une session</button>
+        <button id="createRoomButton" class="primary-button" type="button">On se lance →</button>
         <div class="room-join">
           <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code reçu" aria-label="Code de session reçu">
-          <button id="joinRoomButton" class="text-button" type="button">Rejoindre</button>
+          <button id="joinRoomButton" class="text-button" type="button">J’arrive →</button>
         </div>
       </div>
       <div class="session-code" id="sessionCodeBox" hidden>
-        <span>Code à envoyer à l’autre téléphone</span>
+        <span>Balance ce code à ta moitié</span>
         <strong id="sessionCodeValue"></strong>
-        <button id="copyInviteButton" class="text-button" type="button">Copier le lien d’invitation</button>
+        <button id="copyInviteButton" class="text-button" type="button">Copier le lien</button>
       </div>
-      <p class="room-status" id="roomStatus" role="status">Premier téléphone : crée une session. Second téléphone : rejoins-la avec le code ou le lien.</p>
-      <p class="welcome-status" id="welcomeStatus" role="status">Choisis A ou C sur chaque téléphone.</p>
+      <p class="room-status" id="roomStatus" role="status">L’un lance. L’autre entre le code.</p>
+      <p class="welcome-status" id="welcomeStatus" role="status">A ou C. C’est qui, toi ?</p>
     </section>
 
     <section class="game" id="gameScreen" hidden aria-live="polite">
@@ -89,55 +86,55 @@
       <div class="sealed-card">
         <span class="sealed-icon" aria-hidden="true">✦</span>
         <p id="keptCategory">Film</p>
-        <h2 id="keptTitle">Choix enregistré</h2>
-        <p id="keptMessage">Une catégorie à la fois.</p>
+        <h2 id="keptTitle">C’est dans la boîte.</h2>
+        <p id="keptMessage">Au suivant.</p>
       </div>
-      <button class="primary-button" id="nextCategoryButton" type="button">Catégorie suivante</button>
+      <button class="primary-button" id="nextCategoryButton" type="button">La suite →</button>
     </section>
 
     <section class="waiting" id="waitingScreen" hidden aria-live="polite">
       <div class="waiting-orbit" aria-hidden="true">✦</div>
-      <p class="kicker">Tes choix sont enregistrés</p>
-      <h2>On attend l’autre.</h2>
-      <p>La résolution s’ouvrira ici dès que vous aurez tous les deux choisi dans chaque catégorie.</p>
+      <p class="kicker">Ton casting est bouclé</p>
+      <h2>L’autre cogite.</h2>
+      <p>Chacun son rythme. Le verdict arrive à deux.</p>
       <p class="waiting-status" id="waitingStatus" role="status">Connexion en cours…</p>
     </section>
 
     <section class="summary" id="summaryScreen" hidden>
-      <p class="kicker">Résolution à deux</p>
-      <h2>Voici là où vos envies se rejoignent.</h2>
-      <p class="summary-lead">Vos choix communs sont retenus. Pour les autres, chacun règle sa jauge : un choix n’est retenu que si son poids dépasse 70 % du total. Les cartes Mystère se dévoilent sur l’image finale.</p>
+      <p class="kicker">Le face-à-face</p>
+      <h2>Alors, on tranche ?</h2>
+      <p class="summary-lead">Même carte, deux oui : c’est plié. Sinon, on discute ou on zappe.</p>
 
       <section class="result-section" id="matchSection">
-        <div class="result-heading"><span aria-hidden="true">◎</span><div><small>En commun</small><h3>Vos accords</h3></div></div>
+        <div class="result-heading"><span aria-hidden="true">◎</span><div><small>Sans négocier</small><h3>Même délire.</h3></div></div>
         <div class="match-grid" id="matchGrid"></div>
       </section>
 
       <section class="result-section" id="decisionSection">
-        <div class="result-heading"><span aria-hidden="true">↔</span><div><small>À rapprocher</small><h3>Décidez ensemble</h3></div></div>
+        <div class="result-heading"><span aria-hidden="true">↔</span><div><small>À vous de voir</small><h3>Qui suit qui ?</h3></div></div>
         <div class="decision-list" id="decisionList"></div>
       </section>
 
-      <button class="primary-button" id="showPlanButton" type="button" disabled>Voir notre feuille du jour</button>
+      <button class="primary-button" id="showPlanButton" type="button" disabled>Sors le programme →</button>
       <p class="summary-status" id="summaryStatus" role="status">Répondez chacun aux décisions restantes.</p>
     </section>
 
     <section class="plan-screen" id="planScreen" hidden>
-      <p class="kicker">Votre feuille du jour</p>
-      <h2>On a décidé.</h2>
-      <p>Tout tient dans une image à garder ou à partager.</p>
+      <p class="kicker">Notre tirage du jour</p>
+      <h2>C’est plié.</h2>
+      <p>Nos envies. En une image. Maintenant, profitez.</p>
       <canvas id="planCanvas" width="1200" height="1600" role="img" aria-label="Récapitulatif de vos décisions"></canvas>
-      <button class="primary-button" id="savePlanButton" type="button">Enregistrer l’image</button>
-      <button class="text-button" id="backToSummaryButton" type="button">Revoir les décisions</button>
-      <button class="text-button" id="restartButton" type="button">Nouvelle session</button>
+      <button class="primary-button" id="savePlanButton" type="button">Garde une trace ↓</button>
+      <button class="text-button" id="backToSummaryButton" type="button">Revoir le verdict</button>
+      <button class="text-button" id="restartButton" type="button">On remet ça ?</button>
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
   <script src="media-catalog.js?v=22"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="live.js?v=34"></script>
-  <script src="app.js?v=34"></script>
-  <script src="flow.js?v=34"></script>
+  <script src="live.js?v=36"></script>
+  <script src="app.js?v=36"></script>
+  <script src="flow.js?v=36"></script>
 </body>
 </html>
