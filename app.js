@@ -157,6 +157,7 @@ function freshDecision() {
 
 function saveDecision() {
   localStorage.setItem(stateKey, JSON.stringify(decision));
+  window.ondeLive?.push(decision);
 }
 
 function loadDecision() {
@@ -595,8 +596,19 @@ document.querySelectorAll(".player-choice-button").forEach((button) => {
 
 document.getElementById("startButton").addEventListener("click", () => {
   if (!welcomeChoices.J1 || !welcomeChoices.J2) return;
+  if (!window.ondeLive?.ready) {
+    welcomeStatus.textContent = "Les deux téléphones doivent être connectés à la même session.";
+    return;
+  }
   sessionStorage.setItem(welcomeKey, JSON.stringify(welcomeChoices));
   startNewDecision();
+});
+window.ondeLive?.onChange((remoteState) => {
+  if (!remoteState || JSON.stringify(remoteState) === JSON.stringify(decision)) return;
+  decision = remoteState;
+  localStorage.setItem(stateKey, JSON.stringify(decision));
+  if (decision.complete) { renderResolution(); showScreen("summary"); }
+  else if (screens.game && !screens.game.hidden) renderDeck();
 });
 els.resumeButton.addEventListener("click", resumeDecision);
 els.undoButton.addEventListener("click", undoRemove);
