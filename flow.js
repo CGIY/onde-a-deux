@@ -504,7 +504,7 @@
   $("restartButton").addEventListener("click", () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=33";
+    location.href = location.pathname + "?v=34";
   });
 
   live.onChange((rows, info) => {

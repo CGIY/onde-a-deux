@@ -70,7 +70,25 @@ const categories = [
       { title: "Café en ville", description: "Sortir prendre un café sans autre programme.", subtype: "Action", visual: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=500&q=80" },
       { title: "Mot doux caché", description: "Glisser un petit mot tendre dans un endroit où l’autre le trouvera plus tard.", subtype: "Mignonnerie", visual: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=500&q=80" },
       { title: "Aquarelle à deux", description: "Peindre ensemble sans chercher à faire parfait.", subtype: "Action", visual: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=500&q=80" },
-      { title: "Photos souvenir", description: "Faire quelques photos spontanées du moment, juste pour vous.", subtype: "Mignonnerie", visual: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=500&q=80" }
+      { title: "Photos souvenir", description: "Faire quelques photos spontanées du moment, juste pour vous.", subtype: "Mignonnerie", visual: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=500&q=80" },
+      ...[
+        ["Petit-déjeuner au lit", "Préparer un petit-déjeuner et le partager au lit, sans se presser."],
+        ["Préparer la boisson préférée de l’autre", "Préparer la boisson préférée de l’autre et la lui apporter comme une attention surprise."],
+        ["6h sans téléphone", "Passer six heures sans téléphone, sauf urgence, pour profiter pleinement du moment à deux."],
+        ["Se préparer une mini boîte de snacks préférés", "Composer une petite boîte avec les snacks préférés de l’autre."],
+        ["Faire un portrait rapide de l’autre", "Dessiner ou peindre un portrait rapide de l’autre, sans chercher la perfection."],
+        ["Faire une sieste enlacés", "S’accorder une sieste enlacés, au calme, sans programme derrière."],
+        ["Choisir une tenue l’un pour l’autre", "Choisir chacun une tenue pour l’autre et jouer le jeu le temps d’une sortie ou d’un moment à deux."],
+        ["Se faire un massage des mains", "Prendre quelques minutes pour se masser les mains à tour de rôle."]
+      ].map(([title, description]) => ({ title, description, subtype: "Mignonnerie", visual: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=500&q=80" })),
+      ...[
+        ["Défi magasin d’occasion avec 10 € maximum", "Trouver chacun un objet amusant ou utile dans un magasin d’occasion, avec 10 € maximum."],
+        ["Visiter une rue ou un quartier inconnu", "Choisir une rue ou un quartier que vous ne connaissez pas et l’explorer ensemble."],
+        ["Faire une chasse photo dans la ville", "Partir avec une petite liste de choses à photographier dans la ville."],
+        ["Aller s’acheter chacun un livre à moins de 10 €", "Choisir chacun un livre à moins de 10 €, puis prendre un moment pour en parler."],
+        ["Préparer ensemble une recette avec trois ingrédients imposés", "Inventer un plat à deux à partir de trois ingrédients imposés."],
+        ["Fabriquer un objet ou une décoration pour la maison", "Créer ensemble un petit objet ou une décoration pour la maison."]
+      ].map(([title, description]) => ({ title, description, subtype: "Action", visual: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=500&q=80" }))
     ]
   },
   {
@@ -87,7 +105,15 @@ const categories = [
       { title: "BK", description: "Le plaisir régressif assumé, avec la commande que l’on connaît déjà par cœur.", subtype: "Fast-food", visual: "https://images.unsplash.com/photo-1619881590738-a111d176d906?auto=format&fit=crop&w=500&q=80" },
       ...["KFC", "Kebab/Tacos", "Sushi"].map((title) => ({ title, description: "Une commande à choisir et partager à deux.", subtype: "Fast-food", visual: "https://images.unsplash.com/photo-1552566626-52f8b828?auto=format&fit=crop&w=500&q=80" })),
       { title: "McDonald’s", description: "Le plaisir régressif assumé, avec la commande que l’on connaît déjà par cœur.", subtype: "Fast-food", visual: "https://images.unsplash.com/photo-1619881590738-a111d176d906?auto=format&fit=crop&w=500&q=80" },
-      { title: "Plaid et chocolat", description: "Éteindre les grandes lumières, sortir le plaid et prendre du chocolat.", subtype: "Canapé", visual: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=500&q=80" }
+      { title: "Plaid et chocolat", description: "Éteindre les grandes lumières, sortir le plaid et prendre du chocolat.", subtype: "Canapé", visual: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=500&q=80" },
+      ...[
+        ["Petites pizzas trois fromages", "Préparer de petites pizzas trois fromages et les partager à la sortie du four."],
+        ["Petits feuilletés + crudités", "Installer quelques petits feuilletés, des crudités et une sauce à partager."],
+        ["Gougères + jus de pomme pétillant", "Préparer ou réchauffer des gougères et servir un jus de pomme pétillant."],
+        ["Mini-quiches + salade rapide", "Préparer des mini-quiches accompagnées d’une salade simple et rapide."],
+        ["Plateau Thiriet · moins de 20 €", "Composer un plateau apéro Thiriet à moins de 20 € et le déguster ensemble."],
+        ["Nachos and Dip", "Préparer des nachos avec une ou plusieurs sauces à tremper et choisir la musique du canapé."]
+      ].map(([title, description]) => ({ title, description, subtype: title === "Nachos and Dip" ? "Canapé" : "Apéro", visual: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=500&q=80" }))
     ]
   },
   {
@@ -96,7 +122,20 @@ const categories = [
     cards: [
       ...["Fellation", "Cunni"].map((title) => ({ title, description: "Une idée intime, seulement avec accord clair et retrait possible à tout moment.", subtype: "Simple", art: "linear-gradient(145deg, #f4d35e, #e9a23b)" })),
       ...["Faciale Ahegao", "Session Fessée", "Lovense", "Poste une nude en ligne", "Biffle", "Sitting face"].map((title) => ({ title, description: "Une proposition à discuter ensemble avant de commencer, avec retrait possible à tout moment.", subtype: "Fun", art: "linear-gradient(145deg, #f29e4c, #d1495b)" })),
-      ...["Gorge profonde", "Anal Time", "Webcam Pussy", "Violent roleplay", "Golden Shower sur A", "Golden Shower sur C"].map((title) => ({ title, description: "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible.", subtype: "Hardcore", art: "linear-gradient(145deg, #d1495b, #7b2342)" })),
+      ...[
+        ["Gorge profonde", "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible."],
+        ["Anal Time", "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible."],
+        ["Webcam Pussy", "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible."],
+        ["Violent roleplay", "Jeu de rôle intense uniquement avec accord préalable, limites définies et mot d’arrêt."],
+        ["Golden Shower sur A", "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible."],
+        ["Golden Shower sur C", "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible."],
+        ["Avale le sperme de C", "Uniquement avec accord explicite, limites discutées et possibilité d’arrêter à tout moment."],
+        ["Porter un plug anal pendant toute la session", "Uniquement avec accord explicite, confort vérifié et possibilité d’arrêter à tout moment."],
+        ["Pegging A", "Pratique à discuter précisément ensemble, avec accord explicite, limites et mot d’arrêt."],
+        ["Pegging C", "Pratique à discuter précisément ensemble, avec accord explicite, limites et mot d’arrêt."],
+        ["Double stimulation avec deux jouets A", "Uniquement avec accord explicite, progression douce, limites définies et arrêt immédiat possible."],
+        ["Session de domination complète (insultes, gifles, crachat, humiliation) · abricot", "Uniquement avec accord explicite préalable, limites définies et « abricot » comme mot d’arrêt."]
+      ].map(([title, description]) => ({ title, description, subtype: "Hardcore", art: "linear-gradient(145deg, #d1495b, #7b2342)" })),
       ...[
         ["Sabre Laser", "La lueur du sabre comme seule source lumineuse : corps dans la fumée, ombres bleues et rouges, ambiance sci-fi torride."],
         ["L’étudiante", "Costume schoolgirl, jupe plissée et posture complice autour d’un bureau."],
