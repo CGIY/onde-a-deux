@@ -7,8 +7,35 @@ const posterByType = {
   jeu: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=500&q=80"
 };
 
+const posterPool = {
+  film: [
+    "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=82",
+    "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=600&q=82",
+    "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=600&q=82"
+  ],
+  serie: [
+    "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=600&q=82",
+    "https://images.unsplash.com/photo-1586899028174-e7098604235b?auto=format&fit=crop&w=600&q=82"
+  ],
+  spectacle: [
+    "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=600&q=82",
+    "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=600&q=82"
+  ],
+  jeu: [
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=82",
+    "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=600&q=82",
+    "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&w=600&q=82"
+  ]
+};
+
+function visualForTitle(type, title) {
+  const pool = posterPool[type] || [posterByType[type]];
+  const hash = Array.from(title).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return pool[hash % pool.length];
+}
+
 function mediaCards(type, description, subtype) {
-  return (mediaCatalog[type] || []).map((title) => ({ title, description, subtype, visual: posterByType[type] }));
+  return (mediaCatalog[type] || []).map((title) => ({ title, description, subtype, visual: visualForTitle(type, title) }));
 }
 
 const categories = [
@@ -25,10 +52,10 @@ const categories = [
     id: "jeu", name: "Jeu", icon: "◆", color: "#7d9a86",
     art: "linear-gradient(145deg, #8baa94, #486d56)",
     cards: [
-      ...["Minecraft Dungeon 2", "Minecraft", "Mario Tennis", "Mario Kart", "Baldurs Gate", "Cult of the Lamb", "Mini-jeu Switch"].map((title) => ({ title, description: "Un jeu vidéo à choisir et partager à deux.", subtype: "Jeu vidéo", visual: posterByType.jeu })),
+      ...["Minecraft Dungeon 2", "Minecraft", "Mario Tennis", "Mario Kart", "Baldurs Gate", "Cult of the Lamb", "Mini-jeu Switch"].map((title) => ({ title, description: "Un jeu vidéo à choisir et partager à deux.", subtype: "Jeu vidéo", visual: visualForTitle("jeu", title) })),
       ...[
         "Jaipur", "Trio", "That's Not a Hat", "District Noir", "Mantis", "Compagnons", "Athlètes de Compète", "CT Words", "Les Aventuriers du Rail", "Fire Tower", "Après-Ski", "Regicide", "Cérébré", "Eternal Decks", "DOS", "Zenith", "Coffee Rush", "Captain Flip", "Ink It", "Hues and Cues", "Red Notice", "The Vale of Eternity", "7 Wonders", "Agent Avenue", "iKnow", "Redac Chef", "Happy Salmon", "Locus", "Gourmands", "Cat in the Box", "Cités Royales", "Splendor Duel", "The Gang", "Sky Team", "e-pense", "Flowers", "Splendor", "Cocoon", "7 Wonders Dice", "Take Time", "Harmonies", "Finspan", "Rebirth", "Bomb Busters", "Art Society", "Kronologic", "Dracula vs Van Helsing", "Mad Trip", "Reykholt", "Carnival of Monsters", "Marrakech", "Codenames", "Bunker", "Code Names", "Échecs", "Faraway", "Codex Naturalis"
-      ].map((title) => ({ title, description: "Un jeu de société de votre collection.", subtype: "Jeu de société", visual: posterByType.jeu }))
+      ].map((title) => ({ title, description: "Un jeu de société de votre collection.", subtype: "Jeu de société", visual: visualForTitle("jeu", title) }))
     ]
   },
   {
