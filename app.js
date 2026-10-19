@@ -27,7 +27,7 @@ const categories = [
     cards: [
       ...["Minecraft Dungeon 2", "Minecraft", "Mario Tennis", "Mario Kart", "Baldurs Gate", "Cult of the Lamb", "Mini-jeu Switch"].map((title) => ({ title, description: "Un jeu vidéo à choisir et partager à deux.", subtype: "Jeu vidéo", visual: posterByType.jeu })),
       ...[
-        "Jaipur", "Trio", "That's Not a Hat", "District Noir", "Mantis", "Compagnons", "Athlètes de Compète", "CT Words", "Les Aventuriers du Rail", "Fire Tower", "Après-Ski", "Regicide", "Cérébré", "Eternal Decks", "DOS", "Zenith", "Coffee Rush", "Captain Flip", "Ink It", "Hues and Cues", "Red Notice", "The Vale of Eternity", "7 Wonders", "Agent Avenue", "iKnow", "Redac Chef", "Happy Salmon", "Locus", "Gourmands", "Cat in the Box", "Cités Royales", "Splendor Duel", "The Gang", "Sky Team", "e-pense", "Flowers", "Splendor", "Cocoon", "7 Wonders Dice", "Take Time", "Harmonies", "Finspan", "Rebirth", "Bomb Busters", "Art Society", "Kronologic", "Dracula vs Van Helsing", "Mad Trip", "Les Aventuriers du Rail", "Reykholt", "Carnival of Monsters", "Marrakech", "Codenames", "Bunker", "Code Names"
+        "Jaipur", "Trio", "That's Not a Hat", "District Noir", "Mantis", "Compagnons", "Athlètes de Compète", "CT Words", "Les Aventuriers du Rail", "Fire Tower", "Après-Ski", "Regicide", "Cérébré", "Eternal Decks", "DOS", "Zenith", "Coffee Rush", "Captain Flip", "Ink It", "Hues and Cues", "Red Notice", "The Vale of Eternity", "7 Wonders", "Agent Avenue", "iKnow", "Redac Chef", "Happy Salmon", "Locus", "Gourmands", "Cat in the Box", "Cités Royales", "Splendor Duel", "The Gang", "Sky Team", "e-pense", "Flowers", "Splendor", "Cocoon", "7 Wonders Dice", "Take Time", "Harmonies", "Finspan", "Rebirth", "Bomb Busters", "Art Society", "Kronologic", "Dracula vs Van Helsing", "Mad Trip", "Reykholt", "Carnival of Monsters", "Marrakech", "Codenames", "Bunker", "Code Names", "Échecs", "Faraway", "Codex Naturalis"
       ].map((title) => ({ title, description: "Un jeu de société de votre collection.", subtype: "Jeu de société", visual: posterByType.jeu }))
     ]
   },
@@ -68,7 +68,7 @@ const categories = [
     art: "linear-gradient(145deg, #85506c, #42263b)",
     cards: [
       ...["Fellation", "Cunni"].map((title) => ({ title, description: "Une idée intime, seulement avec accord clair et retrait possible à tout moment.", subtype: "Simple", art: "linear-gradient(145deg, #f4d35e, #e9a23b)" })),
-      ...["Faciale Ahegao", "Session Fessée", "Lovense", "Poste une nude en ligne"].map((title) => ({ title, description: "Une proposition à discuter ensemble avant de commencer, avec retrait possible à tout moment.", subtype: "Fun", art: "linear-gradient(145deg, #f29e4c, #d1495b)" })),
+      ...["Faciale Ahegao", "Session Fessée", "Lovense", "Poste une nude en ligne", "Biffle", "Sitting face"].map((title) => ({ title, description: "Une proposition à discuter ensemble avant de commencer, avec retrait possible à tout moment.", subtype: "Fun", art: "linear-gradient(145deg, #f29e4c, #d1495b)" })),
       ...["Gorge profonde", "Anal Time", "Webcam Pussy", "Violent roleplay", "Golden Shower sur A", "Golden Shower sur C"].map((title) => ({ title, description: "Proposition hardcore : accord explicite, limites définies et arrêt immédiat possible.", subtype: "Hardcore", art: "linear-gradient(145deg, #d1495b, #7b2342)" })),
       ...[
         ["Sabre Laser", "La lueur du sabre comme seule source lumineuse : corps dans la fumée, ombres bleues et rouges, ambiance sci-fi torride."],
