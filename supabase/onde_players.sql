@@ -1,12 +1,21 @@
 -- Each device has its own role token. Browsers cannot query the table directly.
+begin;
 create table if not exists public.onde_players (
-  room_code text not null check (room_code ~ '^[A-Z0-9]{6,8}$'),
+  room_code text not null check (room_code ~ '^[A-Z0-9]{4,8}$'),
   role text not null check (role in ('J1', 'J2')),
   device_token_hash text not null,
   state jsonb not null default '{}'::jsonb,
   last_seen timestamptz not null default now(),
+  created_at timestamptz not null default now(),
   primary key (room_code, role)
 );
+
+alter table public.onde_players add column if not exists created_at timestamptz not null default now();
+
+-- Widen only the code format; existing sessions and role tokens stay intact.
+alter table public.onde_players drop constraint if exists onde_players_room_code_check;
+alter table public.onde_players add constraint onde_players_room_code_check
+  check (room_code ~ '^[A-Z0-9]{4,8}$');
 
 alter table public.onde_players enable row level security;
 revoke all on public.onde_players from anon, authenticated;
@@ -25,15 +34,27 @@ as $$
 declare
   current_player public.onde_players%rowtype;
   room_exists boolean;
+  room_created timestamptz;
   response jsonb;
 begin
-  if p_room_code !~ '^[A-Z0-9]{6,8}$' or p_role not in ('J1', 'J2')
+  if p_room_code !~ '^[A-Z0-9]{4,8}$' or p_role not in ('J1', 'J2')
      or p_token !~ '^[a-f0-9]{48}$' then
     raise exception 'invalid_session';
   end if;
   if p_state is not null and
      (jsonb_typeof(p_state) <> 'object' or length(p_state::text) > 50000) then
     raise exception 'invalid_state';
+  end if;
+
+  -- Serialize claims so two creations can never silently share a code.
+  perform pg_advisory_xact_lock(hashtext('onde-room:' || p_room_code));
+  select min(created_at) into room_created from public.onde_players where room_code = p_room_code;
+  if room_created is not null and room_created <= now() - interval '24 hours' then
+    if not p_create then raise exception 'room_expired'; end if;
+    -- Only an expired code being reclaimed starts a fresh, isolated session.
+    delete from public.onde_players where room_code = p_room_code;
+  elsif p_create and room_created is not null then
+    raise exception 'room_taken';
   end if;
 
   select * into current_player from public.onde_players
@@ -62,8 +83,9 @@ begin
     update public.onde_players set state = p_state, last_seen = now()
       where room_code = p_room_code and role = p_role;
   end if;
+  select min(created_at) into room_created from public.onde_players where room_code = p_room_code;
   select coalesce(jsonb_agg(jsonb_build_object(
-    'role', role, 'state', state, 'last_seen', last_seen
+    'role', role, 'state', state, 'last_seen', last_seen, 'expires_at', room_created + interval '24 hours'
   )), '[]'::jsonb) into response from public.onde_players
     where room_code = p_room_code;
   return response;
@@ -73,3 +95,4 @@ $$;
 revoke all on function public.onde_exchange(text,text,text,boolean,jsonb) from public;
 grant execute on function public.onde_exchange(text,text,text,boolean,jsonb) to anon, authenticated;
 notify pgrst, 'reload schema';
+commit;

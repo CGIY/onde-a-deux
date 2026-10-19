@@ -22,12 +22,22 @@ window.ondeLive = (() => {
   let networkOK = false;
   let pendingPayload = null;
   let generation = 0;
+  let creating = false;
+  let lastConnectionError = "";
+  let expired = false;
   const badge = document.getElementById("syncLabel");
 
-  const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), value => alphabet[value % alphabet.length]).join("");
+  const codeWords = ["FION", "BITE", "TEUB", "CULS", "FUCK", "SHIT", "PIPE", "RAIE"];
+  const newCode = tried => {
+    const available = codeWords.filter(word => !tried.has(word));
+    if (available.length) return available[crypto.getRandomValues(new Uint8Array(1))[0] % available.length];
+    let candidate;
+    do { candidate = Array.from(crypto.getRandomValues(new Uint8Array(4)), value => alphabet[value % alphabet.length]).join(""); } while (tried.has(candidate));
+    return candidate;
+  };
   const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), value => value.toString(16).padStart(2, "0")).join("");
   const fresh = row => row && Date.now() - new Date(row.last_seen).getTime() < 15000;
-  const ready = () => networkOK && Boolean(fresh(rows.J1) && fresh(rows.J2));
+  const ready = () => !expired && networkOK && Boolean(fresh(rows.J1) && fresh(rows.J2));
 
   function setStatus(message, good = false) {
     status.textContent = message;
@@ -39,12 +49,12 @@ window.ondeLive = (() => {
     controls.hidden = true;
     codeBox.hidden = false;
     codeValue.textContent = roomCode;
-    setStatus(!networkOK ? "Ça capte mal. On retente…" : ready() ? `${roomCode} · Duo connecté.` : `${roomCode} · L’autre arrive…`, ready());
+    setStatus(expired ? "24 h. Session terminée. On remet ça ?" : !networkOK ? "Ça capte mal. On retente…" : ready() ? `${roomCode} · Duo connecté.` : `${roomCode} · L’autre arrive…`, ready());
     if (badge) {
-      badge.textContent = !networkOK ? "Reconnexion…" : pendingPayload ? "Sauvegarde…" : ready() ? "Synchronisé" : "L’autre arrive…";
+      badge.textContent = expired ? "Session terminée" : !networkOK ? "Reconnexion…" : pendingPayload ? "Sauvegarde…" : ready() ? "Synchronisé" : "L’autre arrive…";
       badge.parentElement.dataset.status = !networkOK ? "offline" : pendingPayload ? "saving" : ready() ? "online" : "waiting";
     }
-    listener({ ...rows }, { roomCode, role, ready: ready() });
+    listener({ ...rows }, { roomCode, role, ready: ready(), expired });
   }
 
   async function exchange(state = null, create = false) {
@@ -68,7 +78,15 @@ window.ondeLive = (() => {
       if (payload && pendingPayload === payload) pendingPayload = null;
       announce();
     }).catch(error => {
-      if (current === generation) { networkOK = false; announce(); }
+      if (current === generation) {
+        networkOK = false;
+        if (error.message?.includes("room_expired")) {
+          expired = true;
+          pendingPayload = null;
+          clearInterval(pollTimer);
+        }
+        announce();
+      }
       throw error;
     });
     writeQueue = run;
@@ -78,8 +96,8 @@ window.ondeLive = (() => {
   async function connect(code, selectedRole, create) {
     if (!client) { setStatus("Connexion indisponible. Recharge la page."); return false; }
     const normalized = String(code || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (!/^[A-Z0-9]{6,8}$/.test(normalized) || !["J1", "J2"].includes(selectedRole)) {
-      setStatus("Choisis ta diode et saisis un code de 6 à 8 caractères.");
+    if (!/^[A-Z0-9]{4,8}$/.test(normalized) || !["J1", "J2"].includes(selectedRole)) {
+      setStatus("Ta diode + le code à 4 caractères. Les anciens codes passent aussi.");
       return false;
     }
     createButton.disabled = true;
@@ -91,8 +109,10 @@ window.ondeLive = (() => {
     pendingPayload = null;
     roomCode = normalized;
     role = selectedRole;
+    lastConnectionError = "";
+    expired = false;
     const tokenKey = `onde-token:${roomCode}:${role}`;
-    token = sessionStorage.getItem(tokenKey) || newToken();
+    token = (!create && sessionStorage.getItem(tokenKey)) || newToken();
     try {
       await enqueue(null, create);
       sessionStorage.setItem(tokenKey, token);
@@ -105,18 +125,21 @@ window.ondeLive = (() => {
       }, 3000);
       return true;
     } catch (error) {
+      lastConnectionError = error.message || "";
       roomCode = "";
       role = "";
       token = "";
       controls.hidden = false;
       codeBox.hidden = true;
-      if (error.message?.includes("role_taken")) setStatus("Cette diode est déjà active sur l’autre téléphone.");
-      else if (error.message?.includes("room_missing")) setStatus("Session introuvable. Sur le premier téléphone, appuie sur « Créer une session », puis utilise le code affiché.");
+      if (error.message?.includes("room_expired")) setStatus("Ce code a fait ses 24 h. Lance une nouvelle session.");
+      else if (error.message?.includes("room_taken")) setStatus("Ce mot est pris. On en pioche un autre…");
+      else if (error.message?.includes("role_taken")) setStatus("Cette diode est déjà active sur l’autre téléphone.");
+      else if (error.message?.includes("room_missing")) setStatus("Code introuvable. L’autre doit d’abord lancer sa session.");
       else setStatus("Connexion impossible. Réessaie dans un instant.");
       return false;
     } finally {
-      createButton.disabled = false;
-      joinButton.disabled = false;
+      createButton.disabled = creating;
+      joinButton.disabled = creating;
     }
   }
 
@@ -127,8 +150,24 @@ window.ondeLive = (() => {
   }
 
   createButton.addEventListener("click", async () => {
+    if (creating) return;
     const selected = selectedRole();
-    if (selected) await connect(newCode(), selected, true);
+    if (!selected) return;
+    creating = true;
+    const tried = new Set();
+    try {
+      for (let attempt = 0; attempt < 16; attempt++) {
+        const code = newCode(tried);
+        tried.add(code);
+        if (await connect(code, selected, true)) return;
+        if (!lastConnectionError.includes("room_taken")) return;
+      }
+      setStatus("Ça bouchonne. Relance une session.");
+    } finally {
+      creating = false;
+      createButton.disabled = false;
+      joinButton.disabled = false;
+    }
   });
 
   joinButton.addEventListener("click", async () => {
@@ -143,7 +182,7 @@ window.ondeLive = (() => {
   copyButton.addEventListener("click", async () => {
     const invite = new URL(location.href);
     invite.search = "";
-    invite.searchParams.set("v", "36");
+    invite.searchParams.set("v", "37");
     invite.searchParams.set("room", roomCode);
     try {
       await navigator.clipboard.writeText(invite.href);
@@ -159,7 +198,7 @@ window.ondeLive = (() => {
     get ready() { return ready(); },
     onChange(callback) { listener = callback; },
     async push(state) {
-      if (!roomCode || !role) return false;
+      if (!roomCode || !role || expired) return false;
       const payload = JSON.parse(JSON.stringify(state));
       pendingPayload = payload;
       if (badge) { badge.textContent = "Sauvegarde…"; badge.parentElement.dataset.status = "saving"; }

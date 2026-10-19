@@ -319,18 +319,18 @@
   }
 
   function moveNext() {
+    if (state.screen !== "kept" || !state.own || state.own.position >= catalog.length || !validPick(currentCategory(), state.own.picks[currentCategory().id])) return;
     if (!state.ready) return toast("On attend la reconnexion de l’autre.");
     state.own.position += 1;
     if (state.own.position >= catalog.length) {
       state.own.finished = true;
-      save();
       show("waiting");
       maybeResolve();
     } else {
-      save();
       show("game");
       renderDeck();
     }
+    save();
   }
 
   function maybeResolve() {
@@ -612,20 +612,38 @@
     save();
     renderDeck();
   });
-  $("nextCategoryButton").addEventListener("click", moveNext);
-    $("showPlanButton").addEventListener("click", () => { if (state.ready) { drawPlan(); show("plan"); } });
+  const nextButton = $("nextCategoryButton");
+  let nextPress = null;
+  nextButton.addEventListener("pointerdown", event => {
+    if (event.isPrimary !== false) nextPress = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  });
+  nextButton.addEventListener("pointerup", event => {
+    const press = nextPress;
+    nextPress = null;
+    if (!["touch", "pen"].includes(event.pointerType) || !press || press.id !== event.pointerId) return;
+    if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > 12) return;
+    event.preventDefault();
+    moveNext();
+  });
+  nextButton.addEventListener("pointercancel", () => { nextPress = null; });
+  nextButton.addEventListener("click", moveNext);
+  $("showPlanButton").addEventListener("click", () => { if (state.ready) { drawPlan(); show("plan"); } });
   $("savePlanButton").addEventListener("click", savePlan);
   $("backToSummaryButton").addEventListener("click", () => { show("summary"); renderSummary(); });
-  $("restartButton").addEventListener("click", () => {
+  const restart = () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=36";
-  });
+    location.href = location.pathname + "?v=37";
+  };
+  $("restartButton").addEventListener("click", restart);
+  $("renewSessionButton").addEventListener("click", restart);
 
   live.onChange((rows, info) => {
     state.room = info.roomCode;
     state.role = info.role;
     state.ready = info.ready;
+    nextButton.disabled = !state.ready;
+    $("sessionExpiredBanner").hidden = !info.expired;
     const ownRow = rows[info.role];
     const otherRow = rows[info.role === "J1" ? "J2" : "J1"];
     if (!state.own && ownRow) {
@@ -665,7 +683,7 @@
   const savedRoom = sessionStorage.getItem("onde-room");
   const invitedRoom = new URLSearchParams(location.search).get("room")?.trim().toUpperCase();
   const inviteIsDifferent = invitedRoom && invitedRoom !== savedRoom;
-  if (invitedRoom && /^[A-Z0-9]{6,8}$/.test(invitedRoom)) $("roomCodeInput").value = invitedRoom;
+  if (invitedRoom && /^[A-Z0-9]{4,8}$/.test(invitedRoom)) $("roomCodeInput").value = invitedRoom;
   if (savedRole && savedRoom && !inviteIsDifferent) {
     document.querySelector(`.player-choice-button[data-player="${savedRole}"]`)?.click();
     $("roomCodeInput").value = savedRoom;

@@ -10,8 +10,8 @@
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=36">
-  <link rel="stylesheet" href="finish.css?v=36">
+  <link rel="stylesheet" href="styles.css?v=37">
+  <link rel="stylesheet" href="finish.css?v=37">
   <title>ONDE — on décide</title>
 </head>
 <body>
@@ -19,6 +19,7 @@
     <header class="topbar">
       <div class="live-presence"><span class="presence-pill" data-status="waiting" role="status"><i aria-hidden="true"></i><span id="syncLabel">À deux, bordel.</span></span><small id="partnerActivity"></small></div>
     </header>
+    <aside id="sessionExpiredBanner" class="expired-banner" role="alert" hidden><span>24 h. C’est fini pour ce code.</span><button id="renewSessionButton" type="button">On remet ça ? →</button></aside>
 
     <section class="intro welcome" id="introScreen">
       <p class="kicker">Nos envies. Notre bordel.</p>
@@ -31,7 +32,7 @@
       <div class="room-controls">
         <button id="createRoomButton" class="primary-button" type="button">On se lance →</button>
         <div class="room-join">
-          <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code reçu" aria-label="Code de session reçu">
+          <input id="roomCodeInput" type="text" inputmode="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="4 caractères" aria-label="Code de session reçu">
           <button id="joinRoomButton" class="text-button" type="button">J’arrive →</button>
         </div>
       </div>
@@ -133,8 +134,8 @@
   </main>
   <script src="media-catalog.js?v=22"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="live.js?v=36"></script>
-  <script src="app.js?v=36"></script>
-  <script src="flow.js?v=36"></script>
+  <script src="live.js?v=37"></script>
+  <script src="app.js?v=37"></script>
+  <script src="flow.js?v=37"></script>
 </body>
 </html>
