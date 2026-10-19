@@ -124,7 +124,7 @@ const categories = [
   }
 ];
 
-const stateKey = "onde-crossed-decisions-v8";
+const stateKey = "onde-category-decisions-v9";
 const welcomeKey = "onde-welcome-v1";
 const screens = {
   intro: document.getElementById("introScreen"),
@@ -159,22 +159,17 @@ function shuffled(items) {
   return [...items].sort(() => Math.random() - 0.5);
 }
 
-function buildPlan(assignments) {
-  return [
-    { round: 1, player: "J1", categories: assignments.J1 },
-    { round: 1, player: "J2", categories: assignments.J2 },
-    { round: 2, player: "J1", categories: assignments.J2 },
-    { round: 2, player: "J2", categories: assignments.J1 }
-  ];
+function buildPlan(player, categoryIds) {
+  return [{ round: 1, player, categories: categoryIds }];
 }
 
 function freshDecision() {
   const ids = shuffled(categories.map((category) => category.id));
-  const split = Math.ceil(ids.length / 2);
-  const assignments = { J1: ids.slice(0, split), J2: ids.slice(split) };
+  const player = window.ondeLive?.role || "J1";
+  const assignments = { J1: ids, J2: ids };
   return {
     assignments,
-    plan: buildPlan(assignments),
+    plan: buildPlan(player, ids),
     phase: 0,
     categoryStep: 0,
     categoryDecks: {},
