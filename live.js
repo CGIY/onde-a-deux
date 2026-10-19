@@ -1,70 +1,106 @@
 const ONDE_SUPABASE_URL = "https://tgkhgafkqvritsgdapcz.supabase.co";
 const ONDE_SUPABASE_KEY = "sb_publishable_GhmpioVNsGFgHtJsaGXqsg__P3DRtpA";
 
-const ondeLive = (() => {
-  const client = window.supabase.createClient(ONDE_SUPABASE_URL, ONDE_SUPABASE_KEY);
-  const roomCodeInput = document.getElementById("roomCodeInput");
-  const roomButton = document.getElementById("roomButton");
-  const roomStatus = document.getElementById("roomStatus");
-  let roomCode = (new URLSearchParams(location.search).get("room") || localStorage.getItem("onde-room") || "").toUpperCase();
-  let role = new URLSearchParams(location.search).get("role") || localStorage.getItem("onde-role") || "";
-  let channel = null;
-  let row = null;
-  let listener = null;
+window.ondeLive = (() => {
+  const client = window.supabase?.createClient(ONDE_SUPABASE_URL, ONDE_SUPABASE_KEY);
+  const input = document.getElementById("roomCodeInput");
+  const button = document.getElementById("roomButton");
+  const status = document.getElementById("roomStatus");
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let roomCode = "";
+  let role = "";
+  let token = "";
+  let rows = {};
+  let pollTimer = null;
+  let writeQueue = Promise.resolve();
+  let listener = () => {};
+
+  const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), value => alphabet[value % alphabet.length]).join("");
+  const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), value => value.toString(16).padStart(2, "0")).join("");
+  const fresh = row => row && Date.now() - new Date(row.last_seen).getTime() < 45000;
+  const ready = () => Boolean(fresh(rows.J1) && fresh(rows.J2));
 
   function setStatus(message, good = false) {
-    roomStatus.textContent = message;
-    roomStatus.style.color = good ? "#4c855d" : "";
+    status.textContent = message;
+    status.classList.toggle("connected", good);
   }
 
-  function code() { return Array.from(crypto.getRandomValues(new Uint8Array(6)), (n) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[n % 32]).join(""); }
-
-  async function connect(nextCode, nextRole) {
-    roomCode = nextCode.toUpperCase();
-    role = nextRole;
-    if (!roomCode || !role) return;
-    localStorage.setItem("onde-room", roomCode);
-    localStorage.setItem("onde-role", role);
-    roomCodeInput.value = roomCode;
-    const patch = { room_code: roomCode, [`${role.toLowerCase()}_online`]: true, updated_at: new Date().toISOString() };
-    const { data, error } = await client.from("onde_sessions").upsert(patch, { onConflict: "room_code" }).select().single();
-    if (error) { setStatus("Impossible de joindre cette session."); return; }
-    row = data;
-    setStatus(`${roomCode} · ${role} connecté. En attente de l’autre téléphone.`, true);
-    listener?.(row.state || null, row);
-    channel?.unsubscribe();
-    channel = client.channel(`onde:${roomCode}`).on("postgres_changes", { event: "UPDATE", schema: "public", table: "onde_sessions", filter: `room_code=eq.${roomCode}` }, (payload) => {
-      row = payload.new;
-      setStatus(row.j1_online && row.j2_online ? `${roomCode} · J1 et J2 sont connectés.` : `${roomCode} · En attente de l’autre téléphone.`, row.j1_online && row.j2_online);
-      listener?.(row.state || null, row);
-    }).subscribe();
-    return row;
+  function announce() {
+    if (!roomCode) return;
+    setStatus(ready() ? `${roomCode} · A et C sont connectés.` : `${roomCode} · ${role === "J1" ? "A" : "C"} connecté. En attente de l’autre téléphone.`, ready());
+    listener({ ...rows }, { roomCode, role, ready: ready() });
   }
 
-  roomButton.addEventListener("click", async () => {
+  async function exchange(state = null, create = false) {
+    const { data, error } = await client.rpc("onde_exchange", {
+      p_room_code: roomCode,
+      p_role: role,
+      p_token: token,
+      p_create: create,
+      p_state: state
+    });
+    if (error) throw error;
+    rows = Object.fromEntries((data || []).map(row => [row.role, row]));
+    announce();
+  }
+
+  async function connect(code, selectedRole, create) {
+    if (!client) { setStatus("Connexion indisponible. Recharge la page."); return false; }
+    const normalized = String(code || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (!/^[A-Z0-9]{6,8}$/.test(normalized) || !["J1", "J2"].includes(selectedRole)) {
+      setStatus("Choisis ta diode et saisis un code de 6 à 8 caractères.");
+      return false;
+    }
+    button.disabled = true;
+    setStatus("Connexion en cours…");
+    roomCode = normalized;
+    role = selectedRole;
+    const tokenKey = `onde-token:${roomCode}:${role}`;
+    token = sessionStorage.getItem(tokenKey) || newToken();
+    try {
+      await exchange(null, create);
+      sessionStorage.setItem(tokenKey, token);
+      sessionStorage.setItem("onde-room", roomCode);
+      sessionStorage.setItem("onde-role", role);
+      input.value = roomCode;
+      clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        exchange().catch(() => setStatus("Connexion interrompue. Nouvelle tentative en cours…"));
+      }, 3000);
+      return true;
+    } catch (error) {
+      roomCode = "";
+      role = "";
+      token = "";
+      if (error.message?.includes("role_taken")) setStatus("Cette diode est déjà active sur l’autre téléphone.");
+      else if (error.message?.includes("room_missing")) setStatus("Code inconnu. Vérifie le code affiché sur l’autre téléphone.");
+      else setStatus("Connexion impossible. Réessaie dans un instant.");
+      return false;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  button.addEventListener("click", async () => {
     const selected = document.querySelector(".player-choice-button.selected");
-    if (!selected) { setStatus("Choisis d’abord A ou C."); return; }
-    const entered = roomCodeInput.value.trim() || code();
-    await connect(entered, selected.dataset.player);
-    if (!roomCodeInput.value) roomCodeInput.value = entered;
+    if (!selected) { setStatus("Choisis A ou C sur ce téléphone."); return; }
+    const supplied = input.value.trim();
+    await connect(supplied || newCode(), selected.dataset.player, !supplied);
   });
 
   return {
     get roomCode() { return roomCode; },
     get role() { return role; },
-    get ready() { return Boolean(row?.j1_online && row?.j2_online); },
-    async push(state) {
-      if (!roomCode || !role) return;
-      const players = row?.state?.players || {};
-      players[role] = state;
-      const nextState = { players };
-      row = { ...(row || {}), state: nextState };
-      await client.from("onde_sessions").update({ state: nextState, updated_at: new Date().toISOString() }).eq("room_code", roomCode);
-    },
+    get ready() { return ready(); },
     onChange(callback) { listener = callback; },
-    connect,
-    setStatus
+    async push(state) {
+      if (!roomCode || !role) return false;
+      const payload = JSON.parse(JSON.stringify(state));
+      writeQueue = writeQueue.catch(() => {}).then(() => exchange(payload));
+      try { await writeQueue; return true; }
+      catch { setStatus("Sauvegarde interrompue. Vérifie la connexion."); return false; }
+    },
+    setStatus,
+    connect
   };
 })();
-
-window.ondeLive = ondeLive;

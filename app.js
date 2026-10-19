@@ -124,6 +124,9 @@ const categories = [
   }
 ];
 
+window.ONDE_CATEGORIES = categories;
+// Ancien parcours conservé temporairement pour préserver le catalogue historique.
+if (false) {
 const stateKey = "onde-category-decisions-v9";
 const welcomeKey = "onde-welcome-v1";
 const screens = {
@@ -682,4 +685,5 @@ updateWelcomeEntry();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(() => {}));
+}
 }

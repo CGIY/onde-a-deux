@@ -10,7 +10,7 @@
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="styles.css?v=30">
   <title>ONDE — on décide</title>
 </head>
 <body>
@@ -20,13 +20,13 @@
         <p class="eyebrow">On décide</p>
         <h1>ONDE<span class="logo-dot">.</span></h1>
       </div>
-      <span class="presence-pill"><i aria-hidden="true"></i> 2 participants</span>
+      <span class="presence-pill"><i aria-hidden="true"></i> À deux</span>
     </header>
 
     <section class="intro welcome" id="introScreen">
       <p class="kicker">Une décision à deux</p>
       <h2>ONDE<span class="logo-dot">.</span></h2>
-      <p>Choisissez chacun votre diode pour entrer dans la session.</p>
+      <p>Choisis ta diode. L’autre choisira la sienne sur son téléphone.</p>
       <div class="player-choice" role="group" aria-label="Choix des participants">
         <button class="player-choice-button" data-player="J1" type="button"><span class="diode diode-a" aria-hidden="true"></span><strong>A</strong><small>J1</small></button>
         <button class="player-choice-button" data-player="J2" type="button"><span class="diode diode-c" aria-hidden="true"></span><strong>C</strong><small>J2</small></button>
@@ -36,18 +36,16 @@
         <button id="roomButton" class="text-button" type="button">Créer / rejoindre</button>
       </div>
       <p class="room-status" id="roomStatus" role="status">Crée une session ou entre le code de l’autre téléphone.</p>
-      <p class="welcome-status" id="welcomeStatus" role="status">J1 et J2 doivent choisir pour continuer.</p>
-      <button class="primary-button" id="startButton" type="button" disabled>Entrer dans ONDE</button>
-      <button class="text-button" id="resumeButton" type="button" hidden>Reprendre</button>
+      <p class="welcome-status" id="welcomeStatus" role="status">Chacun rejoint avec le même code.</p>
     </section>
 
     <section class="game" id="gameScreen" hidden aria-live="polite">
       <div class="game-meta">
         <div>
-          <p class="step-label" id="stepLabel">Manche 1 · J1 · catégorie imposée 1 sur 3</p>
+          <p class="step-label" id="stepLabel">Catégorie 1 sur 5</p>
           <h2 id="categoryTitle">Film</h2>
         </div>
-        <span class="for-pill" id="playerPill">J1 décide</span>
+        <span class="for-pill" id="playerPill">A choisit</span>
       </div>
 
       <div class="category-track" id="categoryTrack" aria-label="Progression des catégories"></div>
@@ -84,15 +82,23 @@
         <span class="sealed-icon" aria-hidden="true">✦</span>
         <p id="keptCategory">Film</p>
         <h2 id="keptTitle">Choix enregistré</h2>
-        <p id="keptMessage">Il reste une catégorie avant de passer la main.</p>
+        <p id="keptMessage">Une catégorie à la fois.</p>
       </div>
       <button class="primary-button" id="nextCategoryButton" type="button">Catégorie suivante</button>
+    </section>
+
+    <section class="waiting" id="waitingScreen" hidden aria-live="polite">
+      <div class="waiting-orbit" aria-hidden="true">✦</div>
+      <p class="kicker">Tes choix sont enregistrés</p>
+      <h2>On attend l’autre.</h2>
+      <p>La résolution s’ouvrira ici dès que vous aurez tous les deux choisi dans chaque catégorie.</p>
+      <p class="waiting-status" id="waitingStatus" role="status">Connexion en cours…</p>
     </section>
 
     <section class="summary" id="summaryScreen" hidden>
       <p class="kicker">Résolution à deux</p>
       <h2>Voici là où vos envies se rejoignent.</h2>
-      <p class="summary-lead">Les choix identiques sont déjà décidés. Pour le reste, chacun indique sur son téléphone à quel point il tient à sa tuile ; la jauge combine les deux réponses.</p>
+      <p class="summary-lead">Vos choix communs sont retenus. Pour les autres, chacun règle sa propre jauge sur son téléphone.</p>
 
       <section class="result-section" id="matchSection">
         <div class="result-heading"><span aria-hidden="true">◎</span><div><small>En commun</small><h3>Vos accords</h3></div></div>
@@ -104,14 +110,26 @@
         <div class="decision-list" id="decisionList"></div>
       </section>
 
-      <button class="primary-button" id="restartButton" type="button">Nouvelle décision</button>
+      <button class="primary-button" id="showPlanButton" type="button" disabled>Voir notre feuille du jour</button>
+      <p class="summary-status" id="summaryStatus" role="status">Répondez chacun aux décisions restantes.</p>
+    </section>
+
+    <section class="plan-screen" id="planScreen" hidden>
+      <p class="kicker">Votre feuille du jour</p>
+      <h2>On a décidé.</h2>
+      <p>Tout tient dans une image à garder ou à partager.</p>
+      <canvas id="planCanvas" width="1200" height="1600" role="img" aria-label="Récapitulatif de vos décisions"></canvas>
+      <button class="primary-button" id="savePlanButton" type="button">Enregistrer l’image</button>
+      <button class="text-button" id="backToSummaryButton" type="button">Revoir les décisions</button>
+      <button class="text-button" id="restartButton" type="button">Nouvelle session</button>
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
   <script src="media-catalog.js?v=21"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="live.js?v=1"></script>
-  <script src="app.js?v=28"></script>
+  <script src="live.js?v=30"></script>
+  <script src="app.js?v=30"></script>
+  <script src="flow.js?v=30"></script>
 </body>
 </html>
