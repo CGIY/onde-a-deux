@@ -47,6 +47,32 @@ button:focus-visible {
   overflow: hidden;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .topbar { animation: riseIn .55s cubic-bezier(.2,.8,.2,1) both; }
+  .intro:not([hidden]), .game:not([hidden]), .kept:not([hidden]), .summary:not([hidden]) { animation: screenIn .42s cubic-bezier(.2,.8,.2,1) both; }
+  .presence-pill i { animation: pulseDot 2.2s ease-in-out infinite; }
+  .player-choice-button:hover { transform: translateY(-4px) rotate(-1deg); }
+  .player-choice-button:nth-child(2):hover { transform: translateY(-4px) rotate(1deg); }
+  .player-choice-button.selected { animation: choicePop .34s cubic-bezier(.2,1.5,.4,1) both; }
+  .diode { animation: diodeBreathe 2.5s ease-in-out infinite; }
+  .tile-card { animation: tileIn .5s cubic-bezier(.2,.9,.25,1) both; }
+  .tile-card[data-depth="1"] { animation-delay: .05s; }
+  .tile-card[data-depth="2"] { animation-delay: .1s; }
+  .tile-card::before { animation: posterGlow 7s ease-in-out infinite alternate; }
+  .track-segment.active { animation: trackPulse 1.8s ease-in-out infinite; }
+  .sealed-card { animation: sealIn .55s cubic-bezier(.2,.9,.25,1) both; }
+}
+
+@keyframes riseIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes screenIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes pulseDot { 0%,100% { box-shadow: 0 0 0 3px rgba(101,169,120,.16); } 50% { box-shadow: 0 0 0 7px rgba(101,169,120,.03); } }
+@keyframes choicePop { 0% { transform: scale(.96); } 70% { transform: scale(1.035); } 100% { transform: scale(1); } }
+@keyframes diodeBreathe { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+@keyframes tileIn { from { opacity: 0; transform: translateY(18px) scale(.94) rotate(-2deg); } to { opacity: 1; } }
+@keyframes posterGlow { from { background-position: 50% 48%; } to { background-position: 54% 52%; } }
+@keyframes trackPulse { 0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,.7); } 50% { box-shadow: 0 0 0 6px rgba(255,255,255,.22); } }
+@keyframes sealIn { from { opacity: 0; transform: scale(.92) rotate(-1deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+
 .topbar {
   display: flex;
   align-items: flex-start;
@@ -381,6 +407,9 @@ h1 {
   transform-origin: 50% 100%;
   transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease;
 }
+
+.tile-card:focus-visible { box-shadow: 0 0 0 4px rgba(232,120,103,.35), var(--shadow); }
+.tile-card:not(.dragging):active { transform: scale(.985) rotate(-.5deg); }
 
 .tile-card::before {
   content: "";
