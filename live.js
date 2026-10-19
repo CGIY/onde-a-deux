@@ -117,7 +117,7 @@ window.ondeLive = (() => {
   copyButton.addEventListener("click", async () => {
     const invite = new URL(location.href);
     invite.search = "";
-    invite.searchParams.set("v", "32");
+    invite.searchParams.set("v", "33");
     invite.searchParams.set("room", roomCode);
     try {
       await navigator.clipboard.writeText(invite.href);

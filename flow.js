@@ -6,12 +6,15 @@
   const $ = id => document.getElementById(id);
   const state = { own: null, other: null, role: "", room: "", screen: "intro", busy: false, summarySignature: "" };
   const categoryIds = catalog.map(category => category.id);
+  const mysteryCache = new Map();
   const otherRole = () => state.role === "J1" ? "J2" : "J1";
   const ownLabel = () => state.role === "J1" ? "A" : "C";
   const validPick = (category, index) => Number.isInteger(index) && index >= 0 && index < category.cards.length;
+  const validVote = value => Number.isInteger(value) && value >= 0 && value <= 100;
   const escape = value => String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
 
   function show(name) {
+    if (state.screen === name && !screens[name].hidden) return;
     state.screen = name;
     Object.entries(screens).forEach(([key, element]) => { element.hidden = key !== name; });
     window.scrollTo(0, 0);
@@ -52,6 +55,21 @@
     return sample(category.cards.map((_, index) => index), 3, rng);
   }
 
+  function mysteryFor(category) {
+    const key = `${state.room}:${category.id}`;
+    if (mysteryCache.has(key)) return mysteryCache.get(key);
+    const visible = new Set(deckFor(category));
+    const candidates = category.cards.map((_, index) => index).filter(index => !visible.has(index));
+    const mystery = sample(candidates, 1, random(seedFor(`${key}:mystery:v1`)))[0];
+    mysteryCache.set(key, mystery);
+    return mystery;
+  }
+
+  function isMystery(category, index) { return index === mysteryFor(category); }
+  function titleFor(category, index, reveal = false) {
+    return !reveal && isMystery(category, index) ? "Mystère" : category.cards[index].title;
+  }
+
   function freshProgress() {
     return { version: 2, position: 0, decks: {}, picks: {}, votes: {}, skips: {}, finished: false };
   }
@@ -70,7 +88,13 @@
   function currentDeck() {
     const category = currentCategory();
     if (!state.own.decks[category.id]) {
-      state.own.decks[category.id] = { remaining: deckFor(category), removed: [] };
+      const mystery = mysteryFor(category);
+      state.own.decks[category.id] = { remaining: [...deckFor(category), mystery], removed: [], mystery };
+      save();
+    } else if (!Number.isInteger(state.own.decks[category.id].mystery)) {
+      const deck = state.own.decks[category.id];
+      deck.mystery = mysteryFor(category);
+      if (!deck.remaining.includes(deck.mystery) && !deck.removed.includes(deck.mystery)) deck.remaining.push(deck.mystery);
       save();
     }
     return state.own.decks[category.id];
@@ -99,11 +123,12 @@
     [...deck.remaining].reverse().forEach((index, reverseIndex) => {
       const depth = deck.remaining.length - reverseIndex - 1;
       const item = category.cards[index];
+      const hiddenMystery = index === deck.mystery;
       const card = document.createElement("article");
-      card.className = "tile-card";
+      card.className = `tile-card${hiddenMystery ? " mystery-card" : ""}`;
       card.dataset.depth = String(depth);
-      card.style.setProperty("--card-art", item.art || category.art);
-      if (item.visual) {
+      card.style.setProperty("--card-art", hiddenMystery ? "linear-gradient(145deg, #70506f, #33243f)" : item.art || category.art);
+      if (!hiddenMystery && item.visual) {
         const poster = document.createElement("div");
         poster.className = "tile-poster";
         poster.style.backgroundImage = `url("${item.visual}")`;
@@ -112,18 +137,18 @@
       }
       const icon = document.createElement("span");
       icon.className = "tile-icon";
-      icon.textContent = category.icon;
+      icon.textContent = hiddenMystery ? "?" : category.icon;
       icon.setAttribute("aria-hidden", "true");
       const content = document.createElement("div");
       content.className = "tile-content";
       const subtype = document.createElement("div");
       subtype.className = "tile-category";
-      subtype.textContent = item.subtype || category.name;
+      subtype.textContent = hiddenMystery ? "CARTE MYSTÈRE" : item.subtype || category.name;
       const title = document.createElement("h3");
-      title.textContent = item.title;
-      title.classList.toggle("long-title", item.title.length > 32);
+      title.textContent = hiddenMystery ? "Mystère" : item.title;
+      title.classList.toggle("long-title", !hiddenMystery && item.title.length > 32);
       const description = document.createElement("p");
-      description.textContent = item.description;
+      description.textContent = hiddenMystery ? "Son contenu sera révélé sur l’image finale." : item.description;
       content.append(subtype, title, description);
       card.append(icon, content);
       if (depth === 0) bindGesture(card);
@@ -242,7 +267,7 @@
       return;
     }
     if (state.screen !== "plan") {
-      show("summary");
+      if (state.screen !== "summary") show("summary");
       renderSummary();
     }
   }
@@ -253,89 +278,119 @@
     return [a?.picks?.[category.id], c?.picks?.[category.id]];
   }
 
-  function resultFor(category) {
+  function resultFor(category, revealMystery = false) {
     const [a, c] = picksFor(category);
     if (!validPick(category, a) || !validPick(category, c)) return null;
-    if (a === c) return { title: category.cards[a].title, kind: "accord" };
+    if (a === c) return { title: titleFor(category, a, revealMystery), kind: "accord", mystery: isMystery(category, a) };
     if (state.own.skips[category.id] && state.other.skips?.[category.id]) return { title: "Pas aujourd’hui", kind: "reporté" };
     const ownVote = state.own.votes[category.id];
     const otherVote = state.other.votes?.[category.id];
-    if (!Number.isInteger(ownVote) || !Number.isInteger(otherVote)) return null;
+    if (!validVote(ownVote) || !validVote(otherVote)) return null;
     const voteA = state.role === "J1" ? ownVote : otherVote;
     const voteC = state.role === "J2" ? ownVote : otherVote;
-    if (voteA === voteC) return null;
-    return { title: category.cards[voteA > voteC ? a : c].title, kind: "choisi" };
+    if (Math.max(voteA, voteC) * 10 <= (voteA + voteC) * 7) return { title: "Écart insuffisant", kind: "écart" };
+    const chosen = voteA > voteC ? a : c;
+    return { title: titleFor(category, chosen, revealMystery), kind: "choisi", mystery: isMystery(category, chosen) };
   }
 
-  function renderSummary() {
-    const signature = JSON.stringify([state.own?.votes, state.other?.votes, state.own?.skips, state.other?.skips, state.other?.picks]);
-    if (state.summarySignature === signature && state.screen === "summary") return;
-    state.summarySignature = signature;
-    $("matchGrid").replaceChildren();
-    $("decisionList").replaceChildren();
-    let differences = 0;
-    for (const category of catalog) {
-      const [a, c] = picksFor(category);
-      if (!validPick(category, a) || !validPick(category, c)) continue;
-      if (a === c) {
-        const item = document.createElement("article");
-        item.className = "result-card match-card";
-        item.style.setProperty("--item-bg", category.art);
-        item.innerHTML = `<small>${escape(category.name)}</small><strong>${escape(category.cards[a].title)}</strong>`;
-        $("matchGrid").append(item);
-        continue;
-      }
-      differences++;
+  function refreshSummary() {
+    for (const duel of $("decisionList").children) {
+      const category = byId[duel.dataset.category];
       const ownVote = state.own.votes[category.id];
       const otherVote = state.other.votes?.[category.id];
+      const bothVoted = validVote(ownVote) && validVote(otherVote);
       const ownSkipped = Boolean(state.own.skips[category.id]);
       const otherSkipped = Boolean(state.other.skips?.[category.id]);
       const result = resultFor(category);
-      const duel = document.createElement("article");
-      duel.className = "decision-card";
-      duel.innerHTML = `<div class="decision-category"><span>${escape(category.icon)}</span><strong>${escape(category.name)}</strong></div>
-        <div class="duel-options">
-          <div class="result-card duel-option" style="--item-bg:${category.art}"><small>Choix de A</small><strong>${escape(category.cards[a].title)}</strong></div>
-          <div class="result-card duel-option" style="--item-bg:${category.art}"><small>Choix de C</small><strong>${escape(category.cards[c].title)}</strong></div>
-        </div>
-        <div class="own-vote"><label for="vote-${category.id}">Ta jauge · ${ownLabel()} <output>${Number.isInteger(ownVote) ? ownVote : 50}</output></label>
-          <input id="vote-${category.id}" type="range" min="0" max="100" value="${Number.isInteger(ownVote) ? ownVote : 50}">
-          <button type="button" class="vote-confirm">${Number.isInteger(ownVote) ? "Modifier ma jauge" : "Valider ma jauge"}</button>
-        </div>
-        <div class="combined-gauge"><div class="gauge-track"><span class="gauge-j1"></span><i class="gauge-marker"></i></div>
-          <div class="gauge-labels"><span>A</span><strong class="gauge-score">${Number.isInteger(ownVote) && Number.isInteger(otherVote) ? `${state.role === "J1" ? ownVote : otherVote} / ${state.role === "J2" ? ownVote : otherVote}` : "En attente des deux jauges"}</strong><span>C</span></div>
-          <p class="gauge-result">${result ? escape(result.title === "Pas aujourd’hui" ? "Mis de côté aujourd’hui" : `${result.title} est retenu`) : ownVote === otherVote && Number.isInteger(ownVote) ? "Égalité : ajustez votre jauge" : "Chacun valide sa propre jauge"}</p></div>
-        <button type="button" class="skip-own ${ownSkipped ? "pressed" : ""}" aria-pressed="${ownSkipped}">${ownSkipped ? "✓ " : ""}Pas aujourd’hui · ${ownLabel()}</button>
-        <p class="skip-note">${otherSkipped ? "L’autre a aussi choisi « pas aujourd’hui »." : "Mis de côté si vous le choisissez tous les deux."}</p>`;
-      const slider = duel.querySelector("input");
-      const output = duel.querySelector("output");
-      slider.addEventListener("input", () => { output.value = slider.value; });
-      duel.querySelector(".vote-confirm").addEventListener("click", () => {
-        state.own.votes[category.id] = Number(slider.value);
-        save();
-        state.summarySignature = "";
-        renderSummary();
-      });
-      duel.querySelector(".skip-own").addEventListener("click", () => {
-        state.own.skips[category.id] = !state.own.skips[category.id];
-        save();
-        state.summarySignature = "";
-        renderSummary();
-      });
-      if (Number.isInteger(ownVote) && Number.isInteger(otherVote)) {
+      const skipButton = duel.querySelector(".skip-own");
+      skipButton.classList.toggle("pressed", ownSkipped);
+      skipButton.setAttribute("aria-pressed", String(ownSkipped));
+      skipButton.textContent = `${ownSkipped ? "✓ " : ""}Pas aujourd’hui · ${ownLabel()}`;
+      duel.querySelector(".skip-note").textContent = otherSkipped
+        ? "L’autre a aussi choisi « pas aujourd’hui »."
+        : "Mis de côté si vous le choisissez tous les deux.";
+      duel.querySelector(".vote-confirm").textContent = validVote(ownVote) ? "Modifier ma jauge" : "Valider ma jauge";
+      if (bothVoted) {
         const voteA = state.role === "J1" ? ownVote : otherVote;
         const voteC = state.role === "J2" ? ownVote : otherVote;
         const share = voteA + voteC ? Math.round(voteA / (voteA + voteC) * 100) : 50;
         duel.querySelector(".gauge-j1").style.width = `${share}%`;
         duel.querySelector(".gauge-marker").style.left = `${share}%`;
+        duel.querySelector(".gauge-score").textContent = `${voteA} / ${voteC}`;
+      } else {
+        duel.querySelector(".gauge-score").textContent = "En attente des deux jauges";
       }
-      $("decisionList").append(duel);
+      duel.querySelector(".gauge-result").textContent = result
+        ? result.kind === "reporté" ? "Mis de côté aujourd’hui"
+          : result.kind === "écart" ? "Écart de 70 % ou moins · absent de l’image finale"
+          : result.mystery ? "Mystère retenu · révélation sur l’image finale"
+          : `${result.title} est retenu`
+        : validVote(ownVote) ? "En attente de la jauge de l’autre"
+          : "Chacun valide sa propre jauge";
     }
-    $("matchSection").hidden = !$("matchGrid").children.length;
-    $("decisionSection").hidden = !differences;
     const count = catalog.filter(category => resultFor(category)).length;
     $("showPlanButton").disabled = count !== catalog.length;
-    $("summaryStatus").textContent = count === catalog.length ? "Tout est décidé. Votre feuille du jour est prête." : `${count} décision${count > 1 ? "s" : ""} sur ${catalog.length} finalisée${count > 1 ? "s" : ""}.`;
+    $("summaryStatus").textContent = count === catalog.length
+      ? "Tout est décidé. Votre feuille du jour est prête."
+      : `${count} décision${count > 1 ? "s" : ""} sur ${catalog.length} finalisée${count > 1 ? "s" : ""}.`;
+  }
+
+  function renderSummary() {
+    const signature = JSON.stringify([state.own?.picks, state.other?.picks]);
+    if (state.summarySignature !== signature) {
+      state.summarySignature = signature;
+      $("matchGrid").replaceChildren();
+      $("decisionList").replaceChildren();
+      let differences = 0;
+      for (const category of catalog) {
+        const [a, c] = picksFor(category);
+        if (!validPick(category, a) || !validPick(category, c)) continue;
+        if (a === c) {
+          const item = document.createElement("article");
+          item.className = `result-card match-card${isMystery(category, a) ? " mystery-result" : ""}`;
+          item.style.setProperty("--item-bg", category.art);
+          item.innerHTML = `<small>${escape(category.name)}</small><strong>${escape(titleFor(category, a))}</strong>`;
+          $("matchGrid").append(item);
+          continue;
+        }
+        differences++;
+        const ownVote = state.own.votes[category.id];
+        const duel = document.createElement("article");
+        duel.className = "decision-card";
+        duel.dataset.category = category.id;
+        duel.innerHTML = `<div class="decision-category"><span>${escape(category.icon)}</span><strong>${escape(category.name)}</strong></div>
+          <div class="duel-options">
+            <div class="result-card duel-option${isMystery(category, a) ? " mystery-result" : ""}" style="--item-bg:${category.art}"><small>Choix de A</small><strong>${escape(titleFor(category, a))}</strong></div>
+            <div class="result-card duel-option${isMystery(category, c) ? " mystery-result" : ""}" style="--item-bg:${category.art}"><small>Choix de C</small><strong>${escape(titleFor(category, c))}</strong></div>
+          </div>
+          <div class="own-vote"><label for="vote-${category.id}">Ta jauge · ${ownLabel()} <output>${validVote(ownVote) ? ownVote : 50}</output></label>
+            <input id="vote-${category.id}" type="range" min="0" max="100" value="${validVote(ownVote) ? ownVote : 50}">
+            <button type="button" class="vote-confirm">Valider ma jauge</button>
+          </div>
+          <div class="combined-gauge"><div class="gauge-track"><span class="gauge-j1"></span><i class="gauge-marker"></i></div>
+            <div class="gauge-labels"><span>A</span><strong class="gauge-score">En attente des deux jauges</strong><span>C</span></div>
+            <p class="gauge-result">Chacun valide sa propre jauge</p></div>
+          <button type="button" class="skip-own">Pas aujourd’hui · ${ownLabel()}</button>
+          <p class="skip-note">Mis de côté si vous le choisissez tous les deux.</p>`;
+        const slider = duel.querySelector("input");
+        const output = duel.querySelector("output");
+        slider.addEventListener("input", () => { output.value = slider.value; });
+        duel.querySelector(".vote-confirm").addEventListener("click", () => {
+          state.own.votes[category.id] = Number(slider.value);
+          save();
+          refreshSummary();
+        });
+        duel.querySelector(".skip-own").addEventListener("click", () => {
+          state.own.skips[category.id] = !state.own.skips[category.id];
+          save();
+          refreshSummary();
+        });
+        $("decisionList").append(duel);
+      }
+      $("matchSection").hidden = !$("matchGrid").children.length;
+      $("decisionSection").hidden = !differences;
+    }
+    refreshSummary();
   }
 
   function drawText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 3) {
@@ -379,13 +434,16 @@
     ctx.font = "500 30px system-ui";
     ctx.fillStyle = "#746e69";
     ctx.fillText(new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date()), 90, 270);
-    const today = catalog.filter(category => resultFor(category)?.kind !== "reporté");
+    const today = catalog.filter(category => {
+      const kind = resultFor(category)?.kind;
+      return kind && kind !== "reporté" && kind !== "écart";
+    });
     if (!today.length) {
       ctx.font = "650 42px system-ui";
       ctx.fillText("Rien à prévoir aujourd’hui.", 90, 420, 990);
     }
     today.forEach((category, index) => {
-      const result = resultFor(category);
+      const result = resultFor(category, true);
       const y = 330 + index * 228;
       ctx.fillStyle = "#ffffff";
       rounded(ctx, 82, y, 1036, 200, 30);
@@ -395,7 +453,7 @@
       ctx.fill();
       ctx.fillStyle = "#74465e";
       ctx.font = "700 25px system-ui";
-      ctx.fillText(category.name.toUpperCase(), 122, y + 50);
+      ctx.fillText(result?.mystery ? `${category.name.toUpperCase()} · MYSTÈRE RÉVÉLÉ` : category.name.toUpperCase(), 122, y + 50);
       ctx.fillStyle = "#252222";
       ctx.font = "700 42px system-ui";
       drawText(ctx, result?.title || "À décider", 122, y + 112, 930, 48, 2);
@@ -446,7 +504,7 @@
   $("restartButton").addEventListener("click", () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=32";
+    location.href = location.pathname + "?v=33";
   });
 
   live.onChange((rows, info) => {
