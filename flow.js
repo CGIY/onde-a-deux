@@ -606,6 +606,7 @@
     $("welcomeStatus").textContent = `${button.dataset.player === "J1" ? "A" : "C"}. C’est toi. On y va.`;
   }));
   $("undoButton").addEventListener("click", () => {
+    if (!state.ready) return toast("On attend la reconnexion de l’autre.");
     const deck = currentDeck();
     if (!deck.removed.length || state.busy) return;
     deck.remaining.unshift(deck.removed.pop());
@@ -633,7 +634,7 @@
   const restart = () => {
     sessionStorage.removeItem("onde-room");
     sessionStorage.removeItem("onde-role");
-    location.href = location.pathname + "?v=37";
+    location.href = location.pathname + "?v=" + (document.querySelector('meta[name="onde-version"]')?.content || "42");
   };
   $("restartButton").addEventListener("click", restart);
   $("renewSessionButton").addEventListener("click", restart);

@@ -36,6 +36,15 @@ window.ondeLive = (() => {
     return candidate;
   };
   const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), value => value.toString(16).padStart(2, "0")).join("");
+  const tokenKeyFor = (code, player) => `onde-token:${code}:${player}`;
+  function savedToken(key) {
+    try { return sessionStorage.getItem(key) || globalThis.localStorage?.getItem(key) || null; }
+    catch { return sessionStorage.getItem(key); }
+  }
+  function rememberToken(key, value) {
+    sessionStorage.setItem(key, value);
+    try { globalThis.localStorage?.setItem(key, value); } catch {}
+  }
   const fresh = row => row && Date.now() - new Date(row.last_seen).getTime() < 15000;
   const ready = () => !expired && networkOK && Boolean(fresh(rows.J1) && fresh(rows.J2));
 
@@ -111,11 +120,11 @@ window.ondeLive = (() => {
     role = selectedRole;
     lastConnectionError = "";
     expired = false;
-    const tokenKey = `onde-token:${roomCode}:${role}`;
-    token = (!create && sessionStorage.getItem(tokenKey)) || newToken();
+    const tokenKey = tokenKeyFor(roomCode, role);
+    token = (!create && savedToken(tokenKey)) || newToken();
     try {
       await enqueue(null, create);
-      sessionStorage.setItem(tokenKey, token);
+      rememberToken(tokenKey, token);
       sessionStorage.setItem("onde-room", roomCode);
       sessionStorage.setItem("onde-role", role);
       input.value = roomCode;
@@ -182,7 +191,7 @@ window.ondeLive = (() => {
   copyButton.addEventListener("click", async () => {
     const invite = new URL(location.href);
     invite.search = "";
-    invite.searchParams.set("v", "37");
+    invite.searchParams.set("v", document.querySelector('meta[name="onde-version"]')?.content || "42");
     invite.searchParams.set("room", roomCode);
     try {
       await navigator.clipboard.writeText(invite.href);
