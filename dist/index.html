@@ -8,15 +8,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="ONDE">
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
-  <meta name="onde-version" content="42">
+  <meta name="onde-version" content="43">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=37">
-  <link rel="stylesheet" href="finish.css?v=41">
+  <link rel="stylesheet" href="finish.css?v=43">
   <title>ONDE — on décide</title>
 </head>
 <body>
   <main class="app-shell">
+    <div class="slime-veil" aria-hidden="true"></div>
+    <div class="evil-turn-logo" aria-hidden="true"><span class="evil-turn-inner"><span class="evil-turn-front">ONDE.</span><span class="evil-turn-back">ONDE.</span></span></div>
     <header class="topbar">
       <div class="live-presence"><span class="presence-pill" data-status="waiting" role="status"><i aria-hidden="true"></i><span id="syncLabel">À deux, bordel.</span></span><small id="partnerActivity"></small></div>
     </header>
@@ -44,7 +46,6 @@
       </div>
       <p class="room-status" id="roomStatus" role="status">L’un lance. L’autre entre le code.</p>
       <p class="welcome-status" id="welcomeStatus" role="status">A ou C. C’est qui, toi ?</p>
-      <a class="tmdb-credit" href="https://www.themoviedb.org/" target="_blank" rel="noreferrer">Affiches : TMDB</a>
     </section>
 
     <section class="game" id="gameScreen" hidden aria-live="polite">
@@ -130,6 +131,7 @@
       <button class="primary-button" id="savePlanButton" type="button">Garde une trace ↓</button>
       <button class="text-button" id="backToSummaryButton" type="button">Revoir le verdict</button>
       <button class="text-button" id="restartButton" type="button">On remet ça ?</button>
+      <a class="tmdb-credit" href="https://www.themoviedb.org/" target="_blank" rel="noreferrer">Affiches : TMDB</a>
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -139,6 +141,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="live.js?v=42"></script>
   <script src="app.js?v=42"></script>
-  <script src="flow.js?v=42"></script>
+  <script src="flow.js?v=43"></script>
 </body>
 </html>

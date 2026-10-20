@@ -19,9 +19,32 @@
     } catch { return []; }
   }
   const escape = value => String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
+  let themeTimer;
+
+  function leaveIntimateTheme() {
+    const body = document.body;
+    if (!body.classList.contains("evil-mode")) return;
+    clearTimeout(themeTimer);
+    body.classList.remove("evil-mode", "evil-enter");
+    body.classList.add("evil-exit");
+    themeTimer = setTimeout(() => body.classList.remove("evil-exit"), 1150);
+  }
+
+  function updateTheme(name) {
+    const body = document.body;
+    const intimate = name === "game" && state.own?.position < categoryIds.length && currentCategory()?.id === "sexualite";
+    if (intimate) {
+      if (body.classList.contains("evil-mode")) return;
+      clearTimeout(themeTimer);
+      body.classList.remove("evil-exit");
+      body.classList.add("evil-mode", "evil-enter");
+      themeTimer = setTimeout(() => body.classList.remove("evil-enter"), 1100);
+    } else leaveIntimateTheme();
+  }
 
   function show(name) {
     if (state.screen === name && !screens[name].hidden) return;
+    updateTheme(name);
     state.screen = name;
     Object.entries(screens).forEach(([key, element]) => { element.hidden = key !== name; });
     window.scrollTo(0, 0);
@@ -242,8 +265,10 @@
 
   function choose() {
     if (!state.ready) return toast("L’autre a décroché. Deux secondes.");
+    if (state.busy) return;
     const deck = currentDeck();
     if (!deck.remaining.length) return;
+    if (currentCategory().id === "sexualite") leaveIntimateTheme();
     animate("keeping", () => {
       const category = currentCategory();
       state.own.picks[category.id] = deck.remaining[0];
