@@ -1,4 +1,4 @@
-const CACHE = "onde-v44";
+const CACHE = "onde-v45";
 const ASSETS = ["./", "index.html", "styles.css?v=37", "finish.css?v=44", "grain.svg", "slime-veil-v2.png", "media-catalog.js?v=22", "media-artwork.js?v=40", "app.js?v=42", "live.js?v=42", "flow.js?v=44", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (event) => {
