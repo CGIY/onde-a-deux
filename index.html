@@ -8,18 +8,18 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="ONDE">
   <meta name="description" content="ONDE — on décide à deux, une tuile à la fois.">
-  <meta name="onde-version" content="43">
+  <meta name="onde-version" content="44">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=37">
-  <link rel="stylesheet" href="finish.css?v=43">
+  <link rel="stylesheet" href="finish.css?v=44">
   <title>ONDE — on décide</title>
 </head>
 <body>
   <main class="app-shell">
-    <div class="slime-veil" aria-hidden="true"></div>
-    <div class="evil-turn-logo" aria-hidden="true"><span class="evil-turn-inner"><span class="evil-turn-front">ONDE.</span><span class="evil-turn-back">ONDE.</span></span></div>
+    <div class="slime-veil" aria-hidden="true"><span class="slime-lens slime-lens-left"></span><span class="slime-lens slime-lens-middle"></span><span class="slime-lens slime-lens-right"></span><span class="slime-sheet"></span></div>
     <header class="topbar">
+      <span class="topbar-mark" aria-label="ONDE">ONDE<span>.</span></span>
       <div class="live-presence"><span class="presence-pill" data-status="waiting" role="status"><i aria-hidden="true"></i><span id="syncLabel">À deux, bordel.</span></span><small id="partnerActivity"></small></div>
     </header>
     <aside id="sessionExpiredBanner" class="expired-banner" role="alert" hidden><span>24 h. C’est fini pour ce code.</span><button id="renewSessionButton" type="button">On remet ça ? →</button></aside>
@@ -141,6 +141,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="live.js?v=42"></script>
   <script src="app.js?v=42"></script>
-  <script src="flow.js?v=43"></script>
+  <script src="flow.js?v=44"></script>
 </body>
 </html>

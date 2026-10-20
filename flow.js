@@ -45,6 +45,7 @@
   function show(name) {
     if (state.screen === name && !screens[name].hidden) return;
     updateTheme(name);
+    document.body.classList.toggle("has-mini-logo", name !== "intro");
     state.screen = name;
     Object.entries(screens).forEach(([key, element]) => { element.hidden = key !== name; });
     window.scrollTo(0, 0);
@@ -94,6 +95,11 @@
       const video = category.cards.flatMap((card, index) => card.subtype === "Jeu vidéo" ? [index] : []);
       return sample([...preferred(board).slice(0, 2), ...preferred(video).slice(0, 1)], 3, rng);
     }
+    if (category.id === "sexualite") {
+      const films = category.cards.flatMap((card, index) => card.subtype === "Adulte" ? [index] : []);
+      const ideas = category.cards.flatMap((card, index) => card.subtype !== "Adulte" ? [index] : []);
+      return sample([...preferred(films).slice(0, 1), ...preferred(ideas).slice(0, 2)], 3, rng);
+    }
     return preferred(category.cards.map((_, index) => index)).slice(0, 3);
   }
 
@@ -103,10 +109,11 @@
     state.own.offers = Object.fromEntries(catalog.map(category => {
       const visible = state.own.decks[category.id]?.remaining?.length ? deckFor(category) : sampleDeck(category, history);
       const unseen = category.cards.map((_, index) => index).filter(index => !visible.includes(index));
+      const mysteryCandidates = category.id === "sexualite" ? unseen.filter(index => category.cards[index].subtype !== "Adulte") : unseen;
       const recentTitles = new Set(history.map(item => item.title));
-      const fresh = unseen.filter(index => !recentTitles.has(category.cards[index].title));
+      const fresh = mysteryCandidates.filter(index => !recentTitles.has(category.cards[index].title));
       const previousMystery = state.own.decks[category.id]?.mystery ?? state.other?.decks?.[category.id]?.mystery;
-      const mystery = validPick(category, previousMystery) ? previousMystery : sample(fresh.length ? fresh : unseen, 1, random(seedFor(`${state.room}:${category.id}:mystery:v1`)))[0];
+      const mystery = mysteryCandidates.includes(previousMystery) ? previousMystery : sample(fresh.length ? fresh : mysteryCandidates, 1, random(seedFor(`${state.room}:${category.id}:mystery:v1`)))[0];
       return [category.id, [...visible, mystery]];
     }));
     mysteryCache.clear();
@@ -119,7 +126,7 @@
     const key = `${state.room}:${category.id}`;
     if (mysteryCache.has(key)) return mysteryCache.get(key);
     const visible = new Set(deckFor(category));
-    const candidates = category.cards.map((_, index) => index).filter(index => !visible.has(index));
+    const candidates = category.cards.map((card, index) => index).filter(index => !visible.has(index) && (category.id !== "sexualite" || category.cards[index].subtype !== "Adulte"));
     const mystery = sample(candidates, 1, random(seedFor(`${key}:mystery:v1`)))[0];
     mysteryCache.set(key, mystery);
     return mystery;
