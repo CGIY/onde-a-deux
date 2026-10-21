@@ -107,6 +107,7 @@
     @keyframes pulse { 50% { transform: scale(.65); opacity: .6; } }
 
     .brand-stage {
+      --brand-size: clamp(48px, 15vw, 69px);
       height: 88px;
       position: relative;
       display: flex;
@@ -114,31 +115,49 @@
       margin-bottom: 7px;
     }
 
-    .brand-word {
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      font-size: clamp(48px, 15vw, 69px);
+    .brand-prefix {
+      flex: 0 0 auto;
+      font-size: var(--brand-size);
       line-height: .9;
       letter-spacing: -.075em;
       font-weight: 900;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-prefix .dot { color: var(--sage-dark); }
+
+    .brand-switch {
+      position: relative;
+      flex: 1;
+      height: calc(var(--brand-size) * .9);
+      overflow: visible;
+    }
+
+    .brand-suffix {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      font-size: var(--brand-size);
+      line-height: .9;
+      letter-spacing: -.075em;
+      font-weight: 900;
+      color: var(--sage-dark);
       opacity: 0;
       transform: translateY(24px) rotate(1deg);
       filter: blur(4px);
       transition: opacity .7s ease, transform .8s cubic-bezier(.22,.9,.25,1), filter .7s ease;
     }
 
-    .brand-word.active {
+    .brand-suffix.active {
       opacity: 1;
       transform: translateY(0) rotate(0);
       filter: blur(0);
     }
 
-    .brand-word.exit {
+    .brand-suffix.exit {
       transform: translateY(-22px) rotate(-1deg);
     }
-
-    .brand-word .soft { color: var(--sage-dark); }
 
     .promise {
       margin: 0 0 24px;
@@ -589,8 +608,11 @@
 
     <section aria-label="Identité de l’application">
       <div class="brand-stage" aria-live="polite">
-        <div class="brand-word active" data-brand="vie">EN<span class="soft">•VIE</span></div>
-        <div class="brand-word" data-brand="corps">EN<span class="soft">•CORPS</span></div>
+        <div class="brand-prefix" aria-hidden="true">EN<span class="dot">•</span></div>
+        <div class="brand-switch">
+          <div class="brand-suffix active" data-brand="vie">VIE</div>
+          <div class="brand-suffix" data-brand="corps">CORPS</div>
+        </div>
       </div>
       <p class="promise">Ce qu’on aimait. Ce qu’on retrouve.</p>
     </section>
@@ -739,6 +761,6 @@
   <div class="toast" id="toast" role="status">Un pas de plus vers vous deux.</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.76.1"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>
