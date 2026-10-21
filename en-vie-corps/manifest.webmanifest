@@ -1,0 +1,17 @@
+{
+  "name": "EN•VIE / EN•CORPS",
+  "short_name": "EN•VIE",
+  "description": "Ce qu’on aimait. Ce qu’on retrouve.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eee7dd",
+  "theme_color": "#eee7dd",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
