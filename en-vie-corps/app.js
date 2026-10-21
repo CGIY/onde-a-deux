@@ -243,7 +243,7 @@ const detailData = {
   }
 };
 
-const brandWords = [...document.querySelectorAll(".brand-word")];
+const brandWords = [...document.querySelectorAll(".brand-suffix")];
 let brandIndex = 0;
 setInterval(() => {
   const current = brandWords[brandIndex];
