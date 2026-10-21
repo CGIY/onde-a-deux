@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eee7dd">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="EN•VIE">
+  <meta name="description" content="EN•VIE / EN•CORPS — retrouver ce qui nous rapprochait.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>EN•VIE / CORPS</title>
+  <style>
+    :root {
+      --paper: #eee7dd;
+      --paper-2: #e4dacf;
+      --ink: #2f2b2b;
+      --muted: #756e69;
+      --cream: #f7f1e8;
+      --sage: #80999a;
+      --sage-dark: #516f70;
+      --clay: #b98f78;
+      --rose: #b58082;
+      --plum: #705963;
+      --moss: #8b9274;
+      --gold: #b8a273;
+      --shadow: 0 20px 60px rgba(59, 48, 43, .14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: #d8d1c8; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 16% 8%, rgba(255,255,255,.7), transparent 30%),
+        radial-gradient(circle at 86% 30%, rgba(128,153,154,.12), transparent 34%),
+        var(--paper);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .16;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+      z-index: 20;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .app {
+      width: min(100%, 480px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: max(22px, env(safe-area-inset-top)) 20px calc(100px + env(safe-area-inset-bottom));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 29px;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pair {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      border: 0;
+      background: transparent;
+      padding: 8px 0 8px 10px;
+      cursor: pointer;
+    }
+
+    .pair-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--sage-dark);
+      box-shadow: 0 0 0 5px rgba(81,111,112,.12);
+    }
+    .pair[data-status="online"] .pair-dot { background: #6b8c76; box-shadow: 0 0 0 5px rgba(107,140,118,.15); }
+    .pair[data-status="syncing"] .pair-dot { background: var(--gold); animation: pulse 1.25s infinite; }
+    @keyframes pulse { 50% { transform: scale(.65); opacity: .6; } }
+
+    .brand-stage {
+      height: 88px;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 7px;
+    }
+
+    .brand-word {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      font-size: clamp(48px, 15vw, 69px);
+      line-height: .9;
+      letter-spacing: -.075em;
+      font-weight: 900;
+      opacity: 0;
+      transform: translateY(24px) rotate(1deg);
+      filter: blur(4px);
+      transition: opacity .7s ease, transform .8s cubic-bezier(.22,.9,.25,1), filter .7s ease;
+    }
+
+    .brand-word.active {
+      opacity: 1;
+      transform: translateY(0) rotate(0);
+      filter: blur(0);
+    }
+
+    .brand-word.exit {
+      transform: translateY(-22px) rotate(-1deg);
+    }
+
+    .brand-word .soft { color: var(--sage-dark); }
+
+    .promise {
+      margin: 0 0 24px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .week-card {
+      border-radius: 27px;
+      padding: 21px;
+      color: var(--cream);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.08), transparent 42%),
+        #314547;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .week-card::after {
+      content: "";
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      border: 1px solid rgba(244,237,224,.16);
+      border-radius: 50%;
+      right: -62px;
+      top: -84px;
+      box-shadow: 0 0 0 24px rgba(244,237,224,.035), 0 0 0 50px rgba(244,237,224,.025);
+    }
+
+    .week-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .week-kicker {
+      font-size: 9px;
+      letter-spacing: .23em;
+      font-weight: 800;
+      opacity: .68;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .week-title {
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -.04em;
+    }
+
+    .week-score {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 27px;
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .gauge {
+      height: 11px;
+      margin-top: 20px;
+      border-radius: 999px;
+      background: rgba(247,241,232,.13);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      width: 40%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #c9b59a, #e4d6b8);
+      box-shadow: 0 0 22px rgba(228,214,184,.45);
+      transition: width .8s cubic-bezier(.22,.9,.25,1);
+    }
+
+    .week-foot {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 10px;
+      color: rgba(247,241,232,.62);
+      position: relative;
+      z-index: 1;
+    }
+
+    .search-wrap { position: relative; margin-bottom: 16px; }
+    .search-icon { position: absolute; left: 17px; top: 15px; opacity: .55; }
+    .search {
+      width: 100%;
+      padding: 15px 18px 15px 47px;
+      border: 1px solid rgba(47,43,43,.08);
+      outline: none;
+      background: rgba(247,241,232,.72);
+      border-radius: 18px;
+      color: var(--ink);
+      box-shadow: 0 8px 26px rgba(61,50,45,.05);
+    }
+
+    .search:focus { border-color: rgba(81,111,112,.45); box-shadow: 0 0 0 4px rgba(81,111,112,.08); }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 1px 1px 8px;
+      scrollbar-width: none;
+      margin-bottom: 18px;
+    }
+    .chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      border: 0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.44);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease;
+    }
+    .chip:active { transform: scale(.96); }
+    .chip.active { background: var(--ink); color: var(--cream); }
+
+    .section-line {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 13px;
+    }
+
+    .section-line h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -.04em;
+    }
+
+    .section-line span { font-size: 10px; color: var(--muted); }
+
+    .cards { display: grid; gap: 12px; }
+
+    .action-card {
+      width: 100%;
+      min-height: 137px;
+      border: 0;
+      border-radius: 25px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 100px;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 11px 30px rgba(61,50,45,.09);
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .action-card:active { transform: scale(.985); box-shadow: 0 5px 15px rgba(61,50,45,.09); }
+    .action-card.clay { background: #d4b7a6; }
+    .action-card.sage { background: #aabbbb; }
+    .action-card.gold { background: #d4c6a4; }
+
+    .card-kicker {
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .56;
+    }
+
+    .card-title {
+      margin: 9px 0 4px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 29px;
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: -.03em;
+    }
+
+    .card-copy { max-width: 220px; font-size: 11px; line-height: 1.38; opacity: .68; }
+
+    .card-art {
+      align-self: center;
+      justify-self: center;
+      width: 79px;
+      height: 79px;
+      border: 1px solid rgba(47,43,43,.17);
+      border-radius: 27px 35px 24px 38px;
+      display: grid;
+      place-items: center;
+      transform: rotate(7deg);
+      position: relative;
+    }
+
+    .card-art::before, .card-art::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(47,43,43,.14);
+      border-radius: 50%;
+    }
+    .card-art::before { inset: 13px; }
+    .card-art::after { width: 8px; height: 8px; background: var(--ink); border: 0; }
+    .arrow { font-size: 22px; position: absolute; right: 17px; bottom: 14px; }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 12;
+      left: 50%;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      width: min(calc(100% - 32px), 448px);
+      background: rgba(47,43,43,.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 7px;
+      box-shadow: 0 16px 40px rgba(31,26,25,.25);
+    }
+
+    .nav-btn {
+      border: 0;
+      background: transparent;
+      color: rgba(247,241,232,.55);
+      border-radius: 18px;
+      padding: 10px 5px;
+      font-size: 9px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .nav-btn span { display: block; font-size: 17px; margin-bottom: 3px; }
+    .nav-btn.active { background: rgba(247,241,232,.11); color: var(--cream); }
+
+    .detail {
+      position: fixed;
+      z-index: 30;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      background: rgba(35,31,30,.38);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+    }
+    .detail.open { opacity: 1; pointer-events: auto; }
+
+    .detail-sheet {
+      width: min(100%, 480px);
+      height: 94vh;
+      margin-top: 6vh;
+      padding: 12px 20px calc(34px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      background:
+        radial-gradient(circle at 80% 5%, rgba(181,128,130,.14), transparent 25%),
+        var(--paper);
+      border-radius: 34px 34px 0 0;
+      transform: translateY(100%);
+      transition: transform .62s cubic-bezier(.2,.86,.28,1);
+      box-shadow: 0 -18px 60px rgba(47,43,43,.18);
+    }
+    .detail.open .detail-sheet { transform: translateY(0); }
+
+    .handle { width: 42px; height: 4px; background: rgba(47,43,43,.18); border-radius: 99px; margin: 2px auto 13px; }
+    .detail-top { display: flex; justify-content: space-between; align-items: center; }
+    .back-btn, .bookmark {
+      width: 39px; height: 39px; border: 0; border-radius: 50%; background: rgba(255,255,255,.5); cursor: pointer;
+    }
+    .detail-label { font-size: 9px; letter-spacing: .2em; font-weight: 850; text-transform: uppercase; color: var(--muted); }
+    .detail h1 { margin: 22px 0 2px; font: italic 500 47px/1 Georgia, serif; letter-spacing: -.045em; text-align: center; }
+    .detail-sub { text-align: center; margin: 0 auto 12px; max-width: 290px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+    .mindmap {
+      position: relative;
+      height: 348px;
+      margin: 2px -5px 13px;
+    }
+
+    .mindmap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .mindmap line { stroke: rgba(47,43,43,.18); stroke-width: 1.2; stroke-dasharray: 3 5; }
+
+    .mind-center {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%,-50%) scale(.5);
+      width: 106px; height: 106px;
+      border-radius: 42% 58% 57% 43% / 45% 42% 58% 55%;
+      background: var(--plum);
+      color: var(--cream);
+      display: grid;
+      place-items: center;
+      font: italic 500 17px Georgia, serif;
+      text-align: center;
+      box-shadow: 0 16px 30px rgba(71,49,58,.22);
+      opacity: 0;
+      transition: .65s cubic-bezier(.2,.9,.25,1) .15s;
+    }
+
+    .detail.open .mind-center { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+
+    .node {
+      position: absolute;
+      width: 116px;
+      min-height: 68px;
+      border: 0;
+      border-radius: 22px;
+      padding: 11px 10px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-size: 10px;
+      line-height: 1.25;
+      font-weight: 750;
+      color: var(--ink);
+      opacity: 0;
+      transform: scale(.55) translateY(10px);
+      transition: opacity .5s ease, transform .7s cubic-bezier(.2,.9,.25,1);
+      box-shadow: 0 8px 20px rgba(61,50,45,.08);
+    }
+
+    .detail.open .node { opacity: 1; transform: scale(1) translateY(0); }
+    .n1 { top: 20px; left: 8px; background: #c7b3b4; transition-delay: .35s; }
+    .n2 { top: 20px; right: 8px; background: #aabcbc; transition-delay: .47s; }
+    .n3 { bottom: 17px; left: 8px; background: #d7c8a8; transition-delay: .59s; }
+    .n4 { bottom: 17px; right: 8px; background: #b8bea4; transition-delay: .71s; }
+
+    .node strong { display:block; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+    .mind-note { text-align: center; font: italic 14px Georgia, serif; color: var(--muted); margin: -5px 0 18px; }
+
+    .advice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .advice {
+      border-radius: 19px;
+      padding: 15px;
+      background: rgba(255,255,255,.43);
+      min-height: 107px;
+    }
+    .advice h3 { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin: 0 0 9px; }
+    .advice p { margin: 0; font-size: 11px; line-height: 1.45; color: var(--muted); }
+
+    .done-btn {
+      width: 100%;
+      border: 0;
+      margin-top: 15px;
+      border-radius: 20px;
+      padding: 17px;
+      background: var(--ink);
+      color: var(--cream);
+      font-weight: 850;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(47,43,43,.2);
+      transition: transform .2s ease, background .25s ease;
+    }
+    .done-btn:active { transform: scale(.985); }
+    .done-btn.done { background: var(--sage-dark); }
+
+    .toast {
+      position: fixed;
+      z-index: 50;
+      left: 50%; bottom: 105px;
+      transform: translate(-50%, 18px);
+      padding: 12px 17px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--cream);
+      font-size: 11px;
+      font-weight: 750;
+      opacity: 0;
+      pointer-events: none;
+      transition: .3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .sync-panel {
+      position: fixed;
+      z-index: 35;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      background: rgba(35,31,30,.38);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+    }
+    .sync-panel.open { opacity: 1; pointer-events: auto; }
+    .sync-sheet {
+      width: min(100%, 480px);
+      padding: 12px 20px calc(28px + env(safe-area-inset-bottom));
+      border-radius: 34px 34px 0 0;
+      background: var(--paper);
+      box-shadow: 0 -18px 60px rgba(47,43,43,.18);
+      transform: translateY(100%);
+      transition: transform .55s cubic-bezier(.2,.86,.28,1);
+    }
+    .sync-panel.open .sync-sheet { transform: translateY(0); }
+    .sync-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .sync-head h2 { margin:0; font-size:22px; letter-spacing:-.04em; }
+    .sync-copy { margin:0 0 17px; font-size:12px; line-height:1.5; color:var(--muted); }
+    .roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .role-btn { border:1px solid rgba(47,43,43,.1); background:rgba(255,255,255,.42); border-radius:18px; padding:14px; font-weight:850; cursor:pointer; }
+    .role-btn.active { background:var(--ink); color:var(--cream); }
+    .sync-actions { display:grid; gap:10px; }
+    .sync-primary, .sync-secondary { border:0; border-radius:18px; padding:15px; font-weight:850; cursor:pointer; }
+    .sync-primary { background:var(--sage-dark); color:var(--cream); }
+    .sync-secondary { background:var(--ink); color:var(--cream); }
+    .join-row { display:grid; grid-template-columns:1fr auto; gap:8px; }
+    .code-input { min-width:0; text-transform:uppercase; letter-spacing:.16em; border:1px solid rgba(47,43,43,.1); border-radius:18px; padding:14px; background:rgba(255,255,255,.55); outline:none; }
+    .sync-status { min-height:18px; margin:11px 0 0; font-size:10px; color:var(--muted); text-align:center; }
+    .shared-code { margin:14px 0 0; padding:15px; border-radius:20px; background:#d6c7b7; text-align:center; }
+    .shared-code small { display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:.15em; font-size:8px; font-weight:850; opacity:.6; }
+    .shared-code strong { display:block; font:italic 500 30px Georgia,serif; letter-spacing:.12em; }
+    .shared-code button { margin-top:8px; border:0; background:transparent; font-size:10px; font-weight:850; text-decoration:underline; cursor:pointer; }
+    .privacy-note { margin:15px 0 0; font-size:9px; line-height:1.45; color:var(--muted); }
+
+    @media (min-width: 700px) {
+      body { padding: 22px 0; }
+      .app { min-height: calc(100vh - 44px); border-radius: 38px; box-shadow: 0 30px 80px rgba(47,43,43,.18); }
+      .bottom-nav { bottom: 35px; }
+      .detail-sheet { height: min(900px, 94vh); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topline">
+      <div class="eyebrow">À deux · Se retrouver</div>
+      <button class="pair" id="pairButton" data-status="local" type="button" aria-label="Synchroniser les deux téléphones"><span class="pair-dot"></span><span id="pairLabel">A + C</span></button>
+    </header>
+
+    <section aria-label="Identité de l’application">
+      <div class="brand-stage" aria-live="polite">
+        <div class="brand-word active" data-brand="vie">EN<span class="soft">•VIE</span></div>
+        <div class="brand-word" data-brand="corps">EN<span class="soft">•CORPS</span></div>
+      </div>
+      <p class="promise">Ce qu’on aimait. Ce qu’on retrouve.</p>
+    </section>
+
+    <section class="week-card" aria-label="Progression de la semaine">
+      <div class="week-head">
+        <div>
+          <div class="week-kicker">Cette semaine</div>
+          <div class="week-title">On se retrouve</div>
+        </div>
+        <div class="week-score"><span id="score">0</span> / 5</div>
+      </div>
+      <div class="gauge"><div class="gauge-fill" id="gaugeFill"></div></div>
+      <div class="week-foot"><span id="countLabel">Aucun élan retrouvé</span><span>Remise à zéro lundi</span></div>
+    </section>
+
+    <div class="search-wrap">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <input class="search" id="search" type="search" placeholder="Retrouver une envie…" aria-label="Rechercher une envie">
+    </div>
+
+    <div class="chips" aria-label="Catégories">
+      <button class="chip active" data-filter="all">Tout</button>
+      <button class="chip" data-filter="corps">EN•CORPS</button>
+      <button class="chip" data-filter="tendresse">Tendresse</button>
+      <button class="chip" data-filter="aventure">Aventure</button>
+      <button class="chip" data-filter="paroles">Paroles</button>
+    </div>
+
+    <div class="section-line">
+      <h2>À retrouver</h2>
+      <span>3 souvenirs</span>
+    </div>
+
+    <section class="cards" id="cards">
+      <button class="action-card clay" data-title="Biffle" data-category="corps" aria-label="Ouvrir la fiche Biffle">
+        <div>
+          <div class="card-kicker">EN•CORPS · Complicité</div>
+          <div class="card-title">Biffle</div>
+          <div class="card-copy">Un jeu provocateur qui repose entièrement sur l’envie partagée.</div>
+        </div>
+        <div class="card-art" aria-hidden="true"></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </button>
+
+      <button class="action-card sage" data-title="Massage lent" data-category="tendresse" aria-label="Ouvrir la fiche Massage lent">
+        <div>
+          <div class="card-kicker">Tendresse · Présence</div>
+          <div class="card-title">Massage lent</div>
+          <div class="card-copy">Dix minutes sans objectif, simplement pour se retrouver.</div>
+        </div>
+        <div class="card-art" aria-hidden="true"></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </button>
+
+      <button class="action-card gold" data-title="Sortie surprise" data-category="aventure" aria-label="Ouvrir la fiche Sortie surprise">
+        <div>
+          <div class="card-kicker">Aventure · Imprévu</div>
+          <div class="card-title">Sortie surprise</div>
+          <div class="card-copy">Recréer une petite première fois dans une semaine ordinaire.</div>
+        </div>
+        <div class="card-art" aria-hidden="true"></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </button>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Navigation principale">
+    <button class="nav-btn active"><span>⌕</span>Explorer</button>
+    <button class="nav-btn"><span>♡</span>À refaire</button>
+    <button class="nav-btn"><span>◔</span>Semaine</button>
+  </nav>
+
+  <section class="detail" id="detail" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="detail-sheet">
+      <div class="handle" aria-hidden="true"></div>
+      <div class="detail-top">
+        <button class="back-btn" id="closeDetail" aria-label="Fermer">←</button>
+        <div class="detail-label">EN•CORPS · Fiche 07</div>
+        <button class="bookmark" aria-label="Ajouter aux envies">♡</button>
+      </div>
+
+      <h1 id="detailTitle">Biffle</h1>
+      <p class="detail-sub" id="detailSub">Une provocation complice, seulement quand elle est clairement désirée par vous deux.</p>
+
+      <div class="mindmap" aria-label="Carte des points essentiels">
+        <svg viewBox="0 0 400 348" aria-hidden="true">
+          <line x1="200" y1="174" x2="70" y2="55"></line>
+          <line x1="200" y1="174" x2="330" y2="55"></line>
+          <line x1="200" y1="174" x2="70" y2="292"></line>
+          <line x1="200" y1="174" x2="330" y2="292"></line>
+        </svg>
+        <div class="mind-center">L’envie<br>partagée</div>
+        <div class="node n1"><span><strong>Le +</strong>Jeu, surprise et lâcher-prise</span></div>
+        <div class="node n2"><span><strong>Attention</strong>Peut surprendre ou blesser</span></div>
+        <div class="node n3"><span><strong>Avant</strong>Accord clair et intensité choisie</span></div>
+        <div class="node n4"><span><strong>Après</strong>Vérifier le ressenti, sans jugement</span></div>
+      </div>
+
+      <p class="mind-note">Touchez une branche pour l’explorer — bientôt.</p>
+
+      <div class="advice-grid">
+        <article class="advice">
+          <h3>Pour que ce soit bon</h3>
+          <p>Un oui explicite, commencer doucement et rester attentif aux réactions.</p>
+        </article>
+        <article class="advice">
+          <h3>À garder en tête</h3>
+          <p>Un accord peut changer. On ralentit ou on arrête dès que l’un de vous le souhaite.</p>
+        </article>
+      </div>
+
+      <button class="done-btn" id="doneBtn">On l’a refait !</button>
+    </div>
+  </section>
+
+  <section class="sync-panel" id="syncPanel" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
+    <div class="sync-sheet">
+      <div class="handle" aria-hidden="true"></div>
+      <div class="sync-head">
+        <h2 id="syncTitle">Nos deux téléphones</h2>
+        <button class="back-btn" id="closeSync" aria-label="Fermer">×</button>
+      </div>
+      <p class="sync-copy">Choisissez chacun votre lettre. L’un crée votre espace, l’autre rejoint avec le code.</p>
+      <div class="roles" role="group" aria-label="Choisir sa lettre">
+        <button class="role-btn active" data-role="A" type="button">Je suis A</button>
+        <button class="role-btn" data-role="C" type="button">Je suis C</button>
+      </div>
+      <div class="sync-actions">
+        <button class="sync-primary" id="createPair" type="button">Créer notre espace</button>
+        <div class="join-row">
+          <input class="code-input" id="pairCodeInput" maxlength="8" inputmode="text" autocomplete="off" placeholder="CODE À 8 CARACTÈRES" aria-label="Code du couple">
+          <button class="sync-secondary" id="joinPair" type="button">Rejoindre</button>
+        </div>
+      </div>
+      <div class="shared-code" id="sharedCode" hidden>
+        <small>Votre code privé</small>
+        <strong id="sharedCodeValue"></strong>
+        <button id="copyPairLink" type="button">Copier le lien d’invitation</button>
+      </div>
+      <p class="sync-status" id="syncStatus" role="status">Sans connexion, la progression reste sur ce téléphone.</p>
+      <p class="privacy-note">Seuls les identifiants des expériences et la progression sont synchronisés. Aucun texte intime libre n’est enregistré.</p>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status">Un pas de plus vers vous deux.</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.76.1"></script>
+  <script src="app.js"></script>
+</body>
+</html>
