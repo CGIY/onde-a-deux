@@ -244,6 +244,7 @@ const detailData = {
 };
 
 const brandWords = [...document.querySelectorAll(".brand-suffix")];
+const brandStage = document.getElementById("brandStage");
 let brandIndex = 0;
 setInterval(() => {
   const current = brandWords[brandIndex];
@@ -253,6 +254,7 @@ setInterval(() => {
   const next = brandWords[brandIndex];
   next.classList.remove("exit");
   next.classList.add("active");
+  brandStage.setAttribute("aria-label", `EN•${next.dataset.brand.toUpperCase()}`);
   setTimeout(() => current.classList.remove("exit"), 850);
 }, 2700);
 
