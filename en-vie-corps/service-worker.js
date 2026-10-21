@@ -1,5 +1,5 @@
-const CACHE = "envie-corps-v2";
-const ASSETS = ["./", "index.html", "app.js?v=2", "manifest.webmanifest", "icon.svg"];
+const CACHE = "envie-corps-v3";
+const ASSETS = ["./", "index.html", "app.js?v=3", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
