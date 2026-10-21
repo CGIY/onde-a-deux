@@ -1,5 +1,5 @@
-const CACHE = "envie-corps-v1";
-const ASSETS = ["./", "index.html", "app.js", "manifest.webmanifest", "icon.svg"];
+const CACHE = "envie-corps-v2";
+const ASSETS = ["./", "index.html", "app.js?v=2", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
@@ -12,12 +12,14 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
+  if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, copy));
+    fetch(event.request).then(response => {
+      if (response.ok) {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, copy)));
+      }
       return response;
-    }))
+    }).catch(() => caches.match(event.request).then(cached => cached || (event.request.mode === "navigate" ? caches.match("index.html") : Response.error())))
   );
 });
