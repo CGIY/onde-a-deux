@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Les Cartes">
+  <meta name="description" content="Une collection de challenges à vivre à deux.">
+  <meta name="tcg-version" content="1">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=1">
+  <title>LES CARTES — AG × CL</title>
+</head>
+<body>
+  <div class="paper-noise" aria-hidden="true"></div>
+
+  <section class="login-screen" id="loginScreen">
+    <header class="login-brand">
+      <span class="eyebrow">AG × CL · collection privée</span>
+      <div class="brand-cards" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h1>LES<br>CARTES<span>.</span></h1>
+      <p>Un booster par jour.<br>Un défi à vivre.</p>
+    </header>
+
+    <div class="profile-picker" id="profilePicker" aria-label="Choisir un profil">
+      <button class="profile-choice profile-ag" data-role="AG" type="button">
+        <span class="profile-monogram">AG</span>
+        <span><strong>Connexion AG</strong><small>Ma collection personnelle</small></span>
+        <b aria-hidden="true">→</b>
+      </button>
+      <button class="profile-choice profile-cl" data-role="CL" type="button">
+        <span class="profile-monogram">CL</span>
+        <span><strong>Connexion CL</strong><small>Ma collection personnelle</small></span>
+        <b aria-hidden="true">→</b>
+      </button>
+    </div>
+
+    <form class="pairing-panel" id="pairingForm" hidden>
+      <button class="back-button" id="pairingBack" type="button">← Retour</button>
+      <span class="eyebrow">Première connexion <b id="pairingRole">AG</b></span>
+      <h2>Code d’appairage</h2>
+      <p>Ce code n’est demandé qu’une fois sur ce téléphone.</p>
+      <label>
+        <span>Code personnel</span>
+        <input id="accessCode" type="text" inputmode="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="••••••••••••" required>
+      </label>
+      <button class="primary-button" id="pairingSubmit" type="submit">Lier ce téléphone</button>
+    </form>
+    <p class="login-status" id="loginStatus" role="status" aria-live="polite">Choisis ton profil.</p>
+  </section>
+
+  <div class="app-shell" id="appShell" hidden>
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">AG × CL</span>
+        <h1>LES CARTES<span>.</span></h1>
+      </div>
+      <button class="profile-pill" id="profileMenu" type="button" aria-label="Changer de profil">
+        <span id="currentRole">AG</span>
+        <i id="presenceDot" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <main class="main-content">
+      <section class="view active" id="todayView" data-view="today">
+        <header class="view-heading">
+          <div><span class="eyebrow" id="todayDate">Aujourd’hui</span><h2>Vue du jour</h2></div>
+          <button class="round-button" id="refreshButton" type="button" aria-label="Actualiser">↻</button>
+        </header>
+
+        <article class="daily-counter">
+          <div><span>Prochain booster</span><strong id="nextBoosterCounter">—</strong></div>
+          <div><span>Dans la collection</span><strong id="collectionCount">0</strong></div>
+          <div><span>Cartes connues</span><strong id="knownCount">0</strong></div>
+        </article>
+
+        <section class="content-block boosters-block">
+          <div class="section-title"><div><span class="eyebrow">Pour <b id="boosterOwner">AG</b></span><h3>Booster disponible</h3></div><span class="count-badge" id="boosterCount">0</span></div>
+          <div class="booster-list" id="boosterList"></div>
+        </section>
+
+        <section class="content-block">
+          <div class="section-title"><div><span class="eyebrow">Partagé</span><h3>Challenges activés</h3></div><span class="count-badge" id="activeCount">0</span></div>
+          <div class="active-grid" id="activeCards"></div>
+        </section>
+      </section>
+
+      <section class="view" id="collectionView" data-view="collection" hidden>
+        <header class="view-heading"><div><span class="eyebrow">Personnel</span><h2>Ma collection</h2></div></header>
+        <div class="segmented" role="tablist" aria-label="Filtres de collection">
+          <button class="selected" data-collection-tab="available" type="button">Disponibles <b id="availableTabCount">0</b></button>
+          <button data-collection-tab="known" type="button">Connues <b id="knownTabCount">0</b></button>
+        </div>
+        <p class="collection-note" id="collectionNote">Ces cartes sont utilisables pendant 30 jours.</p>
+        <div class="collection-grid" id="collectionGrid"></div>
+      </section>
+
+      <section class="view" id="tradeView" data-view="trade" hidden>
+        <header class="view-heading"><div><span class="eyebrow">AG ⇄ CL</span><h2>Échanges</h2></div></header>
+
+        <section class="trade-maker content-block">
+          <div class="section-title"><div><span class="eyebrow">Nouvelle proposition</span><h3>Carte contre carte</h3></div></div>
+          <label>Je propose<select id="offeredCardSelect"><option value="">Choisir une carte</option></select></label>
+          <span class="trade-arrow" aria-hidden="true">⇅</span>
+          <label>Je demande<select id="requestedCardSelect"><option value="">Choisir une carte</option></select></label>
+          <button class="primary-button" id="proposeTradeButton" type="button">Proposer l’échange</button>
+        </section>
+
+        <section class="content-block">
+          <div class="section-title"><div><span class="eyebrow">En attente</span><h3>Propositions</h3></div><span class="count-badge" id="pendingTradeCount">0</span></div>
+          <div class="trade-list" id="pendingTrades"></div>
+        </section>
+
+        <section class="content-block history-block">
+          <div class="section-title"><div><span class="eyebrow">Mémoire</span><h3>Historique</h3></div></div>
+          <div class="trade-list" id="tradeHistory"></div>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigation principale">
+      <button class="selected" data-nav="today" type="button"><span aria-hidden="true">◉</span><b>Aujourd’hui</b></button>
+      <button data-nav="collection" type="button"><span aria-hidden="true">▱</span><b>Collection</b></button>
+      <button data-nav="trade" type="button"><span aria-hidden="true">⇄</span><b>Échanges</b></button>
+    </nav>
+  </div>
+
+  <dialog class="booster-dialog" id="boosterDialog">
+    <button class="dialog-close" data-close-dialog="boosterDialog" type="button" aria-label="Fermer">×</button>
+    <div class="booster-stage" id="boosterStage">
+      <div class="sealed-pack" id="sealedPack">
+        <div class="pack-shine"></div><div class="pack-emblem">LC<span>✦</span></div>
+        <p>BOOSTER QUOTIDIEN</p><small>1 CARTE · AG × CL</small>
+        <div class="tear-line"><i id="tearProgress"></i></div>
+        <b class="tear-hint">Maintiens et glisse →</b>
+      </div>
+      <div class="reveal-slot" id="revealSlot" hidden></div>
+    </div>
+    <p class="dialog-status" id="boosterStatus" role="status">Fais glisser ton doigt pour déchirer le booster.</p>
+  </dialog>
+
+  <dialog class="card-dialog" id="cardDialog">
+    <button class="dialog-close" data-close-dialog="cardDialog" type="button" aria-label="Fermer">×</button>
+    <div id="cardDialogContent"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
