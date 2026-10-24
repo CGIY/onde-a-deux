@@ -15,16 +15,38 @@ create table if not exists public.tcg_players (
 
 create table if not exists public.tcg_card_templates (
   id text primary key check (id ~ '^[a-z0-9-]{3,80}$'),
-  category text not null check (category in ('EN COUPLE', 'POUR L''AUTRE', 'MISE À NUE', 'LES FOODIES', 'TO DO')),
+  category text not null,
   title text not null check (length(title) between 2 and 80),
   challenge text not null check (length(challenge) between 2 and 500),
   symbol text not null default '✦' check (length(symbol) between 1 and 12),
-  palette text not null check (palette in ('couple', 'other', 'nude', 'foodies', 'todo')),
+  palette text not null,
+  card_type text not null default 'challenge',
+  eligible_role text,
+  finish_tier text not null default 'standard',
   rarity text not null default 'commune' check (rarity in ('commune', 'rare', 'légendaire')),
   active boolean not null default true,
   demo boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+alter table public.tcg_card_templates add column if not exists card_type text not null default 'challenge';
+alter table public.tcg_card_templates add column if not exists eligible_role text;
+alter table public.tcg_card_templates add column if not exists finish_tier text not null default 'standard';
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_category_check;
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_palette_check;
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_card_type_check;
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_eligible_role_check;
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_finish_tier_check;
+alter table public.tcg_card_templates add constraint tcg_card_templates_category_check
+  check (category in ('EN COUPLE', 'POUR L''AUTRE', 'MISE À NUE', 'LES FOODIES', 'TO DO', 'ÉNERGIE', 'JOKER'));
+alter table public.tcg_card_templates add constraint tcg_card_templates_palette_check
+  check (palette in ('couple', 'other', 'nude', 'foodies', 'todo', 'energy', 'joker'));
+alter table public.tcg_card_templates add constraint tcg_card_templates_card_type_check
+  check (card_type in ('challenge', 'energy', 'joker'));
+alter table public.tcg_card_templates add constraint tcg_card_templates_eligible_role_check
+  check (eligible_role is null or eligible_role in ('AG', 'CL'));
+alter table public.tcg_card_templates add constraint tcg_card_templates_finish_tier_check
+  check (finish_tier in ('standard', 'foil', 'full_art', 'full_art_foil'));
 
 create table if not exists public.tcg_boosters (
   id uuid primary key default gen_random_uuid(),
@@ -105,23 +127,75 @@ insert into public.tcg_players(role, access_code_hash)
 values ('AG', repeat('0', 64)), ('CL', repeat('0', 64))
 on conflict (role) do nothing;
 
--- Temporary demo content. These five rows are deliberately marked demo=true:
--- their wording will be replaced as the real cards are authored together.
-insert into public.tcg_card_templates(id, category, title, challenge, symbol, palette, rarity, demo)
+-- The first five visual placeholders remain in history but can no longer be drawn.
+update public.tcg_card_templates set active = false where demo;
+
+-- First authored common set. Special foil and full-art templates will be added later.
+insert into public.tcg_card_templates(
+  id, category, title, challenge, symbol, palette, card_type,
+  eligible_role, finish_tier, rarity, active, demo
+)
 values
-  ('demo-rendez-vous', 'EN COUPLE', 'RENDEZ-VOUS SURPRISE', 'Imaginez une parenthèse rien que pour vous.', '◎', 'couple', 'commune', true),
-  ('demo-attention', 'POUR L''AUTRE', 'PETITE ATTENTION', 'Prépare-lui quelque chose qui lui fera plaisir.', '◇', 'other', 'commune', true),
-  ('demo-sans-filtre', 'MISE À NUE', 'SANS FILTRE', 'Partage une envie que tu n’as jamais osé dire.', '◒', 'nude', 'rare', true),
-  ('demo-quatre-mains', 'LES FOODIES', 'À QUATRE MAINS', 'Cuisinez ensemble une recette jamais essayée.', '♨', 'foodies', 'commune', true),
-  ('demo-enfin-fait', 'TO DO', 'ENFIN FAIT', 'Réalisez une chose repoussée depuis trop longtemps.', '✓', 'todo', 'rare', true)
+  ('couple-jeu-societe', 'EN COUPLE', 'JEU DE SOCIÉTÉ', 'Choisissez un jeu de société et jouez une partie ensemble.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-film', 'EN COUPLE', 'FILM', 'Choisissez un film et regardez-le ensemble.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-serie', 'EN COUPLE', 'SÉRIE', 'Regardez ensemble un épisode de la série de votre choix.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-aquarelle', 'EN COUPLE', 'AQUARELLE', 'Installez-vous et peignez quelque chose ensemble à l’aquarelle.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-dessin', 'EN COUPLE', 'DESSIN', 'Prenez de quoi dessiner et créez quelque chose côte à côte.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-balade-rapide', 'EN COUPLE', 'BALADE RAPIDE', 'Sortez prendre l’air ensemble pour une balade rapide.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-tour-ville', 'EN COUPLE', 'PETIT TOUR EN VILLE', 'Partez faire un petit tour en ville ensemble.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+  ('couple-gateau', 'EN COUPLE', 'FAIRE UN GÂTEAU', 'Choisissez une recette et préparez un gâteau à deux.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false),
+
+  ('autre-massage-epaules', 'POUR L''AUTRE', 'MASSAGE DES ÉPAULES', 'L’autre offre un massage des épaules.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-massage-tete', 'POUR L''AUTRE', 'MASSAGE DE LA TÊTE', 'L’autre offre un massage de la tête.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-massage-cuisses', 'POUR L''AUTRE', 'MASSAGE DES CUISSES', 'L’autre offre un massage des cuisses.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-mot-doux', 'POUR L''AUTRE', 'CACHER UN MOT DOUX', 'L’autre cache un mot doux à découvrir plus tard.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-massage-visage', 'POUR L''AUTRE', 'MASSAGE DU VISAGE', 'L’autre offre un massage doux du visage.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-cadeau-vinted', 'POUR L''AUTRE', 'CADEAU VINTED · 5 €', 'L’autre choisit un petit cadeau sur Vinted, avec un budget de 5 €.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-cadeau-ville', 'POUR L''AUTRE', 'CADEAU EN VILLE · 10 €', 'L’autre choisit un cadeau en ville, avec un budget de 10 €.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+  ('autre-massage-dos', 'POUR L''AUTRE', 'MASSAGE DU DOS', 'L’autre offre un massage du dos.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false),
+
+  ('nue-leche-partenaire', 'MISE À NUE', 'L’AUTRE LÈCHE SA PARTENAIRE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
+  ('nue-suce-partenaire', 'MISE À NUE', 'L’AUTRE SUCE SON PARTENAIRE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
+  ('nue-assise-visage', 'MISE À NUE', 'L’AUTRE S’ASSOIT SUR LE VISAGE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
+  ('nue-faciale', 'MISE À NUE', 'L’AUTRE FAIT UNE FACIALE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
+  ('nue-grosse-levrette', 'MISE À NUE', 'UNE GROSSE LEVRETTE', 'Choisissez ensemble le rythme et l’intensité, sans pression.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-star-wars', 'MISE À NUE', 'SÉANCE PHOTO STAR WARS', 'Créez une séance photo inspirée de Star Wars. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-berlin', 'MISE À NUE', 'SÉANCE PHOTO BERLIN', 'Créez une séance photo inspirée de Berlin. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-apres-sport', 'MISE À NUE', 'SÉANCE PHOTO APRÈS-SPORT', 'Créez une séance photo après-sport. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-douche-vapeur', 'MISE À NUE', 'SÉANCE PHOTO DOUCHE VAPEUR', 'Créez une séance photo dans la vapeur. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-cuisine', 'MISE À NUE', 'SÉANCE PHOTO CUISINE', 'Créez une séance photo dans la cuisine. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-linge', 'MISE À NUE', 'SÉANCE PHOTO MACHINE / LINGE', 'Créez une séance photo autour du linge. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-neon', 'MISE À NUE', 'SÉANCE PHOTO NÉON', 'Créez une séance photo sous une lumière néon. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-pluie', 'MISE À NUE', 'SÉANCE PHOTO SOUS LA PLUIE', 'Créez une séance photo sous la pluie, dans un lieu sûr et privé.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-massage-nuru', 'MISE À NUE', 'MASSAGE NURU', 'L’autre réalise un massage Nuru avec un produit compatible et un accord explicite.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
+  ('nue-avaler', 'MISE À NUE', 'L’AUTRE ACCEPTE D’AVALER', 'Uniquement avec un accord explicite, sans pression et avec possibilité de changer d’avis.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
+
+  ('foodies-fast-food', 'LES FOODIES', 'L’AUTRE PAIE LE FAST-FOOD', 'L’autre invite au fast-food de votre choix.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
+  ('foodies-apero', 'LES FOODIES', 'L’AUTRE PRÉPARE UN APÉRO', 'L’autre prépare un apéro à partager.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
+  ('foodies-gateau', 'LES FOODIES', 'L’AUTRE FAIT UN GÂTEAU', 'L’autre prépare un gâteau pour vous deux.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
+  ('foodies-cafe-ville', 'LES FOODIES', 'L’AUTRE PAIE LE CAFÉ', 'L’autre invite pour un café en ville.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
+
+  ('todo-vaisselle', 'TO DO', 'PROCHAIN LAVE-VAISSELLE', 'L’autre s’occupe du prochain lave-vaisselle.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-machine', 'TO DO', 'PROCHAINE MACHINE', 'L’autre s’occupe de la prochaine machine.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-linge', 'TO DO', 'PROCHAIN LINGE', 'L’autre étend ou plie le prochain linge.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-poubelles', 'TO DO', 'LES POUBELLES', 'L’autre s’occupe des poubelles.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-piece', 'TO DO', 'RANGER UNE PIÈCE', 'L’autre range une pièce de votre choix.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-placard', 'TO DO', 'RANGER UN PLACARD', 'L’autre range un placard de votre choix.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+
+  ('energy-bisou', 'ÉNERGIE', 'ÉNERGIE BISOUS', 'Cette carte donne droit à un bisou.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false),
+  ('joker-annulation', 'JOKER', 'JOKER', 'Annule une carte active consommée par l’autre joueur.', 'J', 'joker', 'joker', null, 'standard', 'légendaire', true, false)
 on conflict (id) do update set
   category = excluded.category,
   title = excluded.title,
   challenge = excluded.challenge,
   symbol = excluded.symbol,
   palette = excluded.palette,
+  card_type = excluded.card_type,
+  eligible_role = excluded.eligible_role,
+  finish_tier = excluded.finish_tier,
   rarity = excluded.rarity,
-  demo = true;
+  active = excluded.active,
+  demo = false;
 
 create or replace function public.tcg_exchange(
   p_role text,
@@ -150,6 +224,10 @@ declare
   v_available_at timestamptz;
   v_roll double precision;
   v_finish text;
+  v_draw_index integer;
+  v_draw_type text;
+  v_desired_finish text;
+  v_drawn_template_ids text[] := array[]::text[];
   v_boosters jsonb;
   v_my_cards jsonb;
   v_partner_cards jsonb;
@@ -159,7 +237,7 @@ declare
 begin
   if v_role not in ('AG', 'CL')
      or p_token !~ '^[a-f0-9]{48}$'
-     or p_action not in ('login', 'sync', 'open_booster', 'activate_card', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device')
+     or p_action not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -235,34 +313,78 @@ begin
     exception when invalid_text_representation then
       raise exception 'invalid_booster';
     end;
-    if not found or booster.opened_at is not null or booster.expires_at <= now() then
+    if not found or booster.opened_at is not null or booster.available_at > now() or booster.expires_at <= now() then
       raise exception 'booster_unavailable';
     end if;
 
-    select * into template_row
-    from public.tcg_card_templates
-    where active
-    order by random()
-    limit 1;
-    if not found then raise exception 'no_active_card'; end if;
+    -- Three cards per booster: one Energy, one challenge, then a challenge
+    -- or a rare Joker (10%). The 70/20/8/2 finish split is applied only
+    -- to authored challenge pools. Missing special pools fall back to common.
+    for v_draw_index in 1..3 loop
+      v_draw_type := case
+        when v_draw_index = 1 then 'energy'
+        when v_draw_index = 3 and random() < 0.10 then 'joker'
+        else 'challenge'
+      end;
 
-    v_roll := random();
-    -- Finish odds validated for every booster opening:
-    -- standard 70%, full art 20%, foil 8%, full-art foil 2%.
-    v_finish := case
-      when v_roll < 0.02 then 'full_art_foil'
-      when v_roll < 0.10 then 'foil'
-      when v_roll < 0.30 then 'full_art'
-      else 'standard'
-    end;
+      if v_draw_type = 'joker' then
+        select * into template_row
+        from public.tcg_card_templates
+        where active and card_type = 'joker'
+          and (eligible_role is null or eligible_role = v_role)
+          and not (id = any(v_drawn_template_ids))
+        order by random()
+        limit 1;
+        if not found then v_draw_type := 'challenge'; end if;
+      end if;
 
-    insert into public.tcg_cards(template_id, owner_role, finish, wear_seed, acquired_at, expires_at, booster_id)
-    values (template_row.id, v_role, v_finish, floor(random() * 1000000)::integer, now(), now() + interval '30 days', booster.id);
+      if v_draw_type = 'challenge' then
+        v_roll := random();
+        v_desired_finish := case
+          when v_roll < 0.02 then 'full_art_foil'
+          when v_roll < 0.10 then 'foil'
+          when v_roll < 0.30 then 'full_art'
+          else 'standard'
+        end;
+        select * into template_row
+        from public.tcg_card_templates
+        where active and card_type = 'challenge'
+          and finish_tier = v_desired_finish
+          and (eligible_role is null or eligible_role = v_role)
+          and not (id = any(v_drawn_template_ids))
+        order by random()
+        limit 1;
+        if not found then
+          select * into template_row
+          from public.tcg_card_templates
+          where active and card_type = 'challenge'
+            and finish_tier = 'standard'
+            and (eligible_role is null or eligible_role = v_role)
+            and not (id = any(v_drawn_template_ids))
+          order by random()
+          limit 1;
+        end if;
+      elsif v_draw_type = 'energy' then
+        select * into template_row
+        from public.tcg_card_templates
+        where active and card_type = 'energy'
+          and (eligible_role is null or eligible_role = v_role)
+          and not (id = any(v_drawn_template_ids))
+        order by random()
+        limit 1;
+      end if;
+
+      if not found then raise exception 'no_active_card'; end if;
+      v_finish := template_row.finish_tier;
+      insert into public.tcg_cards(template_id, owner_role, finish, wear_seed, acquired_at, expires_at, booster_id)
+      values (template_row.id, v_role, v_finish, floor(random() * 1000000)::integer, now(), now() + interval '30 days', booster.id);
+      v_drawn_template_ids := array_append(v_drawn_template_ids, template_row.id);
+      insert into public.tcg_discoveries(role, template_id)
+      values (v_role, template_row.id)
+      on conflict (role, template_id) do update
+        set last_seen_at = now(), times_seen = public.tcg_discoveries.times_seen + 1;
+    end loop;
     update public.tcg_boosters set opened_at = now() where id = booster.id;
-    insert into public.tcg_discoveries(role, template_id)
-    values (v_role, template_row.id)
-    on conflict (role, template_id) do update
-      set last_seen_at = now(), times_seen = public.tcg_discoveries.times_seen + 1;
 
   elsif p_action = 'activate_card' then
     begin
@@ -276,9 +398,36 @@ begin
     if not found or offered.status <> 'available' or offered.expires_at <= now() then
       raise exception 'card_unavailable';
     end if;
+    select * into template_row from public.tcg_card_templates where id = offered.template_id;
+    if template_row.card_type = 'joker' then raise exception 'joker_requires_target'; end if;
     update public.tcg_cards
     set status = 'activated', activated_at = now(), active_until = now() + interval '24 hours'
     where id = offered.id;
+
+  elsif p_action = 'use_joker' then
+    begin
+      select * into offered from public.tcg_cards
+      where id = (p_payload->>'joker_card_id')::uuid and owner_role = v_role
+      for update;
+      select * into requested from public.tcg_cards
+      where id = (p_payload->>'target_card_id')::uuid and owner_role = v_other
+      for update;
+    exception when invalid_text_representation then
+      raise exception 'invalid_card';
+    end;
+    select * into template_row from public.tcg_card_templates where id = offered.template_id;
+    if offered.id is null or requested.id is null
+       or offered.status <> 'available' or offered.expires_at <= now()
+       or template_row.card_type <> 'joker'
+       or requested.status <> 'activated' or requested.active_until <= now() then
+      raise exception 'joker_unavailable';
+    end if;
+    update public.tcg_cards
+    set status = 'used', consumed_at = now()
+    where id = offered.id;
+    update public.tcg_cards
+    set status = 'used', active_until = now(), consumed_at = now()
+    where id = requested.id;
 
   elsif p_action = 'trade_propose' then
     begin
@@ -360,7 +509,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at
@@ -371,7 +520,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at
@@ -385,7 +534,7 @@ begin
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'owner_role', c.owner_role, 'template_id', t.id,
     'category', t.category, 'title', t.title, 'challenge', t.challenge,
-    'symbol', t.symbol, 'palette', t.palette, 'rarity', t.rarity,
+    'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'rarity', t.rarity,
     'finish', c.finish, 'wear_seed', c.wear_seed,
     'activated_at', c.activated_at, 'active_until', c.active_until
   ) order by c.active_until), '[]'::jsonb)
@@ -395,8 +544,8 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette,
-    'rarity', t.rarity, 'demo', t.demo, 'first_seen_at', d.first_seen_at,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
+    'rarity', t.rarity, 'finish_tier', t.finish_tier, 'demo', t.demo, 'first_seen_at', d.first_seen_at,
     'last_seen_at', d.last_seen_at, 'times_seen', d.times_seen,
     'owned_count', (select count(*) from public.tcg_cards c where c.owner_role = v_role and c.template_id = t.id and c.status in ('available','trading'))
   ) order by d.first_seen_at desc), '[]'::jsonb)
@@ -408,8 +557,8 @@ begin
     'id', tr.id, 'proposed_by', tr.proposed_by, 'status', tr.status,
     'created_at', tr.created_at, 'expires_at', tr.expires_at,
     'responded_at', tr.responded_at,
-    'offered', jsonb_build_object('id', a.id, 'owner_role', a.owner_role, 'title', ta.title, 'category', ta.category, 'palette', ta.palette, 'finish', a.finish, 'wear_seed', a.wear_seed),
-    'requested', jsonb_build_object('id', b.id, 'owner_role', b.owner_role, 'title', tb.title, 'category', tb.category, 'palette', tb.palette, 'finish', b.finish, 'wear_seed', b.wear_seed)
+    'offered', jsonb_build_object('id', a.id, 'owner_role', a.owner_role, 'title', ta.title, 'category', ta.category, 'palette', ta.palette, 'card_type', ta.card_type, 'finish', a.finish, 'wear_seed', a.wear_seed),
+    'requested', jsonb_build_object('id', b.id, 'owner_role', b.owner_role, 'title', tb.title, 'category', tb.category, 'palette', tb.palette, 'card_type', tb.card_type, 'finish', b.finish, 'wear_seed', b.wear_seed)
   ) order by tr.created_at desc), '[]'::jsonb)
   into v_trades
   from public.tcg_trades tr
@@ -431,7 +580,7 @@ begin
     'active_cards', v_active_cards,
     'known_cards', v_known,
     'trades', v_trades,
-    'rules', jsonb_build_object('booster_hours', 48, 'active_hours', 24, 'collection_days', 30, 'daily_release_hour', 5)
+    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 30, 'daily_release_hour', 5, 'joker_slot_chance', 0.10)
   );
 end;
 $$;

@@ -1,5 +1,5 @@
-const CACHE = "les-cartes-v1";
-const SHELL = ["./", "./index.html", "./styles.css?v=1", "./app.js?v=1", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "les-cartes-v2";
+const SHELL = ["./", "./index.html", "./styles.css?v=2", "./app.js?v=2", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL))));
 self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))));
 self.addEventListener("fetch", event => {

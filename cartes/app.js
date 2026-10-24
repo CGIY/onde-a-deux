@@ -16,6 +16,8 @@
     collectionTab: "available",
     selectedBooster: null,
     opening: false,
+    revealedCards: [],
+    revealIndex: 0,
     polling: null
   };
 
@@ -64,6 +66,8 @@
     device_not_authorized: "Ce profil est déjà lié à un autre téléphone.",
     booster_unavailable: "Ce booster n’est plus disponible.",
     card_unavailable: "Cette carte n’est plus disponible.",
+    joker_requires_target: "Choisis une carte active de l’autre joueur à annuler.",
+    joker_unavailable: "Ce Joker ou sa cible n’est plus disponible.",
     trade_unavailable: "Cet échange n’est plus disponible.",
     no_active_card: "Aucune carte n’est encore publiée.",
     invalid_request: "La demande n’a pas pu être comprise."
@@ -198,7 +202,7 @@
     $("#collectionGrid").innerHTML = cards.length
       ? cards.map(card => state.collectionTab === "available"
         ? buttonCard(card, { timer: card.expires_at })
-        : buttonCard({ ...card, id: "", finish: "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
+        : buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
       ).join("")
       : empty(state.collectionTab === "available" ? "Ta collection est vide pour l’instant." : "Ouvre un booster pour découvrir ta première carte.");
   }
@@ -340,12 +344,22 @@
 
   function openCard(card) {
     if (!card) return;
-    const canActivate = card.id && card.status === "available" && state.data.my_cards.some(owned => owned.id === card.id);
+    const isMine = card.id && state.data.my_cards.some(owned => owned.id === card.id);
+    const isJoker = card.card_type === "joker";
+    const canActivate = isMine && card.status === "available" && !isJoker;
     const active = card.active_until && new Date(card.active_until) > serverNow();
     const ownership = card.owner_role ? `Carte de ${card.owner_role}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
+    const jokerTargets = isJoker && isMine
+      ? state.data.active_cards.filter(target => target.owner_role === state.data.partner_role)
+      : [];
+    const jokerAction = isJoker && isMine && card.status === "available"
+      ? jokerTargets.length
+        ? `<label class="joker-target">Carte active à annuler<select id="jokerTargetSelect">${jokerTargets.map(target => `<option value="${escapeHtml(target.id)}">${escapeHtml(target.title)}</option>`).join("")}</select></label><button class="primary-button" type="button" data-use-joker="${escapeHtml(card.id)}">Utiliser ce Joker</button>`
+        : `<p>Aucune carte active de ${escapeHtml(state.data.partner_role)} ne peut être annulée pour l’instant.</p>`
+      : "";
     $("#cardDialogContent").innerHTML = `${cardMarkup(card, { timer: card.active_until || (card.status === "available" ? card.expires_at : null), muted: !card.id })}
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || "standard"))}</span><p>${escapeHtml(card.challenge)}</p>
-      ${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer ce challenge · 24 h</button>` : active ? `<p>Ce challenge reste actif encore ${duration(card.active_until)}.</p>` : ""}</div>`;
+      ${jokerAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Cette carte reste active encore ${duration(card.active_until)}.</p>` : ""}</div>`;
     cardDialog.showModal();
     attachFoilMotion(cardDialog);
   }
@@ -353,12 +367,26 @@
   function openBooster(id) {
     state.selectedBooster = id;
     state.opening = false;
+    state.revealedCards = [];
+    state.revealIndex = 0;
     $("#sealedPack").classList.remove("opened");
     $("#sealedPack").style.setProperty("--tear", "0%");
     $("#revealSlot").hidden = true;
     $("#revealSlot").innerHTML = "";
     $("#boosterStatus").textContent = "Fais glisser ton doigt pour déchirer le booster.";
     boosterDialog.showModal();
+  }
+
+  function renderRevealedCard() {
+    const card = state.revealedCards[state.revealIndex];
+    if (!card) {
+      $("#revealSlot").innerHTML = empty("Les cartes ont été ajoutées à ta collection.");
+      return;
+    }
+    const last = state.revealIndex === state.revealedCards.length - 1;
+    $("#revealSlot").innerHTML = `${cardMarkup(card)}<div class="reveal-controls"><span>${state.revealIndex + 1} / ${state.revealedCards.length}</span><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Voir ma collection" : "Carte suivante →"}</button></div>`;
+    $("#boosterStatus").textContent = `${finishLabel(card.finish)} · ${card.category}.`;
+    attachFoilMotion($("#revealSlot"));
   }
 
   async function revealBooster() {
@@ -368,14 +396,15 @@
     $("#boosterStatus").textContent = "La carte se révèle…";
     try {
       await exchange("open_booster", { booster_id: state.selectedBooster });
-      const card = state.data.my_cards.find(candidate => !previous.has(candidate.id));
+      state.revealedCards = state.data.my_cards
+        .filter(candidate => !previous.has(candidate.id))
+        .sort((a, b) => ({ energy: 0, challenge: 1, joker: 2 }[a.card_type] ?? 1) - ({ energy: 0, challenge: 1, joker: 2 }[b.card_type] ?? 1));
+      state.revealIndex = 0;
       $("#sealedPack").classList.add("opened");
       setTimeout(() => {
         $("#sealedPack").hidden = true;
-        $("#revealSlot").innerHTML = card ? cardMarkup(card) : empty("Carte obtenue. Elle est dans ta collection.");
         $("#revealSlot").hidden = false;
-        $("#boosterStatus").textContent = card ? `${finishLabel(card.finish)} · ajoutée à ta collection.` : "Ajoutée à ta collection.";
-        attachFoilMotion($("#revealSlot"));
+        renderRevealedCard();
       }, 330);
       render();
     } catch (error) {
@@ -443,6 +472,34 @@
     if (booster) return openBooster(booster.dataset.boosterId);
     const cardButton = event.target.closest(".card-button");
     if (cardButton) return openCard(findCard(cardButton));
+    const nextReveal = event.target.closest("[data-reveal-next]");
+    if (nextReveal) {
+      state.revealIndex += 1;
+      renderRevealedCard();
+      return;
+    }
+    const finishReveal = event.target.closest("[data-reveal-finish]");
+    if (finishReveal) {
+      boosterDialog.close();
+      setView("collection");
+      return;
+    }
+    const useJoker = event.target.closest("[data-use-joker]");
+    if (useJoker) {
+      const target = $("#jokerTargetSelect")?.value;
+      if (!target) return toast("Aucune carte active à annuler.");
+      if (!window.confirm("Utiliser ce Joker ? Le Joker et la carte ciblée seront consommés.")) return;
+      setBusy(true);
+      try {
+        await exchange("use_joker", { joker_card_id: useJoker.dataset.useJoker, target_card_id: target });
+        cardDialog.close();
+        render();
+        setView("today");
+        toast("La carte active a été annulée.");
+      } catch (error) { toast(friendlyError(error)); }
+      finally { setBusy(false); }
+      return;
+    }
     const activate = event.target.closest("[data-activate-card]");
     if (activate) {
       if (!window.confirm("Activer ce challenge ? La carte sera consommée et restera active pendant 24 h.")) return;
