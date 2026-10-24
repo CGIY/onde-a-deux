@@ -1,0 +1,9 @@
+# Direction artistique des cartes
+
+Asset intégré : `cartes/assets/card-atlas.jpg`. Génération avec l’outil ImageGen intégré, référence visuelle fournie par Clément. Le JPEG est une conversion du rendu PNG original pour alléger le téléchargement.
+
+Le fichier est un atlas de huit faces en quatre colonnes et deux lignes. Les textes sont rendus par l’application ; ils ne sont pas figés dans l’image. Les 80 cartes utilisent leur famille illustrée, leur titre propre et leur finition propre, avec variations d’usure. Il ne s’agit pas de 80 illustrations individuelles.
+
+## Prompt de production
+
+Create a production game-asset ATLAS, not a mockup. Use the attached reference as the strict visual style: tactile antique engraved French collectible cards, rich worn paper grain, embossed fine copper ornaments, muted painterly relief. Four columns and two rows of eight equal portrait panels. Zero gaps, zero margins, no text, letters, logos or typography. Flat front-facing artwork with thin ornamental borders. Main motif in the upper central 60%, quiet textured lower 30% for live HTML lettering. Top row: burgundy overlapping copper rings and botanical branches; honey bronze wrapped gift with a sculpted bow; dusty plum art nouveau fully clothed feminine silhouette in flowing copper fabric, no nudity; olive green ceramic plate with crossed copper fork and knife. Bottom row: midnight blue flowing checklist parchment with abstract ticks, leaves, stars and moon; dusty rose luminous embossed heart in orbital circles; charcoal copper masquerade half-mask and crescent moons; dark burgundy symmetrical copper botanical filigree and an eight-point star for the card back. Fine worn corners and tactile embossed print finish. No printed rainbow: interactive rainbow foil will be layered in the app. No perspective, scene, external shadows or generic flat icons.

@@ -3,63 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#171513">
+  <meta name="theme-color" content="#f5eee4">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="2">
+  <meta name="tcg-version" content="3">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=2">
-  <title>LES CARTES — AG × CL</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="daylight.css?v=3">
+  <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
   <div class="paper-noise" aria-hidden="true"></div>
 
   <section class="login-screen" id="loginScreen">
+    <a class="back-home" href="../">← Nos jeux</a>
     <header class="login-brand">
-      <span class="eyebrow">AG × CL · collection privée</span>
-      <div class="brand-cards" aria-hidden="true"><i></i><i></i><i></i></div>
-      <h1>LES<br>CARTES<span>.</span></h1>
-      <p>Un booster par jour.<br>Un défi à vivre.</p>
+      <span class="eyebrow">Collection privée · Édition 01</span>
+      <h1>Les Cartes<span>à deux.</span></h1>
+      <p>Un petit rituel.<br>De jolies surprises.</p>
     </header>
+    <div class="login-fan" aria-hidden="true"><i class="art-couple"></i><i class="art-other"></i><i class="art-nude"></i></div>
 
     <div class="profile-picker" id="profilePicker" aria-label="Choisir un profil">
       <button class="profile-choice profile-ag" data-role="AG" type="button">
-        <span class="profile-monogram">AG</span>
-        <span><strong>Connexion AG</strong><small>Ma collection personnelle</small></span>
+        <span class="profile-monogram">M</span>
+        <span><strong>Mamamouth</strong><small>Ouvrir ma collection</small></span>
         <b aria-hidden="true">→</b>
       </button>
       <button class="profile-choice profile-cl" data-role="CL" type="button">
-        <span class="profile-monogram">CL</span>
-        <span><strong>Connexion CL</strong><small>Ma collection personnelle</small></span>
+        <span class="profile-monogram">P</span>
+        <span><strong>Papapouf</strong><small>Ouvrir ma collection</small></span>
         <b aria-hidden="true">→</b>
       </button>
     </div>
 
     <form class="pairing-panel" id="pairingForm" hidden>
       <button class="back-button" id="pairingBack" type="button">← Retour</button>
-      <span class="eyebrow">Première connexion <b id="pairingRole">AG</b></span>
-      <h2>Code d’appairage</h2>
-      <p>Ce code n’est demandé qu’une fois sur ce téléphone.</p>
+      <span class="eyebrow">Bienvenue, <b id="pairingRole">Mamamouth</b></span>
+      <h2>Ta collection t’attend.</h2>
+      <p>Entre ton code personnel pour la retrouver sur cet appareil.</p>
       <label>
         <span>Code personnel</span>
-        <input id="accessCode" type="text" inputmode="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="••••••••••••" required>
+        <input id="accessCode" type="password" inputmode="text" maxlength="32" autocomplete="current-password" autocapitalize="characters" spellcheck="false" placeholder="Ton code à 12 caractères" required>
       </label>
-      <button class="primary-button" id="pairingSubmit" type="submit">Lier ce téléphone</button>
+      <button class="primary-button" id="pairingSubmit" type="submit">Ouvrir ma collection →</button>
+      <small>Le même code fonctionne sur tes autres appareils.</small>
     </form>
-    <p class="login-status" id="loginStatus" role="status" aria-live="polite">Choisis ton profil.</p>
+    <p class="login-status" id="loginStatus" role="status" aria-live="polite">À qui le tour ?</p>
+    <footer class="login-footer">Mamamouth & Papapouf <span>✦</span> Rien que nous.</footer>
   </section>
 
   <div class="app-shell" id="appShell" hidden>
     <header class="topbar">
       <div>
-        <span class="eyebrow">AG × CL</span>
-        <h1>LES CARTES<span>.</span></h1>
+        <span class="eyebrow">Notre collection privée</span>
+        <h1>Les Cartes<span>à deux.</span></h1>
       </div>
       <button class="profile-pill" id="profileMenu" type="button" aria-label="Changer de profil">
-        <span id="currentRole">AG</span>
+        <span id="currentRole">Mamamouth</span>
         <i id="presenceDot" aria-hidden="true"></i>
       </button>
     </header>
@@ -67,45 +71,47 @@
     <main class="main-content">
       <section class="view active" id="todayView" data-view="today">
         <header class="view-heading">
-          <div><span class="eyebrow" id="todayDate">Aujourd’hui</span><h2>Vue du jour</h2></div>
+          <div><span class="eyebrow" id="todayDate">Aujourd’hui</span><h2>Notre petit rituel.</h2></div>
           <button class="round-button" id="refreshButton" type="button" aria-label="Actualiser">↻</button>
         </header>
 
+        <aside class="season-banner" id="seasonBanner" aria-label="Saison Halloween à venir"><span class="season-emblem" aria-hidden="true">☾</span><div><span class="eyebrow">Halloween arrive bientôt</span><strong>Quelques nuits. Des cartes exceptionnelles.</strong><p>Du 29 octobre au 1er novembre · Une édition éphémère se prépare.</p></div><span class="season-star" aria-hidden="true">✧</span></aside>
+        <section class="daily-hero"><div class="hero-caption"><span class="eyebrow">Édition 01 — Nous deux</span><h3>Un peu de hasard.<br><em>Beaucoup de nous.</em></h3></div><div class="booster-list" id="boosterList"></div><div class="hero-bottom"><span>✦ Prochain booster</span><strong id="nextBoosterCounter">—</strong></div></section>
         <article class="daily-counter">
-          <div><span>Prochain booster</span><strong id="nextBoosterCounter">—</strong></div>
+          <div><span>Boosters à ouvrir</span><strong id="boosterCount">0</strong></div>
           <div><span>Dans la collection</span><strong id="collectionCount">0</strong></div>
           <div><span>Cartes connues</span><strong id="knownCount">0</strong></div>
         </article>
 
-        <section class="content-block boosters-block">
-          <div class="section-title"><div><span class="eyebrow">Pour <b id="boosterOwner">AG</b></span><h3>Booster disponible</h3></div><span class="count-badge" id="boosterCount">0</span></div>
-          <div class="booster-list" id="boosterList"></div>
-        </section>
-
         <section class="content-block">
-          <div class="section-title"><div><span class="eyebrow">Partagé</span><h3>Challenges activés</h3></div><span class="count-badge" id="activeCount">0</span></div>
+          <div class="section-title"><div><span class="eyebrow">À vivre ensemble · 24 heures</span><h3>Sur la table.</h3></div><span class="count-badge" id="activeCount">0</span></div>
           <div class="active-grid" id="activeCards"></div>
         </section>
+        <p class="rule-note">Un booster de 3 cartes chaque jour à 5 h.<br>48 h pour l’ouvrir · 30 jours pour jouer tes cartes.</p>
       </section>
 
       <section class="view" id="collectionView" data-view="collection" hidden>
-        <header class="view-heading"><div><span class="eyebrow">Personnel</span><h2>Ma collection</h2></div></header>
+        <header class="view-heading"><div><span class="eyebrow" id="collectionOwner">Ma petite réserve</span><h2>Ma collection.</h2></div><span class="collection-mark">✦</span></header>
         <div class="segmented" role="tablist" aria-label="Filtres de collection">
-          <button class="selected" data-collection-tab="available" type="button">Disponibles <b id="availableTabCount">0</b></button>
-          <button data-collection-tab="known" type="button">Connues <b id="knownTabCount">0</b></button>
+          <button class="selected" role="tab" aria-selected="true" data-collection-tab="available" type="button">En main <b id="availableTabCount">0</b></button>
+          <button role="tab" aria-selected="false" data-collection-tab="known" type="button">Déjà vues <b id="knownTabCount">0/80</b></button>
         </div>
+        <div class="collection-tools"><input id="cardSearch" type="search" placeholder="Retrouver une carte…" aria-label="Rechercher une carte"><select id="finishFilter" aria-label="Filtrer par finition"><option value="all">Toutes les finitions</option><option value="standard">Communes</option><option value="full_art">Full art</option><option value="foil">Foils</option><option value="full_art_foil">Full art + foil</option></select></div>
+        <div class="category-filters" id="categoryFilters" aria-label="Catégories"><button data-category="all" aria-pressed="true" class="selected" type="button">Tout</button><button data-category="couple" aria-pressed="false" type="button">En couple</button><button data-category="other" aria-pressed="false" type="button">Pour l’autre</button><button data-category="nude" aria-pressed="false" type="button">Mise à nue</button><button data-category="foodies" aria-pressed="false" type="button">Les foodies</button><button data-category="todo" aria-pressed="false" type="button">To do</button><button data-category="energy" aria-pressed="false" type="button">Énergie</button><button data-category="joker" aria-pressed="false" type="button">Joker</button></div>
         <p class="collection-note" id="collectionNote">Ces cartes sont utilisables pendant 30 jours.</p>
         <div class="collection-grid" id="collectionGrid"></div>
       </section>
 
       <section class="view" id="tradeView" data-view="trade" hidden>
-        <header class="view-heading"><div><span class="eyebrow">AG ⇄ CL</span><h2>Échanges</h2></div></header>
+        <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>À toi, à moi.</h2></div></header>
+        <p class="intro-copy">Un coup de cœur chez l’autre ?<br>Propose une carte en retour.</p>
 
         <section class="trade-maker content-block">
           <div class="section-title"><div><span class="eyebrow">Nouvelle proposition</span><h3>Carte contre carte</h3></div></div>
           <label>Je propose<select id="offeredCardSelect"><option value="">Choisir une carte</option></select></label>
           <span class="trade-arrow" aria-hidden="true">⇅</span>
           <label>Je demande<select id="requestedCardSelect"><option value="">Choisir une carte</option></select></label>
+          <p class="trade-hint">Seules les cartes que tu as déjà découvertes sont visibles.</p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer l’échange</button>
         </section>
 
@@ -122,27 +128,31 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation principale">
-      <button class="selected" data-nav="today" type="button"><span aria-hidden="true">◉</span><b>Aujourd’hui</b></button>
+      <button class="selected" data-nav="today" aria-current="page" type="button"><span aria-hidden="true">◉</span><b>Le rituel</b></button>
       <button data-nav="collection" type="button"><span aria-hidden="true">▱</span><b>Collection</b></button>
       <button data-nav="trade" type="button"><span aria-hidden="true">⇄</span><b>Échanges</b></button>
     </nav>
   </div>
 
-  <dialog class="booster-dialog" id="boosterDialog">
+  <dialog class="booster-dialog" id="boosterDialog" aria-label="Ouvrir un booster">
     <button class="dialog-close" data-close-dialog="boosterDialog" type="button" aria-label="Fermer">×</button>
+    <span class="eyebrow opening-eyebrow">Un petit moment à nous.</span>
     <div class="booster-stage" id="boosterStage">
       <div class="sealed-pack" id="sealedPack">
-        <div class="pack-shine"></div><div class="pack-emblem">LC<span>✦</span></div>
-        <p>BOOSTER QUOTIDIEN</p><small>3 CARTES · AG × CL</small>
+        <div class="pack-cap"></div><div class="pack-shine"></div><div class="pack-emblem">Les Cartes<span>à deux.</span></div>
+        <p>ÉDITION 01 · NOUS DEUX</p><small>3 CARTES À COLLECTIONNER</small>
         <div class="tear-line"><i id="tearProgress"></i></div>
-        <b class="tear-hint">Maintiens et glisse →</b>
+        <b class="tear-hint">Glisse pour ouvrir →</b>
       </div>
       <div class="reveal-slot" id="revealSlot" hidden></div>
     </div>
     <p class="dialog-status" id="boosterStatus" role="status">Fais glisser ton doigt pour déchirer le booster.</p>
+    <button class="text-button" id="openPackButton" type="button">Ouvrir sans glisser →</button>
   </dialog>
 
-  <dialog class="card-dialog" id="cardDialog">
+  <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle"><span class="eyebrow">À vous de jouer</span><h2 id="confirmTitle"></h2><p id="confirmCopy"></p><div><button id="confirmCancel" class="text-button" type="button">Pas maintenant</button><button id="confirmAccept" class="primary-button" type="button">Confirmer</button></div></dialog>
+
+  <dialog class="card-dialog" id="cardDialog" aria-label="Détail de carte">
     <button class="dialog-close" data-close-dialog="cardDialog" type="button" aria-label="Fermer">×</button>
     <div id="cardDialogContent"></div>
   </dialog>
@@ -150,7 +160,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
