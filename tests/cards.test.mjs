@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const source = readFileSync(new URL('../cartes/app.js', import.meta.url), 'utf8');
 const nodes = new Map();
 const $ = selector => {
-  if (!nodes.has(selector)) nodes.set(selector, { value: 'all', textContent: '', innerHTML: '' });
+  if (!nodes.has(selector)) nodes.set(selector, { value: 'all', textContent: '', innerHTML: '', classList:{toggle:()=>{}} });
   return nodes.get(selector);
 };
 $('#cardSearch').value = '';
@@ -23,7 +23,8 @@ const data = {
 data.catalogue_slots = data.editions.flatMap(edition => Array.from({length:edition.total},(_,i) => ({number:i+1,edition:edition.id,template_id:edition.id==='edition_01' ? (i===0?'known-base':null) : (i===0?'known-foil':i===1?'known-art':null)})));
 const state = { data, role:'AG', collectionTab:'known', category:'all' };
 let now = new Date('2026-10-28T22:59:59Z');
-const api = runInNewContext(source.slice(source.indexOf('  function finishLabel'), source.indexOf('  function option(')) + '\n({cardMarkup,renderCollection,collectionCards,halloweenActive})', {
+const helpers=source.slice(source.indexOf('  const markupCache ='),source.indexOf('  const escapeHtml ='));
+const api = runInNewContext(helpers+source.slice(source.indexOf('  function finishLabel'), source.indexOf('  function option(')) + '\n({cardMarkup,renderCollection,collectionCards,halloweenActive,groupCards,finishSymbol,putMarkup})', {
   $, state, serverNow:()=>now, duration:()=>'', name:()=> 'Mamamouth', escapeHtml:v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'), document:{}
 });
 api.renderCollection();
@@ -48,4 +49,11 @@ now=new Date('2026-10-28T23:00:00Z'); assert.equal(api.halloweenActive(),true);
 now=new Date('2026-11-01T22:59:59Z'); assert.equal(api.halloweenActive(),true);
 now=new Date('2026-11-01T23:00:00Z'); assert.equal(api.halloweenActive(),false);
 assert.match(api.cardMarkup({...data.known_cards[1],title:'<img onerror="oops">'}),/&lt;img/);
+assert.equal(api.finishSymbol('standard'),'●');assert.equal(api.finishSymbol('full_art'),'◇');assert.equal(api.finishSymbol('foil'),'✦');assert.equal(api.finishSymbol('full_art_foil'),'✺');
+const copies=[{id:'later',template_id:'same',finish:'standard',expires_at:'2026-10-29'},{id:'first',template_id:'same',finish:'standard',expires_at:'2026-10-25'},{id:'different-finish',template_id:'same',finish:'foil',expires_at:'2026-10-26'}];
+const grouped=api.groupCards(copies);assert.equal(grouped.length,2);assert.equal(grouped[0].id,'first');assert.equal(grouped[0].stack_count,2);assert.equal(copies[0].id,'later');assert.equal(copies[0].stack_count,undefined);
+data.my_cards=copies.slice(0,2).map(c=>({...c,status:'available',title:'Film',category:'EN COUPLE',palette:'couple'}));
+api.renderCollection();assert.equal($('#availableTabCount').textContent,2);assert.equal(($('#collectionGrid').innerHTML.match(/class="card-button stacked-card"/g)||[]).length,1);assert.match($('#collectionGrid').innerHTML,/×2/);assert.match($('#collectionGrid').innerHTML,/data-card-id="first"/);
+assert.doesNotMatch($('#collectionGrid').innerHTML,/data-card-id="later"/);
+const stable='<span data-until="2026-10-25">2j 3h</span>';api.putMarkup('#stable',stable);api.putMarkup('#stable',stable.replace('2j 3h','2j 2h'));assert.equal($('#stable').innerHTML,stable,'Countdown updates must not remount the cards');
 console.log('OK: album 90 slots, known-only contents, edition/finish/search filters, foil/full-art, empty hand, seven-day copy, Paris seasonal boundaries, escaped titles.');
