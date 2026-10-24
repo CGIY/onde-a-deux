@@ -65,7 +65,8 @@ alter table public.tcg_card_templates add constraint tcg_card_templates_finish_t
 create table if not exists public.tcg_boosters (
   id uuid primary key default gen_random_uuid(),
   owner_role text not null references public.tcg_players(role),
-  release_date date not null,
+  release_date date,
+  bonus_key text,
   available_at timestamptz not null,
   expires_at timestamptz not null,
   opened_at timestamptz,
@@ -73,6 +74,16 @@ create table if not exists public.tcg_boosters (
   unique (owner_role, release_date),
   check (expires_at = available_at + interval '48 hours')
 );
+
+-- Daily release uniqueness remains untouched; gifts have no daily release date.
+alter table public.tcg_boosters add column if not exists bonus_key text;
+alter table public.tcg_boosters alter column release_date drop not null;
+alter table public.tcg_boosters drop constraint if exists tcg_boosters_source_check;
+alter table public.tcg_boosters add constraint tcg_boosters_source_check
+  check ((release_date is not null and bonus_key is null) or (release_date is null and bonus_key is not null));
+create unique index if not exists tcg_boosters_bonus_once_idx
+  on public.tcg_boosters(owner_role,bonus_key) where bonus_key is not null;
+comment on column public.tcg_boosters.bonus_key is 'One-off additive gift key. NULL for daily boosters; never changes the daily release clock.';
 
 create table if not exists public.tcg_cards (
   id uuid primary key default gen_random_uuid(),
