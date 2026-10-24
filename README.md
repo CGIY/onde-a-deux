@@ -20,6 +20,21 @@ L’ouverture tactile suit la déchirure dans les deux sens : bande détachée, 
 
 Tests sans toucher aux données réelles : `node tests/booster-gesture.test.mjs` et `node tests/booster-preview.mjs` (aperçu isolé sur le port 8768, appels réseau bloqués et stockage neutralisé). `?failure=once` simule une coupure pour vérifier la reprise. Aucune migration ni remise à zéro n’accompagne cette retouche d’interface.
 
+### Expérience tactile V6
+
+- Accueil adaptatif : paquet disponible en avant ; sinon cartes actives avant le petit compteur du prochain booster. Date seule, bandeau Halloween horizontal contrasté, pas de total de catalogue répété sur l’accueil.
+- Collection verticale en trois colonnes sur téléphone et cinq sur grand écran. Filtres repliables, descriptions intégrales conservées dans le détail, compteurs lisibles sous les miniatures.
+- Les exemplaires d’un même modèle et d’une même finition forment une pile visuelle `×N`. Aucun exemplaire n’est fusionné en base : le premier à expirer fournit l’action de la pile. Les finitions différentes restent séparées.
+- Paquet peu épais en perspective : glisser sur son corps permet une inspection continue en rotation (axes X/Y/Z) ; glisser sur sa bande supérieure le déchire, dans les deux sens et en diagonale. Le geste d’inspection ne déclenche aucun tirage. L’animation de 760 ms démarre avec la requête, pas après elle ; si le réseau est plus lent, seuls les dos restent visibles jusqu’à confirmation du serveur. Pas de pré-tirage, ni d’appel réseau au simple survol/à la rotation.
+- Swipes courts/véloces, retour à la carte précédente, animations d’activation et d’échange, étoile de première découverte, inclinaison et reflet au doigt sur l’accueil comme dans la collection.
+- Échange visuel « Je donne / Je reçois », historique repliable, raison explicite d’une indisponibilité. Le choix reste un contrôle natif accessible.
+- Symboles de finition `● / ◇ / ✦ / ✺`, expliqués dans le panneau ⓘ. Les reflets arc-en-ciel et les textes de challenges restent inchangés.
+- Les synchronisations inchangées ne remontent pas les cartes et ne rejouent pas leur entrée. Le mouvement réduit est respecté ; le zoom par pincement reste possible hors du paquet.
+
+Scénarios d’aperçu hors réseau : `?scene=rest` (piles et table), `?scene=trade` (échange), `?failure=once` (reprise d’ouverture). Les données de ces scénarios sont fictives, en mémoire et signalées par un bandeau. Aucun scénario n’est chargé par l’application publique.
+
+`node tests/opening-sequence.test.mjs` vérifie aussi le démarrage immédiat de l’animation, l’absence de faces avant confirmation, l’ouverture unique, le recouvrement de la latence réseau et le retour à l’état visuel initial après une erreur.
+
 [Catalogue numéroté des 78 challenges et 2 utilitaires](docs/catalogue-cartes.md). Le compteur « Déjà vues » affiche les cartes distinctes découvertes sur le total du catalogue, éditions saisonnières comprises. Les inconnues restent masquées.
 
 Le bandeau Halloween annonce la période du 29 octobre au 1er novembre 2026 inclus (heure de Paris). Pendant cette fenêtre uniquement, dix variantes saisonnières sont mélangées aux cartes de l’Édition 01. Le tirage de finition reste à 70/20/8/2 pour les challenges ; une Énergie reste garantie par booster. Les cartes Halloween gardent les finitions de leurs modèles : sept communes (dont deux Énergies), une full art, deux foils.

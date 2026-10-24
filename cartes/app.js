@@ -29,7 +29,10 @@
     category: "all",
     viewerCards: [],
     viewerIndex: 0,
-    revealMoving: false
+    revealMoving: false,
+    viewerMoving: false,
+    viewerSession: 0,
+    newTemplates: new Set()
   };
 
   const $ = selector => document.querySelector(selector);
@@ -43,6 +46,14 @@
   const cardDialog = $("#cardDialog");
   let packGesture;
   let openingTimer;
+  const markupCache = new Map();
+  function putMarkup(selector, html) {
+    const signature = html.replace(/(data-until="[^"]*">)[^<]*/g, "$1");
+    if (markupCache.get(selector) === signature) return;
+    $(selector).innerHTML = html;
+    markupCache.set(selector, signature);
+  }
+  const finishSymbol = finish => ({ standard: "●", full_art: "◇", foil: "✦", full_art_foil: "✺" })[finish] || "●";
 
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
@@ -166,7 +177,7 @@
       <div class="card-art" aria-hidden="true"></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       <div class="card-top"><span>${escapeHtml(card.category)}</span><i>✦</i></div>
       ${timer}<div class="card-copy${card.title.length > 34 ? " long-title" : ""}"><h4>${escapeHtml(card.title)}</h4><span class="card-divider" aria-hidden="true">◆</span><p>${escapeHtml(card.challenge || "Carte déjà découverte.")}</p></div>
-      <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i>${isHalloween(card) ? "☾" : "♥"}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}</span></div>
+      <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}</span></div>
     </article>`;
   }
 
@@ -182,31 +193,63 @@
     root.querySelectorAll?.(".game-card").forEach(card => {
       if (card.dataset.foilReady) return;
       card.dataset.foilReady = "1";
+      let rect, frame, started;
+      const tile = card.closest(".card-button");
       const move = event => {
         const point = event.touches?.[0] || event;
-        const rect = card.getBoundingClientRect();
+        if (tile && started && Math.hypot(point.clientX-started.x,point.clientY-started.y) > 12) tile.dataset.preventClick = "1";
+        if (reducedMotion.matches) return;
+        rect ||= card.getBoundingClientRect();
         const x = Math.max(0, Math.min(100, ((point.clientX - rect.left) / rect.width) * 100));
         const y = Math.max(0, Math.min(100, ((point.clientY - rect.top) / rect.height) * 100));
-        card.style.setProperty("--pointer-x", `${x}%`);
-        card.style.setProperty("--pointer-y", `${y}%`);
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+          card.style.setProperty("--pointer-x", `${x}%`);
+          card.style.setProperty("--pointer-y", `${y}%`);
+          card.style.setProperty("--card-rx", `${(50-y)*.11}deg`);
+          card.style.setProperty("--card-ry", `${(x-50)*.14}deg`);
+          card.classList.add("is-touching");
+        });
       };
+      const rest = () => {
+        cancelAnimationFrame(frame); rect = null;
+        started = null;
+        if (tile) setTimeout(() => delete tile.dataset.preventClick, 80);
+        card.classList.remove("is-touching");
+        for (const property of ["--card-rx", "--card-ry"]) card.style.setProperty(property, "0deg");
+        card.style.setProperty("--pointer-x", "50%"); card.style.setProperty("--pointer-y", "50%");
+      };
+      card.addEventListener("pointerdown", event => { rect = card.getBoundingClientRect(); started = { x:event.clientX, y:event.clientY }; if (tile) delete tile.dataset.preventClick; move(event); }, { passive: true });
       card.addEventListener("pointermove", move, { passive: true });
       card.addEventListener("touchmove", move, { passive: true });
-      card.addEventListener("pointerleave", () => {
-        card.style.setProperty("--pointer-x", "50%");
-        card.style.setProperty("--pointer-y", "50%");
-      });
+      for (const type of ["pointerleave", "pointerup", "pointercancel"]) card.addEventListener(type, rest, { passive: true });
     });
   }
 
   function buttonCard(card, options = {}) {
-    return `<button class="card-button" type="button" aria-label="Voir ${escapeHtml(card.title)}" data-card-id="${escapeHtml(card.id || "")}" data-template-id="${escapeHtml(card.template_id || "")}">${cardMarkup(card, options)}</button>`;
+    const count = Number(card.stack_count || card.owned_count || 1);
+    const fresh = state.newTemplates?.has(card.template_id);
+    return `<button class="card-button${count > 1 ? " stacked-card" : ""}" type="button" aria-label="Voir ${escapeHtml(card.title)}${count > 1 ? `, ${count} exemplaires` : ""}" data-card-id="${escapeHtml(card.id || "")}" data-template-id="${escapeHtml(card.template_id || "")}" style="--stack-depth:${Math.min(3, count-1)}">${cardMarkup(card, { ...options, timer: null })}${count > 1 ? `<span class="stack-count">×${count}</span>` : ""}${fresh ? '<span class="new-card-badge">✧ Nouvelle</span>' : ""}${options.timer ? `<span class="tile-timer" data-until="${escapeHtml(options.timer)}">${duration(options.timer)}</span>` : ""}</button>`;
+  }
+
+  function groupCards(cards) {
+    const groups = new Map();
+    for (const card of [...cards].sort((a,b) => new Date(a.expires_at) - new Date(b.expires_at))) {
+      const key = `${card.template_id || card.id}:${card.finish || card.finish_tier || "standard"}`;
+      if (groups.has(key)) groups.get(key).stack_count++;
+      else groups.set(key, { ...card, stack_count: 1 });
+    }
+    return [...groups.values()];
   }
 
   function renderToday() {
     const data = state.data;
     $("#heroEdition").textContent = halloweenActive() ? "Spéciale Halloween × Édition 01" : "Édition 01 — Nous deux";
-    $("#heroContents").textContent = halloweenActive() ? "3 cartes · 80 originales + 10 variantes Halloween" : "3 cartes · 80 cartes différentes";
+    $("#heroContents").textContent = "3 cartes";
+    $("#todayView").classList.toggle("has-booster", Boolean(data.boosters.length));
+    $("#dailyHero").classList.toggle("no-pack", !data.boosters.length);
+    $("#navBoosterBadge").hidden = !data.boosters.length;
+    $("#navBoosterBadge").textContent = data.boosters.length;
     $("#todayDate").textContent = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" }).format(serverNow());
     $("#nextBoosterCounter").textContent = nextBoosterDuration();
     $("#collectionCount").textContent = data.my_cards.length;
@@ -214,15 +257,15 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
-    $("#boosterList").innerHTML = data.boosters.length ? data.boosters.map(booster => `
+    putMarkup("#boosterList", data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
         <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${isHalloween(booster) ? "☾" : "✦"}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
         <span class="booster-copy"><span>POUR ${escapeHtml(name(state.role))}</span><strong>Ouvrir ce booster <b>↗</b></strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
-      </button>`).join("") : `<div class="booster-empty"><div class="empty-pack" aria-hidden="true">✦</div><strong>Le rituel revient demain.</strong><p>Tes cartes t’attendent dans la collection.<br>Le prochain booster arrive à 5 h.</p><button class="text-button" type="button" data-go-collection>Voir mes cartes →</button></div>`;
+      </button>`).join("") : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`);
 
-    $("#activeCards").innerHTML = data.active_cards.length
+    putMarkup("#activeCards", data.active_cards.length
       ? data.active_cards.map(card => buttonCard(card, { timer: card.active_until })).join("")
-      : empty("La table est libre.<br>Active une carte de ta collection pour partager un moment à deux.");
+      : `<div class="table-empty"><span aria-hidden="true">✧</span><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 
   function renderCollection() {
@@ -231,15 +274,18 @@
     const catalogueTotal = Number(state.data.catalogue_total || 80);
     $("#knownTabCount").textContent = `${state.data.known_cards.length}/${catalogueTotal}`;
     $("#collectionNote").textContent = state.collectionTab === "available"
-      ? "Les nouveaux tirages durent 7 jours. Les compteurs indiquent l’échéance de chaque carte ; les cartes déjà obtenues gardent leur durée initiale."
-      : `${state.data.known_cards.length} cartes découvertes sur ${catalogueTotal}, éditions éphémères comprises. Les cartes inconnues restent secrètes.`;
+      ? "7 jours pour les nouveaux tirages · échéance sous chaque carte."
+      : "Les inconnues gardent leur secret.";
 
     const cards = collectionCards();
     const edition = $("#editionFilter").value;
     const detailFilter = state.category !== "all" || $("#cardSearch").value.trim() || $("#finishFilter").value !== "all";
+    const filterCount = Number(state.category !== "all") + Number(Boolean($("#cardSearch").value.trim())) + Number($("#finishFilter").value !== "all") + Number(edition !== "all");
+    $("#filterCount").textContent = filterCount;
+    $("#filterCount").hidden = !filterCount;
     if (state.collectionTab === "known" && state.data.catalogue_slots && !detailFilter) {
       const known = new Map(cards.map(card => [card.template_id, card]));
-      $("#collectionGrid").innerHTML = (state.data.editions || []).filter(item => edition === "all" || item.id === edition).map(item => `
+      putMarkup("#collectionGrid", (state.data.editions || []).filter(item => edition === "all" || item.id === edition).map(item => `
         <section class="album-edition" aria-label="${editionLabel(item.id)}">
           <header><div><span class="eyebrow">${item.id === "halloween_2026" ? "Du 29 octobre au 1er novembre" : "La collection originale"}</span><h3>${editionLabel(item.id)}</h3></div><b>${item.discovered}/${item.total}</b></header>
           <div class="album-slots">${state.data.catalogue_slots.filter(slot => slot.edition === item.id).map(slot => {
@@ -247,21 +293,21 @@
             return card ? buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
               : `<div class="empty-card-slot${item.id === "halloween_2026" ? " seasonal-slot" : ""}" role="img" aria-label="Emplacement ${slot.number} : carte inconnue"><span>✧</span><strong>À découvrir</strong><small>${String(slot.number).padStart(2, "0")}</small></div>`;
           }).join("")}</div>
-        </section>`).join("");
+        </section>`).join(""));
       $("#collectionOwner").textContent = `L’album de ${name(state.role)}`;
       return;
     }
-    $("#collectionGrid").innerHTML = cards.length
+    putMarkup("#collectionGrid", cards.length
       ? cards.map(card => state.collectionTab === "available"
         ? buttonCard(card, { timer: card.expires_at })
         : buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
       ).join("")
-      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? "Le début d’une jolie collection.<br>Ouvre ton premier booster dans Le rituel." : "Ton album se remplit au fil des découvertes.<br>Aucune carte inconnue n’est dévoilée ici.");
-    $("#collectionOwner").textContent = `La réserve de ${name(state.role)}`;
+      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? "Ouvre un booster pour commencer." : "À découvrir au fil des boosters."));
+    $("#collectionOwner").textContent = `${state.collectionTab === "known" ? "L’album" : "La réserve"} de ${name(state.role)}`;
   }
 
   function collectionCards() {
-    const source = state.collectionTab === "available" ? state.data.my_cards.filter(card => card.status === "available") : state.data.known_cards;
+    const source = state.collectionTab === "available" ? groupCards(state.data.my_cards.filter(card => card.status === "available")) : state.data.known_cards;
     const query = $("#cardSearch").value.trim().toLocaleLowerCase("fr");
     const finish = $("#finishFilter").value;
     const edition = $("#editionFilter").value;
@@ -295,17 +341,33 @@
     const partner = state.data.partner_cards.filter(card => card.status === "available");
     const selectedOffer = $("#offeredCardSelect").value;
     const selectedRequest = $("#requestedCardSelect").value;
-    $("#offeredCardSelect").innerHTML = `<option value="">Une de mes cartes</option>${mine.map(option).join("")}`;
-    $("#requestedCardSelect").innerHTML = `<option value="">Une carte de ${name(state.data.partner_role)}</option>${partner.map(option).join("")}`;
+    putMarkup("#offeredCardSelect", `<option value="">Une de mes cartes</option>${mine.map(option).join("")}`);
+    putMarkup("#requestedCardSelect", `<option value="">Une carte de ${name(state.data.partner_role)}</option>${partner.map(option).join("")}`);
     if (mine.some(card => card.id === selectedOffer)) $("#offeredCardSelect").value = selectedOffer;
     if (partner.some(card => card.id === selectedRequest)) $("#requestedCardSelect").value = selectedRequest;
-    $("#proposeTradeButton").disabled = !mine.length || !partner.length;
+    renderTradeSelection();
 
     const pending = state.data.trades.filter(trade => trade.status === "pending");
     const history = state.data.trades.filter(trade => trade.status !== "pending");
     $("#pendingTradeCount").textContent = pending.length;
+    const incoming = pending.filter(trade => trade.proposed_by !== state.role).length;
+    $("#navTradeBadge").hidden = !incoming;
+    $("#navTradeBadge").textContent = incoming;
     $("#pendingTrades").innerHTML = pending.length ? pending.map(tradeMarkup).join("") : empty("Aucune proposition en attente.");
     $("#tradeHistory").innerHTML = history.length ? history.map(tradeMarkup).join("") : empty("Les échanges terminés apparaîtront ici.");
+  }
+
+  function renderTradeSelection() {
+    const mine = state.data.my_cards.filter(card => card.status === "available");
+    const partner = state.data.partner_cards.filter(card => card.status === "available");
+    for (const [select, preview, cards] of [["offeredCardSelect","offeredPreview",mine],["requestedCardSelect","requestedPreview",partner]]) {
+      const selected = cards.find(card => card.id === $("#"+select).value);
+      putMarkup("#"+preview, selected ? cardMarkup(selected) : `<div class="trade-empty-card"><span>＋</span><b>${cards.length ? "Choisir" : "Aucune carte"}</b></div>`);
+      $("#"+select).disabled = !cards.length;
+    }
+    $("#proposeTradeButton").disabled = !$("#offeredCardSelect").value || !$("#requestedCardSelect").value || !mine.length || !partner.length;
+    $("#tradeHint").textContent = !mine.length ? "Aucune carte échangeable dans ta main." : !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "";
+    attachFoilMotion($("#tradeView"));
   }
 
   function render() {
@@ -313,8 +375,8 @@
     $("#currentRole").textContent = name(state.role);
     $("#presenceDot").classList.toggle("online", Boolean(state.data.partner_online));
     $("#seasonBanner").hidden = serverNow().getTime() >= new Date("2026-11-02T00:00:00+01:00").getTime();
-    $("#seasonHeading").textContent = halloweenActive() ? "Halloween est là" : "Halloween arrive bientôt";
-    $("#seasonCopy").textContent = halloweenActive() ? "10 variantes exceptionnelles se glissent dans les boosters avec l’Édition 01, jusqu’au 1er novembre inclus." : "Du 29 octobre au 1er novembre · 10 variantes exceptionnelles rejoindront l’Édition 01 dans les boosters.";
+    $("#seasonHeading").textContent = halloweenActive() ? "Halloween" : "Halloween bientôt";
+    $("#seasonCopy").textContent = "29 oct.–1 nov. · 10 exclusives";
     $("#seasonBanner").setAttribute("aria-label", halloweenActive() ? "Saison Halloween en cours" : "Saison Halloween à venir");
     renderToday();
     renderCollection();
@@ -370,6 +432,7 @@
 
   async function selectRole(role) {
     if (state.busy) return;
+    if (state.role !== role) state.newTemplates.clear();
     state.role = role;
     state.token = storage.get(tokenKey(role));
     $("#loginStatus").textContent = `Connexion de ${name(role)}…`;
@@ -425,6 +488,7 @@
   function openCard(card, keepList = false) {
     if (!card) return;
     if (!keepList) {
+      state.viewerSession++;
       state.viewerCards = state.view === "collection" ? collectionCards() : state.data.active_cards;
       state.viewerIndex = state.viewerCards.findIndex(item => card.id ? item.id === card.id : item.template_id === card.template_id);
       if (state.viewerIndex < 0) { state.viewerCards = [card]; state.viewerIndex = 0; }
@@ -448,12 +512,21 @@
       ${jokerAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Cette carte reste active encore ${duration(card.active_until)}.</p>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
     attachFoilMotion(cardDialog);
-    setupSwipe($("#viewerCard"), direction => moveViewer(direction));
+    setupSwipe($("#cardDialogContent"), (direction, dx) => moveViewer(direction, dx), $("#viewerCard"));
   }
 
-  function moveViewer(direction) {
+  async function moveViewer(direction, dx = 0) {
+    if (state.viewerMoving) return;
     const index = state.viewerIndex + direction;
     if (index < 0 || index >= state.viewerCards.length) return;
+    state.viewerMoving = true;
+    const session = state.viewerSession;
+    $("#cardDialogContent").inert = true;
+    const element = $("#viewerCard");
+    await element.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${-direction*65}%) rotate(${-direction*7}deg)`, opacity: 0 }], { duration: reducedMotion.matches ? 0 : 160, easing: "cubic-bezier(.2,.7,.2,1)" }).finished.catch(() => {});
+    state.viewerMoving = false;
+    $("#cardDialogContent").inert = false;
+    if (!cardDialog.open || session !== state.viewerSession) return;
     state.viewerIndex = index;
     openCard(state.viewerCards[index], true);
     feedback("card");
@@ -463,32 +536,56 @@
     navigator.vibrate?.(kind === "rare" ? [15, 25, 25] : 10);
   }
 
-  function setupSwipe(element, onSwipe) {
-    let gesture = null;
-    element.addEventListener("pointerdown", event => {
-      if (event.button !== 0 || event.target.closest("button")) return;
-      gesture = { x: event.clientX, y: event.clientY, id: event.pointerId, started: performance.now() };
-      element.setPointerCapture?.(event.pointerId);
-      element.classList.add("dragging");
+  function captureCardGhost() {
+    if (reducedMotion.matches) return null;
+    const source = $("#viewerCard .game-card");
+    if (!source) return null;
+    const rect = source.getBoundingClientRect();
+    const ghost = document.createElement("div");
+    ghost.className = "journey-ghost";
+    ghost.setAttribute("aria-hidden", "true");
+    Object.assign(ghost.style, { left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px` });
+    ghost.append(source.cloneNode(true));
+    ghost._origin = rect;
+    return ghost;
+  }
+
+  function flyToTable(ghost, cardId) {
+    if (!ghost) return;
+    document.body.append(ghost);
+    requestAnimationFrame(() => {
+      const target = $(`#activeCards [data-card-id="${cardId}"] .game-card`);
+      if (!target) { ghost.remove(); return; }
+      const rect = target.getBoundingClientRect(), origin = ghost._origin;
+      ghost.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${rect.left-origin.left}px,${rect.top-origin.top}px) scale(${rect.width/origin.width})`, opacity: .1 }], { duration: 520, easing: "cubic-bezier(.2,.75,.2,1)", fill: "forwards" }).finished.catch(() => {}).finally(() => ghost.remove());
+      feedback("card");
     });
-    element.addEventListener("pointermove", event => {
-      if (!gesture) return;
-      const dx = event.clientX - gesture.x;
-      element.style.setProperty("--drag-x", `${dx}px`);
-      element.style.setProperty("--drag-rotate", `${dx * .04}deg`);
+  }
+
+  function celebrateTrade() {
+    if (reducedMotion.matches) return;
+    const effect = document.createElement("div");
+    effect.className = "trade-celebration"; effect.setAttribute("aria-hidden", "true");
+    effect.innerHTML = "<i></i><i></i><b>Échange accepté</b>";
+    document.body.append(effect);
+    setTimeout(() => effect.remove(), 850);
+  }
+
+  function setupSwipe(element, onSwipe, visual = element) {
+    // The dialog content survives card replacement: do not accumulate listeners.
+    element._swipeCleanup?.();
+    element._swipeCleanup = window.CardBoosterGesture.swipe(element, {
+      onMove: dx => {
+        visual.classList.add("dragging");
+        visual.style.setProperty("--drag-x", `${dx}px`);
+        visual.style.setProperty("--drag-rotate", `${dx*.025}deg`);
+      },
+      onEnd: () => {
+        visual.classList.remove("dragging");
+        visual.style.removeProperty("--drag-x"); visual.style.removeProperty("--drag-rotate");
+      },
+      onSwipe
     });
-    const end = (event, cancelled = false) => {
-      if (!gesture) return;
-      const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
-      const elapsed = performance.now() - gesture.started;
-      gesture = null;
-      element.classList.remove("dragging");
-      element.style.removeProperty("--drag-x");
-      element.style.removeProperty("--drag-rotate");
-      if (!cancelled && Math.abs(dx) > Math.abs(dy) && (Math.abs(dx) > 65 || (Math.abs(dx) > 28 && elapsed < 230))) onSwipe(dx < 0 ? 1 : -1, dx);
-    };
-    element.addEventListener("pointerup", event => end(event));
-    element.addEventListener("pointercancel", event => end(event, true));
   }
 
   async function confirmAction(title, copy) {
@@ -508,6 +605,7 @@
     state.opening = false;
     state.revealedCards = [];
     state.revealIndex = 0;
+    state.revealMoving = false;
     $("#sealedPack").classList.remove("opened", "was-touched");
     $("#boosterStage").classList.remove("awaiting", "unsealing", "revealed");
     packGesture?.reset();
@@ -520,7 +618,7 @@
     $("#sealedPack").style.setProperty("--tear", "0%");
     $("#revealSlot").hidden = true;
     $("#revealSlot").innerHTML = "";
-    $("#boosterStatus").textContent = "Glisse d’un bord à l’autre pour déchirer le haut du booster.";
+    $("#boosterStatus").textContent = "Tourne le paquet. Glisse sur le haut pour ouvrir.";
     boosterDialog.showModal();
   }
 
@@ -533,25 +631,28 @@
     const last = state.revealIndex === state.revealedCards.length - 1;
     state.revealMoving = false;
     const depth = state.revealedCards.length - state.revealIndex - 1;
-    $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${cardMarkup(card)}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Carte ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes 3 cartes →" : "Carte suivante →"}</button></div>`;
-    $("#boosterStatus").textContent = `${state.revealIndex + 1} / 3 · ${finishLabel(card.finish)}${last ? " · La dernière surprise." : " · Glisse la carte pour découvrir la suivante."}`;
+    $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">✧ Nouvelle découverte</span>' : ""}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Carte ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes 3 cartes →" : "Carte suivante →"}</button></div>`;
+    $("#boosterStatus").textContent = `${state.revealIndex + 1} / 3 · ${finishLabel(card.finish)}`;
     $("#revealSlot").classList.toggle("rare-reveal", card.finish !== "standard");
     if (card.finish !== "standard") feedback("rare");
     attachFoilMotion($("#revealSlot"));
-    setupSwipe($("#revealFront"), (_, dx) => advanceReveal(dx));
+    setupSwipe($("#revealFront"), (direction, dx) => advanceReveal(dx, direction));
   }
 
-  async function advanceReveal(dx = -1) {
+  async function advanceReveal(dx = -1, direction = 1) {
     if (state.revealMoving || $("#revealSlot").hidden || !boosterDialog.open) return;
-    if (state.revealIndex >= state.revealedCards.length - 1) return finishReveal();
+    if (direction > 0 && state.revealIndex >= state.revealedCards.length - 1) return finishReveal();
+    if (state.revealIndex + direction < 0) return;
     state.revealMoving = true;
     const front = $("#revealFront");
     const animation = front.animate([
       { transform: `translateX(${Math.abs(dx) > 1 ? dx : 0}px) rotate(${Math.abs(dx) > 1 ? dx * .04 : 0}deg)`, opacity: 1 },
       { transform: `translateX(${dx > 0 ? "120" : "-120"}%) rotate(${dx > 0 ? "18" : "-18"}deg)`, opacity: 0 }
-    ], { duration: reducedMotion.matches ? 0 : 300, easing: "cubic-bezier(.3,.1,.3,1)", fill: "forwards" });
-    await animation.finished;
-    state.revealIndex += 1;
+    ], { duration: reducedMotion.matches ? 0 : 190, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" });
+    const session = state.selectedBooster;
+    await animation.finished.catch(() => {});
+    if (!boosterDialog.open || session !== state.selectedBooster) return;
+    state.revealIndex += direction;
     renderRevealedCard();
     feedback("card");
   }
@@ -566,10 +667,13 @@
     if (state.opening || !state.selectedBooster) return;
     state.opening = true;
     const boosterId = state.selectedBooster;
+    const previouslyKnown = new Set(state.data.known_cards.map(card => card.template_id));
+    const motionStarted = performance.now();
     $("#openPackButton").disabled = true;
     $("#sealedPack").style.setProperty("--tear", "100%");
     $("#sealedPack").style.setProperty("--pull", "1");
-    $("#boosterStage").classList.add("awaiting");
+    $("#boosterStage").classList.add("awaiting", "unsealing");
+    $("#sealedPack").classList.add("opened");
     $("#boosterStatus").textContent = "Le sceau cède… Tes cartes arrivent.";
     try {
       await exchange("open_booster", { booster_id: state.selectedBooster });
@@ -577,25 +681,24 @@
         .filter(candidate => candidate.booster_id === boosterId)
         .sort((a, b) => ({ energy: 0, challenge: 1, joker: 2 }[a.card_type] ?? 1) - ({ energy: 0, challenge: 1, joker: 2 }[b.card_type] ?? 1));
       state.revealIndex = 0;
+      for (const card of state.revealedCards) if (!previouslyKnown.has(card.template_id)) state.newTemplates.add(card.template_id);
       if (state.revealedCards.length !== 3) throw new Error("Les cartes sont enregistrées. Actualise ta collection.");
       $("#openPackButton").hidden = true;
-      $("#boosterStage").classList.remove("awaiting");
-      $("#boosterStage").classList.add("unsealing");
-      $("#sealedPack").classList.add("opened");
-      $("#boosterStatus").textContent = "Un paquet. Trois petites surprises.";
+      $("#boosterStatus").textContent = "✦";
       feedback("rare");
       openingTimer = setTimeout(() => {
         if (!boosterDialog.open) return;
         $("#sealedPack").hidden = true;
-        $("#boosterStage").classList.remove("unsealing");
+        $("#boosterStage").classList.remove("unsealing", "awaiting");
         $("#boosterStage").classList.add("revealed");
         $("#revealSlot").hidden = false;
         renderRevealedCard();
-      }, reducedMotion.matches ? 0 : 1050);
+      }, reducedMotion.matches ? 0 : Math.max(0, 760 - (performance.now() - motionStarted)));
       render();
     } catch (error) {
       state.opening = false;
       $("#boosterStage").classList.remove("awaiting", "unsealing");
+      $("#sealedPack").classList.remove("opened");
       packGesture?.reset();
       $("#openPackButton").disabled = false;
       $("#boosterStatus").textContent = friendlyError(error);
@@ -607,11 +710,16 @@
     const pack = $("#sealedPack");
     packGesture = window.CardBoosterGesture.attach(pack, {
       isLocked: () => state.opening || !boosterDialog.open,
-      onProgress: progress => {
+      onProgress: (progress, angle = 0) => {
         pack.style.setProperty("--tear", `${progress * 100}%`);
         pack.style.setProperty("--pull", String(progress));
-        $("#tearPercent").textContent = progress ? `${Math.round(progress * 100)} %` : "Glisse pour ouvrir";
+        pack.style.setProperty("--cut-angle", `${angle}deg`);
+        $("#tearPercent").textContent = progress ? "Déchire…" : "Glisse pour ouvrir";
       },
+      onPose: pose => {
+        pack.style.setProperty("--pack-rx", `${pose.x}deg`); pack.style.setProperty("--pack-ry", `${pose.y}deg`); pack.style.setProperty("--pack-rz", `${pose.z}deg`);
+      },
+      onMode: mode => { pack.dataset.gestureMode = mode; },
       onStep: () => { if (!reducedMotion.matches) navigator.vibrate?.(5); },
       onCommit: revealBooster
     });
@@ -644,6 +752,9 @@
       setBusy(false);
     }
   });
+
+  document.querySelectorAll("[data-open-info]").forEach(button => button.addEventListener("click", () => $("#infoDialog").showModal()));
+  for (const id of ["offeredCardSelect", "requestedCardSelect"]) $("#"+id).addEventListener("change", renderTradeSelection);
   $("#profileMenu").addEventListener("click", () => showLogin("Choisis l’autre profil ou reconnecte-toi."));
   $("#refreshButton").addEventListener("click", () => sync());
   $$('[data-nav]').forEach(button => button.addEventListener("click", () => setView(button.dataset.nav)));
@@ -662,7 +773,10 @@
     const booster = event.target.closest("[data-booster-id]");
     if (booster) return openBooster(booster.dataset.boosterId);
     const cardButton = event.target.closest(".card-button");
-    if (cardButton) return openCard(findCard(cardButton));
+    if (cardButton) {
+      if (cardButton.dataset.preventClick) { delete cardButton.dataset.preventClick; return; }
+      return openCard(findCard(cardButton));
+    }
     const nextReveal = event.target.closest("[data-reveal-next]");
     if (nextReveal) {
       return advanceReveal();
@@ -689,13 +803,15 @@
     }
     const activate = event.target.closest("[data-activate-card]");
     if (activate) {
-      if (!await confirmAction("On la joue ?", "Cette carte quitte ta main et rejoint votre table pour 24 heures. À vous de choisir quand vivre ce moment.")) return;
+      if (!await confirmAction("On la joue ?", "Cette carte rejoint votre table pour 24 heures.")) return;
+      const ghost = captureCardGhost();
       setBusy(true);
       try {
         await exchange("activate_card", { card_id: activate.dataset.activateCard });
         cardDialog.close();
         render();
         setView("today");
+        flyToTable(ghost, activate.dataset.activateCard);
         toast("Challenge activé pour 24 h.");
       } catch (error) { toast(friendlyError(error)); }
       finally { setBusy(false); }
@@ -709,6 +825,7 @@
         if (action === "cancel") await exchange("trade_cancel", { trade_id: tradeAction.dataset.tradeId });
         else await exchange("trade_respond", { trade_id: tradeAction.dataset.tradeId, decision: action });
         render();
+        if (action === "accept") celebrateTrade();
         toast(action === "accept" ? "Échange accepté." : action === "reject" ? "Échange refusé." : "Proposition annulée.");
       } catch (error) { toast(friendlyError(error)); }
       finally { setBusy(false); }
@@ -744,6 +861,7 @@
   boosterDialog.addEventListener("cancel", event => {
     if (state.opening && !state.revealedCards.length) event.preventDefault();
   });
+  cardDialog.addEventListener("close", () => { state.viewerSession++; state.viewerMoving = false; $("#cardDialogContent").inert = false; $("#cardDialogContent")._swipeCleanup?.(); });
   document.addEventListener("keydown", event => {
     if ($("#confirmDialog").open || state.busy) return;
     if (cardDialog.open && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); moveViewer(event.key === "ArrowRight" ? 1 : -1); }
