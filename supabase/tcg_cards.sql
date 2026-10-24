@@ -40,6 +40,12 @@ create table if not exists public.tcg_player_devices (
 alter table public.tcg_card_templates add column if not exists card_type text not null default 'challenge';
 alter table public.tcg_card_templates add column if not exists eligible_role text;
 alter table public.tcg_card_templates add column if not exists finish_tier text not null default 'standard';
+alter table public.tcg_card_templates add column if not exists edition text not null default 'edition_01';
+alter table public.tcg_card_templates add column if not exists draw_from timestamptz;
+alter table public.tcg_card_templates add column if not exists draw_until timestamptz;
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_draw_window_check;
+alter table public.tcg_card_templates add constraint tcg_card_templates_draw_window_check
+  check ((draw_from is null and draw_until is null) or (draw_from is not null and draw_until is not null and draw_until > draw_from));
 alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_category_check;
 alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_palette_check;
 alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_card_type_check;
@@ -81,9 +87,15 @@ create table if not exists public.tcg_cards (
   active_until timestamptz,
   consumed_at timestamptz,
   booster_id uuid references public.tcg_boosters(id),
-  check (expires_at = acquired_at + interval '30 days'),
-  check ((status <> 'activated') or (activated_at is not null and active_until is not null))
+  constraint tcg_cards_retention_check check (expires_at = acquired_at + interval '7 days' or expires_at = acquired_at + interval '30 days'),
+  constraint tcg_cards_activation_check check ((status <> 'activated') or (activated_at is not null and active_until is not null))
 );
+
+-- Preserve legacy 30-day cards; only future acquisitions use seven days.
+alter table public.tcg_cards drop constraint if exists tcg_cards_check;
+alter table public.tcg_cards drop constraint if exists tcg_cards_retention_check;
+alter table public.tcg_cards add constraint tcg_cards_retention_check
+  check (expires_at = acquired_at + interval '7 days' or expires_at = acquired_at + interval '30 days');
 
 create table if not exists public.tcg_discoveries (
   role text not null references public.tcg_players(role),
@@ -276,6 +288,49 @@ on conflict (id) do update set
   active = excluded.active,
   demo = false;
 
+-- Halloween is a separate ten-card edition. The original eighty rows stay intact.
+insert into public.tcg_card_templates(
+  id, category, title, challenge, symbol, palette, card_type,
+  eligible_role, finish_tier, rarity, active, demo, edition, draw_from, draw_until
+)
+values
+  ('hw-couple-film-horreur', 'EN COUPLE', 'FILM D’HORREUR', 'Regardez un film d’horreur ensemble.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-couple-urbex', 'EN COUPLE', 'URBEX', 'Faites une sortie urbex ensemble, dans un lieu accessible et autorisé.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-autre-cadeau-666', 'POUR L''AUTRE', 'CADEAU · 6,66 €', 'Un cadeau à 6,66 euros.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-nue-photo-horreur', 'MISE À NUE', 'SÉANCE PHOTO NUDES D’HORREUR (COSTUME)', 'Séance photo nudes d’horreur, en costume.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-foodies-gateau', 'LES FOODIES', 'L’AUTRE FAIT UN GÂTEAU D’HALLOWEEN', 'L’autre fait un gâteau d’Halloween.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-fa-foodies-repas', 'LES FOODIES', 'REPAS EFFRAYANT PROPOSÉ PAR L’AUTRE', 'Un repas effrayant proposé par l’autre.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-foil-autre-cadeau-66', 'POUR L''AUTRE', 'CADEAU · 66 €', 'Un cadeau à 66 euros.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-foil-nue-faciale-eglise', 'MISE À NUE', 'FACIALE À L’ÉGLISE', 'Faciale à l’église.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-energy-morsure', 'ÉNERGIE', 'UNE MORSURE', 'Cette carte donne droit à une morsure.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-energy-griffure', 'ÉNERGIE', 'UNE GRIFFURE', 'Cette carte donne droit à une griffure.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris')
+on conflict (id) do update set
+  title = excluded.title, challenge = excluded.challenge, category = excluded.category,
+  symbol = excluded.symbol, palette = excluded.palette, card_type = excluded.card_type,
+  eligible_role = excluded.eligible_role, finish_tier = excluded.finish_tier,
+  rarity = excluded.rarity, active = excluded.active, demo = false,
+  edition = excluded.edition, draw_from = excluded.draw_from, draw_until = excluded.draw_until;
+
+-- Internal picker: a single source of truth for temporal eligibility, profile
+-- restrictions and the 0.8 individual weight of Mise à nue cards.
+create or replace function public.tcg_pick_template(
+  p_role text, p_card_type text, p_finish text, p_excluded_ids text[], p_at timestamptz default now()
+) returns setof public.tcg_card_templates
+language sql volatile
+set search_path = public, pg_temp
+as $$
+  select t.* from public.tcg_card_templates t
+  where t.active and not t.demo and t.card_type = p_card_type
+    and (p_card_type <> 'challenge' or t.finish_tier = p_finish)
+    and (t.eligible_role is null or t.eligible_role = p_role)
+    and (t.draw_from is null or (p_at >= t.draw_from and p_at < t.draw_until))
+    and not (t.id = any(coalesce(p_excluded_ids, array[]::text[])))
+  order by -ln(greatest(random(), 0.000000000001)) /
+    case when t.category = 'MISE À NUE' then 0.8 else 1.0 end
+  limit 1;
+$$;
+revoke all on function public.tcg_pick_template(text,text,text,text[],timestamptz) from public, anon, authenticated;
+
 create or replace function public.tcg_exchange(
   p_role text,
   p_token text,
@@ -411,13 +466,7 @@ begin
       end;
 
       if v_draw_type = 'joker' then
-        select * into template_row
-        from public.tcg_card_templates
-        where active and card_type = 'joker'
-          and (eligible_role is null or eligible_role = v_role)
-          and not (id = any(v_drawn_template_ids))
-        order by random()
-        limit 1;
+        select * into template_row from public.tcg_pick_template(v_role, 'joker', 'standard', v_drawn_template_ids);
         if not found then v_draw_type := 'challenge'; end if;
       end if;
 
@@ -429,41 +478,18 @@ begin
           when v_roll < 0.30 then 'full_art'
           else 'standard'
         end;
-        select * into template_row
-        from public.tcg_card_templates
-        where active and card_type = 'challenge'
-          and finish_tier = v_desired_finish
-          and (eligible_role is null or eligible_role = v_role)
-          and not (id = any(v_drawn_template_ids))
-        -- Each Mise à nue card has 80% of the draw weight of another card.
-        order by -ln(greatest(random(), 0.000000000001)) /
-          case when category = 'MISE À NUE' then 0.8 else 1.0 end
-        limit 1;
+        select * into template_row from public.tcg_pick_template(v_role, 'challenge', v_desired_finish, v_drawn_template_ids);
         if not found then
-          select * into template_row
-          from public.tcg_card_templates
-          where active and card_type = 'challenge'
-            and finish_tier = 'standard'
-            and (eligible_role is null or eligible_role = v_role)
-            and not (id = any(v_drawn_template_ids))
-          order by -ln(greatest(random(), 0.000000000001)) /
-            case when category = 'MISE À NUE' then 0.8 else 1.0 end
-          limit 1;
+          select * into template_row from public.tcg_pick_template(v_role, 'challenge', 'standard', v_drawn_template_ids);
         end if;
       elsif v_draw_type = 'energy' then
-        select * into template_row
-        from public.tcg_card_templates
-        where active and card_type = 'energy'
-          and (eligible_role is null or eligible_role = v_role)
-          and not (id = any(v_drawn_template_ids))
-        order by random()
-        limit 1;
+        select * into template_row from public.tcg_pick_template(v_role, 'energy', 'standard', v_drawn_template_ids);
       end if;
 
       if not found then raise exception 'no_active_card'; end if;
       v_finish := template_row.finish_tier;
       insert into public.tcg_cards(template_id, owner_role, finish, wear_seed, acquired_at, expires_at, booster_id)
-      values (template_row.id, v_role, v_finish, floor(random() * 1000000)::integer, now(), now() + interval '30 days', booster.id);
+      values (template_row.id, v_role, v_finish, floor(random() * 1000000)::integer, now(), now() + interval '7 days', booster.id);
       v_drawn_template_ids := array_append(v_drawn_template_ids, template_row.id);
       insert into public.tcg_discoveries(role, template_id)
       values (v_role, template_row.id)
@@ -588,6 +614,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', b.id,
+    'edition', case when now() >= timestamptz '2026-10-29 00:00:00 Europe/Paris' and now() < timestamptz '2026-11-02 00:00:00 Europe/Paris' then 'halloween_2026' else 'edition_01' end,
     'available_at', b.available_at,
     'expires_at', b.expires_at
   ) order by b.expires_at), '[]'::jsonb)
@@ -597,7 +624,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at, 'booster_id', c.booster_id
@@ -608,7 +635,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at
@@ -622,7 +649,7 @@ begin
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'owner_role', c.owner_role, 'template_id', t.id,
     'category', t.category, 'title', t.title, 'challenge', t.challenge,
-    'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'rarity', t.rarity,
+    'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'rarity', t.rarity, 'edition', t.edition,
     'finish', c.finish, 'wear_seed', c.wear_seed,
     'activated_at', c.activated_at, 'active_until', c.active_until
   ) order by c.active_until), '[]'::jsonb)
@@ -632,7 +659,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
     'rarity', t.rarity, 'finish_tier', t.finish_tier, 'demo', t.demo, 'first_seen_at', d.first_seen_at,
     'last_seen_at', d.last_seen_at, 'times_seen', d.times_seen,
     'owned_count', (select count(*) from public.tcg_cards c where c.owner_role = v_role and c.template_id = t.id and c.status in ('available','trading'))
@@ -672,8 +699,27 @@ begin
     'active_cards', v_active_cards,
     'known_cards', v_known,
     'catalogue_total', (select count(*) from public.tcg_card_templates where not demo),
+    'catalogue_slots', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'number', s.slot_number, 'edition', s.edition,
+        'template_id', case when exists(select 1 from public.tcg_discoveries d where d.role = v_role and d.template_id = s.id) then s.id else null end
+      ) order by s.edition, s.slot_number), '[]'::jsonb)
+      from (select id, edition, row_number() over(partition by edition order by created_at, id) as slot_number
+            from public.tcg_card_templates where not demo) s
+    ),
+    'editions', (
+      select jsonb_agg(jsonb_build_object(
+        'id', e.edition, 'total', e.total, 'discovered', e.discovered,
+        'draw_from', e.draw_from, 'draw_until', e.draw_until
+      ) order by e.edition)
+      from (select t.edition, count(*) as total,
+        count(d.template_id) as discovered, min(t.draw_from) as draw_from, max(t.draw_until) as draw_until
+        from public.tcg_card_templates t
+        left join public.tcg_discoveries d on d.template_id = t.id and d.role = v_role
+        where not t.demo group by t.edition) e
+    ),
     'trades', v_trades,
-    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 30, 'daily_release_hour', 5, 'joker_slot_chance', 0.10)
+    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10)
   );
 end;
 $$;

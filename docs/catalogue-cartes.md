@@ -1,6 +1,25 @@
 # Catalogue des cartes
 
-78 challenges et 2 cartes utilitaires. Aucun challenge Halloween ajouté à ce stade.
+Édition 01 : 78 challenges et 2 cartes utilitaires, inchangés. Édition Halloween : 10 variantes supplémentaires, soit 90 cartes au total.
+
+## Spéciale Halloween — 29 octobre au 1er novembre 2026 inclus
+
+Les boosters mélangent les variantes et l’Édition 01. Les formats d’origine sont conservés.
+
+| Modèle | Variante Halloween | Format |
+| --- | --- | --- |
+| C02 · Film | Film d’horreur | Commune |
+| C07 · Petit tour en ville | Urbex | Commune |
+| C14 · Cadeau Vinted 5 € | Cadeau à 6,66 euros | Commune |
+| C27 · Séance photo machine à laver / linge | Séance photo nudes d’horreur (costume) | Commune |
+| C34 · L’autre fait un gâteau | L’autre fait un gâteau d’Halloween | Commune |
+| FA11 · L’autre prépare le repas de ton choix | Repas effrayant proposé par l’autre | Full art |
+| F05 · Cadeau 50 € | Cadeau 66 euros | Foil |
+| F08 · Blowjob à l’église | Faciale à l’église | Foil |
+| Énergie · Un bisou | Une morsure | Commune |
+| Énergie · Un bisou | Une griffure | Commune |
+
+Les variantes ne remplacent pas les originaux. Elles ne sont tirables que pendant la fenêtre de saison ; les exemplaires obtenus restent utilisables jusqu’à leur expiration normale.
 
 ## Communes
 
