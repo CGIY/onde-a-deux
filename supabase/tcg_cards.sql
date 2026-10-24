@@ -175,31 +175,31 @@ values
 
   ('nue-leche-partenaire', 'MISE À NUE', 'L’AUTRE LÈCHE SA PARTENAIRE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
   ('nue-suce-partenaire', 'MISE À NUE', 'L’AUTRE SUCE SON PARTENAIRE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
-  ('nue-assise-visage', 'MISE À NUE', 'L’AUTRE S’ASSOIT SUR LE VISAGE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
-  ('nue-faciale', 'MISE À NUE', 'L’AUTRE FAIT UNE FACIALE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
+  ('nue-assise-visage', 'MISE À NUE', 'L’AUTRE S’ASSOIT SUR LE VISAGE DE SON PARTENAIRE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
+  ('nue-faciale', 'MISE À NUE', 'L’AUTRE FAIT UNE FACIALE À SA PARTENAIRE', 'À vivre seulement avec un accord explicite, enthousiaste et maintenu.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
   ('nue-grosse-levrette', 'MISE À NUE', 'UNE GROSSE LEVRETTE', 'Choisissez ensemble le rythme et l’intensité, sans pression.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-star-wars', 'MISE À NUE', 'SÉANCE PHOTO STAR WARS', 'Créez une séance photo inspirée de Star Wars. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-berlin', 'MISE À NUE', 'SÉANCE PHOTO BERLIN', 'Créez une séance photo inspirée de Berlin. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-apres-sport', 'MISE À NUE', 'SÉANCE PHOTO APRÈS-SPORT', 'Créez une séance photo après-sport. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-douche-vapeur', 'MISE À NUE', 'SÉANCE PHOTO DOUCHE VAPEUR', 'Créez une séance photo dans la vapeur. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-cuisine', 'MISE À NUE', 'SÉANCE PHOTO CUISINE', 'Créez une séance photo dans la cuisine. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
-  ('nue-photo-linge', 'MISE À NUE', 'SÉANCE PHOTO MACHINE / LINGE', 'Créez une séance photo autour du linge. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
+  ('nue-photo-linge', 'MISE À NUE', 'SÉANCE PHOTO MACHINE À LAVER / LINGE', 'Créez une séance photo autour du linge. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-neon', 'MISE À NUE', 'SÉANCE PHOTO NÉON', 'Créez une séance photo sous une lumière néon. Décidez ensemble des images conservées.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
   ('nue-photo-pluie', 'MISE À NUE', 'SÉANCE PHOTO SOUS LA PLUIE', 'Créez une séance photo sous la pluie, dans un lieu sûr et privé.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false),
-  ('nue-massage-nuru', 'MISE À NUE', 'MASSAGE NURU', 'L’autre réalise un massage Nuru avec un produit compatible et un accord explicite.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
+  ('nue-massage-nuru', 'MISE À NUE', 'L’AUTRE DOIT FAIRE UN MASSAGE NURU', 'L’autre réalise un massage Nuru avec un produit compatible et un accord explicite.', '◒', 'nude', 'challenge', 'AG', 'standard', 'commune', true, false),
   ('nue-avaler', 'MISE À NUE', 'L’AUTRE ACCEPTE D’AVALER', 'Uniquement avec un accord explicite, sans pression et avec possibilité de changer d’avis.', '◒', 'nude', 'challenge', 'CL', 'standard', 'commune', true, false),
 
   ('foodies-fast-food', 'LES FOODIES', 'L’AUTRE PAIE LE FAST-FOOD', 'L’autre invite au fast-food de votre choix.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
   ('foodies-apero', 'LES FOODIES', 'L’AUTRE PRÉPARE UN APÉRO', 'L’autre prépare un apéro à partager.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
   ('foodies-gateau', 'LES FOODIES', 'L’AUTRE FAIT UN GÂTEAU', 'L’autre prépare un gâteau pour vous deux.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
-  ('foodies-cafe-ville', 'LES FOODIES', 'L’AUTRE PAIE LE CAFÉ', 'L’autre invite pour un café en ville.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
+  ('foodies-cafe-ville', 'LES FOODIES', 'L’AUTRE PAIE SON CAFÉ EN VILLE', 'L’autre invite pour un café en ville.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false),
 
-  ('todo-vaisselle', 'TO DO', 'PROCHAIN LAVE-VAISSELLE', 'L’autre s’occupe du prochain lave-vaisselle.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
-  ('todo-machine', 'TO DO', 'PROCHAINE MACHINE', 'L’autre s’occupe de la prochaine machine.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
-  ('todo-linge', 'TO DO', 'PROCHAIN LINGE', 'L’autre étend ou plie le prochain linge.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
-  ('todo-poubelles', 'TO DO', 'LES POUBELLES', 'L’autre s’occupe des poubelles.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
-  ('todo-piece', 'TO DO', 'RANGER UNE PIÈCE', 'L’autre range une pièce de votre choix.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
-  ('todo-placard', 'TO DO', 'RANGER UN PLACARD', 'L’autre range un placard de votre choix.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-vaisselle', 'TO DO', 'L’AUTRE FAIT LE PROCHAIN LAVE-VAISSELLE', 'L’autre s’occupe du prochain lave-vaisselle.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-machine', 'TO DO', 'L’AUTRE FAIT LA PROCHAINE MACHINE', 'L’autre s’occupe de la prochaine machine.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-linge', 'TO DO', 'L’AUTRE ÉTEND / PLIE LE PROCHAIN LINGE', 'L’autre étend ou plie le prochain linge.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-poubelles', 'TO DO', 'L’AUTRE S’OCCUPE DES POUBELLES', 'L’autre s’occupe des poubelles.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-piece', 'TO DO', 'L’AUTRE RANGE UNE PIÈCE', 'L’autre range une pièce de votre choix.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
+  ('todo-placard', 'TO DO', 'L’AUTRE RANGE UN PLACARD', 'L’autre range un placard de votre choix.', '✓', 'todo', 'challenge', null, 'standard', 'commune', true, false),
 
   ('energy-bisou', 'ÉNERGIE', 'ÉNERGIE BISOUS', 'Cette carte donne droit à un bisou.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false),
   ('joker-annulation', 'JOKER', 'JOKER', 'Annule une carte active consommée par l’autre joueur.', 'J', 'joker', 'joker', null, 'standard', 'légendaire', true, false)
@@ -223,7 +223,7 @@ insert into public.tcg_card_templates(
 values
   -- Full art · 20%
   ('fa-couple-repas-complet', 'EN COUPLE', 'PRÉPARER UN REPAS COMPLET', 'Préparez ensemble un repas complet, de l’entrée au dessert.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
-  ('fa-couple-choix-activite', 'EN COUPLE', 'L’AUTRE CHOISIT L’ACTIVITÉ', 'Laissez l’autre choisir entièrement votre prochaine activité à deux.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-couple-choix-activite', 'EN COUPLE', 'LAISSER L’AUTRE CHOISIR L’ACTIVITÉ', 'Laissez l’autre choisir entièrement votre prochaine activité à deux.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
   ('fa-autre-cadeau-20', 'POUR L''AUTRE', 'CADEAU · 20 €', 'Choisis pour l’autre un cadeau avec un budget de 20 €.', '◇', 'other', 'challenge', null, 'full_art', 'rare', true, false),
   ('fa-autre-cadeau-25', 'POUR L''AUTRE', 'CADEAU · 25 €', 'Choisis pour l’autre un cadeau avec un budget de 25 €.', '◇', 'other', 'challenge', null, 'full_art', 'rare', true, false),
   ('fa-nue-webcam-boobs', 'MISE À NUE', 'WEBCAM NUDE · BOOBS', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
@@ -233,12 +233,12 @@ values
   ('fa-nue-reddit-boobs', 'MISE À NUE', 'REDDIT · BOOBS', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
   ('fa-foodies-repas-choix-paye', 'LES FOODIES', 'L’AUTRE PAIE LE REPAS DE TON CHOIX', 'Choisis le repas : l’autre vous invite.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false),
   ('fa-foodies-repas-choix-prepare', 'LES FOODIES', 'L’AUTRE PRÉPARE LE REPAS DE TON CHOIX', 'Choisis le menu : l’autre prépare le repas.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false),
-  ('fa-todo-impose-tache', 'TO DO', 'IMPOSE TA TÂCHE MÉNAGÈRE', 'Choisis une tâche ménagère raisonnable que l’autre réalisera.', '✓', 'todo', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-todo-impose-tache', 'TO DO', 'IMPOSE TA TÂCHE MÉNAGÈRE À L’AUTRE', 'Impose ta tâche ménagère à l’autre.', '✓', 'todo', 'challenge', null, 'full_art', 'rare', true, false),
 
   -- Foil · 8%
-  ('foil-couple-marathon', 'EN COUPLE', 'MARATHON FILMS / SÉRIE', 'Choisissez votre marathon et installez-vous pour plusieurs épisodes ou films.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-couple-marathon', 'EN COUPLE', 'MARATHON DE FILMS / SÉRIE', 'Choisissez votre marathon et installez-vous pour plusieurs épisodes ou films.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
   ('foil-couple-sortie-choisie', 'EN COUPLE', 'LA SORTIE CHOISIE PAR L’AUTRE', 'L’autre choisit et organise votre prochaine sortie.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
-  ('foil-couple-soiree-theme', 'EN COUPLE', 'SOIRÉE À THÈME', 'L’autre décide du thème et prépare votre soirée à deux.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-couple-soiree-theme', 'EN COUPLE', 'SOIRÉE À THÈME DÉCIDÉE PAR L’AUTRE', 'L’autre décide du thème et prépare votre soirée à deux.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
   ('foil-autre-massage-complet', 'POUR L''AUTRE', 'GROS MASSAGE COMPLET', 'Offre à l’autre un massage complet, avec durée et pression choisies ensemble.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false),
   ('foil-autre-cadeau-50', 'POUR L''AUTRE', 'CADEAU · 50 €', 'Choisis pour l’autre un cadeau avec un budget de 50 €.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false),
   ('foil-nue-soumission', 'MISE À NUE', 'UNE HEURE DE SOUMISSION', 'Définissez avant de commencer les rôles, limites, mot d’arrêt et vérifications régulières pendant cette heure.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
@@ -249,13 +249,13 @@ values
   ('foil-nue-webcam-pussy', 'MISE À NUE', 'WEBCAM NUDE · PUSSY', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
   ('foil-nue-reddit-pussy', 'MISE À NUE', 'REDDIT · PUSSY', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
   ('foil-foodies-restaurant', 'LES FOODIES', 'L’AUTRE PAIE SON RESTAURANT', 'Choisis ton restaurant : l’autre vous invite.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
-  ('foil-foodies-plat-luxe', 'LES FOODIES', 'UN PLAT DE LUXE', 'L’autre te propose et prépare ou commande un plat de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
-  ('foil-foodies-dessert-luxe', 'LES FOODIES', 'UN DESSERT DE LUXE', 'L’autre te propose et prépare ou commande un dessert de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
-  ('foil-todo-refaire-piece', 'TO DO', 'REFAIRE UN ÉLÉMENT D’UNE PIÈCE', 'Choisis un élément raisonnable d’une pièce que l’autre devra réorganiser, réparer ou améliorer.', '✓', 'todo', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-plat-luxe', 'LES FOODIES', 'L’AUTRE TE PROPOSE UN PLAT DE LUXE', 'L’autre te propose et prépare ou commande un plat de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-dessert-luxe', 'LES FOODIES', 'L’AUTRE TE PROPOSE UN DESSERT DE LUXE', 'L’autre te propose et prépare ou commande un dessert de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-todo-refaire-piece', 'TO DO', 'L’AUTRE DOIT REFAIRE UN ÉLÉMENT D’UNE PIÈCE', 'L’autre doit refaire un élément d’une pièce.', '✓', 'todo', 'challenge', null, 'foil', 'rare', true, false),
 
   -- Full art + foil · 2%
-  ('faf-couple-super-sortie', 'EN COUPLE', 'UNE SUPER SORTIE À DEUX', 'L’autre imagine et prépare une sortie complète rien que pour vous deux.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
-  ('faf-couple-weekend', 'EN COUPLE', 'UN WEEK-END AILLEURS', 'Préparez ensemble un week-end ailleurs : destination, date et programme.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-couple-super-sortie', 'EN COUPLE', 'L’AUTRE PRÉPARE UNE SUPER SORTIE À DEUX', 'L’autre imagine et prépare une sortie complète rien que pour vous deux.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-couple-weekend', 'EN COUPLE', 'PRÉPARATION D’UN WEEK-END AILLEURS', 'Préparez ensemble un week-end ailleurs : destination, date et programme.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
   ('faf-autre-cadeau-100', 'POUR L''AUTRE', 'CADEAU · 100 €', 'Choisis pour l’autre un cadeau exceptionnel avec un budget de 100 €.', '◇', 'other', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
   ('faf-nue-golden-shower', 'MISE À NUE', 'GOLDEN SHOWER SUR L’AUTRE', 'Seulement avec un accord explicite et maintenu ; évitez le visage et toute zone irritée, puis rincez-vous.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
   ('faf-nue-roleplay-violent', 'MISE À NUE', 'ROLEPLAY VIOLENT SUR L’AUTRE', 'Jeu de rôle uniquement : scénario, gestes permis et interdits, mot d’arrêt et signal non verbal doivent être définis avant.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
@@ -316,8 +316,8 @@ declare
   v_trades jsonb;
 begin
   if v_role not in ('AG', 'CL')
-     or p_token !~ '^[a-f0-9]{48}$'
-     or p_action not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device')
+     or coalesce(p_token, '') !~ '^[a-f0-9]{48}$'
+     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -337,8 +337,8 @@ begin
 
   if not v_device_known then
     if p_action <> 'login' then raise exception 'pairing_required'; end if;
-    if coalesce(p_access_code, '') !~ '^[A-Z0-9]{10,16}$' then raise exception 'invalid_access_code'; end if;
-    v_access_hash := encode(extensions.digest(convert_to(upper(p_access_code), 'UTF8'), 'sha256'), 'hex');
+    if regexp_replace(upper(coalesce(p_access_code, '')), '[[:space:]-]', '', 'g') !~ '^[A-Z0-9]{10,16}$' then raise exception 'invalid_access_code'; end if;
+    v_access_hash := encode(extensions.digest(convert_to(regexp_replace(upper(p_access_code), '[[:space:]-]', '', 'g'), 'UTF8'), 'sha256'), 'hex');
     if v_access_hash <> player.access_code_hash then raise exception 'invalid_access_code'; end if;
     insert into public.tcg_player_devices(role, device_token_hash)
     values (v_role, v_token_hash)
@@ -527,7 +527,8 @@ begin
     if offered.id is null or requested.id is null
        or offered.owner_role <> v_role or requested.owner_role <> v_other
        or offered.status <> 'available' or requested.status <> 'available'
-       or offered.expires_at <= now() or requested.expires_at <= now() then
+       or offered.expires_at <= now() or requested.expires_at <= now()
+       or not exists(select 1 from public.tcg_discoveries where role = v_role and template_id = requested.template_id) then
       raise exception 'trade_unavailable';
     end if;
     insert into public.tcg_trades(proposed_by, offered_card_id, requested_card_id)
@@ -592,14 +593,14 @@ begin
   ) order by b.expires_at), '[]'::jsonb)
   into v_boosters
   from public.tcg_boosters b
-  where b.owner_role = v_role and b.opened_at is null and b.expires_at > now();
+  where b.owner_role = v_role and b.opened_at is null and b.available_at <= now() and b.expires_at > now();
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
     'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status,
-    'acquired_at', c.acquired_at, 'expires_at', c.expires_at
+    'acquired_at', c.acquired_at, 'expires_at', c.expires_at, 'booster_id', c.booster_id
   ) order by c.expires_at), '[]'::jsonb)
   into v_my_cards
   from public.tcg_cards c join public.tcg_card_templates t on t.id = c.template_id
@@ -648,17 +649,21 @@ begin
     'requested', jsonb_build_object('id', b.id, 'owner_role', b.owner_role, 'title', tb.title, 'category', tb.category, 'palette', tb.palette, 'card_type', tb.card_type, 'finish', b.finish, 'wear_seed', b.wear_seed)
   ) order by tr.created_at desc), '[]'::jsonb)
   into v_trades
-  from public.tcg_trades tr
+  from (select * from public.tcg_trades
+        where proposed_by in (v_role, v_other)
+        order by created_at desc limit 40) tr
   join public.tcg_cards a on a.id = tr.offered_card_id
   join public.tcg_card_templates ta on ta.id = a.template_id
   join public.tcg_cards b on b.id = tr.requested_card_id
   join public.tcg_card_templates tb on tb.id = b.template_id
-  where tr.proposed_by = v_role or tr.proposed_by = v_other
-  limit 40;
+  where tr.proposed_by = v_role or tr.proposed_by = v_other;
 
   return jsonb_build_object(
     'role', v_role,
     'partner_role', v_other,
+    'display_name', case when v_role = 'AG' then 'Mamamouth' else 'Papapouf' end,
+    'partner_name', case when v_other = 'AG' then 'Mamamouth' else 'Papapouf' end,
+    'next_booster_at', ((v_release_date + 1) + time '05:00') at time zone 'Europe/Paris',
     'server_now', now(),
     'partner_online', exists(select 1 from public.tcg_players where role = v_other and last_seen > now() - interval '45 seconds'),
     'boosters', v_boosters,
@@ -666,6 +671,7 @@ begin
     'partner_cards', v_partner_cards,
     'active_cards', v_active_cards,
     'known_cards', v_known,
+    'catalogue_total', (select count(*) from public.tcg_card_templates where not demo),
     'trades', v_trades,
     'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 30, 'daily_release_hour', 5, 'joker_slot_chance', 0.10)
   );

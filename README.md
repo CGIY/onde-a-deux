@@ -9,3 +9,13 @@
 Les applications sont conçues d’abord pour le téléphone et hébergées sur GitHub Pages. La synchronisation passe par Supabase avec un code privé et un jeton propre à chaque appareil. Le même code AG ou CL peut appairer plusieurs appareils, indépendamment du réseau ou du VPN. Les Cartes conserve les collections, boosters, activations et échanges d’AG et CL.
 
 Les schémas de tables figurent dans `supabase/`. Une personne qui possède le code d’un espace peut tenter de le rejoindre : ne partagez pas ce code publiquement.
+
+## Les Cartes — édition illustrée
+
+Mamamouth correspond au profil AG et Papapouf au profil CL. Les identifiants internes restent stables afin de conserver l’accès multi-appareils.
+
+Le rituel propose un booster quotidien de trois cartes ; l’ouverture se fait par glissement du haut du paquet ou avec un bouton. Les cartes se révèlent par swipe, puis se feuillettent dans la collection. Les finitions brillantes réagissent au doigt, les full art utilisent une composition pleine carte, et les mouvements réduits du système sont respectés.
+
+[Catalogue numéroté des 78 challenges et 2 utilitaires](docs/catalogue-cartes.md). Le compteur « Déjà vues » affiche les cartes distinctes découvertes sur le total du catalogue, éditions saisonnières comprises. Les inconnues restent masquées.
+
+Le bandeau Halloween annonce la période du 29 octobre au 1er novembre 2026. Les variantes ne sont pas encore activées : elles seront ajoutées après sélection.
