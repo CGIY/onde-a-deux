@@ -130,7 +130,8 @@ on conflict (role) do nothing;
 -- The first five visual placeholders remain in history but can no longer be drawn.
 update public.tcg_card_templates set active = false where demo;
 
--- First authored common set. Special foil and full-art templates will be added later.
+-- Authored catalogue. Finish tiers carry their own cards rather than applying a
+-- cosmetic finish to a common card after it has been drawn.
 insert into public.tcg_card_templates(
   id, category, title, challenge, symbol, palette, card_type,
   eligible_role, finish_tier, rarity, active, demo
@@ -184,6 +185,66 @@ values
 
   ('energy-bisou', 'ÉNERGIE', 'ÉNERGIE BISOUS', 'Cette carte donne droit à un bisou.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false),
   ('joker-annulation', 'JOKER', 'JOKER', 'Annule une carte active consommée par l’autre joueur.', 'J', 'joker', 'joker', null, 'standard', 'légendaire', true, false)
+on conflict (id) do update set
+  category = excluded.category,
+  title = excluded.title,
+  challenge = excluded.challenge,
+  symbol = excluded.symbol,
+  palette = excluded.palette,
+  card_type = excluded.card_type,
+  eligible_role = excluded.eligible_role,
+  finish_tier = excluded.finish_tier,
+  rarity = excluded.rarity,
+  active = excluded.active,
+  demo = false;
+
+insert into public.tcg_card_templates(
+  id, category, title, challenge, symbol, palette, card_type,
+  eligible_role, finish_tier, rarity, active, demo
+)
+values
+  -- Full art · 20%
+  ('fa-couple-repas-complet', 'EN COUPLE', 'PRÉPARER UN REPAS COMPLET', 'Préparez ensemble un repas complet, de l’entrée au dessert.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-couple-choix-activite', 'EN COUPLE', 'L’AUTRE CHOISIT L’ACTIVITÉ', 'Laissez l’autre choisir entièrement votre prochaine activité à deux.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-autre-cadeau-20', 'POUR L''AUTRE', 'CADEAU · 20 €', 'Choisis pour l’autre un cadeau avec un budget de 20 €.', '◇', 'other', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-autre-cadeau-25', 'POUR L''AUTRE', 'CADEAU · 25 €', 'Choisis pour l’autre un cadeau avec un budget de 25 €.', '◇', 'other', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-webcam-boobs', 'MISE À NUE', 'WEBCAM NUDE · BOOBS', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-anal', 'MISE À NUE', 'L’AUTRE ACCEPTE · ANAL', 'Seulement avec un oui explicite et maintenu : lubrifiant, progression lente et arrêt immédiat à la demande.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-reproduction-porno', 'MISE À NUE', 'REPRODUCTION FILM PORNO · 1:1', 'Choisissez ensemble une scène compatible avec vos limites et reproduisez uniquement ce qui reste confortable et consenti.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-fessees-filmees', 'MISE À NUE', '30 MINUTES DE FESSÉES FILMÉES', 'CL peut proposer cette séance avec intensité négociée, mot d’arrêt et vidéo conservée seulement avec l’accord des deux.', '◒', 'nude', 'challenge', 'CL', 'full_art', 'rare', true, false),
+  ('fa-nue-reddit-boobs', 'MISE À NUE', 'REDDIT · BOOBS', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-foodies-repas-choix-paye', 'LES FOODIES', 'L’AUTRE PAIE LE REPAS DE TON CHOIX', 'Choisis le repas : l’autre vous invite.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-foodies-repas-choix-prepare', 'LES FOODIES', 'L’AUTRE PRÉPARE LE REPAS DE TON CHOIX', 'Choisis le menu : l’autre prépare le repas.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-todo-impose-tache', 'TO DO', 'IMPOSE TA TÂCHE MÉNAGÈRE', 'Choisis une tâche ménagère raisonnable que l’autre réalisera.', '✓', 'todo', 'challenge', null, 'full_art', 'rare', true, false),
+
+  -- Foil · 8%
+  ('foil-couple-marathon', 'EN COUPLE', 'MARATHON FILMS / SÉRIE', 'Choisissez votre marathon et installez-vous pour plusieurs épisodes ou films.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-couple-sortie-choisie', 'EN COUPLE', 'LA SORTIE CHOISIE PAR L’AUTRE', 'L’autre choisit et organise votre prochaine sortie.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-couple-soiree-theme', 'EN COUPLE', 'SOIRÉE À THÈME', 'L’autre décide du thème et prépare votre soirée à deux.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-autre-massage-complet', 'POUR L''AUTRE', 'GROS MASSAGE COMPLET', 'Offre à l’autre un massage complet, avec durée et pression choisies ensemble.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-autre-cadeau-50', 'POUR L''AUTRE', 'CADEAU · 50 €', 'Choisis pour l’autre un cadeau avec un budget de 50 €.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-soumission', 'MISE À NUE', 'UNE HEURE DE SOUMISSION', 'Définissez avant de commencer les rôles, limites, mot d’arrêt et vérifications régulières pendant cette heure.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-porno-hardcore', 'MISE À NUE', 'REPRODUCTION FILM PORNO HARDCORE', 'Choisissez une scène compatible avec vos limites réelles : aucune pratique n’est obligatoire et l’arrêt reste possible à tout moment.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-blowjob-eglise', 'MISE À NUE', 'BLOWJOB À L’ÉGLISE', 'Uniquement dans un cadre privé et légal, sans visibilité ni implication de tiers non consentants ; sinon, mettez la scène en décor privé.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-site-echangiste', 'MISE À NUE', 'SITE ÉCHANGISTE', 'Explorez ensemble un site échangiste, sans engagement, en définissant vos limites et en protégeant vos informations.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-petit-sextoy', 'MISE À NUE', 'ACHAT D’UN PETIT SEXTOY', 'Choisissez ensemble un petit sextoy adapté à vos envies et à vos limites.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-webcam-pussy', 'MISE À NUE', 'WEBCAM NUDE · PUSSY', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-reddit-pussy', 'MISE À NUE', 'REDDIT · PUSSY', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-restaurant', 'LES FOODIES', 'L’AUTRE PAIE SON RESTAURANT', 'Choisis ton restaurant : l’autre vous invite.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-plat-luxe', 'LES FOODIES', 'UN PLAT DE LUXE', 'L’autre te propose et prépare ou commande un plat de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-dessert-luxe', 'LES FOODIES', 'UN DESSERT DE LUXE', 'L’autre te propose et prépare ou commande un dessert de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-todo-refaire-piece', 'TO DO', 'REFAIRE UN ÉLÉMENT D’UNE PIÈCE', 'Choisis un élément raisonnable d’une pièce que l’autre devra réorganiser, réparer ou améliorer.', '✓', 'todo', 'challenge', null, 'foil', 'rare', true, false),
+
+  -- Full art + foil · 2%
+  ('faf-couple-super-sortie', 'EN COUPLE', 'UNE SUPER SORTIE À DEUX', 'L’autre imagine et prépare une sortie complète rien que pour vous deux.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-couple-weekend', 'EN COUPLE', 'UN WEEK-END AILLEURS', 'Préparez ensemble un week-end ailleurs : destination, date et programme.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-autre-cadeau-100', 'POUR L''AUTRE', 'CADEAU · 100 €', 'Choisis pour l’autre un cadeau exceptionnel avec un budget de 100 €.', '◇', 'other', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-golden-shower', 'MISE À NUE', 'GOLDEN SHOWER SUR L’AUTRE', 'Seulement avec un accord explicite et maintenu ; évitez le visage et toute zone irritée, puis rincez-vous.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-roleplay-violent', 'MISE À NUE', 'ROLEPLAY VIOLENT SUR L’AUTRE', 'Jeu de rôle uniquement : scénario, gestes permis et interdits, mot d’arrêt et signal non verbal doivent être définis avant.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-achat-scandale', 'MISE À NUE', 'ACHAT SUR SCANDALE', 'Choisissez ensemble un achat sur Scandale qui respecte vos envies et vos limites.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-gros-sextoy', 'MISE À NUE', 'ACHAT D’UN GROS SEXTOY', 'Choisissez ensemble un modèle adapté, avec lubrifiant compatible et progression sans douleur.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-webcam-faciale', 'MISE À NUE', 'WEBCAM NUDE · FACIALE', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-reddit-faciale', 'MISE À NUE', 'REDDIT · FACIALE', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false)
 on conflict (id) do update set
   category = excluded.category,
   title = excluded.title,
@@ -352,7 +413,9 @@ begin
           and finish_tier = v_desired_finish
           and (eligible_role is null or eligible_role = v_role)
           and not (id = any(v_drawn_template_ids))
-        order by random()
+        -- Each Mise à nue card has 80% of the draw weight of another card.
+        order by -ln(greatest(random(), 0.000000000001)) /
+          case when category = 'MISE À NUE' then 0.8 else 1.0 end
         limit 1;
         if not found then
           select * into template_row
@@ -361,7 +424,8 @@ begin
             and finish_tier = 'standard'
             and (eligible_role is null or eligible_role = v_role)
             and not (id = any(v_drawn_template_ids))
-          order by random()
+          order by -ln(greatest(random(), 0.000000000001)) /
+            case when category = 'MISE À NUE' then 0.8 else 1.0 end
           limit 1;
         end if;
       elsif v_draw_type = 'energy' then

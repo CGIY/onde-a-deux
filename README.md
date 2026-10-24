@@ -4,7 +4,7 @@
 
 - **ONDE** aide le duo à choisir ses envies, séparément puis ensemble.
 - **Le Donjon** transforme la soirée en aventure partagée.
-- **Les Cartes** propose un booster quotidien de trois cartes, une collection privée de challenges à activer ou échanger, des cartes Énergie pour offrir un bisou et des Jokers capables d’annuler un challenge actif.
+- **Les Cartes** propose un booster quotidien de trois cartes, une collection privée de challenges à activer ou échanger, des cartes Énergie pour offrir un bisou et des Jokers capables d’annuler un challenge actif. Le catalogue compte 80 cartes : 43 communes, 12 full art, 16 foils et 9 full art + foil. Les cartes « Mise à nue » ont un poids de tirage réduit de 20 % à finition égale.
 
 Les applications sont conçues d’abord pour le téléphone et hébergées sur GitHub Pages. La synchronisation passe par Supabase avec un code privé et un jeton propre à chaque appareil. Les Cartes conserve les collections, boosters, activations et échanges d’AG et CL.
 
