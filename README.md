@@ -35,6 +35,12 @@ Scénarios d’aperçu hors réseau : `?scene=rest` (piles et table), `?scene=tr
 
 `node tests/opening-sequence.test.mjs` vérifie aussi le démarrage immédiat de l’animation, l’absence de faces avant confirmation, l’ouverture unique, le recouvrement de la latence réseau et le retour à l’état visuel initial après une erreur.
 
+### Cadeau de test du 24 octobre 2026
+
+Un booster bonus a été offert à chaque profil, sans ouverture automatique et sans modifier le rendez-vous quotidien de 5 h (heure de Paris). Il expire normalement après 48 heures. Les cadeaux portent une clé de campagne unique par joueur et n’occupent aucune date de sortie quotidienne ; la campagne `ui-v6-test-2026-10-24` ne peut pas être attribuée deux fois au même profil.
+
+Le script administratif `supabase/operations/grant_ui_v6_test_bonus.sql` est idempotent et vérifie, sous le verrou du jeu, que cartes, découvertes, échanges et anciens boosters restent inchangés. Il ne s’exécute jamais depuis le navigateur. L’ajout ne change ni les droits d’accès ni l’API des joueurs.
+
 [Catalogue numéroté des 78 challenges et 2 utilitaires](docs/catalogue-cartes.md). Le compteur « Déjà vues » affiche les cartes distinctes découvertes sur le total du catalogue, éditions saisonnières comprises. Les inconnues restent masquées.
 
 Le bandeau Halloween annonce la période du 29 octobre au 1er novembre 2026 inclus (heure de Paris). Pendant cette fenêtre uniquement, dix variantes saisonnières sont mélangées aux cartes de l’Édition 01. Le tirage de finition reste à 70/20/8/2 pour les challenges ; une Énergie reste garantie par booster. Les cartes Halloween gardent les finitions de leurs modèles : sept communes (dont deux Énergies), une full art, deux foils.
