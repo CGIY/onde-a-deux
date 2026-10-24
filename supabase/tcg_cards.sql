@@ -29,6 +29,14 @@ create table if not exists public.tcg_card_templates (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.tcg_player_devices (
+  role text not null references public.tcg_players(role) on delete cascade,
+  device_token_hash text not null check (device_token_hash ~ '^[a-f0-9]{64}$'),
+  last_seen timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  primary key (role, device_token_hash)
+);
+
 alter table public.tcg_card_templates add column if not exists card_type text not null default 'challenge';
 alter table public.tcg_card_templates add column if not exists eligible_role text;
 alter table public.tcg_card_templates add column if not exists finish_tier text not null default 'standard';
@@ -108,8 +116,10 @@ create index if not exists tcg_trades_proposed_by_idx on public.tcg_trades(propo
 create index if not exists tcg_trades_offered_card_idx on public.tcg_trades(offered_card_id);
 create index if not exists tcg_trades_requested_card_idx on public.tcg_trades(requested_card_id);
 create index if not exists tcg_boosters_owner_expiry_idx on public.tcg_boosters(owner_role, expires_at);
+create index if not exists tcg_player_devices_last_seen_idx on public.tcg_player_devices(role, last_seen desc);
 
 alter table public.tcg_players enable row level security;
+alter table public.tcg_player_devices enable row level security;
 alter table public.tcg_card_templates enable row level security;
 alter table public.tcg_boosters enable row level security;
 alter table public.tcg_cards enable row level security;
@@ -117,6 +127,7 @@ alter table public.tcg_discoveries enable row level security;
 alter table public.tcg_trades enable row level security;
 
 revoke all on public.tcg_players from anon, authenticated;
+revoke all on public.tcg_player_devices from anon, authenticated;
 revoke all on public.tcg_card_templates from anon, authenticated;
 revoke all on public.tcg_boosters from anon, authenticated;
 revoke all on public.tcg_cards from anon, authenticated;
@@ -126,6 +137,13 @@ revoke all on public.tcg_trades from anon, authenticated;
 insert into public.tcg_players(role, access_code_hash)
 values ('AG', repeat('0', 64)), ('CL', repeat('0', 64))
 on conflict (role) do nothing;
+
+-- Preserve any device paired by the first single-device version.
+insert into public.tcg_player_devices(role, device_token_hash, last_seen)
+select role, device_token_hash, coalesce(last_seen, now())
+from public.tcg_players
+where device_token_hash is not null
+on conflict (role, device_token_hash) do update set last_seen = excluded.last_seen;
 
 -- The first five visual placeholders remain in history but can no longer be drawn.
 update public.tcg_card_templates set active = false where demo;
@@ -280,6 +298,7 @@ declare
   v_other text;
   v_token_hash text;
   v_access_hash text;
+  v_device_known boolean;
   v_local_now timestamp;
   v_release_date date;
   v_available_at timestamptz;
@@ -311,20 +330,23 @@ begin
   select * into player from public.tcg_players where role = v_role for update;
   if not found then raise exception 'unknown_profile'; end if;
 
-  if player.device_token_hash is null then
-    if p_action <> 'login' or coalesce(p_access_code, '') !~ '^[A-Z0-9]{10,16}$' then
-      raise exception 'pairing_required';
-    end if;
+  select exists(
+    select 1 from public.tcg_player_devices
+    where role = v_role and device_token_hash = v_token_hash
+  ) into v_device_known;
+
+  if not v_device_known then
+    if p_action <> 'login' then raise exception 'pairing_required'; end if;
+    if coalesce(p_access_code, '') !~ '^[A-Z0-9]{10,16}$' then raise exception 'invalid_access_code'; end if;
     v_access_hash := encode(extensions.digest(convert_to(upper(p_access_code), 'UTF8'), 'sha256'), 'hex');
     if v_access_hash <> player.access_code_hash then raise exception 'invalid_access_code'; end if;
-    update public.tcg_players
-    set device_token_hash = v_token_hash, last_seen = now()
-    where role = v_role;
-  elsif player.device_token_hash <> v_token_hash then
-    raise exception 'device_not_authorized';
-  else
-    update public.tcg_players set last_seen = now() where role = v_role;
+    insert into public.tcg_player_devices(role, device_token_hash)
+    values (v_role, v_token_hash)
+    on conflict (role, device_token_hash) do update set last_seen = now();
   end if;
+  update public.tcg_player_devices set last_seen = now()
+  where role = v_role and device_token_hash = v_token_hash;
+  update public.tcg_players set device_token_hash = null, last_seen = now() where role = v_role;
 
   -- Timed transitions are server-authoritative.
   update public.tcg_cards
@@ -558,7 +580,8 @@ begin
     update public.tcg_trades set status = 'cancelled', responded_at = now() where id = trade_row.id;
 
   elsif p_action = 'release_device' then
-    update public.tcg_players set device_token_hash = null, last_seen = null where role = v_role;
+    delete from public.tcg_player_devices
+    where role = v_role and device_token_hash = v_token_hash;
     return jsonb_build_object('released', true, 'role', v_role, 'server_now', now());
   end if;
 
@@ -653,6 +676,7 @@ revoke all on function public.tcg_exchange(text,text,text,text,jsonb) from publi
 grant execute on function public.tcg_exchange(text,text,text,text,jsonb) to anon, authenticated;
 
 comment on table public.tcg_players is 'LES CARTES fixed AG/CL profiles. Direct access blocked.';
+comment on table public.tcg_player_devices is 'Multiple paired devices per LES CARTES profile. Direct access blocked.';
 comment on table public.tcg_card_templates is 'Card catalogue. Unknown templates are never returned before discovery.';
 comment on function public.tcg_exchange(text,text,text,text,jsonb) is 'Token-validated API for LES CARTES; all direct table access is revoked.';
 
