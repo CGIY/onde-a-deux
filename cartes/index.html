@@ -8,11 +8,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="3">
+  <meta name="tcg-version" content="4">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=3">
-  <link rel="stylesheet" href="daylight.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="daylight.css?v=4">
+  <link rel="stylesheet" href="halloween.css?v=4">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -75,8 +76,8 @@
           <button class="round-button" id="refreshButton" type="button" aria-label="Actualiser">↻</button>
         </header>
 
-        <aside class="season-banner" id="seasonBanner" aria-label="Saison Halloween à venir"><span class="season-emblem" aria-hidden="true">☾</span><div><span class="eyebrow">Halloween arrive bientôt</span><strong>Quelques nuits. Des cartes exceptionnelles.</strong><p>Du 29 octobre au 1er novembre · Une édition éphémère se prépare.</p></div><span class="season-star" aria-hidden="true">✧</span></aside>
-        <section class="daily-hero"><div class="hero-caption"><span class="eyebrow">Édition 01 — Nous deux</span><h3>Un peu de hasard.<br><em>Beaucoup de nous.</em></h3></div><div class="booster-list" id="boosterList"></div><div class="hero-bottom"><span>✦ Prochain booster</span><strong id="nextBoosterCounter">—</strong></div></section>
+        <aside class="season-banner" id="seasonBanner" aria-label="Saison Halloween à venir"><span class="season-emblem" aria-hidden="true">☾</span><div><span class="eyebrow" id="seasonHeading">Halloween arrive bientôt</span><strong>Quelques nuits. Des cartes exceptionnelles.</strong><p id="seasonCopy">Du 29 octobre au 1er novembre · 10 variantes exceptionnelles rejoindront l’Édition 01 dans les boosters.</p></div><span class="season-star" aria-hidden="true">✧</span></aside>
+        <section class="daily-hero"><div class="hero-caption"><span class="eyebrow" id="heroEdition">Édition 01 — Nous deux</span><h3>Un peu de hasard.<br><em>Beaucoup de nous.</em></h3><p id="heroContents">3 cartes · 80 cartes différentes</p></div><div class="booster-list" id="boosterList"></div><div class="hero-bottom"><span>✦ Prochain booster</span><strong id="nextBoosterCounter">—</strong></div></section>
         <article class="daily-counter">
           <div><span>Boosters à ouvrir</span><strong id="boosterCount">0</strong></div>
           <div><span>Dans la collection</span><strong id="collectionCount">0</strong></div>
@@ -87,7 +88,7 @@
           <div class="section-title"><div><span class="eyebrow">À vivre ensemble · 24 heures</span><h3>Sur la table.</h3></div><span class="count-badge" id="activeCount">0</span></div>
           <div class="active-grid" id="activeCards"></div>
         </section>
-        <p class="rule-note">Un booster de 3 cartes chaque jour à 5 h.<br>48 h pour l’ouvrir · 30 jours pour jouer tes cartes.</p>
+        <p class="rule-note">Un booster de 3 cartes chaque jour à 5 h.<br>48 h pour l’ouvrir · 7 jours pour jouer les nouvelles cartes.</p>
       </section>
 
       <section class="view" id="collectionView" data-view="collection" hidden>
@@ -96,9 +97,9 @@
           <button class="selected" role="tab" aria-selected="true" data-collection-tab="available" type="button">En main <b id="availableTabCount">0</b></button>
           <button role="tab" aria-selected="false" data-collection-tab="known" type="button">Déjà vues <b id="knownTabCount">0/80</b></button>
         </div>
-        <div class="collection-tools"><input id="cardSearch" type="search" placeholder="Retrouver une carte…" aria-label="Rechercher une carte"><select id="finishFilter" aria-label="Filtrer par finition"><option value="all">Toutes les finitions</option><option value="standard">Communes</option><option value="full_art">Full art</option><option value="foil">Foils</option><option value="full_art_foil">Full art + foil</option></select></div>
+        <div class="collection-tools"><input id="cardSearch" type="search" placeholder="Retrouver une carte…" aria-label="Rechercher une carte"><select id="finishFilter" aria-label="Filtrer par finition"><option value="all">Toutes les finitions</option><option value="standard">Communes</option><option value="full_art">Full art</option><option value="foil">Foils</option><option value="full_art_foil">Full art + foil</option></select><select id="editionFilter" aria-label="Filtrer par édition"><option value="all">Toutes les éditions</option><option value="edition_01">Édition 01</option><option value="halloween_2026">Halloween 2026</option></select></div>
         <div class="category-filters" id="categoryFilters" aria-label="Catégories"><button data-category="all" aria-pressed="true" class="selected" type="button">Tout</button><button data-category="couple" aria-pressed="false" type="button">En couple</button><button data-category="other" aria-pressed="false" type="button">Pour l’autre</button><button data-category="nude" aria-pressed="false" type="button">Mise à nue</button><button data-category="foodies" aria-pressed="false" type="button">Les foodies</button><button data-category="todo" aria-pressed="false" type="button">To do</button><button data-category="energy" aria-pressed="false" type="button">Énergie</button><button data-category="joker" aria-pressed="false" type="button">Joker</button></div>
-        <p class="collection-note" id="collectionNote">Ces cartes sont utilisables pendant 30 jours.</p>
+        <p class="collection-note" id="collectionNote">Les nouveaux tirages sont utilisables pendant 7 jours.</p>
         <div class="collection-grid" id="collectionGrid"></div>
       </section>
 
@@ -140,7 +141,7 @@
     <div class="booster-stage" id="boosterStage">
       <div class="sealed-pack" id="sealedPack">
         <div class="pack-cap"></div><div class="pack-shine"></div><div class="pack-emblem">Les Cartes<span>à deux.</span></div>
-        <p>ÉDITION 01 · NOUS DEUX</p><small>3 CARTES À COLLECTIONNER</small>
+        <p id="packEdition">ÉDITION 01 · NOUS DEUX</p><small>3 CARTES À COLLECTIONNER</small>
         <div class="tear-line"><i id="tearProgress"></i></div>
         <b class="tear-hint">Glisse pour ouvrir →</b>
       </div>
@@ -160,6 +161,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

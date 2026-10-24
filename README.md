@@ -18,4 +18,10 @@ Le rituel propose un booster quotidien de trois cartes ; l’ouverture se fait p
 
 [Catalogue numéroté des 78 challenges et 2 utilitaires](docs/catalogue-cartes.md). Le compteur « Déjà vues » affiche les cartes distinctes découvertes sur le total du catalogue, éditions saisonnières comprises. Les inconnues restent masquées.
 
-Le bandeau Halloween annonce la période du 29 octobre au 1er novembre 2026. Les variantes ne sont pas encore activées : elles seront ajoutées après sélection.
+Le bandeau Halloween annonce la période du 29 octobre au 1er novembre 2026 inclus (heure de Paris). Pendant cette fenêtre uniquement, dix variantes saisonnières sont mélangées aux cartes de l’Édition 01. Le tirage de finition reste à 70/20/8/2 pour les challenges ; une Énergie reste garantie par booster. Les cartes Halloween gardent les finitions de leurs modèles : sept communes (dont deux Énergies), une full art, deux foils.
+
+L’album « Déjà vues » contient 90 emplacements (80 + 10) et des filtres par édition et finition. Un emplacement inconnu ne contient ni titre, ni illustration, ni identifiant de carte. Les filtres de contenu n’affichent que les cartes découvertes.
+
+Les nouveaux tirages expirent au bout de **7 jours**. Les cartes obtenues avant ce changement conservent leur échéance de 30 jours. Une activation dure toujours 24 heures et un booster non ouvert expire après 48 heures. Aucun inventaire n’est réinitialisé par la migration `20261024_halloween_and_seven_days.sql`.
+
+Vérifications : `node tests/cards.test.mjs` ; `supabase/tests/halloween.sql` s’exécute dans une transaction annulée, avec le code AG fourni via `tcg.test_access_code` (jamais enregistré dans le dépôt).

@@ -148,16 +148,23 @@
     })[finish] || "Commune";
   }
 
+  const isHalloween = card => card.edition === "halloween_2026";
+  const editionLabel = edition => edition === "halloween_2026" ? "Halloween 2026" : "Édition 01";
+  function halloweenActive() {
+    const now = serverNow().getTime();
+    return now >= Date.parse("2026-10-29T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
+  }
+
   function cardMarkup(card, options = {}) {
     const finish = card.finish || card.finish_tier || "standard";
     const seed = Number(card.wear_seed ?? hashString(card.template_id || card.title));
     const wear = Math.abs(seed) % 5;
     const timer = options.timer ? `<span class="card-timer" data-until="${escapeHtml(options.timer)}">${duration(options.timer)}</span>` : "";
-    return `<article class="game-card palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
+    return `<article class="game-card palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       <div class="card-top"><span>${escapeHtml(card.category)}</span><i>✦</i></div>
       ${timer}<div class="card-copy${card.title.length > 34 ? " long-title" : ""}"><h4>${escapeHtml(card.title)}</h4><span class="card-divider" aria-hidden="true">◆</span><p>${escapeHtml(card.challenge || "Carte déjà découverte.")}</p></div>
-      <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i>♥</i><span>Éd. 01</span></div>
+      <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i>${isHalloween(card) ? "☾" : "♥"}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}</span></div>
     </article>`;
   }
 
@@ -196,6 +203,8 @@
 
   function renderToday() {
     const data = state.data;
+    $("#heroEdition").textContent = halloweenActive() ? "Spéciale Halloween × Édition 01" : "Édition 01 — Nous deux";
+    $("#heroContents").textContent = halloweenActive() ? "3 cartes · 80 originales + 10 variantes Halloween" : "3 cartes · 80 cartes différentes";
     $("#todayDate").textContent = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" }).format(serverNow());
     $("#nextBoosterCounter").textContent = nextBoosterDuration();
     $("#collectionCount").textContent = data.my_cards.length;
@@ -205,7 +214,7 @@
 
     $("#boosterList").innerHTML = data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
-        <span class="mini-pack" aria-hidden="true"><i>✦</i><strong>Les Cartes</strong><em>à deux.</em><small>ÉDITION 01 · 3 CARTES</small></span>
+        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${isHalloween(booster) ? "☾" : "✦"}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
         <span class="booster-copy"><span>POUR ${escapeHtml(name(state.role))}</span><strong>Ouvrir ce booster <b>↗</b></strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`).join("") : `<div class="booster-empty"><div class="empty-pack" aria-hidden="true">✦</div><strong>Le rituel revient demain.</strong><p>Tes cartes t’attendent dans la collection.<br>Le prochain booster arrive à 5 h.</p><button class="text-button" type="button" data-go-collection>Voir mes cartes →</button></div>`;
 
@@ -220,16 +229,32 @@
     const catalogueTotal = Number(state.data.catalogue_total || 80);
     $("#knownTabCount").textContent = `${state.data.known_cards.length}/${catalogueTotal}`;
     $("#collectionNote").textContent = state.collectionTab === "available"
-      ? "Ces cartes sont utilisables pendant 30 jours après leur obtention."
+      ? "Les nouveaux tirages durent 7 jours. Les compteurs indiquent l’échéance de chaque carte ; les cartes déjà obtenues gardent leur durée initiale."
       : `${state.data.known_cards.length} cartes découvertes sur ${catalogueTotal}, éditions éphémères comprises. Les cartes inconnues restent secrètes.`;
 
     const cards = collectionCards();
+    const edition = $("#editionFilter").value;
+    const detailFilter = state.category !== "all" || $("#cardSearch").value.trim() || $("#finishFilter").value !== "all";
+    if (state.collectionTab === "known" && state.data.catalogue_slots && !detailFilter) {
+      const known = new Map(cards.map(card => [card.template_id, card]));
+      $("#collectionGrid").innerHTML = (state.data.editions || []).filter(item => edition === "all" || item.id === edition).map(item => `
+        <section class="album-edition" aria-label="${editionLabel(item.id)}">
+          <header><div><span class="eyebrow">${item.id === "halloween_2026" ? "Du 29 octobre au 1er novembre" : "La collection originale"}</span><h3>${editionLabel(item.id)}</h3></div><b>${item.discovered}/${item.total}</b></header>
+          <div class="album-slots">${state.data.catalogue_slots.filter(slot => slot.edition === item.id).map(slot => {
+            const card = known.get(slot.template_id);
+            return card ? buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
+              : `<div class="empty-card-slot${item.id === "halloween_2026" ? " seasonal-slot" : ""}" role="img" aria-label="Emplacement ${slot.number} : carte inconnue"><span>✧</span><strong>À découvrir</strong><small>${String(slot.number).padStart(2, "0")}</small></div>`;
+          }).join("")}</div>
+        </section>`).join("");
+      $("#collectionOwner").textContent = `L’album de ${name(state.role)}`;
+      return;
+    }
     $("#collectionGrid").innerHTML = cards.length
       ? cards.map(card => state.collectionTab === "available"
         ? buttonCard(card, { timer: card.expires_at })
         : buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
       ).join("")
-      : empty((state.category !== "all" || $("#cardSearch").value || $("#finishFilter").value !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? "Le début d’une jolie collection.<br>Ouvre ton premier booster dans Le rituel." : "Ton album se remplit au fil des découvertes.<br>Aucune carte inconnue n’est dévoilée ici.");
+      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? "Le début d’une jolie collection.<br>Ouvre ton premier booster dans Le rituel." : "Ton album se remplit au fil des découvertes.<br>Aucune carte inconnue n’est dévoilée ici.");
     $("#collectionOwner").textContent = `La réserve de ${name(state.role)}`;
   }
 
@@ -237,7 +262,9 @@
     const source = state.collectionTab === "available" ? state.data.my_cards.filter(card => card.status === "available") : state.data.known_cards;
     const query = $("#cardSearch").value.trim().toLocaleLowerCase("fr");
     const finish = $("#finishFilter").value;
+    const edition = $("#editionFilter").value;
     return source.filter(card => (state.category === "all" || card.palette === state.category)
+      && (edition === "all" || (card.edition || "edition_01") === edition)
       && (finish === "all" || (card.finish || card.finish_tier) === finish)
       && (!query || `${card.title} ${card.category}`.toLocaleLowerCase("fr").includes(query)));
   }
@@ -284,6 +311,9 @@
     $("#currentRole").textContent = name(state.role);
     $("#presenceDot").classList.toggle("online", Boolean(state.data.partner_online));
     $("#seasonBanner").hidden = serverNow().getTime() >= new Date("2026-11-02T00:00:00+01:00").getTime();
+    $("#seasonHeading").textContent = halloweenActive() ? "Halloween est là" : "Halloween arrive bientôt";
+    $("#seasonCopy").textContent = halloweenActive() ? "10 variantes exceptionnelles se glissent dans les boosters avec l’Édition 01, jusqu’au 1er novembre inclus." : "Du 29 octobre au 1er novembre · 10 variantes exceptionnelles rejoindront l’Édition 01 dans les boosters.";
+    $("#seasonBanner").setAttribute("aria-label", halloweenActive() ? "Saison Halloween en cours" : "Saison Halloween à venir");
     renderToday();
     renderCollection();
     renderTrades();
@@ -476,6 +506,9 @@
     state.revealedCards = [];
     state.revealIndex = 0;
     $("#sealedPack").classList.remove("opened");
+    const seasonal = isHalloween(state.data.boosters.find(booster => booster.id === id) || {});
+    $("#sealedPack").classList.toggle("pack-halloween", seasonal);
+    $("#packEdition").textContent = seasonal ? "HALLOWEEN × ÉDITION 01" : "ÉDITION 01 · NOUS DEUX";
     $("#sealedPack").hidden = false;
     $("#openPackButton").hidden = false;
     $("#openPackButton").disabled = false;
@@ -588,7 +621,7 @@
   $("#openPackButton").addEventListener("click", revealBooster);
   $("#confirmAccept").addEventListener("click", () => $("#confirmDialog").close("accept"));
   $("#confirmCancel").addEventListener("click", () => $("#confirmDialog").close("cancel"));
-  for (const id of ["cardSearch", "finishFilter"]) $("#" + id).addEventListener(id === "cardSearch" ? "input" : "change", () => { renderCollection(); attachFoilMotion(); });
+  for (const id of ["cardSearch", "finishFilter", "editionFilter"]) $("#" + id).addEventListener(id === "cardSearch" ? "input" : "change", () => { renderCollection(); attachFoilMotion(); });
   $$('[data-category]').forEach(button => button.addEventListener("click", () => {
     state.category = button.dataset.category;
     $$('[data-category]').forEach(item => { item.classList.toggle("selected", item === button); item.setAttribute("aria-pressed", String(item === button)); });
