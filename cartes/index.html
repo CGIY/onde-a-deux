@@ -8,12 +8,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="4">
+  <meta name="tcg-version" content="5">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=4">
-  <link rel="stylesheet" href="daylight.css?v=4">
-  <link rel="stylesheet" href="halloween.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="daylight.css?v=5">
+  <link rel="stylesheet" href="halloween.css?v=5">
+  <link rel="stylesheet" href="booster-motion.css?v=5">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -139,15 +140,18 @@
     <button class="dialog-close" data-close-dialog="boosterDialog" type="button" aria-label="Fermer">×</button>
     <span class="eyebrow opening-eyebrow">Un petit moment à nous.</span>
     <div class="booster-stage" id="boosterStage">
+      <div class="opening-aura" aria-hidden="true"></div>
+      <div class="opening-sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="opening-flight" aria-hidden="true"></div>
       <div class="sealed-pack" id="sealedPack">
         <div class="pack-cap"></div><div class="pack-shine"></div><div class="pack-emblem">Les Cartes<span>à deux.</span></div>
         <p id="packEdition">ÉDITION 01 · NOUS DEUX</p><small>3 CARTES À COLLECTIONNER</small>
         <div class="tear-line"><i id="tearProgress"></i></div>
-        <b class="tear-hint">Glisse pour ouvrir →</b>
+        <b class="tear-hint"><span aria-hidden="true">⟵</span><span id="tearPercent">Glisse pour ouvrir</span><span aria-hidden="true">⟶</span></b>
       </div>
       <div class="reveal-slot" id="revealSlot" hidden></div>
     </div>
-    <p class="dialog-status" id="boosterStatus" role="status">Fais glisser ton doigt pour déchirer le booster.</p>
+    <p class="dialog-status" id="boosterStatus" role="status">Glisse d’un bord à l’autre pour déchirer le haut du booster.</p>
     <button class="text-button" id="openPackButton" type="button">Ouvrir sans glisser →</button>
   </dialog>
 
@@ -161,6 +165,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="app.js?v=4"></script>
+  <script src="booster-gesture.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

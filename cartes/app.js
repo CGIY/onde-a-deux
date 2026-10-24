@@ -41,6 +41,8 @@
   const loadingVeil = $("#loadingVeil");
   const boosterDialog = $("#boosterDialog");
   const cardDialog = $("#cardDialog");
+  let packGesture;
+  let openingTimer;
 
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
@@ -501,11 +503,14 @@
   }
 
   function openBooster(id) {
+    clearTimeout(openingTimer);
     state.selectedBooster = id;
     state.opening = false;
     state.revealedCards = [];
     state.revealIndex = 0;
-    $("#sealedPack").classList.remove("opened");
+    $("#sealedPack").classList.remove("opened", "was-touched");
+    $("#boosterStage").classList.remove("awaiting", "unsealing", "revealed");
+    packGesture?.reset();
     const seasonal = isHalloween(state.data.boosters.find(booster => booster.id === id) || {});
     $("#sealedPack").classList.toggle("pack-halloween", seasonal);
     $("#packEdition").textContent = seasonal ? "HALLOWEEN × ÉDITION 01" : "ÉDITION 01 · NOUS DEUX";
@@ -515,7 +520,7 @@
     $("#sealedPack").style.setProperty("--tear", "0%");
     $("#revealSlot").hidden = true;
     $("#revealSlot").innerHTML = "";
-    $("#boosterStatus").textContent = "Fais glisser ton doigt pour déchirer le booster.";
+    $("#boosterStatus").textContent = "Glisse d’un bord à l’autre pour déchirer le haut du booster.";
     boosterDialog.showModal();
   }
 
@@ -537,12 +542,12 @@
   }
 
   async function advanceReveal(dx = -1) {
-    if (state.revealMoving) return;
+    if (state.revealMoving || $("#revealSlot").hidden || !boosterDialog.open) return;
     if (state.revealIndex >= state.revealedCards.length - 1) return finishReveal();
     state.revealMoving = true;
     const front = $("#revealFront");
     const animation = front.animate([
-      { transform: "translateX(0) rotate(0deg)", opacity: 1 },
+      { transform: `translateX(${Math.abs(dx) > 1 ? dx : 0}px) rotate(${Math.abs(dx) > 1 ? dx * .04 : 0}deg)`, opacity: 1 },
       { transform: `translateX(${dx > 0 ? "120" : "-120"}%) rotate(${dx > 0 ? "18" : "-18"}deg)`, opacity: 0 }
     ], { duration: reducedMotion.matches ? 0 : 300, easing: "cubic-bezier(.3,.1,.3,1)", fill: "forwards" });
     await animation.finished;
@@ -562,7 +567,10 @@
     state.opening = true;
     const boosterId = state.selectedBooster;
     $("#openPackButton").disabled = true;
-    $("#boosterStatus").textContent = "Tes trois cartes se révèlent…";
+    $("#sealedPack").style.setProperty("--tear", "100%");
+    $("#sealedPack").style.setProperty("--pull", "1");
+    $("#boosterStage").classList.add("awaiting");
+    $("#boosterStatus").textContent = "Le sceau cède… Tes cartes arrivent.";
     try {
       await exchange("open_booster", { booster_id: state.selectedBooster });
       state.revealedCards = state.data.my_cards
@@ -571,17 +579,24 @@
       state.revealIndex = 0;
       if (state.revealedCards.length !== 3) throw new Error("Les cartes sont enregistrées. Actualise ta collection.");
       $("#openPackButton").hidden = true;
+      $("#boosterStage").classList.remove("awaiting");
+      $("#boosterStage").classList.add("unsealing");
       $("#sealedPack").classList.add("opened");
+      $("#boosterStatus").textContent = "Un paquet. Trois petites surprises.";
       feedback("rare");
-      setTimeout(() => {
+      openingTimer = setTimeout(() => {
         if (!boosterDialog.open) return;
         $("#sealedPack").hidden = true;
+        $("#boosterStage").classList.remove("unsealing");
+        $("#boosterStage").classList.add("revealed");
         $("#revealSlot").hidden = false;
         renderRevealedCard();
-      }, reducedMotion.matches ? 0 : 650);
+      }, reducedMotion.matches ? 0 : 1050);
       render();
     } catch (error) {
       state.opening = false;
+      $("#boosterStage").classList.remove("awaiting", "unsealing");
+      packGesture?.reset();
       $("#openPackButton").disabled = false;
       $("#boosterStatus").textContent = friendlyError(error);
       if (String(error.message).includes("booster_unavailable")) { await sync({ quiet: true }); $("#openPackButton").hidden = true; }
@@ -590,30 +605,16 @@
 
   function setupBoosterGesture() {
     const pack = $("#sealedPack");
-    let startX = null;
-    const begin = event => {
-      if (state.opening) return;
-      startX = event.clientX;
-      pack.setPointerCapture?.(event.pointerId);
-    };
-    const move = event => {
-      if (startX === null || state.opening) return;
-      const progress = Math.max(0, Math.min(100, ((event.clientX - startX) / (pack.clientWidth * .62)) * 100));
-      pack.style.setProperty("--tear", `${progress}%`);
-      if (progress >= 92) {
-        startX = null;
-        revealBooster();
-      }
-    };
-    const end = () => {
-      if (startX === null) return;
-      startX = null;
-      pack.style.setProperty("--tear", "0%");
-    };
-    pack.addEventListener("pointerdown", begin);
-    pack.addEventListener("pointermove", move);
-    pack.addEventListener("pointerup", end);
-    pack.addEventListener("pointercancel", end);
+    packGesture = window.CardBoosterGesture.attach(pack, {
+      isLocked: () => state.opening || !boosterDialog.open,
+      onProgress: progress => {
+        pack.style.setProperty("--tear", `${progress * 100}%`);
+        pack.style.setProperty("--pull", String(progress));
+        $("#tearPercent").textContent = progress ? `${Math.round(progress * 100)} %` : "Glisse pour ouvrir";
+      },
+      onStep: () => { if (!reducedMotion.matches) navigator.vibrate?.(5); },
+      onCommit: revealBooster
+    });
   }
 
   $$("[data-role]").forEach(button => button.addEventListener("click", () => selectRole(button.dataset.role)));
@@ -666,8 +667,8 @@
     if (nextReveal) {
       return advanceReveal();
     }
-    const finishReveal = event.target.closest("[data-reveal-finish]");
-    if (finishReveal) {
+    const finishButton = event.target.closest("[data-reveal-finish]");
+    if (finishButton) {
       return finishReveal();
     }
     const useJoker = event.target.closest("[data-use-joker]");
@@ -733,6 +734,9 @@
     dialog.close();
   }));
   boosterDialog.addEventListener("close", () => {
+    clearTimeout(openingTimer);
+    $("#boosterStage").classList.remove("awaiting", "unsealing", "revealed");
+    packGesture?.reset();
     $("#sealedPack").hidden = false;
     state.selectedBooster = null;
     state.opening = false;
@@ -748,6 +752,7 @@
   document.addEventListener("visibilitychange", () => document.hidden || sync({ quiet: true }));
   setInterval(updateTimers, 1000);
   setupBoosterGesture();
+  window.CardBoosterGesture.preventDoubleTapZoom(document);
 
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("service-worker.js");
   const lastRole = storage.get("les-cartes-last-role");

@@ -16,6 +16,10 @@ Mamamouth correspond au profil AG et Papapouf au profil CL. Les identifiants int
 
 Le rituel propose un booster quotidien de trois cartes ; l’ouverture se fait par glissement du haut du paquet ou avec un bouton. Les cartes se révèlent par swipe, puis se feuillettent dans la collection. Les finitions brillantes réagissent au doigt, les full art utilisent une composition pleine carte, et les mouvements réduits du système sont respectés.
 
+L’ouverture tactile suit la déchirure dans les deux sens : bande détachée, lueur cuivre, éclats et émergence du dos des cartes, avant la révélation. Un geste incomplet, vertical ou annulé n’ouvre rien ; l’ouverture est verrouillée pendant la requête. Le zoom au double-tap est neutralisé sans interdire le zoom d’accessibilité par pincement hors du paquet.
+
+Tests sans toucher aux données réelles : `node tests/booster-gesture.test.mjs` et `node tests/booster-preview.mjs` (aperçu isolé sur le port 8768, appels réseau bloqués et stockage neutralisé). `?failure=once` simule une coupure pour vérifier la reprise. Aucune migration ni remise à zéro n’accompagne cette retouche d’interface.
+
 [Catalogue numéroté des 78 challenges et 2 utilitaires](docs/catalogue-cartes.md). Le compteur « Déjà vues » affiche les cartes distinctes découvertes sur le total du catalogue, éditions saisonnières comprises. Les inconnues restent masquées.
 
 Le bandeau Halloween annonce la période du 29 octobre au 1er novembre 2026 inclus (heure de Paris). Pendant cette fenêtre uniquement, dix variantes saisonnières sont mélangées aux cartes de l’Édition 01. Le tirage de finition reste à 70/20/8/2 pour les challenges ; une Énergie reste garantie par booster. Les cartes Halloween gardent les finitions de leurs modèles : sept communes (dont deux Énergies), une full art, deux foils.
