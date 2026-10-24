@@ -29,6 +29,14 @@ create table if not exists public.tcg_card_templates (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.tcg_player_devices (
+  role text not null references public.tcg_players(role) on delete cascade,
+  device_token_hash text not null check (device_token_hash ~ '^[a-f0-9]{64}$'),
+  last_seen timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  primary key (role, device_token_hash)
+);
+
 alter table public.tcg_card_templates add column if not exists card_type text not null default 'challenge';
 alter table public.tcg_card_templates add column if not exists eligible_role text;
 alter table public.tcg_card_templates add column if not exists finish_tier text not null default 'standard';
@@ -108,8 +116,10 @@ create index if not exists tcg_trades_proposed_by_idx on public.tcg_trades(propo
 create index if not exists tcg_trades_offered_card_idx on public.tcg_trades(offered_card_id);
 create index if not exists tcg_trades_requested_card_idx on public.tcg_trades(requested_card_id);
 create index if not exists tcg_boosters_owner_expiry_idx on public.tcg_boosters(owner_role, expires_at);
+create index if not exists tcg_player_devices_last_seen_idx on public.tcg_player_devices(role, last_seen desc);
 
 alter table public.tcg_players enable row level security;
+alter table public.tcg_player_devices enable row level security;
 alter table public.tcg_card_templates enable row level security;
 alter table public.tcg_boosters enable row level security;
 alter table public.tcg_cards enable row level security;
@@ -117,6 +127,7 @@ alter table public.tcg_discoveries enable row level security;
 alter table public.tcg_trades enable row level security;
 
 revoke all on public.tcg_players from anon, authenticated;
+revoke all on public.tcg_player_devices from anon, authenticated;
 revoke all on public.tcg_card_templates from anon, authenticated;
 revoke all on public.tcg_boosters from anon, authenticated;
 revoke all on public.tcg_cards from anon, authenticated;
@@ -127,10 +138,18 @@ insert into public.tcg_players(role, access_code_hash)
 values ('AG', repeat('0', 64)), ('CL', repeat('0', 64))
 on conflict (role) do nothing;
 
+-- Preserve any device paired by the first single-device version.
+insert into public.tcg_player_devices(role, device_token_hash, last_seen)
+select role, device_token_hash, coalesce(last_seen, now())
+from public.tcg_players
+where device_token_hash is not null
+on conflict (role, device_token_hash) do update set last_seen = excluded.last_seen;
+
 -- The first five visual placeholders remain in history but can no longer be drawn.
 update public.tcg_card_templates set active = false where demo;
 
--- First authored common set. Special foil and full-art templates will be added later.
+-- Authored catalogue. Finish tiers carry their own cards rather than applying a
+-- cosmetic finish to a common card after it has been drawn.
 insert into public.tcg_card_templates(
   id, category, title, challenge, symbol, palette, card_type,
   eligible_role, finish_tier, rarity, active, demo
@@ -197,6 +216,66 @@ on conflict (id) do update set
   active = excluded.active,
   demo = false;
 
+insert into public.tcg_card_templates(
+  id, category, title, challenge, symbol, palette, card_type,
+  eligible_role, finish_tier, rarity, active, demo
+)
+values
+  -- Full art · 20%
+  ('fa-couple-repas-complet', 'EN COUPLE', 'PRÉPARER UN REPAS COMPLET', 'Préparez ensemble un repas complet, de l’entrée au dessert.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-couple-choix-activite', 'EN COUPLE', 'L’AUTRE CHOISIT L’ACTIVITÉ', 'Laissez l’autre choisir entièrement votre prochaine activité à deux.', '◎', 'couple', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-autre-cadeau-20', 'POUR L''AUTRE', 'CADEAU · 20 €', 'Choisis pour l’autre un cadeau avec un budget de 20 €.', '◇', 'other', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-autre-cadeau-25', 'POUR L''AUTRE', 'CADEAU · 25 €', 'Choisis pour l’autre un cadeau avec un budget de 25 €.', '◇', 'other', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-webcam-boobs', 'MISE À NUE', 'WEBCAM NUDE · BOOBS', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-anal', 'MISE À NUE', 'L’AUTRE ACCEPTE · ANAL', 'Seulement avec un oui explicite et maintenu : lubrifiant, progression lente et arrêt immédiat à la demande.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-reproduction-porno', 'MISE À NUE', 'REPRODUCTION FILM PORNO · 1:1', 'Choisissez ensemble une scène compatible avec vos limites et reproduisez uniquement ce qui reste confortable et consenti.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-nue-fessees-filmees', 'MISE À NUE', '30 MINUTES DE FESSÉES FILMÉES', 'CL peut proposer cette séance avec intensité négociée, mot d’arrêt et vidéo conservée seulement avec l’accord des deux.', '◒', 'nude', 'challenge', 'CL', 'full_art', 'rare', true, false),
+  ('fa-nue-reddit-boobs', 'MISE À NUE', 'REDDIT · BOOBS', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-foodies-repas-choix-paye', 'LES FOODIES', 'L’AUTRE PAIE LE REPAS DE TON CHOIX', 'Choisis le repas : l’autre vous invite.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-foodies-repas-choix-prepare', 'LES FOODIES', 'L’AUTRE PRÉPARE LE REPAS DE TON CHOIX', 'Choisis le menu : l’autre prépare le repas.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false),
+  ('fa-todo-impose-tache', 'TO DO', 'IMPOSE TA TÂCHE MÉNAGÈRE', 'Choisis une tâche ménagère raisonnable que l’autre réalisera.', '✓', 'todo', 'challenge', null, 'full_art', 'rare', true, false),
+
+  -- Foil · 8%
+  ('foil-couple-marathon', 'EN COUPLE', 'MARATHON FILMS / SÉRIE', 'Choisissez votre marathon et installez-vous pour plusieurs épisodes ou films.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-couple-sortie-choisie', 'EN COUPLE', 'LA SORTIE CHOISIE PAR L’AUTRE', 'L’autre choisit et organise votre prochaine sortie.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-couple-soiree-theme', 'EN COUPLE', 'SOIRÉE À THÈME', 'L’autre décide du thème et prépare votre soirée à deux.', '◎', 'couple', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-autre-massage-complet', 'POUR L''AUTRE', 'GROS MASSAGE COMPLET', 'Offre à l’autre un massage complet, avec durée et pression choisies ensemble.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-autre-cadeau-50', 'POUR L''AUTRE', 'CADEAU · 50 €', 'Choisis pour l’autre un cadeau avec un budget de 50 €.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-soumission', 'MISE À NUE', 'UNE HEURE DE SOUMISSION', 'Définissez avant de commencer les rôles, limites, mot d’arrêt et vérifications régulières pendant cette heure.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-porno-hardcore', 'MISE À NUE', 'REPRODUCTION FILM PORNO HARDCORE', 'Choisissez une scène compatible avec vos limites réelles : aucune pratique n’est obligatoire et l’arrêt reste possible à tout moment.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-blowjob-eglise', 'MISE À NUE', 'BLOWJOB À L’ÉGLISE', 'Uniquement dans un cadre privé et légal, sans visibilité ni implication de tiers non consentants ; sinon, mettez la scène en décor privé.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-site-echangiste', 'MISE À NUE', 'SITE ÉCHANGISTE', 'Explorez ensemble un site échangiste, sans engagement, en définissant vos limites et en protégeant vos informations.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-petit-sextoy', 'MISE À NUE', 'ACHAT D’UN PETIT SEXTOY', 'Choisissez ensemble un petit sextoy adapté à vos envies et à vos limites.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-webcam-pussy', 'MISE À NUE', 'WEBCAM NUDE · PUSSY', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-nue-reddit-pussy', 'MISE À NUE', 'REDDIT · PUSSY', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-restaurant', 'LES FOODIES', 'L’AUTRE PAIE SON RESTAURANT', 'Choisis ton restaurant : l’autre vous invite.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-plat-luxe', 'LES FOODIES', 'UN PLAT DE LUXE', 'L’autre te propose et prépare ou commande un plat de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-foodies-dessert-luxe', 'LES FOODIES', 'UN DESSERT DE LUXE', 'L’autre te propose et prépare ou commande un dessert de luxe.', '♨', 'foodies', 'challenge', null, 'foil', 'rare', true, false),
+  ('foil-todo-refaire-piece', 'TO DO', 'REFAIRE UN ÉLÉMENT D’UNE PIÈCE', 'Choisis un élément raisonnable d’une pièce que l’autre devra réorganiser, réparer ou améliorer.', '✓', 'todo', 'challenge', null, 'foil', 'rare', true, false),
+
+  -- Full art + foil · 2%
+  ('faf-couple-super-sortie', 'EN COUPLE', 'UNE SUPER SORTIE À DEUX', 'L’autre imagine et prépare une sortie complète rien que pour vous deux.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-couple-weekend', 'EN COUPLE', 'UN WEEK-END AILLEURS', 'Préparez ensemble un week-end ailleurs : destination, date et programme.', '◎', 'couple', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-autre-cadeau-100', 'POUR L''AUTRE', 'CADEAU · 100 €', 'Choisis pour l’autre un cadeau exceptionnel avec un budget de 100 €.', '◇', 'other', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-golden-shower', 'MISE À NUE', 'GOLDEN SHOWER SUR L’AUTRE', 'Seulement avec un accord explicite et maintenu ; évitez le visage et toute zone irritée, puis rincez-vous.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-roleplay-violent', 'MISE À NUE', 'ROLEPLAY VIOLENT SUR L’AUTRE', 'Jeu de rôle uniquement : scénario, gestes permis et interdits, mot d’arrêt et signal non verbal doivent être définis avant.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-achat-scandale', 'MISE À NUE', 'ACHAT SUR SCANDALE', 'Choisissez ensemble un achat sur Scandale qui respecte vos envies et vos limites.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-gros-sextoy', 'MISE À NUE', 'ACHAT D’UN GROS SEXTOY', 'Choisissez ensemble un modèle adapté, avec lubrifiant compatible et progression sans douleur.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-webcam-faciale', 'MISE À NUE', 'WEBCAM NUDE · FACIALE', 'À réaliser seulement entre adultes consentants, sur un canal privé choisi ensemble, sans capture non convenue.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false),
+  ('faf-nue-reddit-faciale', 'MISE À NUE', 'REDDIT · FACIALE', 'Publication uniquement avec accord explicite des deux, anonymisation vérifiée et droit de retrait décidé ensemble.', '◒', 'nude', 'challenge', null, 'full_art_foil', 'légendaire', true, false)
+on conflict (id) do update set
+  category = excluded.category,
+  title = excluded.title,
+  challenge = excluded.challenge,
+  symbol = excluded.symbol,
+  palette = excluded.palette,
+  card_type = excluded.card_type,
+  eligible_role = excluded.eligible_role,
+  finish_tier = excluded.finish_tier,
+  rarity = excluded.rarity,
+  active = excluded.active,
+  demo = false;
+
 create or replace function public.tcg_exchange(
   p_role text,
   p_token text,
@@ -219,6 +298,7 @@ declare
   v_other text;
   v_token_hash text;
   v_access_hash text;
+  v_device_known boolean;
   v_local_now timestamp;
   v_release_date date;
   v_available_at timestamptz;
@@ -250,20 +330,23 @@ begin
   select * into player from public.tcg_players where role = v_role for update;
   if not found then raise exception 'unknown_profile'; end if;
 
-  if player.device_token_hash is null then
-    if p_action <> 'login' or coalesce(p_access_code, '') !~ '^[A-Z0-9]{10,16}$' then
-      raise exception 'pairing_required';
-    end if;
+  select exists(
+    select 1 from public.tcg_player_devices
+    where role = v_role and device_token_hash = v_token_hash
+  ) into v_device_known;
+
+  if not v_device_known then
+    if p_action <> 'login' then raise exception 'pairing_required'; end if;
+    if coalesce(p_access_code, '') !~ '^[A-Z0-9]{10,16}$' then raise exception 'invalid_access_code'; end if;
     v_access_hash := encode(extensions.digest(convert_to(upper(p_access_code), 'UTF8'), 'sha256'), 'hex');
     if v_access_hash <> player.access_code_hash then raise exception 'invalid_access_code'; end if;
-    update public.tcg_players
-    set device_token_hash = v_token_hash, last_seen = now()
-    where role = v_role;
-  elsif player.device_token_hash <> v_token_hash then
-    raise exception 'device_not_authorized';
-  else
-    update public.tcg_players set last_seen = now() where role = v_role;
+    insert into public.tcg_player_devices(role, device_token_hash)
+    values (v_role, v_token_hash)
+    on conflict (role, device_token_hash) do update set last_seen = now();
   end if;
+  update public.tcg_player_devices set last_seen = now()
+  where role = v_role and device_token_hash = v_token_hash;
+  update public.tcg_players set device_token_hash = null, last_seen = now() where role = v_role;
 
   -- Timed transitions are server-authoritative.
   update public.tcg_cards
@@ -352,7 +435,9 @@ begin
           and finish_tier = v_desired_finish
           and (eligible_role is null or eligible_role = v_role)
           and not (id = any(v_drawn_template_ids))
-        order by random()
+        -- Each Mise à nue card has 80% of the draw weight of another card.
+        order by -ln(greatest(random(), 0.000000000001)) /
+          case when category = 'MISE À NUE' then 0.8 else 1.0 end
         limit 1;
         if not found then
           select * into template_row
@@ -361,7 +446,8 @@ begin
             and finish_tier = 'standard'
             and (eligible_role is null or eligible_role = v_role)
             and not (id = any(v_drawn_template_ids))
-          order by random()
+          order by -ln(greatest(random(), 0.000000000001)) /
+            case when category = 'MISE À NUE' then 0.8 else 1.0 end
           limit 1;
         end if;
       elsif v_draw_type = 'energy' then
@@ -494,7 +580,8 @@ begin
     update public.tcg_trades set status = 'cancelled', responded_at = now() where id = trade_row.id;
 
   elsif p_action = 'release_device' then
-    update public.tcg_players set device_token_hash = null, last_seen = null where role = v_role;
+    delete from public.tcg_player_devices
+    where role = v_role and device_token_hash = v_token_hash;
     return jsonb_build_object('released', true, 'role', v_role, 'server_now', now());
   end if;
 
@@ -589,6 +676,7 @@ revoke all on function public.tcg_exchange(text,text,text,text,jsonb) from publi
 grant execute on function public.tcg_exchange(text,text,text,text,jsonb) to anon, authenticated;
 
 comment on table public.tcg_players is 'LES CARTES fixed AG/CL profiles. Direct access blocked.';
+comment on table public.tcg_player_devices is 'Multiple paired devices per LES CARTES profile. Direct access blocked.';
 comment on table public.tcg_card_templates is 'Card catalogue. Unknown templates are never returned before discovery.';
 comment on function public.tcg_exchange(text,text,text,text,jsonb) is 'Token-validated API for LES CARTES; all direct table access is revoked.';
 
