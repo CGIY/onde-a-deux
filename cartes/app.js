@@ -263,6 +263,7 @@
     if (typeof IntersectionObserver === "function" && !state.motionObserver) {
       state.motionCards = new Set();
       state.motionObserver = new IntersectionObserver(entries=>entries.forEach(entry=>entry.target.classList.toggle("motion-paused",!entry.isIntersecting)),{rootMargin:"60px"});
+      state.motionObserver.observe($("#seasonBanner"));
     }
     if (state.motionCards) for (const old of state.motionCards) if (!old.isConnected) {state.motionObserver.unobserve(old);state.motionCards.delete(old);}
 
@@ -523,10 +524,10 @@
     if (!state.data) return;
     $("#currentRole").textContent = name(state.role);
     $("#presenceDot").classList.toggle("online", Boolean(state.data.partner_online));
-    $("#seasonBanner").hidden = serverNow().getTime() >= new Date("2026-11-02T00:00:00+01:00").getTime();
+    window.SeasonAnnouncements?.refresh(serverNow());
     $("#seasonHeading").textContent = halloweenActive() ? "Halloween" : "Halloween bientôt";
     $("#seasonCopy").textContent = "29 oct.–1 nov. · 10 exclusives";
-    $("#seasonBanner").setAttribute("aria-label", halloweenActive() ? "Saison Halloween en cours" : "Saison Halloween à venir");
+
     renderToday();
     renderCollection();
     renderTrades();
