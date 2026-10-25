@@ -20,6 +20,20 @@ L’ouverture tactile suit la déchirure dans les deux sens : bande détachée, 
 
 Tests sans toucher aux données réelles : `node tests/booster-gesture.test.mjs` et `node tests/booster-preview.mjs` (aperçu isolé sur le port 8768, appels réseau bloqués et stockage neutralisé). `?failure=once` simule une coupure pour vérifier la reprise. Aucune migration ni remise à zéro n’accompagne cette retouche d’interface.
 
+### Gestes libres et gestion des cartes V7
+
+La découpe du booster peut commencer de chaque côté du paquet, avec une marge verticale généreuse. Le déplacement dans le vide ne déclenche aucun tirage. Le corps du paquet reste orientable. Le bandeau doré garde son ancrage jusqu'au détachement.
+
+Après ouverture, la fenêtre entière accepte de courts gestes dans quatre directions (18 px, ou 10 px avec un geste rapide). Gauche/haut avance ; droite/bas recule. Les trois cartes bouclent ; « Ranger » ou la croix ferme la découverte. La zone de geste reste montée pendant les transitions et conserve jusqu'à six gestes rapides en attente.
+
+L'onglet **Actions** propose **Échanger / Donner / Détruire**. Ces actions existent aussi dans le détail d'un exemplaire disponible. Un don transmet la même carte à l'autre profil, avec la même échéance, et conserve les découvertes des deux joueurs. La destruction marque uniquement cet exemplaire `destroyed` : aucun enregistrement ni découverte n'est effacé. Les cartes engagées dans un échange, actives, utilisées ou expirées sont refusées côté serveur.
+
+Pour détruire, trois gestes doivent traverser la carte. Les morceaux suivent les lignes réellement tracées et se détachent seulement après confirmation du serveur. Fermer avant le troisième geste annule sans appel de destruction ; une alternative « Détruire sans geste » demande confirmation. Les mouvements réduits sont respectés. Le journal `tcg_card_events`, inaccessible directement aux clients, conserve les dons et destructions.
+
+La migration `20261025145505_card_gifts_and_preserved_destruction.sql` vérifie sous verrou que toutes les cartes, découvertes, boosters et échanges existants restent identiques. Les tests SQL de `supabase/tests/card_management.sql` utilisent des fixtures dans une transaction entièrement annulée.
+
+Vérifications : `node tests/cards.test.mjs`, `node tests/booster-gesture.test.mjs`, `node tests/reveal-navigation.test.mjs`, `node tests/card-destruction.test.mjs`, `node tests/opening-sequence.test.mjs`. Prévisualisation isolée : `node tests/booster-preview.mjs` (aucun accès à Supabase ni au stockage réel).
+
 ### Expérience tactile V6
 
 - Accueil adaptatif : paquet disponible en avant ; sinon cartes actives avant le petit compteur du prochain booster. Date seule, bandeau Halloween horizontal contrasté, pas de total de catalogue répété sur l’accueil.

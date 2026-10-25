@@ -108,6 +108,28 @@ alter table public.tcg_cards drop constraint if exists tcg_cards_retention_check
 alter table public.tcg_cards add constraint tcg_cards_retention_check
   check (expires_at = acquired_at + interval '7 days' or expires_at = acquired_at + interval '30 days');
 
+-- Additive management: no saved card, discovery, booster or trade is deleted.
+alter table public.tcg_cards drop constraint if exists tcg_cards_status_check;
+alter table public.tcg_cards add constraint tcg_cards_status_check
+  check (status in ('available', 'trading', 'activated', 'used', 'expired', 'destroyed'));
+
+create table if not exists public.tcg_card_events (
+  id uuid primary key default gen_random_uuid(),
+  card_id uuid not null references public.tcg_cards(id),
+  actor_role text not null references public.tcg_players(role),
+  recipient_role text references public.tcg_players(role),
+  event_type text not null check (event_type in ('give_card', 'destroy_card')),
+  created_at timestamptz not null default now(),
+  check ((event_type = 'give_card' and recipient_role is not null and recipient_role <> actor_role)
+      or (event_type = 'destroy_card' and recipient_role is null))
+);
+create index if not exists tcg_card_events_card_idx on public.tcg_card_events(card_id);
+create index if not exists tcg_card_events_actor_idx on public.tcg_card_events(actor_role);
+create index if not exists tcg_card_events_recipient_idx on public.tcg_card_events(recipient_role);
+alter table public.tcg_card_events enable row level security;
+revoke all on public.tcg_card_events from public, anon, authenticated;
+comment on table public.tcg_card_events is 'Append-only gift/destruction audit written only by the token-validated card API. Direct access blocked.';
+
 create table if not exists public.tcg_discoveries (
   role text not null references public.tcg_players(role),
   template_id text not null references public.tcg_card_templates(id),
@@ -383,7 +405,7 @@ declare
 begin
   if v_role not in ('AG', 'CL')
      or coalesce(p_token, '') !~ '^[a-f0-9]{48}$'
-     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device')
+     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -526,6 +548,30 @@ begin
     update public.tcg_cards
     set status = 'activated', activated_at = now(), active_until = now() + interval '24 hours'
     where id = offered.id;
+
+  elsif p_action in ('give_card', 'destroy_card') then
+    begin
+      select * into offered from public.tcg_cards
+      where id = (p_payload->>'card_id')::uuid and owner_role = v_role
+      for update;
+    exception when invalid_text_representation then
+      raise exception 'card_unavailable';
+    end;
+    if offered.id is null or offered.status <> 'available' or offered.expires_at <= now() then
+      raise exception 'card_unavailable';
+    end if;
+    if p_action = 'give_card' then
+      update public.tcg_cards set owner_role = v_other where id = offered.id;
+      insert into public.tcg_discoveries(role, template_id)
+      values (v_other, offered.template_id)
+      on conflict (role, template_id) do update
+        set last_seen_at = now(), times_seen = public.tcg_discoveries.times_seen + 1;
+    else
+      -- Keep the physical record and every discovery; only this copy leaves the hand.
+      update public.tcg_cards set status = 'destroyed', consumed_at = now() where id = offered.id;
+    end if;
+    insert into public.tcg_card_events(card_id, actor_role, recipient_role, event_type)
+    values (offered.id, v_role, case when p_action = 'give_card' then v_other end, p_action);
 
   elsif p_action = 'use_joker' then
     begin

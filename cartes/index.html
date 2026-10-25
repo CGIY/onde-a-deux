@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="6">
+  <meta name="tcg-version" content="7">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="daylight.css?v=6">
-  <link rel="stylesheet" href="halloween.css?v=6">
-  <link rel="stylesheet" href="booster-motion.css?v=6">
-  <link rel="stylesheet" href="experience.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="daylight.css?v=7">
+  <link rel="stylesheet" href="halloween.css?v=7">
+  <link rel="stylesheet" href="booster-motion.css?v=7">
+  <link rel="stylesheet" href="experience.css?v=7">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -105,10 +105,11 @@
       </section>
 
       <section class="view" id="tradeView" data-view="trade" hidden>
-        <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>Échanges.</h2></div><span class="exchange-mark" aria-hidden="true">⇄</span></header>
+        <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>Actions.</h2></div><span class="exchange-mark" aria-hidden="true">⇄</span></header>
 
         <section class="trade-maker content-block">
-          <div class="trade-selection"><div class="trade-pick"><label for="offeredCardSelect">Je donne</label><div class="trade-preview" id="offeredPreview"></div><select id="offeredCardSelect" aria-label="Carte que je donne"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" aria-hidden="true">⇄</span><div class="trade-pick"><label for="requestedCardSelect">Je reçois</label><div class="trade-preview" id="requestedPreview"></div><select id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
+          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true">Échanger</button><button type="button" data-management-mode="give" aria-pressed="false">Donner</button><button type="button" data-management-mode="destroy" aria-pressed="false">Détruire</button></div>
+          <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><label for="offeredCardSelect" id="offeredCardLabel">Je donne</label><div class="trade-preview" id="offeredPreview"></div><select id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow" aria-hidden="true">⇄</span><div class="trade-pick" id="requestedCardPick"><label for="requestedCardSelect">Je reçois</label><div class="trade-preview" id="requestedPreview"></div><select id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
           <p class="trade-hint" id="tradeHint"></p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer →</button>
         </section>
@@ -127,7 +128,7 @@
     <nav class="bottom-nav" aria-label="Navigation principale">
       <button class="selected" data-nav="today" aria-current="page" type="button"><span aria-hidden="true">◉</span><b>Le rituel</b><i class="nav-badge" id="navBoosterBadge" aria-hidden="true" hidden></i></button>
       <button data-nav="collection" type="button"><span aria-hidden="true"><svg viewBox="0 0 28 28" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="9" y="4" width="14" height="20" rx="2"/><path d="M7 7H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12"/><path d="m16 10 1.4 2.8 3.1.4-2.2 2.2.5 3.1-2.8-1.5-2.8 1.5.5-3.1-2.2-2.2 3.1-.4Z"/></svg></span><b>Collection</b></button>
-      <button data-nav="trade" type="button"><span aria-hidden="true">⇄</span><b>Échanges</b><i class="nav-badge" id="navTradeBadge" aria-hidden="true" hidden></i></button>
+      <button data-nav="trade" type="button"><span aria-hidden="true">⇄</span><b>Actions</b><i class="nav-badge" id="navTradeBadge" aria-hidden="true" hidden></i></button>
     </nav>
   </div>
 
@@ -155,6 +156,16 @@
 
   <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle"><span class="eyebrow">À vous de jouer</span><h2 id="confirmTitle"></h2><p id="confirmCopy"></p><div><button id="confirmCancel" class="text-button" type="button">Pas maintenant</button><button id="confirmAccept" class="primary-button" type="button">Confirmer</button></div></dialog>
 
+  <dialog class="destroy-dialog" id="destroyDialog" aria-labelledby="destroyTitle">
+    <button class="dialog-close" data-close-dialog="destroyDialog" type="button" aria-label="Annuler la découpe">×</button>
+    <span class="eyebrow">Cet exemplaire seulement</span><h2 id="destroyTitle">À découper.</h2>
+    <p class="destroy-hint">Trois gestes à travers la carte. Dans tous les sens.</p>
+    <div class="shred-preview" id="shredPreview"></div>
+    <div class="cut-meter" id="cutMeter" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p id="destroyStatus" role="status">0 / 3 · Sa découverte reste dans « Déjà vues ».</p>
+    <button class="text-button" id="destroyWithoutGesture" type="button">Détruire sans geste</button>
+  </dialog>
+
   <dialog class="card-dialog" id="cardDialog" aria-label="Détail de carte">
     <button class="dialog-close" data-close-dialog="cardDialog" type="button" aria-label="Fermer">×</button>
     <div id="cardDialogContent"></div>
@@ -163,7 +174,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="booster-gesture.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
