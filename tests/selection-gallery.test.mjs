@@ -1,0 +1,18 @@
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import assert from 'node:assert/strict';
+const source=readFileSync(new URL('../cartes/app.js',import.meta.url),'utf8');
+const state={selectionSide:'offered',data:{partner_role:'CL',known_cards:[{template_id:'known'}],my_cards:[{id:'first',template_id:'known',title:'Énergie',category:'ÉNERGIE',status:'available',expires_at:'2026-10-27T00:00:00Z'},{id:'second',template_id:'known',title:'Énergie',category:'ÉNERGIE',status:'available',expires_at:'2026-10-28T00:00:00Z'},{id:'expired',title:'Énergie',status:'available',expires_at:'2026-10-24T00:00:00Z'},{id:'trading',title:'Énergie',status:'trading',expires_at:'2026-10-28T00:00:00Z'}],partner_cards:[{id:'known-other',template_id:'known',title:'Défi connu',status:'available',expires_at:'2026-10-27T00:00:00Z'},{id:'secret',template_id:'secret',title:'Défi inconnu',status:'available',expires_at:'2026-10-27T00:00:00Z'}]}};
+const before=JSON.stringify(state.data),nodes=new Map();const $=selector=>{if(!nodes.has(selector))nodes.set(selector,{value:'',textContent:''});return nodes.get(selector);};
+let markup='';const dialog={showModal(){this.open=true;}};
+const helpers=source.slice(source.indexOf('  function icon('),source.indexOf('  const isHalloween'));
+const methods=source.slice(source.indexOf('  function selectionCards('),source.indexOf('  function render()'));
+const api=runInNewContext(helpers+methods+'\n({selectionCards,renderSelectionGallery,openSelectionGallery})',{state,$,serverNow:()=>new Date('2026-10-25T12:00:00Z'),name:()=> 'Papapouf',duration:date=>date,escapeHtml:value=>String(value??'').replaceAll('"','&quot;'),cardMarkup:card=>`<article>${card.id}</article>`,finishLabel:()=> 'Commune',putMarkup:(selector,html)=>{markup=html;},empty:message=>message,selectionDialog:dialog,attachFoilMotion:()=>{}});
+assert.deepEqual([...api.selectionCards('offered')].map(c=>c.id),['first','second']);
+assert.deepEqual([...api.selectionCards('requested')].map(c=>c.id),['known-other']);
+api.openSelectionGallery('offered');assert.equal(dialog.open,true);assert.match(markup,/data-select-copy="first"/);assert.match(markup,/data-select-copy="second"/);assert.doesNotMatch(markup,/data-select-copy="expired"|data-select-copy="trading"/);
+$('#selectionSearch').value='energie';api.renderSelectionGallery();assert.match(markup,/data-select-copy="second"/);assert.equal($('#selectionCount').textContent,'2 exemplaires');
+$('#offeredCardSelect').value='second';api.renderSelectionGallery();assert.match(markup,/data-select-copy="second" aria-pressed="true"/);
+api.openSelectionGallery('requested');assert.match(markup,/known-other/);assert.doesNotMatch(markup,/secret/);
+assert.equal(JSON.stringify(state.data),before,'Browsing and choosing must never consume, discover, transfer or alter any card');
+console.log('OK: gallery preserves exact duplicate IDs, filters expired/trading/unknown cards, ignores accents in search and never mutates game data.');

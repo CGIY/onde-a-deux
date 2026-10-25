@@ -32,7 +32,6 @@
     revealMoving: false,
     revealQueue: [],
     managementMode: "trade",
-    pinnedOnly: false,
     viewerMoving: false,
     viewerSession: 0,
     newTemplates: new Set()
@@ -52,6 +51,8 @@
   const cardDialog = $("#cardDialog");
   const destroyDialog = $("#destroyDialog");
   const stackDialog = $("#stackDialog");
+  const selectionDialog = $("#selectionDialog");
+  state.selectionSide = null;
   let destruction = null;
   let cutGesture;
   let packGesture;
@@ -85,7 +86,7 @@
   function contextualBusy(button, label) {
     state.busy = true;
     const previous = button?.innerHTML;
-    if (button) { button.disabled = true; button.setAttribute("aria-busy","true"); button.classList.add("action-pending"); if (label && !button.matches(".complete-quick,.pin-toggle")) button.textContent = label; }
+    if (button) { button.disabled = true; button.setAttribute("aria-busy","true"); button.classList.add("action-pending"); if (label && !button.matches(".complete-quick")) button.textContent = label; }
     $("#profileMenu").disabled = true;
     return () => {
       state.busy = false; $("#profileMenu").disabled = false;
@@ -171,6 +172,11 @@
     return `${minutes} min`;
   }
 
+  function cardCountdown(until, active = false) {
+    if (new Date(until) <= serverNow()) return active ? "Terminé" : "Expirée";
+    return `${active ? "Se termine dans" : "Expire dans"} ${duration(until)}`;
+  }
+
   function nextBoosterDuration() {
     if (state.data?.next_booster_at) return duration(state.data.next_booster_at, "Bientôt");
     const formatter = new Intl.DateTimeFormat("fr-FR", {
@@ -189,6 +195,14 @@
     return ({
       standard: "Commune", full_art: "Full art", foil: "Foil", full_art_foil: "Full art · Foil", legendary: "Légendaire"
     })[finish] || "Commune";
+  }
+
+  function icon(kind) {
+    return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-${escapeHtml(kind)}"/></svg>`;
+  }
+
+  function normalizeSearch(value) {
+    return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr");
   }
 
   const isHalloween = card => card.edition === "halloween_2026";
@@ -219,8 +233,8 @@
     const timeModifier = card.time_modifier === "presto" ? "PRESTO · Temps ÷2" : card.time_modifier === "adagio" ? "ADAGIO · Temps ×2" : "";
     return `<article class="game-card palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
-      <div class="card-top"><span>${escapeHtml(card.category)}</span><i>✦</i></div>
-      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><span class="card-divider" aria-hidden="true">◆</span><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
+      <div class="card-top"><span>${escapeHtml(card.category)}</span></div>
+      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
       <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}</span></div>
     </article>`;
   }
@@ -246,11 +260,18 @@
   }
 
   function attachFoilMotion(root = document) {
+    if (typeof IntersectionObserver === "function" && !state.motionObserver) {
+      state.motionCards = new Set();
+      state.motionObserver = new IntersectionObserver(entries=>entries.forEach(entry=>entry.target.classList.toggle("motion-paused",!entry.isIntersecting)),{rootMargin:"60px"});
+    }
+    if (state.motionCards) for (const old of state.motionCards) if (!old.isConnected) {state.motionObserver.unobserve(old);state.motionCards.delete(old);}
+
     root.querySelectorAll?.(".game-card").forEach(card => {
       if (card.dataset.foilReady) return;
       card.dataset.foilReady = "1";
+      if (state.motionObserver) { card.classList.add("motion-paused"); state.motionCards.add(card); state.motionObserver.observe(card); }
       let rect, frame, started;
-      const tile = card.closest(".card-button,.stack-copy");
+      const tile = card.closest(".card-button,.stack-copy,.selection-card");
       const move = event => {
         const point = event.touches?.[0] || event;
         if (tile && started && Math.hypot(point.clientX-started.x,point.clientY-started.y) > 12) tile.dataset.preventClick = "1";
@@ -285,7 +306,7 @@
   function buttonCard(card, options = {}) {
     const count = Number(card.stack_count || card.owned_count || 1);
     const fresh = state.newTemplates?.has(card.template_id);
-    return `<button class="card-button${count > 1 ? " stacked-card" : ""}" type="button" aria-label="Voir ${escapeHtml(card.title)}${count > 1 ? `, ${count} exemplaires` : ""}" data-card-id="${escapeHtml(card.id || "")}" data-template-id="${escapeHtml(card.template_id || "")}" style="--stack-depth:${Math.min(3, count-1)}">${cardMarkup(card, { ...options, timer: null })}${count > 1 && !options.hideStackCount ? `<span class="stack-count">×${count}</span>` : ""}${fresh ? '<span class="new-card-badge">✧ Nouvelle</span>' : ""}${options.timer ? `<span class="tile-timer" data-until="${escapeHtml(options.timer)}">${duration(options.timer)}</span>` : ""}</button>`;
+    return `<button class="card-button${count > 1 ? " stacked-card" : ""}" type="button" aria-label="Voir ${escapeHtml(card.title)}${count > 1 ? `, ${count} exemplaires` : ""}" data-card-id="${escapeHtml(card.id || "")}" data-template-id="${escapeHtml(card.template_id || "")}" style="--stack-depth:${Math.min(3, count-1)}">${cardMarkup(card, { ...options, timer: null })}${count > 1 && !options.hideStackCount ? `<span class="stack-count">×${count}</span>` : ""}${fresh ? '<span class="new-card-badge">Nouvelle</span>' : ""}${options.timer ? `<span class="tile-timer" data-until="${escapeHtml(options.timer)}">${cardCountdown(options.timer, options.activated)}</span>` : ""}</button>`;
   }
 
   function groupCards(cards) {
@@ -294,16 +315,14 @@
       const key = `${card.template_id || card.id}:${card.finish || card.finish_tier || "standard"}`;
       if (groups.has(key)) {
         const group = groups.get(key); group.stack_count++;
-        if (card.is_pinned) { group.is_pinned = true; group.pinned_id ||= card.id; }
       }
-      else groups.set(key, { ...card, stack_count: 1, pinned_id: card.is_pinned ? card.id : null });
+      else groups.set(key, { ...card, stack_count: 1 });
     }
-    return [...groups.values()].sort((a,b)=>Number(Boolean(b.is_pinned))-Number(Boolean(a.is_pinned)));
+    return [...groups.values()];
   }
 
   function collectionTile(card) {
-    const id = card.pinned_id || card.id;
-    return `<div class="collection-tile${card.is_pinned ? " is-pinned" : ""}">${buttonCard(card,{timer:card.expires_at,hideStackCount:true})}${card.stack_count > 1 ? `<button class="stack-count stack-trigger" type="button" data-stack-template="${escapeHtml(card.template_id)}" data-stack-finish="${escapeHtml(card.finish)}" aria-label="Voir les ${card.stack_count} exemplaires de ${escapeHtml(card.title)}">×${card.stack_count}</button>` : ""}<button class="pin-toggle" type="button" data-pin-card="${escapeHtml(id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}" aria-label="${card.is_pinned ? "Retirer l’épingle" : "Épingler pour notre prochaine soirée"}">📌</button><small class="expiry-label" data-expiry="${escapeHtml(card.expires_at)}">${expiryHint(card.expires_at)}</small></div>`;
+    return `<div class="collection-tile">${buttonCard(card,{timer:card.expires_at,hideStackCount:true})}${card.stack_count > 1 ? `<div class="tile-controls"><button class="stack-count stack-trigger" type="button" data-stack-template="${escapeHtml(card.template_id)}" data-stack-finish="${escapeHtml(card.finish)}" aria-label="Voir les ${card.stack_count} exemplaires de ${escapeHtml(card.title)}"><span>×${card.stack_count}</span></button></div>` : ""}<small class="expiry-label" data-expiry="${escapeHtml(card.expires_at)}">${expiryHint(card.expires_at)}</small></div>`;
   }
 
   function stackCopies(template, finish) {
@@ -342,28 +361,25 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
-    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">▣</span><strong>Reprendre la découverte<small>3 cartes déjà tirées · carte ${Number(receipt.index)+1} / 3</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
+    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Carte ${Number(receipt.index)+1} / 3</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
-        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${isHalloween(booster) ? "☾" : "✦"}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
-        <span class="booster-copy"><span>POUR ${escapeHtml(name(state.role))}</span><strong>${booster.is_test ? "Booster offert · test" : "Ouvrir ce booster"} <b>↗</b></strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
+        <span class="booster-copy"><span class="pack-owner">${booster.is_test ? `<b class="gift-badge">Offert</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
 
     putMarkup("#activeCards", data.active_cards.length
-      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until })}${card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Défi réalisé : ${escapeHtml(card.title)}" title="Défi réalisé">🤝</button>` : ""}</div>`).join("")
-      : `<div class="table-empty"><span aria-hidden="true">✧</span><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
+      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Défi réalisé : ${escapeHtml(card.title)}" title="Défi réalisé">${icon("handshake")}</button>` : ""}</div>`).join("")
+      : `<div class="table-empty"><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 
   function renderCollection() {
     const available = state.data.my_cards.filter(card => card.status === "available");
     $("#availableTabCount").textContent = available.length;
-    $("#pinnedOnlyButton").hidden = state.collectionTab !== "available";
-    $("#pinnedOnlyButton").setAttribute("aria-pressed", String(state.pinnedOnly));
-    $("#pinnedOnlyButton").textContent = `📌 Épinglées · ${available.filter(card=>card.is_pinned).length}`;
     const catalogueTotal = Number(state.data.catalogue_total || 100);
     $("#knownTabCount").textContent = `${state.data.known_cards.length}/${catalogueTotal}`;
     $("#collectionNote").textContent = state.collectionTab === "available"
-      ? "7 jours pour les nouveaux tirages · échéance sous chaque carte."
-      : "Les inconnues gardent leur secret.";
+      ? "7 jours pour jouer tes nouvelles cartes."
+      : "Les cartes découvertes restent dans ton album.";
 
     const cards = collectionCards();
     const edition = $("#editionFilter").value;
@@ -379,7 +395,7 @@
           <div class="album-slots">${state.data.catalogue_slots.filter(slot => slot.edition === item.id).map(slot => {
             const card = known.get(slot.template_id);
             return card ? buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
-              : `<div class="empty-card-slot${item.id === "halloween_2026" ? " seasonal-slot" : ""}" role="img" aria-label="Emplacement ${slot.number} : carte inconnue"><span>✧</span><strong>À découvrir</strong><small>${String(slot.number).padStart(2, "0")}</small></div>`;
+              : `<div class="empty-card-slot${item.id === "halloween_2026" ? " seasonal-slot" : ""}" role="img" aria-label="Emplacement ${slot.number} : carte inconnue"><span aria-hidden="true">${icon("cards")}</span><strong>À découvrir</strong><small>${String(slot.number).padStart(2, "0")}</small></div>`;
           }).join("")}</div>
         </details>`).join(""));
       $("#collectionOwner").textContent = `L’album de ${name(state.role)}`;
@@ -390,20 +406,19 @@
         ? collectionTile(card)
         : buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
       ).join("")
-      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? state.pinnedOnly ? "Épingle des cartes pour préparer votre prochaine soirée." : "Ouvre un booster pour commencer." : "À découvrir au fil des boosters."));
+      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? "Ouvre un booster pour commencer." : "À découvrir au fil des boosters."));
     $("#collectionOwner").textContent = `${state.collectionTab === "known" ? "L’album" : "La réserve"} de ${name(state.role)}`;
   }
 
   function collectionCards() {
     const source = state.collectionTab === "available" ? groupCards(state.data.my_cards.filter(card => card.status === "available")) : state.data.known_cards;
-    const query = $("#cardSearch").value.trim().toLocaleLowerCase("fr");
+    const query = normalizeSearch($("#cardSearch").value.trim());
     const finish = $("#finishFilter").value;
     const edition = $("#editionFilter").value;
     return source.filter(card => (state.category === "all" || card.palette === state.category || (state.category === "spells" && ["joker","spell"].includes(card.card_type)))
-      && (state.collectionTab !== "available" || !state.pinnedOnly || card.is_pinned)
       && (edition === "all" || (card.edition || "edition_01") === edition)
       && (finish === "all" || (card.finish || card.finish_tier) === finish)
-      && (!query || `${card.title} ${card.category}`.toLocaleLowerCase("fr").includes(query)));
+      && (!query || normalizeSearch(`${card.title} ${card.category}`).includes(query)));
   }
 
   function option(card) {
@@ -450,9 +465,9 @@
   function cardEventMarkup(event) {
     const own = event.actor_role === state.role;
     const label = event.event_type === "spell_cast" ? own ? "Sortilège lancé" : "Sortilège reçu" : event.event_type === "give_card" ? own ? `Donné à ${name(event.recipient_role)}` : `Reçu de ${name(event.actor_role)}` : event.event_type === "complete_card" ? "Défi réalisé" : "Exemplaire détruit";
-    const icon = event.event_type === "spell_cast" ? "✧" : event.event_type === "give_card" ? "↗" : event.event_type === "complete_card" ? "🤝" : "✂";
+    const eventIcon = event.event_type === "spell_cast" ? "wand" : event.event_type === "give_card" ? "gift" : event.event_type === "complete_card" ? "handshake" : "scissors";
     const date = new Intl.DateTimeFormat("fr-FR",{timeZone:"Europe/Paris",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(event.created_at));
-    return `<article class="card-event"><span aria-hidden="true">${icon}</span><div><small>${escapeHtml(label)}</small><strong>${escapeHtml(event.title)}${event.target_title ? ` → ${escapeHtml(event.target_title)}` : ""}</strong><time datetime="${escapeHtml(event.created_at)}">${escapeHtml(date)} · ${escapeHtml(finishLabel(event.finish))}</time></div></article>`;
+    return `<article class="card-event"><span aria-hidden="true">${icon(eventIcon)}</span><div><small>${escapeHtml(label)}</small><strong>${escapeHtml(event.title)}${event.target_title ? ` → ${escapeHtml(event.target_title)}` : ""}</strong><time datetime="${escapeHtml(event.created_at)}">${escapeHtml(date)} · ${escapeHtml(finishLabel(event.finish))}</time></div></article>`;
   }
 
   function renderTradeSelection() {
@@ -460,8 +475,11 @@
     const partner = state.data.partner_cards.filter(card => card.status === "available");
     for (const [select, preview, cards] of [["offeredCardSelect","offeredPreview",mine],["requestedCardSelect","requestedPreview",partner]]) {
       const selected = cards.find(card => card.id === $("#"+select).value);
-      putMarkup("#"+preview, selected ? cardMarkup(selected) : `<div class="trade-empty-card"><span>＋</span><b>${cards.length ? "Choisir" : "Aucune carte"}</b></div>`);
+      putMarkup("#"+preview, selected ? cardMarkup(selected) : `<div class="trade-empty-card"><span>${icon("plus")}</span><b>${cards.length ? "Choisir" : "Aucune carte"}</b></div>`);
       $("#"+select).disabled = !cards.length;
+      const picker = $("#"+select.replace("Select","Picker"));
+      picker.disabled = !cards.length;
+      picker.setAttribute("aria-label", selected ? `Changer ${selected.title}` : select === "offeredCardSelect" ? "Choisir ma carte" : `Choisir une carte de ${name(state.data.partner_role)}`);
     }
     const trading = state.managementMode === "trade";
     $("#tradeSelection").classList.toggle("single-card-selection", !trading);
@@ -476,6 +494,31 @@
     attachFoilMotion($("#tradeView"));
   }
 
+  function selectionCards(side = state.selectionSide) {
+    const source = side === "requested" ? state.data.partner_cards : state.data.my_cards;
+    const known = new Set(state.data.known_cards.map(card=>card.template_id));
+    return source.filter(card=>card.status === "available" && new Date(card.expires_at)>serverNow() && (side !== "requested" || known.has(card.template_id)));
+  }
+
+  function renderSelectionGallery() {
+    const all = selectionCards();
+    const query = normalizeSearch($("#selectionSearch").value.trim());
+    const cards = all.filter(card=>normalizeSearch(`${card.title} ${card.category}`).includes(query));
+    const selected = $("#"+state.selectionSide+"CardSelect").value;
+    $("#selectionCount").textContent = `${cards.length} exemplaire${cards.length === 1 ? "" : "s"}`;
+    putMarkup("#selectionGrid",cards.length ? cards.map(card=>`<button class="selection-card" type="button" data-select-copy="${escapeHtml(card.id)}" aria-pressed="${card.id === selected}" aria-label="Choisir ${escapeHtml(card.title)}, expire dans ${duration(card.expires_at)}">${cardMarkup(card)}<span class="selection-name">${escapeHtml(card.title)}</span><span class="selection-meta">${escapeHtml(finishLabel(card.finish))} · ${duration(card.expires_at)}</span>${card.id === selected ? `<span class="selection-check">${icon("check")}</span>` : ""}</button>`).join("") : empty("Aucune carte correspondante."));
+    attachFoilMotion(selectionDialog);
+  }
+
+  function openSelectionGallery(side) {
+    if (!["offered","requested"].includes(side)) return;
+    state.selectionSide = side;
+    $("#selectionTitle").textContent = side === "offered" ? "Choisir ma carte" : `La main de ${name(state.data.partner_role)}`;
+    $("#selectionSearch").value = "";
+    renderSelectionGallery();
+    selectionDialog.showModal();
+  }
+
   function render() {
     if (!state.data) return;
     $("#currentRole").textContent = name(state.role);
@@ -488,13 +531,14 @@
     renderCollection();
     renderTrades();
     renderStack();
+    if (selectionDialog.open) renderSelectionGallery();
     attachFoilMotion();
     updateTimers();
   }
 
   function updateTimers() {
     $("#nextBoosterCounter").textContent = nextBoosterDuration();
-    $$('[data-until]').forEach(element => element.textContent = duration(element.dataset.until));
+    $$('[data-until]').forEach(element => element.textContent = element.matches(".tile-timer") ? cardCountdown(element.dataset.until,Boolean(element.closest("#activeCards"))) : duration(element.dataset.until));
     $$('[data-expiry]').forEach(element => element.textContent = expiryHint(element.dataset.expiry));
   }
 
@@ -540,7 +584,7 @@
 
   async function selectRole(role) {
     if (state.busy) return;
-    if (state.role !== role) { state.newTemplates.clear(); state.pinnedOnly = false; }
+    if (state.role !== role) { state.newTemplates.clear(); }
     state.role = role;
     state.token = storage.get(tokenKey(role));
     $("#loginStatus").textContent = `Connexion de ${name(role)}…`;
@@ -583,7 +627,7 @@
       button.classList.toggle("selected", button.dataset.nav === view);
       if (button.dataset.nav === view) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   function findCard(element) {
@@ -635,12 +679,11 @@
         : `<p>${card.spell_code === "destructo" ? "Aucune carte connue disponible dans la main adverse." : "Aucun rituel adverse ne peut recevoir ce changement pour l’instant."}</p>`
       : "";
     $("#cardDialogContent").innerHTML = `<div class="viewer-card" id="viewerCard">${cardMarkup(card, { timer: card.active_until || (card.status === "available" ? card.expires_at : null), muted: !card.id })}</div>
-      <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>←</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>→</button></div>
+      <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>${icon("back")}</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>${icon("arrow")}</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p>${escapeHtml(card.challenge)}</p>
-      ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Cette carte reste active encore ${duration(card.active_until)}.</p>` : ""}
-      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">🤝 Défi réalisé</button>` : ""}
-      ${isMine && card.status === "available" ? `<button class="pin-detail" type="button" data-pin-card="${escapeHtml(card.id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}">📌 ${card.is_pinned ? "Épinglée pour notre prochaine soirée" : "Épingler pour notre prochaine soirée"}</button>` : ""}
-      ${isMine && card.status === "available" ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}"><span aria-hidden="true">⇄</span>Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}"><span aria-hidden="true">↗</span>Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}"><span aria-hidden="true">×</span>Détruire</button></div>` : ""}</div>`;
+      ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
+      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Défi réalisé</button>` : ""}
+      ${isMine && card.status === "available" ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}">${icon("scissors")}Détruire</button></div>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
     attachFoilMotion(cardDialog);
     const choiceSelect = $("#legendaryChoiceSelect");
@@ -692,7 +735,7 @@
     if (reducedMotion.matches) return;
     const badge = document.createElement("div");
     badge.className = "action-acknowledgment"; badge.setAttribute("aria-hidden","true");
-    badge.innerHTML = `<i>${kind === "give" ? "↗" : kind === "spell" ? "✧" : "🤝"}</i><span>${escapeHtml(label)}</span>`;
+    badge.innerHTML = `<i>${icon(kind === "give" ? "gift" : kind === "spell" ? "wand" : "handshake")}</i><span>${escapeHtml(label)}</span>`;
     document.body.append(badge); setTimeout(()=>badge.remove(),750);
     if (!ghost) return;
     document.body.append(ghost);
@@ -910,7 +953,7 @@
     const last = state.revealIndex === state.revealedCards.length - 1;
     state.revealMoving = false;
     const depth = state.revealedCards.length - 1;
-    $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">✧ Nouvelle découverte</span>' : ""}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Carte ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes 3 cartes →" : "Carte suivante →"}</button></div>`;
+    $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">Nouvelle découverte</span>' : ""}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Carte ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes 3 cartes →" : "Carte suivante →"}</button></div>`;
     $("#boosterStatus").textContent = `${state.revealIndex + 1} / 3 · ${finishLabel(card.finish)} · Glisse dans un sens ou l’autre`;
     $("#revealSlot").classList.toggle("rare-reveal", card.finish !== "standard");
     if (card.finish !== "standard") feedback("rare");
@@ -977,7 +1020,7 @@
       for (const card of state.revealedCards) if (!previouslyKnown.has(card.template_id)) state.newTemplates.add(card.template_id);
       if (state.revealedCards.length !== 3) throw new Error("Les cartes sont enregistrées. Actualise ta collection.");
       $("#openPackButton").hidden = true;
-      $("#boosterStatus").textContent = "✦";
+      $("#boosterStatus").textContent = "Tes cartes arrivent…";
       feedback("rare");
       openingTimer = setTimeout(() => {
         if (!boosterDialog.open) return;
@@ -1066,6 +1109,15 @@
 
   document.addEventListener("click", async event => {
     if (state.busy) return;
+    const pick = event.target.closest("[data-pick-card]");
+    if (pick) return openSelectionGallery(pick.dataset.pickCard);
+    const selectedCopy = event.target.closest("[data-select-copy]");
+    if (selectedCopy && state.selectionSide) {
+      if (selectedCopy.dataset.preventClick) { delete selectedCopy.dataset.preventClick; return; }
+      if (!selectionCards().some(card=>card.id===selectedCopy.dataset.selectCopy)) {renderSelectionGallery();toast("Cette carte n’est plus disponible.");return;}
+      $("#"+state.selectionSide+"CardSelect").value = selectedCopy.dataset.selectCopy;
+      renderTradeSelection(); selectionDialog.close(); return;
+    }
     const resume = event.target.closest("[data-resume-opening]");
     if (resume) return resumeOpening(resume.dataset.resumeOpening);
     const stack = event.target.closest("[data-stack-template]");
@@ -1079,18 +1131,6 @@
       stackDialog.close(); state.viewerSession++; state.viewerCards = copies; state.viewerIndex = index;
       return openCard(copies[index],true);
     }
-    if (event.target.closest("#pinnedOnlyButton")) { state.pinnedOnly = !state.pinnedOnly; renderCollection(); attachFoilMotion(); return; }
-    const pin = event.target.closest("[data-pin-card]");
-    if (pin) {
-      const done = contextualBusy(pin);
-      try {
-        await exchange("pin_card", {card_id:pin.dataset.pinCard,is_pinned:pin.dataset.pinValue === "true"});
-        render();
-        if (cardDialog.open) openCard(state.data.my_cards.find(card=>card.id===pin.dataset.pinCard));
-      } catch (error) { toast(friendlyError(error)); }
-      finally { done(); }
-      return;
-    }
     const complete = event.target.closest("[data-complete-card]");
     if (complete) {
       if (!await confirmAction("Défi réalisé ?", "Vous l’avez fait ? La carte quitte la table et reste dans « Déjà vues ».")) return;
@@ -1100,7 +1140,7 @@
         await exchange("complete_card", {card_id:complete.dataset.completeCard});
         cardDialog.close(); render(); feedback("card");
         acknowledgeCard(ghost,"complete","Défi réalisé");
-        toast("🤝 Défi réalisé · découverte conservée.");
+        toast("Défi réalisé · découverte conservée.");
       } catch (error) { toast(friendlyError(error)); }
       finally { done(); }
       return;
@@ -1241,6 +1281,8 @@
     if (state.opening && !state.revealedCards.length) event.preventDefault();
   });
   cardDialog.addEventListener("close", () => { state.viewerSession++; state.viewerMoving = false; $("#cardDialogContent").inert = false; $("#cardDialogContent")._swipeCleanup?.(); });
+  $("#selectionSearch").addEventListener("input",renderSelectionGallery);
+  selectionDialog.addEventListener("close",()=>{const side=state.selectionSide;state.selectionSide=null;$("#"+side+"CardPicker")?.focus();});
   stackDialog.addEventListener("close", () => { state.stackSelection = null; });
   document.addEventListener("toggle", event => {
     const section = event.target;
@@ -1254,7 +1296,7 @@
     if (cardDialog.open && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); moveViewer(event.key === "ArrowRight" ? 1 : -1); }
     if (boosterDialog.open && state.revealedCards.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(event.key)) { event.preventDefault(); advanceReveal(0, ["ArrowLeft", "ArrowDown"].includes(event.key) ? -1 : 1); }
   });
-  document.addEventListener("visibilitychange", () => document.hidden || sync({ quiet: true }));
+  document.addEventListener("visibilitychange", () => { document.body.classList.toggle("motion-paused",document.hidden); if (!document.hidden) sync({ quiet: true }); });
   setInterval(updateTimers, 1000);
   startLegendaryCycle();
   setupBoosterGesture();

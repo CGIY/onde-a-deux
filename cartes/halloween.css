@@ -1,6 +1,6 @@
 /* Seasonal print, layered beneath the existing interactive rainbow foil. */
-.edition-halloween .card-art{background-image:url("assets/card-atlas-halloween.jpg")}
-.pack-halloween{background-image:linear-gradient(120deg,#29162e44,#522c1466),url("assets/card-atlas-halloween.jpg")!important;background-size:100% 100%,400% 200%!important;background-position:center,100% 100%!important}
+.edition-halloween .card-art{background-image:url("assets/card-atlas-halloween.webp")}
+.pack-halloween{background-image:linear-gradient(120deg,#29162e44,#522c1466),url("assets/card-atlas-halloween.webp")!important;background-size:100% 100%,400% 200%!important;background-position:center,100% 100%!important}
 .hero-caption>p{font-size:11px;letter-spacing:.045em;color:#9b795d;margin:14px 0 0}
 .collection-tools{grid-template-columns:1fr 1fr}
 .collection-tools input{grid-column:1/-1}
