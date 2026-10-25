@@ -1,0 +1,20 @@
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import assert from 'node:assert/strict';
+const source=readFileSync(new URL('../cartes/app.js',import.meta.url),'utf8');
+const code=source.slice(source.indexOf('  async function advanceReveal('),source.indexOf('  function finishReveal()'));
+const state={revealMoving:false,revealQueue:[],revealIndex:0,revealedCards:[1,2,3],selectedBooster:'demo'};
+const modal={open:true};let animationDone,rendered=0;
+const nodes={'#revealSlot':{hidden:false},'#revealFront':{animate:()=>({finished:new Promise(resolve=>animationDone=resolve)})}};
+const advance=runInNewContext(code+'\nadvanceReveal',{state,$:selector=>nodes[selector],boosterDialog:modal,reducedMotion:{matches:false},renderRevealedCard:()=>{state.revealMoving=false;rendered++;},feedback:()=>{}});
+const first=advance(-20,1);
+await advance(0,1,-22); // A second gesture during the animation must not disappear.
+assert.equal(state.revealQueue.length,1);
+animationDone();await first;
+assert.equal(state.revealIndex,1);assert(state.revealMoving);
+animationDone();await new Promise(resolve=>setImmediate(resolve));
+assert.equal(state.revealIndex,2);assert.equal(rendered,2);
+let next=advance(-22,1);animationDone();await next;assert.equal(state.revealIndex,0,'Last to first loops instead of closing');
+next=advance(22,-1);animationDone();await next;assert.equal(state.revealIndex,2,'First to last loops backwards');
+next=advance(0,1,-20);modal.open=false;animationDone();await next;assert.equal(state.revealIndex,2,'Closing must not revive the viewer');
+console.log('OK: rapid queued gestures, both wrap boundaries, modal remains open, closed session stays closed.');

@@ -15,7 +15,7 @@ http.createServer((req,res)=>{
   if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|app\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.jpg)$/.test(file)){res.writeHead(404);return res.end();}
   try{
     let content=readFileSync(new URL(file,root));
-    if(file==='index.html')content=content.toString().replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
+    if(file==='index.html')content=content.toString().replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
     if(file==='app.js'){
       const source=content.toString();
       const a=source.indexOf('  const storage = {'),b=source.indexOf('\n\n  const state =',a);
@@ -32,7 +32,7 @@ http.createServer((req,res)=>{
     if(location.search.includes('trade'))demoData.trades=[{id:'demo-incoming',proposed_by:'CL',status:'pending',expires_at:${JSON.stringify(until)},offered:demoData.partner_cards[1],requested:demoData.my_cards[1]}];
   }
   function demoDiscover() {
-    const templates=[...new Map(demoData.my_cards.map(c=>[c.template_id,c])).values()];
+    const templates=[...new Map([...demoData.known_cards,...demoData.my_cards].map(c=>[c.template_id,c])).values()];
     demoData.known_cards=templates.map(c=>({...c,finish_tier:c.finish,owned_count:demoData.my_cards.filter(x=>x.template_id===c.template_id).length}));
     demoData.editions[0].discovered=templates.length;
     demoData.catalogue_slots=demoData.editions.flatMap(e=>Array.from({length:e.total},(_,i)=>({number:i+1,edition:e.id,template_id:e.id==='edition_01'?(templates[i]?.template_id||null):null})));
@@ -46,6 +46,11 @@ http.createServer((req,res)=>{
     } else if(action==='activate_card') {
       const card=demoData.my_cards.find(c=>c.id===payload.card_id);if(!card)throw Error('card_unavailable');
       demoData.my_cards=demoData.my_cards.filter(c=>c.id!==card.id);demoData.active_cards.push({...card,owner_role:'AG',active_until:${JSON.stringify(until)}});demoDiscover();
+    } else if(action==='give_card'||action==='destroy_card') {
+      const card=demoData.my_cards.find(c=>c.id===payload.card_id);if(!card||card.status!=='available')throw Error('card_unavailable');
+      demoData.my_cards=demoData.my_cards.filter(c=>c.id!==card.id);
+      if(action==='give_card')demoData.partner_cards.push({...card,owner_role:'CL'});
+      demoDiscover();
     } else if(action==='trade_propose') {
       demoData.trades.push({id:'demo-proposal',proposed_by:'AG',status:'pending',expires_at:${JSON.stringify(until)},offered:demoData.my_cards.find(c=>c.id===payload.offered_card_id),requested:demoData.partner_cards.find(c=>c.id===payload.requested_card_id)});
     } else if(action==='trade_respond'||action==='trade_cancel') {
