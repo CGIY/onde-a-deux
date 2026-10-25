@@ -1,5 +1,5 @@
-const CACHE = "les-cartes-v8";
-const SHELL = ["./", "./index.html", "./styles.css?v=8", "./daylight.css?v=8", "./halloween.css?v=8", "./booster-motion.css?v=8", "./experience.css?v=8", "./booster-gesture.js?v=8", "./app.js?v=8", "./assets/card-atlas.jpg", "./assets/card-atlas-halloween.jpg", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "les-cartes-v9";
+const SHELL = ["./", "./index.html", "./styles.css?v=9", "./daylight.css?v=9", "./halloween.css?v=9", "./booster-motion.css?v=9", "./experience.css?v=9", "./booster-gesture.js?v=9", "./app.js?v=9", "./assets/card-atlas.jpg", "./assets/card-atlas-halloween.jpg", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });

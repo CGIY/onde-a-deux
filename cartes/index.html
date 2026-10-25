@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="8">
+  <meta name="tcg-version" content="9">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=8">
-  <link rel="stylesheet" href="daylight.css?v=8">
-  <link rel="stylesheet" href="halloween.css?v=8">
-  <link rel="stylesheet" href="booster-motion.css?v=8">
-  <link rel="stylesheet" href="experience.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="daylight.css?v=9">
+  <link rel="stylesheet" href="halloween.css?v=9">
+  <link rel="stylesheet" href="booster-motion.css?v=9">
+  <link rel="stylesheet" href="experience.css?v=9">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -153,7 +153,7 @@
     <button class="text-button" id="openPackButton" type="button">Ouvrir sans glisser →</button>
   </dialog>
 
-  <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" type="button" aria-label="Fermer">×</button><h2 id="infoTitle">Les petits repères.</h2><div class="finish-legend"><p><i>●</i><span>Commune</span></p><p><i>◇</i><span>Full art</span></p><p><i>✦</i><span>Foil · reflet arc-en-ciel</span></p><p><i>✺</i><span>Full art + foil</span></p></div><p class="info-rules">3 cartes par booster · chaque jour à 5 h.<br>Booster : 48 h · collection : 7 jours · activation : 24 h.</p><small>Les anciens exemplaires gardent leur échéance. Chaque doublon a son propre compteur ; le premier à expirer est joué d’abord. Aucun challenge n’est modifié.</small></dialog>
+  <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" type="button" aria-label="Fermer">×</button><h2 id="infoTitle">Les petits repères.</h2><div class="finish-legend"><p><i>●</i><span>Commune</span></p><p><i>◇</i><span>Full art</span></p><p><i>✦</i><span>Foil · reflet arc-en-ciel</span></p><p><i>✺</i><span>Full art + foil</span></p></div><p class="info-rules">3 cartes par booster · chaque jour à 5 h.<br>Booster : 48 h · collection : 7 jours · activation : 24 h.</p><small>Les anciens exemplaires gardent leur échéance. Chaque doublon a son propre compteur ; le premier à expirer est proposé par défaut. Ouvre ×2, ×3… pour choisir un exemplaire précis. Aucun challenge n’est modifié.</small></dialog>
 
   <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle"><span class="eyebrow">À vous de jouer</span><h2 id="confirmTitle"></h2><p id="confirmCopy"></p><div><button id="confirmCancel" class="text-button" type="button">Pas maintenant</button><button id="confirmAccept" class="primary-button" type="button">Confirmer</button></div></dialog>
 
@@ -167,6 +167,12 @@
     <button class="text-button" id="destroyWithoutGesture" type="button">Détruire sans geste</button>
   </dialog>
 
+  <dialog class="stack-dialog" id="stackDialog" aria-labelledby="stackTitle">
+    <button class="dialog-close" data-close-dialog="stackDialog" type="button" aria-label="Fermer la pile">×</button>
+    <span class="eyebrow">Chaque exemplaire a sa vie</span><h2 id="stackTitle"></h2><p id="stackCount"></p>
+    <div class="stack-copies" id="stackCopies"></div>
+  </dialog>
+
   <dialog class="card-dialog" id="cardDialog" aria-label="Détail de carte">
     <button class="dialog-close" data-close-dialog="cardDialog" type="button" aria-label="Fermer">×</button>
     <div id="cardDialogContent"></div>
@@ -175,7 +181,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="booster-gesture.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

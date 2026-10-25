@@ -4,18 +4,18 @@ import http from 'node:http';
 import {readFileSync} from 'node:fs';
 const root=new URL('../cartes/',import.meta.url);
 const until=new Date(Date.now()+86400000).toISOString();
-const data={role:'AG',partner_role:'CL',partner_online:false,boosters:[{id:'demo-pack',edition:'edition_01',expires_at:until}],my_cards:[],partner_cards:[],active_cards:[],known_cards:[],trades:[],card_events:[],catalogue_total:90,catalogue_slots:[],editions:[{id:'edition_01',total:80,discovered:0},{id:'halloween_2026',total:10,discovered:0}],next_booster_at:until};
+const data={role:'AG',partner_role:'CL',partner_online:false,boosters:[{id:'demo-pack',edition:'edition_01',expires_at:until}],my_cards:[],partner_cards:[],active_cards:[],known_cards:[],trades:[],card_events:[],pending_openings:[],catalogue_total:90,catalogue_slots:[],editions:[{id:'edition_01',total:80,discovered:0},{id:'halloween_2026',total:10,discovered:0}],next_booster_at:until};
 const cards=['energy','challenge','challenge'].map((type,i)=>({id:`demo-${i}`,template_id:`demo-${i}`,title:`DÉMONSTRATION ${i+1}`,challenge:'Carte fictive pour tester les animations. Aucun tirage réel.',category:i?'EN COUPLE':'ÉNERGIE',palette:i?'couple':'energy',card_type:type,finish:i===2?'foil':'standard',edition:'edition_01',status:'available',wear_seed:i,booster_id:'demo-pack',expires_at:until}));
 const samples=[...cards,...['other','foodies','todo'].map((palette,i)=>({...cards[1],id:`demo-${i+3}`,template_id:`demo-${i+3}`,title:`DÉMONSTRATION ${i+4}`,category:['POUR L’AUTRE','LES FOODIES','TO DO'][i],palette,finish:['full_art','full_art_foil','standard'][i]}))];
-const mime={'.js':'text/javascript','.css':'text/css','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.html':'text/html'};
+const mime={'.js':'text/javascript','.css':'text/css','.jpg':'image/jpeg','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.html':'text/html'};
 http.createServer((req,res)=>{
   const path=new URL(req.url,'http://localhost').pathname;
   if(path==='/'){res.writeHead(302,{Location:'/cartes/'});return res.end();}
   const file=path==='/cartes/'?'index.html':path.slice('/cartes/'.length);
-  if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|app\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.jpg)$/.test(file)){res.writeHead(404);return res.end();}
+  if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|app\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.jpg|preview\/(index\.html|legendary-concept\.png|legendary\.js|legendary\.css))$/.test(file)){res.writeHead(404);return res.end();}
   try{
     let content=readFileSync(new URL(file,root));
-    if(file==='index.html')content=content.toString().replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
+    if(file==='index.html')content=content.toString().replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
     if(file==='app.js'){
       const source=content.toString();
       const a=source.indexOf('  const storage = {'),b=source.indexOf('\n\n  const state =',a);
@@ -25,7 +25,7 @@ http.createServer((req,res)=>{
   let demoOpened=false, demoFailed=false;
   const demoData=${JSON.stringify(data)}, demoCards=${JSON.stringify(cards)}, demoSamples=${JSON.stringify(samples)};
   if(location.search.includes('scene=')) {
-    demoData.my_cards=[...demoSamples,{...demoSamples[0],id:'demo-copy',expires_at:new Date(Date.now()+172800000).toISOString()}];
+    demoData.my_cards=[...demoSamples,{...demoSamples[0],id:'demo-copy',wear_seed:8,expires_at:new Date(Date.now()+172800000).toISOString()}];
     demoData.partner_cards=demoSamples.slice(0,3).map(c=>({...c,id:'partner-'+c.id,owner_role:'CL'}));
     demoData.my_cards[1].expires_at=new Date(Date.now()+60000).toISOString();
     demoData.active_cards=[{...demoSamples[0],id:'active-demo',owner_role:'AG',active_until:${JSON.stringify(until)}}];
@@ -38,12 +38,22 @@ http.createServer((req,res)=>{
     demoData.editions[0].discovered=templates.length;
     demoData.catalogue_slots=demoData.editions.flatMap(e=>Array.from({length:e.total},(_,i)=>({number:i+1,edition:e.id,template_id:e.id==='edition_01'?(templates[i]?.template_id||null):null})));
   }
+  if(location.search.includes('resume')) {
+    demoOpened=true;demoData.my_cards=[...demoCards];demoData.boosters=[];
+    demoData.pending_openings=[{booster_id:'demo-pack',cards:structuredClone(demoCards),index:1,opened_at:new Date().toISOString(),progress_at:new Date().toISOString()}];
+  }
   demoDiscover();
   async function exchange(action='sync',payload={}) {
     if(action==='open_booster') {
       if(location.search.includes('failure=once')&&!demoFailed){demoFailed=true;throw Error('network_error');}
-      if(demoOpened)throw Error('booster_unavailable');demoOpened=true;
-      demoData.my_cards.push(...demoCards);demoData.boosters=[];demoDiscover();
+      if(demoOpened){state.data=structuredClone(demoData);return state.data;}demoOpened=true;
+      demoData.my_cards.push(...demoCards);demoData.boosters=[];
+      demoData.pending_openings.push({booster_id:'demo-pack',cards:structuredClone(demoCards),index:0,opened_at:new Date().toISOString(),progress_at:new Date().toISOString()});demoDiscover();
+      if(location.search.includes('failure=lost')&&!demoFailed){demoFailed=true;throw Error('network_error');}
+    } else if(action==='opening_progress') {
+      const receipt=demoData.pending_openings.find(r=>r.booster_id===payload.booster_id);if(receipt){receipt.index=payload.index;receipt.progress_at=new Date().toISOString();}return {opening_saved:true};
+    } else if(action==='finish_opening') {
+      demoData.pending_openings=demoData.pending_openings.filter(r=>r.booster_id!==payload.booster_id);return {opening_saved:true};
     } else if(action==='activate_card') {
       const card=demoData.my_cards.find(c=>c.id===payload.card_id);if(!card)throw Error('card_unavailable');
       demoData.my_cards=demoData.my_cards.filter(c=>c.id!==card.id);demoData.active_cards.push({...card,owner_role:'AG',active_until:${JSON.stringify(until)}});demoDiscover();

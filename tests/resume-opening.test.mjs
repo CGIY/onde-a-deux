@@ -1,0 +1,28 @@
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import assert from 'node:assert/strict';
+const source=readFileSync(new URL('../cartes/app.js',import.meta.url),'utf8');
+const helpers=source.slice(source.indexOf('  const revealPositionKey ='),source.indexOf('  function openBooster('));
+const memory=new Map(),nodes=new Map(),calls=[];
+const state={role:'AG',token:'test-ag',selectedBooster:'pack',revealIndex:0,data:{pending_openings:[]}};
+const storage={get:k=>memory.get(k),set:(k,v)=>memory.set(k,v),remove:k=>memory.delete(k)};
+const $=key=>{if(!nodes.has(key))nodes.set(key,{hidden:true,classList:{add:()=>{},remove:()=>{}}});return nodes.get(key);};
+let resolveWrite,rendered=0;
+const api=runInNewContext(helpers+'\n({showOpeningReceipt,rememberRevealPosition,flushRevealProgress,resumeOpening})',{state,storage,$,serverNow:()=>new Date('2026-10-25T16:00:00Z'),renderRevealedCard:()=>rendered++,exchange:async(action,payload)=>{calls.push({action,...payload,role:state.role});await new Promise(resolve=>resolveWrite=resolve);},openBooster:()=>{}});
+const receipt={booster_id:'pack',cards:[{id:'a'},{id:'b'},{id:'c'}],index:1,opened_at:'2026-10-25T15:00:00Z',progress_at:'2026-10-25T15:30:00Z'};
+memory.set('les-cartes-reveal:AG:pack',JSON.stringify({index:2,at:Date.parse('2026-10-25T15:45:00Z')}));
+api.showOpeningReceipt(receipt);assert.equal(state.revealIndex,2);assert.equal(state.revealedCards,receipt.cards);assert.equal(rendered,1);assert.equal($('#sealedPack').hidden,true);
+api.showOpeningReceipt({...receipt,progress_at:'2026-10-25T15:50:00Z'});assert.equal(state.revealIndex,1,'Newer server cursor beats an old device cursor');
+memory.set('les-cartes-reveal:AG:pack','invalid');api.showOpeningReceipt(receipt);assert.equal(state.revealIndex,1);
+state.data.pending_openings=[receipt];state.revealIndex=0;api.rememberRevealPosition();state.revealIndex=1;api.rememberRevealPosition();state.revealIndex=2;api.rememberRevealPosition();
+assert.equal(calls.length,1,'Cursor writes must serialize');resolveWrite();await new Promise(resolve=>setImmediate(resolve));assert.equal(calls.length,2);assert.equal(calls[1].index,2,'Queued positions coalesce to the latest');resolveWrite();await new Promise(resolve=>setImmediate(resolve));
+assert.equal(JSON.parse(memory.get('les-cartes-reveal:AG:pack')).index,2);
+// Exercise the actual transport: light cursor acknowledgments cannot replace inventory.
+const exchangeCode=source.slice(source.indexOf('  async function exchange('),source.indexOf('  function serverNow('));
+let response={opening_saved:true,server_now:'2026-10-25T16:00:00Z'},releaseFetch;
+const original=state.data;
+const exchange=runInNewContext(exchangeCode+'\nexchange',{state,SUPABASE_URL:'https://example.invalid',SUPABASE_KEY:'fixture',AbortController,setTimeout,clearTimeout,fetch:async()=>{if(releaseFetch===null)await new Promise(resolve=>releaseFetch=resolve);return {ok:true,json:async()=>response};}});
+await exchange('opening_progress');assert.equal(state.data,original);
+response={my_cards:[],pending_openings:[]};await exchange('sync');assert.equal(state.data,response);
+releaseFetch=null;const stale=exchange('sync');state.role='CL';state.token='test-cl';releaseFetch();await assert.rejects(stale,/profile_changed/);assert.equal(state.data,response);
+console.log('OK: saved receipts, local/server cursor freshness, serialized coalesced progress, light acknowledgments preserve inventory, stale profile responses rejected.');

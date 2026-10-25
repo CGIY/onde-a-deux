@@ -37,6 +37,9 @@
     viewerSession: 0,
     newTemplates: new Set()
   };
+  state.collapsedEditions = new Set();
+  state.stackSelection = null;
+  state.finishingOpening = false;
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
@@ -48,6 +51,7 @@
   const boosterDialog = $("#boosterDialog");
   const cardDialog = $("#cardDialog");
   const destroyDialog = $("#destroyDialog");
+  const stackDialog = $("#stackDialog");
   let destruction = null;
   let cutGesture;
   let packGesture;
@@ -78,6 +82,17 @@
     destroyDialog.inert = busy;
   }
 
+  function contextualBusy(button, label) {
+    state.busy = true;
+    const previous = button?.innerHTML;
+    if (button) { button.disabled = true; button.setAttribute("aria-busy","true"); button.classList.add("action-pending"); if (label && !button.matches(".complete-quick,.pin-toggle")) button.textContent = label; }
+    $("#profileMenu").disabled = true;
+    return () => {
+      state.busy = false; $("#profileMenu").disabled = false;
+      if (button) { button.disabled = false; button.removeAttribute("aria-busy"); button.classList.remove("action-pending"); button.innerHTML = previous; }
+    };
+  }
+
   let toastTimer;
   function toast(message) {
     const element = $("#toast");
@@ -99,6 +114,7 @@
     no_active_card: "Aucune carte n’est encore publiée.",
     invalid_request: "La demande n’a pas pu être comprise.",
     network_error: "Connexion interrompue. Vérifie ton réseau puis réessaie.",
+    profile_changed: "Le profil a changé. Réessaie depuis ce profil.",
     timeout: "La connexion prend trop de temps. Réessaie.",
     invalid_trade_decision: "Choisis d’accepter ou de refuser cet échange."
   };
@@ -111,6 +127,7 @@
 
   async function exchange(action = "sync", payload = {}, accessCode = null) {
     if (!state.role || !state.token) throw new Error("pairing_required");
+    const requestRole = state.role, requestToken = state.token;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
     let data;
@@ -118,7 +135,7 @@
       const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/tcg_exchange`, {
         method: "POST", signal: controller.signal,
         headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_role: state.role, p_token: state.token, p_access_code: accessCode, p_action: action, p_payload: payload })
+        body: JSON.stringify({ p_role: requestRole, p_token: requestToken, p_access_code: accessCode, p_action: action, p_payload: payload })
       });
       data = await response.json();
       if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
@@ -127,8 +144,9 @@
       if (error instanceof TypeError) throw new Error("network_error");
       throw error;
     } finally { clearTimeout(timeout); }
+    if (requestRole !== state.role || requestToken !== state.token) throw new Error("profile_changed");
     if (data?.server_now) state.serverOffset = new Date(data.server_now).getTime() - Date.now();
-    if (!data?.released) state.data = data;
+    if (!data?.released && !data?.opening_saved) state.data = data;
     return data;
   }
 
@@ -208,7 +226,7 @@
       if (card.dataset.foilReady) return;
       card.dataset.foilReady = "1";
       let rect, frame, started;
-      const tile = card.closest(".card-button");
+      const tile = card.closest(".card-button,.stack-copy");
       const move = event => {
         const point = event.touches?.[0] || event;
         if (tile && started && Math.hypot(point.clientX-started.x,point.clientY-started.y) > 12) tile.dataset.preventClick = "1";
@@ -243,7 +261,7 @@
   function buttonCard(card, options = {}) {
     const count = Number(card.stack_count || card.owned_count || 1);
     const fresh = state.newTemplates?.has(card.template_id);
-    return `<button class="card-button${count > 1 ? " stacked-card" : ""}" type="button" aria-label="Voir ${escapeHtml(card.title)}${count > 1 ? `, ${count} exemplaires` : ""}" data-card-id="${escapeHtml(card.id || "")}" data-template-id="${escapeHtml(card.template_id || "")}" style="--stack-depth:${Math.min(3, count-1)}">${cardMarkup(card, { ...options, timer: null })}${count > 1 ? `<span class="stack-count">×${count}</span>` : ""}${fresh ? '<span class="new-card-badge">✧ Nouvelle</span>' : ""}${options.timer ? `<span class="tile-timer" data-until="${escapeHtml(options.timer)}">${duration(options.timer)}</span>` : ""}</button>`;
+    return `<button class="card-button${count > 1 ? " stacked-card" : ""}" type="button" aria-label="Voir ${escapeHtml(card.title)}${count > 1 ? `, ${count} exemplaires` : ""}" data-card-id="${escapeHtml(card.id || "")}" data-template-id="${escapeHtml(card.template_id || "")}" style="--stack-depth:${Math.min(3, count-1)}">${cardMarkup(card, { ...options, timer: null })}${count > 1 && !options.hideStackCount ? `<span class="stack-count">×${count}</span>` : ""}${fresh ? '<span class="new-card-badge">✧ Nouvelle</span>' : ""}${options.timer ? `<span class="tile-timer" data-until="${escapeHtml(options.timer)}">${duration(options.timer)}</span>` : ""}</button>`;
   }
 
   function groupCards(cards) {
@@ -261,15 +279,36 @@
 
   function collectionTile(card) {
     const id = card.pinned_id || card.id;
-    return `<div class="collection-tile${card.is_pinned ? " is-pinned" : ""}">${buttonCard(card,{timer:card.expires_at})}<button class="pin-toggle" type="button" data-pin-card="${escapeHtml(id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}" aria-label="${card.is_pinned ? "Retirer l’épingle" : "Épingler pour notre prochaine soirée"}">📌</button><small class="expiry-label" data-expiry="${escapeHtml(card.expires_at)}">${expiryHint(card.expires_at)}</small></div>`;
+    return `<div class="collection-tile${card.is_pinned ? " is-pinned" : ""}">${buttonCard(card,{timer:card.expires_at,hideStackCount:true})}${card.stack_count > 1 ? `<button class="stack-count stack-trigger" type="button" data-stack-template="${escapeHtml(card.template_id)}" data-stack-finish="${escapeHtml(card.finish)}" aria-label="Voir les ${card.stack_count} exemplaires de ${escapeHtml(card.title)}">×${card.stack_count}</button>` : ""}<button class="pin-toggle" type="button" data-pin-card="${escapeHtml(id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}" aria-label="${card.is_pinned ? "Retirer l’épingle" : "Épingler pour notre prochaine soirée"}">📌</button><small class="expiry-label" data-expiry="${escapeHtml(card.expires_at)}">${expiryHint(card.expires_at)}</small></div>`;
+  }
+
+  function stackCopies(template, finish) {
+    return state.data.my_cards.filter(card=>card.template_id===template && card.finish===finish && card.status==="available").sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));
+  }
+
+  function openStack(template, finish) {
+    state.stackSelection = {template,finish}; renderStack();
+    if (state.stackSelection) stackDialog.showModal();
+  }
+
+  function renderStack() {
+    if (!state.stackSelection) return;
+    const cards = stackCopies(state.stackSelection.template,state.stackSelection.finish);
+    if (!cards.length) { state.stackSelection = null; stackDialog.close(); return; }
+    $("#stackTitle").textContent = cards[0].title;
+    $("#stackCount").textContent = `${cards.length} exemplaire${cards.length > 1 ? "s" : ""} · choisis le tien`;
+    putMarkup("#stackCopies",cards.map((card,i)=>`<button class="stack-copy" type="button" data-copy-id="${escapeHtml(card.id)}" aria-label="Choisir l’exemplaire ${i+1}">${cardMarkup(card)}<b>${card.is_pinned ? "📌 " : ""}Exemplaire ${i+1}</b><span data-until="${escapeHtml(card.expires_at)}">${duration(card.expires_at)}</span></button>`).join(""));
+    attachFoilMotion(stackDialog);
   }
 
   function renderToday() {
     const data = state.data;
+    const pending = data.pending_openings || [];
+    const hasPack = Boolean(data.boosters.length || pending.length);
     $("#heroEdition").textContent = halloweenActive() ? "Spéciale Halloween × Édition 01" : "Édition 01 — Nous deux";
     $("#heroContents").textContent = "3 cartes";
-    $("#todayView").classList.toggle("has-booster", Boolean(data.boosters.length));
-    $("#dailyHero").classList.toggle("no-pack", !data.boosters.length);
+    $("#todayView").classList.toggle("has-booster", hasPack);
+    $("#dailyHero").classList.toggle("no-pack", !hasPack);
     $("#navBoosterBadge").hidden = !data.boosters.length;
     $("#navBoosterBadge").textContent = data.boosters.length;
     $("#todayDate").textContent = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" }).format(serverNow());
@@ -279,11 +318,11 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
-    putMarkup("#boosterList", data.boosters.length ? data.boosters.map(booster => `
+    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">▣</span><strong>Reprendre la découverte<small>3 cartes déjà tirées · carte ${Number(receipt.index)+1} / 3</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
         <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${isHalloween(booster) ? "☾" : "✦"}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
         <span class="booster-copy"><span>POUR ${escapeHtml(name(state.role))}</span><strong>Ouvrir ce booster <b>↗</b></strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
-      </button>`).join("") : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`);
+      </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
 
     putMarkup("#activeCards", data.active_cards.length
       ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until })}${card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Défi réalisé : ${escapeHtml(card.title)}" title="Défi réalisé">🤝</button>` : ""}</div>`).join("")
@@ -311,14 +350,14 @@
     if (state.collectionTab === "known" && state.data.catalogue_slots && !detailFilter) {
       const known = new Map(cards.map(card => [card.template_id, card]));
       putMarkup("#collectionGrid", (state.data.editions || []).filter(item => edition === "all" || item.id === edition).map(item => `
-        <section class="album-edition" aria-label="${editionLabel(item.id)}">
-          <header><div><span class="eyebrow">${item.id === "halloween_2026" ? "Du 29 octobre au 1er novembre" : "La collection originale"}</span><h3>${editionLabel(item.id)}</h3></div><b>${item.discovered}/${item.total}</b></header>
+        <details class="album-edition" data-album-edition="${escapeHtml(item.id)}" ${state.collapsedEditions?.has(item.id) ? "" : "open"}>
+          <summary><div><span class="eyebrow">${item.id === "halloween_2026" ? "Du 29 octobre au 1er novembre" : "La collection originale"}</span><h3>${editionLabel(item.id)}</h3></div><b>${item.discovered}/${item.total}</b><i aria-hidden="true">⌄</i></summary>
           <div class="album-slots">${state.data.catalogue_slots.filter(slot => slot.edition === item.id).map(slot => {
             const card = known.get(slot.template_id);
             return card ? buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
               : `<div class="empty-card-slot${item.id === "halloween_2026" ? " seasonal-slot" : ""}" role="img" aria-label="Emplacement ${slot.number} : carte inconnue"><span>✧</span><strong>À découvrir</strong><small>${String(slot.number).padStart(2, "0")}</small></div>`;
           }).join("")}</div>
-        </section>`).join(""));
+        </details>`).join(""));
       $("#collectionOwner").textContent = `L’album de ${name(state.role)}`;
       return;
     }
@@ -424,6 +463,7 @@
     renderToday();
     renderCollection();
     renderTrades();
+    renderStack();
     attachFoilMotion();
     updateTimers();
   }
@@ -585,9 +625,9 @@
     navigator.vibrate?.(kind === "rare" ? [15, 25, 25] : 10);
   }
 
-  function captureCardGhost() {
+  function captureCardGhost(selector = "#viewerCard .game-card") {
     if (reducedMotion.matches) return null;
-    const source = $("#viewerCard .game-card");
+    const source = $(selector);
     if (!source) return null;
     const rect = source.getBoundingClientRect();
     const ghost = document.createElement("div");
@@ -597,6 +637,17 @@
     ghost.append(source.cloneNode(true));
     ghost._origin = rect;
     return ghost;
+  }
+
+  function acknowledgeCard(ghost, kind, label) {
+    if (reducedMotion.matches) return;
+    const badge = document.createElement("div");
+    badge.className = "action-acknowledgment"; badge.setAttribute("aria-hidden","true");
+    badge.innerHTML = `<i>${kind === "give" ? "↗" : "🤝"}</i><span>${escapeHtml(label)}</span>`;
+    document.body.append(badge); setTimeout(()=>badge.remove(),750);
+    if (!ghost) return;
+    document.body.append(ghost);
+    ghost.animate([{transform:"none",opacity:1},{transform:kind === "give" ? "translate(180px,-160px) rotate(14deg) scale(.35)" : "translateY(-45px) scale(.85)",opacity:0}],{duration:480,easing:"cubic-bezier(.2,.75,.2,1)",fill:"forwards"}).finished.catch(()=>{}).finally(()=>ghost.remove());
   }
 
   function flyToTable(ghost, cardId) {
@@ -662,13 +713,15 @@
     if (!giving) return openDestruction(card);
     const partner = name(state.data.partner_role);
     if (!await confirmAction(`Donner à ${partner} ?`, `« ${card.title} » rejoint sa main avec le même compteur. Elle reste dans tes cartes déjà vues.`)) return;
-    setBusy(true);
+    const ghost = captureCardGhost(cardDialog.open ? "#viewerCard .game-card" : "#offeredPreview .game-card");
+    const done = contextualBusy(cardDialog.open ? $("[data-give-card]") : $("#proposeTradeButton"),"Envoi…");
     try {
       await exchange("give_card", { card_id: id });
       cardDialog.close(); render();
+      acknowledgeCard(ghost,"give",`Pour ${partner}`);
       toast(`Carte donnée à ${partner}.`);
     } catch (error) { toast(friendlyError(error)); }
-    finally { setBusy(false); }
+    finally { done(); }
   }
 
   function bladeTrace(a, b) {
@@ -692,7 +745,8 @@
   async function commitDestruction() {
     if (!destruction || destruction.committing) return;
     const session = destruction;
-    session.committing = true; setBusy(true);
+    session.committing = true;
+    const done = contextualBusy($("#destroyWithoutGesture"),"Découpe…");
     $("#destroyStatus").textContent = "La découpe se termine…";
     try {
       await exchange("destroy_card", {card_id:session.card.id});
@@ -719,7 +773,53 @@
       $$("#shredPreview .cut-scar").forEach(scar=>scar.remove());
       $$("#cutMeter i").forEach(dot => dot.classList.remove("cut"));
       $("#destroyStatus").textContent = friendlyError(error);
-    } finally { setBusy(false); }
+    } finally { done(); }
+  }
+
+  const revealPositionKey = id => `les-cartes-reveal:${state.role}:${id}`;
+  const pendingProgress = new Map();
+  let progressWriting = false;
+  async function flushRevealProgress() {
+    if (progressWriting) return;
+    progressWriting = true;
+    try {
+      while (pendingProgress.size) {
+        const [key,entry] = pendingProgress.entries().next().value;
+        pendingProgress.delete(key);
+        if (entry.role !== state.role || entry.token !== state.token) continue;
+        try { await exchange("opening_progress",{booster_id:entry.id,index:entry.index}); } catch {}
+      }
+    } finally { progressWriting = false; }
+  }
+
+  function rememberRevealPosition() {
+    const id = state.selectedBooster;
+    if (!id) return;
+    storage.set(revealPositionKey(id),JSON.stringify({index:state.revealIndex,at:serverNow().getTime()}));
+    const receipt = state.data.pending_openings?.find(item=>item.booster_id===id);
+    if (receipt) receipt.index = state.revealIndex;
+    pendingProgress.set(`${state.role}:${id}`,{id,index:state.revealIndex,role:state.role,token:state.token});
+    flushRevealProgress();
+  }
+
+  function showOpeningReceipt(receipt) {
+    state.opening = true;
+    state.revealedCards = receipt.cards;
+    state.revealIndex = Number(receipt.index) || 0;
+    try {
+      const local = JSON.parse(storage.get(revealPositionKey(receipt.booster_id)) || "null");
+      if (local && Number.isInteger(local.index) && local.index >= 0 && local.index <= 2 && local.at > new Date(receipt.progress_at || receipt.opened_at).getTime()) state.revealIndex = local.index;
+    } catch {}
+    $("#sealedPack").hidden = true; $("#openPackButton").hidden = true;
+    $("#boosterStage").classList.remove("unsealing","awaiting");
+    $("#boosterStage").classList.add("revealed");
+    $("#revealSlot").hidden = false; renderRevealedCard();
+  }
+
+  function resumeOpening(id) {
+    const receipt = state.data.pending_openings?.find(item=>item.booster_id===id);
+    if (!receipt || receipt.cards.length !== 3) return;
+    openBooster(id); showOpeningReceipt(receipt);
   }
 
   function openBooster(id) {
@@ -730,10 +830,11 @@
     state.revealIndex = 0;
     state.revealMoving = false;
     state.revealQueue = [];
+    state.finishingOpening = false;
     boosterDialog._swipeCleanup?.();
     setupSwipe(boosterDialog, (direction, dx, dy) => advanceReveal(dx, direction, dy), () => $("#revealFront"), {
       axis: "both", includeButtons: true,
-      enabled: () => boosterDialog.open && !$("#revealSlot").hidden && state.revealedCards.length > 0
+      enabled: () => boosterDialog.open && !state.finishingOpening && !$("#revealSlot").hidden && state.revealedCards.length > 0
     });
     $("#sealedPack").classList.remove("opened", "was-touched");
     $("#boosterStage").classList.remove("awaiting", "unsealing", "revealed");
@@ -765,10 +866,11 @@
     $("#revealSlot").classList.toggle("rare-reveal", card.finish !== "standard");
     if (card.finish !== "standard") feedback("rare");
     attachFoilMotion($("#revealSlot"));
+    rememberRevealPosition();
   }
 
   async function advanceReveal(dx = -1, direction = 1, dy = 0) {
-    if ($("#revealSlot").hidden || !boosterDialog.open) return;
+    if (state.finishingOpening || $("#revealSlot").hidden || !boosterDialog.open) return;
     if (state.revealMoving) { if (state.revealQueue.length < 6) state.revealQueue.push([dx, direction, dy]); return; }
     if (!state.revealedCards.length) return;
     state.revealMoving = true;
@@ -789,10 +891,19 @@
     if (queued) advanceReveal(...queued);
   }
 
-  function finishReveal() {
-    boosterDialog.close();
-    setView("collection");
-    toast("Tes 3 cartes sont dans ta collection.");
+  async function finishReveal() {
+    if (state.finishingOpening || !state.selectedBooster) return;
+    state.finishingOpening = true;
+    const id = state.selectedBooster;
+    const done = contextualBusy($("[data-reveal-finish]"),"Rangement…");
+    try {
+      await exchange("finish_opening",{booster_id:id});
+      storage.remove(revealPositionKey(id));
+      state.data.pending_openings = (state.data.pending_openings || []).filter(item=>item.booster_id!==id);
+      if (state.selectedBooster === id) boosterDialog.close();
+      render(); setView("collection"); toast("Découverte terminée.");
+    } catch (error) { toast(friendlyError(error)); }
+    finally { state.finishingOpening = false; done(); }
   }
 
   async function revealBooster() {
@@ -809,7 +920,8 @@
     $("#boosterStatus").textContent = "Le sceau cède… Tes cartes arrivent.";
     try {
       await exchange("open_booster", { booster_id: state.selectedBooster });
-      state.revealedCards = state.data.my_cards
+      const receipt = state.data.pending_openings?.find(item=>item.booster_id===boosterId);
+      state.revealedCards = receipt?.cards || state.data.my_cards
         .filter(candidate => candidate.booster_id === boosterId)
         .sort((a, b) => ({ energy: 0, challenge: 1, joker: 2 }[a.card_type] ?? 1) - ({ energy: 0, challenge: 1, joker: 2 }[b.card_type] ?? 1));
       state.revealIndex = 0;
@@ -820,14 +932,15 @@
       feedback("rare");
       openingTimer = setTimeout(() => {
         if (!boosterDialog.open) return;
-        $("#sealedPack").hidden = true;
-        $("#boosterStage").classList.remove("unsealing", "awaiting");
-        $("#boosterStage").classList.add("revealed");
-        $("#revealSlot").hidden = false;
-        renderRevealedCard();
+        showOpeningReceipt(receipt || {booster_id:boosterId,cards:state.revealedCards,index:0});
       }, reducedMotion.matches ? 0 : Math.max(0, 760 - (performance.now() - motionStarted)));
       render();
     } catch (error) {
+      try {
+        await exchange("sync");
+        const recovered = state.data.pending_openings?.find(item=>item.booster_id===boosterId);
+        if (recovered) { showOpeningReceipt(recovered); render(); return; }
+      } catch {}
       state.opening = false;
       $("#boosterStage").classList.remove("awaiting", "unsealing");
       $("#sealedPack").classList.remove("opened");
@@ -904,28 +1017,43 @@
 
   document.addEventListener("click", async event => {
     if (state.busy) return;
+    const resume = event.target.closest("[data-resume-opening]");
+    if (resume) return resumeOpening(resume.dataset.resumeOpening);
+    const stack = event.target.closest("[data-stack-template]");
+    if (stack) return openStack(stack.dataset.stackTemplate,stack.dataset.stackFinish);
+    const copy = event.target.closest("[data-copy-id]");
+    if (copy && state.stackSelection) {
+      if (copy.dataset.preventClick) { delete copy.dataset.preventClick; return; }
+      const copies = stackCopies(state.stackSelection.template,state.stackSelection.finish);
+      const index = copies.findIndex(card=>card.id===copy.dataset.copyId);
+      if (index < 0) return;
+      stackDialog.close(); state.viewerSession++; state.viewerCards = copies; state.viewerIndex = index;
+      return openCard(copies[index],true);
+    }
     if (event.target.closest("#pinnedOnlyButton")) { state.pinnedOnly = !state.pinnedOnly; renderCollection(); attachFoilMotion(); return; }
     const pin = event.target.closest("[data-pin-card]");
     if (pin) {
-      state.busy = true; pin.disabled = true; pin.setAttribute("aria-busy","true");
+      const done = contextualBusy(pin);
       try {
         await exchange("pin_card", {card_id:pin.dataset.pinCard,is_pinned:pin.dataset.pinValue === "true"});
         render();
         if (cardDialog.open) openCard(state.data.my_cards.find(card=>card.id===pin.dataset.pinCard));
       } catch (error) { toast(friendlyError(error)); }
-      finally { state.busy = false; pin.disabled = false; pin.removeAttribute("aria-busy"); }
+      finally { done(); }
       return;
     }
     const complete = event.target.closest("[data-complete-card]");
     if (complete) {
       if (!await confirmAction("Défi réalisé ?", "Vous l’avez fait ? La carte quitte la table et reste dans « Déjà vues ».")) return;
-      setBusy(true);
+      const ghost = captureCardGhost(cardDialog.open ? "#viewerCard .game-card" : `#activeCards [data-card-id="${complete.dataset.completeCard}"] .game-card`);
+      const done = contextualBusy(complete,"Validation…");
       try {
         await exchange("complete_card", {card_id:complete.dataset.completeCard});
         cardDialog.close(); render(); feedback("card");
+        acknowledgeCard(ghost,"complete","Défi réalisé");
         toast("🤝 Défi réalisé · découverte conservée.");
       } catch (error) { toast(friendlyError(error)); }
-      finally { setBusy(false); }
+      finally { done(); }
       return;
     }
     if (event.target.closest("[data-go-collection]")) return setView("collection");
@@ -967,7 +1095,7 @@
       const target = $("#jokerTargetSelect")?.value;
       if (!target) return toast("Aucune carte active à annuler.");
       if (!await confirmAction("Un petit contre-sort ?", "Ce Joker annule la carte active choisie. Les deux cartes quittent le jeu.")) return;
-      setBusy(true);
+      const done = contextualBusy(useJoker,"Annulation…");
       try {
         await exchange("use_joker", { joker_card_id: useJoker.dataset.useJoker, target_card_id: target });
         cardDialog.close();
@@ -975,14 +1103,14 @@
         setView("today");
         toast("La carte active a été annulée.");
       } catch (error) { toast(friendlyError(error)); }
-      finally { setBusy(false); }
+      finally { done(); }
       return;
     }
     const activate = event.target.closest("[data-activate-card]");
     if (activate) {
       if (!await confirmAction("On la joue ?", "Cette carte rejoint votre table pour 24 heures.")) return;
       const ghost = captureCardGhost();
-      setBusy(true);
+      const done = contextualBusy(activate,"Activation…");
       try {
         await exchange("activate_card", { card_id: activate.dataset.activateCard });
         cardDialog.close();
@@ -991,12 +1119,12 @@
         flyToTable(ghost, activate.dataset.activateCard);
         toast("Challenge activé pour 24 h.");
       } catch (error) { toast(friendlyError(error)); }
-      finally { setBusy(false); }
+      finally { done(); }
       return;
     }
     const tradeAction = event.target.closest("[data-trade-action]");
     if (tradeAction) {
-      setBusy(true);
+      const done = contextualBusy(tradeAction,"Validation…");
       try {
         const action = tradeAction.dataset.tradeAction;
         if (action === "cancel") await exchange("trade_cancel", { trade_id: tradeAction.dataset.tradeId });
@@ -1005,26 +1133,28 @@
         if (action === "accept") celebrateTrade();
         toast(action === "accept" ? "Échange accepté." : action === "reject" ? "Échange refusé." : "Proposition annulée.");
       } catch (error) { toast(friendlyError(error)); }
-      finally { setBusy(false); }
+      finally { done(); }
     }
   });
 
   $("#proposeTradeButton").addEventListener("click", async () => {
+    if (state.busy) return;
     const offered = $("#offeredCardSelect").value;
     const requested = $("#requestedCardSelect").value;
     if (state.managementMode !== "trade") return performCardManagement(state.managementMode === "give", offered);
     if (!offered || !requested) return toast("Choisis les deux cartes de l’échange.");
-    setBusy(true);
+    const done = contextualBusy($("#proposeTradeButton"),"Envoi…");
     try {
       await exchange("trade_propose", { offered_card_id: offered, requested_card_id: requested });
       render();
       toast("Proposition envoyée.");
     } catch (error) { toast(friendlyError(error)); }
-    finally { setBusy(false); }
+    finally { done(); }
   });
 
   $$('[data-close-dialog]').forEach(button => button.addEventListener("click", () => {
     const dialog = document.getElementById(button.dataset.closeDialog);
+    if (dialog === destroyDialog && destruction?.committing) return;
     if (dialog === boosterDialog && state.opening && !state.revealedCards.length) return toast("Tes cartes arrivent…");
     dialog.close();
   }));
@@ -1037,11 +1167,18 @@
     $("#sealedPack").hidden = false;
     state.selectedBooster = null;
     state.opening = false;
+    if (state.data) renderToday();
   });
   boosterDialog.addEventListener("cancel", event => {
     if (state.opening && !state.revealedCards.length) event.preventDefault();
   });
   cardDialog.addEventListener("close", () => { state.viewerSession++; state.viewerMoving = false; $("#cardDialogContent").inert = false; $("#cardDialogContent")._swipeCleanup?.(); });
+  stackDialog.addEventListener("close", () => { state.stackSelection = null; });
+  document.addEventListener("toggle", event => {
+    const section = event.target;
+    if (!section.matches?.("details[data-album-edition]")) return;
+    if (section.open) state.collapsedEditions.delete(section.dataset.albumEdition); else state.collapsedEditions.add(section.dataset.albumEdition);
+  },true);
   destroyDialog.addEventListener("cancel", event => { if (destruction?.committing) event.preventDefault(); });
   destroyDialog.addEventListener("close", () => { destruction = null; cutGesture?.reset(); $$(".blade-trail").forEach(trail=>trail.remove()); });
   document.addEventListener("keydown", event => {
