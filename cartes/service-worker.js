@@ -1,5 +1,6 @@
-const CACHE = "les-cartes-v10";
-const SHELL = ["./", "./index.html", "./styles.css?v=10", "./daylight.css?v=10", "./halloween.css?v=10", "./booster-motion.css?v=10", "./experience.css?v=10", "./booster-gesture.js?v=10", "./app.js?v=10", "./assets/card-atlas.jpg", "./assets/spell-atlas.png", "./preview/legendary-concept.png", "./assets/card-atlas-halloween.jpg", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "les-cartes-v11";
+// Only the normal shell is preloaded. Seasonal and rare art load when displayed.
+const SHELL = ["./", "./index.html", "./styles.css?v=11", "./daylight.css?v=11", "./halloween.css?v=11", "./booster-motion.css?v=11", "./experience.css?v=11", "./polish.css?v=11", "./booster-gesture.js?v=11", "./app.js?v=11", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
@@ -9,13 +10,18 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== location.origin || !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
-  event.respondWith(fetch(event.request).then(response => {
-    if (response.ok) { const copy = response.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, copy))); }
-    return response;
-  }).catch(async () => {
-    const cached = await caches.match(event.request);
-    if (cached) return cached;
-    if (event.request.mode === "navigate") return caches.match("./index.html");
-    return Response.error();
-  }));
+  const image = /\.(webp|png|jpg|svg)$/.test(url.pathname);
+  event.respondWith((async () => {
+    if (image) { const cached = await caches.match(event.request); if (cached) return cached; }
+    try {
+      const response = await fetch(event.request);
+      if (response.ok) { const copy = response.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, copy))); }
+      return response;
+    } catch {
+      const cached = await caches.match(event.request);
+      if (cached) return cached;
+      if (event.request.mode === "navigate") return caches.match("./index.html");
+      return Response.error();
+    }
+  })());
 });

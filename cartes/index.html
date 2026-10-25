@@ -8,17 +8,19 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="10">
+  <meta name="tcg-version" content="11">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=10">
-  <link rel="stylesheet" href="daylight.css?v=10">
-  <link rel="stylesheet" href="halloween.css?v=10">
-  <link rel="stylesheet" href="booster-motion.css?v=10">
-  <link rel="stylesheet" href="experience.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="daylight.css?v=11">
+  <link rel="stylesheet" href="halloween.css?v=11">
+  <link rel="stylesheet" href="booster-motion.css?v=11">
+  <link rel="stylesheet" href="experience.css?v=11">
+  <link rel="stylesheet" href="polish.css?v=11">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
+  <svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="ui-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"/></symbol><symbol id="ui-album" viewBox="0 0 24 24"><rect x="6" y="3" width="14" height="18" rx="2"/><path d="M6 7h14M3 6v13a2 2 0 0 0 2 2m7-10h4m-4 4h4"/></symbol><symbol id="ui-hand" viewBox="0 0 24 24"><rect x="9" y="2" width="10" height="12" rx="2"/><path d="M12 6h4M3 13l3-2 4 4h5a2 2 0 0 1 0 4h-4m-8-6v7l6 2h6l6-6a2 2 0 0 0-2.8-2.8L17 16"/></symbol><symbol id="ui-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.1"/></symbol><symbol id="ui-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 6.8M20 4v7h-7"/></symbol><symbol id="ui-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol><symbol id="ui-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol><symbol id="ui-handshake" viewBox="0 0 24 24"><path d="m3 7 4-3 5 3 5-3 4 3-3 9-5 4-6-3-4-7Zm5 2 4-2 4 3-2 2-3-1-2 2m0 0 6 5m-3-8 6 6M3 7l4 10m14-10-4 10"/></symbol><symbol id="ui-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13m0-13c-7 0-6-7-2-5 2 1 2 5 2 5Zm0 0c7 0 6-7 2-5-2 1-2 5-2 5Z"/></symbol><symbol id="ui-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.5 7.5 12 13m-12-4 12-13M12 12h.01"/></symbol><symbol id="ui-exchange" viewBox="0 0 24 24"><path d="M3 7h17l-4-4m5 14H4l4 4M20 7l-4 4M4 17l4-4"/></symbol><symbol id="ui-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol><symbol id="ui-back" viewBox="0 0 24 24"><path d="M20 12H4m6-6-6 6 6 6"/></symbol><symbol id="ui-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol><symbol id="ui-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="ui-cards" viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H4a1 1 0 0 0-1 1v13a2 2 0 0 0 2 2h10"/></symbol><symbol id="ui-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="ui-moon" viewBox="0 0 24 24"><path d="M20 14A8.5 8.5 0 0 1 10 3a8.5 8.5 0 1 0 10 11Z"/></symbol><symbol id="ui-wand" viewBox="0 0 24 24"><path d="m4 20 12-12 4 4L8 24M12 3v3m7-4v3M20 7h3M5 7v3M3 8h4"/></symbol></defs></svg>
   <div class="paper-noise" aria-hidden="true"></div>
 
   <section class="login-screen" id="loginScreen">
@@ -56,7 +58,7 @@
       <small>Le même code fonctionne sur tes autres appareils.</small>
     </form>
     <p class="login-status" id="loginStatus" role="status" aria-live="polite">À qui le tour ?</p>
-    <footer class="login-footer">Mamamouth & Papapouf <span>✦</span> Rien que nous.</footer>
+    <footer class="login-footer">Mamamouth & Papapouf <span>·</span> Rien que nous.</footer>
   </section>
 
   <div class="app-shell" id="appShell" hidden>
@@ -75,11 +77,11 @@
       <section class="view active" id="todayView" data-view="today">
         <header class="view-heading">
           <div><span class="eyebrow" id="todayDate">Aujourd’hui</span></div>
-          <div class="heading-actions"><button class="round-button" type="button" data-open-info aria-label="Règles et finitions">ⓘ</button><button class="round-button" id="refreshButton" type="button" aria-label="Actualiser">↻</button></div>
+          <div class="heading-actions"><button class="round-button" type="button" data-open-info aria-label="Règles et finitions"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-info"/></svg></button><button class="round-button" id="refreshButton" type="button" aria-label="Actualiser"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-refresh"/></svg></button></div>
         </header>
 
-        <aside class="season-banner" id="seasonBanner" aria-label="Saison Halloween à venir"><span class="season-emblem" aria-hidden="true">☾</span><strong id="seasonHeading">Halloween bientôt</strong><span id="seasonCopy">29 oct.–1 nov. · 10 exclusives</span><span class="season-star" aria-hidden="true">✧</span></aside>
-        <section class="daily-hero" id="dailyHero"><div class="hero-caption"><span class="eyebrow" id="heroEdition">Édition 01 — Nous deux</span><h3>Un peu de hasard.<br><em>Beaucoup de nous.</em></h3><p id="heroContents">3 cartes</p></div><div class="booster-list" id="boosterList"></div><div class="hero-bottom"><span>Prochain booster</span><strong id="nextBoosterCounter">—</strong></div></section>
+        <aside class="season-banner" id="seasonBanner" aria-label="Saison Halloween à venir"><span class="season-emblem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-moon"/></svg></span><strong id="seasonHeading">Halloween bientôt</strong><span id="seasonCopy">29 oct.–1 nov. · 10 exclusives</span></aside>
+        <section class="daily-hero" id="dailyHero"><div class="hero-caption"><span class="eyebrow" id="heroEdition">Édition 01 — Nous deux</span><h3>Un peu de hasard.<br><em>Beaucoup de nous.</em></h3><p id="heroContents">3 cartes</p></div><div class="booster-list" id="boosterList"></div><div class="hero-bottom"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-clock"/></svg> Prochain booster</span><strong id="nextBoosterCounter">—</strong></div></section>
         <article class="daily-counter">
           <div><span>Boosters à ouvrir</span><strong id="boosterCount">0</strong></div>
           <div><span>Dans la collection</span><strong id="collectionCount">0</strong></div>
@@ -87,13 +89,13 @@
         </article>
 
         <section class="content-block table-block" id="tableBlock">
-          <div class="section-title"><div><span class="eyebrow">À vivre ensemble · 24 heures</span><h3>Sur la table.</h3></div><span class="count-badge" id="activeCount">0</span></div>
+          <div class="section-title"><div><span class="eyebrow">Vos rituels en cours</span><h3>Sur la table.</h3></div><span class="count-badge" id="activeCount">0</span></div>
           <div class="active-grid" id="activeCards"></div>
         </section>
       </section>
 
       <section class="view" id="collectionView" data-view="collection" hidden>
-        <header class="view-heading"><div><span class="eyebrow" id="collectionOwner">Ma petite réserve</span><h2>Ma collection.</h2></div><button class="round-button" type="button" data-open-info aria-label="Légende des finitions">ⓘ</button></header>
+        <header class="view-heading"><div><span class="eyebrow" id="collectionOwner">Ma petite réserve</span><h2>Ma collection.</h2></div><button class="round-button" type="button" data-open-info aria-label="Légende des finitions"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-info"/></svg></button></header>
         <div class="segmented" role="tablist" aria-label="Filtres de collection">
           <button class="selected" role="tab" aria-selected="true" data-collection-tab="available" type="button">En main <b id="availableTabCount">0</b></button>
           <button role="tab" aria-selected="false" data-collection-tab="known" type="button">Déjà vues <b id="knownTabCount">0/100</b></button>
@@ -101,16 +103,15 @@
         <details class="filter-drawer"><summary>Filtrer <b id="filterCount" hidden>0</b><span aria-hidden="true">⌄</span></summary><div class="collection-tools"><input id="cardSearch" type="search" placeholder="Retrouver une carte…" aria-label="Rechercher une carte"><select id="finishFilter" aria-label="Filtrer par finition"><option value="all">Toutes les finitions</option><option value="standard">Communes</option><option value="full_art">Full art</option><option value="foil">Foils</option><option value="full_art_foil">Full art + foil</option><option value="legendary">Légendaires</option></select><select id="editionFilter" aria-label="Filtrer par édition"><option value="all">Toutes les éditions</option><option value="edition_01">Édition 01</option><option value="halloween_2026">Halloween 2026</option></select></div>
         <div class="category-filters" id="categoryFilters" aria-label="Catégories"><button data-category="all" aria-pressed="true" class="selected" type="button">Tout</button><button data-category="couple" aria-pressed="false" type="button">En couple</button><button data-category="other" aria-pressed="false" type="button">Pour l’autre</button><button data-category="nude" aria-pressed="false" type="button">Mise à nue</button><button data-category="foodies" aria-pressed="false" type="button">Les foodies</button><button data-category="todo" aria-pressed="false" type="button">To do</button><button data-category="energy" aria-pressed="false" type="button">Énergie</button><button data-category="spells" aria-pressed="false" type="button">Sortilèges</button></div>
         </details><p class="collection-note" id="collectionNote">Les nouveaux tirages sont utilisables pendant 7 jours.</p>
-        <button class="pinned-filter" id="pinnedOnlyButton" type="button" aria-pressed="false">📌 Épinglées · 0</button>
         <div class="collection-grid" id="collectionGrid"></div>
       </section>
 
       <section class="view" id="tradeView" data-view="trade" hidden>
-        <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>Actions.</h2></div><span class="exchange-mark" aria-hidden="true">⇄</span></header>
+        <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>Actions.</h2></div></header>
 
         <section class="trade-maker content-block">
-          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true">Échanger</button><button type="button" data-management-mode="give" aria-pressed="false">Donner</button><button type="button" data-management-mode="destroy" aria-pressed="false">Détruire</button></div>
-          <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><label for="offeredCardSelect" id="offeredCardLabel">Je donne</label><div class="trade-preview" id="offeredPreview"></div><select id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow" aria-hidden="true">⇄</span><div class="trade-pick" id="requestedCardPick"><label for="requestedCardSelect">Je reçois</label><div class="trade-preview" id="requestedPreview"></div><select id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
+          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg> Échanger</button><button type="button" data-management-mode="give" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-gift"/></svg> Donner</button><button type="button" data-management-mode="destroy" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-scissors"/></svg> Détruire</button></div>
+          <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><span class="trade-label" id="offeredCardLabel">Je donne</span><button class="trade-pick-button" id="offeredCardPicker" type="button" data-pick-card="offered" aria-haspopup="dialog" aria-label="Choisir ma carte"><span class="trade-preview" id="offeredPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg></span><div class="trade-pick" id="requestedCardPick"><span class="trade-label">Je reçois</span><button class="trade-pick-button" id="requestedCardPicker" type="button" data-pick-card="requested" aria-haspopup="dialog" aria-label="Choisir une carte adverse"><span class="trade-preview" id="requestedPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
           <p class="trade-hint" id="tradeHint"></p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer →</button>
         </section>
@@ -127,15 +128,15 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation principale">
-      <button class="selected" data-nav="today" aria-current="page" type="button"><span aria-hidden="true">◉</span><b>Le rituel</b><i class="nav-badge" id="navBoosterBadge" aria-hidden="true" hidden></i></button>
-      <button data-nav="collection" type="button"><span aria-hidden="true"><svg viewBox="0 0 28 28" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="9" y="4" width="14" height="20" rx="2"/><path d="M7 7H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12"/><path d="m16 10 1.4 2.8 3.1.4-2.2 2.2.5 3.1-2.8-1.5-2.8 1.5.5-3.1-2.2-2.2 3.1-.4Z"/></svg></span><b>Collection</b></button>
-      <button data-nav="trade" type="button"><span aria-hidden="true">⇄</span><b>Actions</b><i class="nav-badge" id="navTradeBadge" aria-hidden="true" hidden></i></button>
+      <button class="selected" data-nav="today" aria-current="page" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-sun"/></svg></span><b>Le rituel</b><i class="nav-badge" id="navBoosterBadge" aria-hidden="true" hidden></i></button>
+      <button data-nav="collection" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-album"/></svg></span><b>Collection</b></button>
+      <button data-nav="trade" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-hand"/></svg></span><b>Actions</b><i class="nav-badge" id="navTradeBadge" aria-hidden="true" hidden></i></button>
     </nav>
   </div>
 
   <dialog class="booster-dialog" id="boosterDialog" aria-label="Ouvrir un booster">
-    <button class="dialog-close" data-close-dialog="boosterDialog" type="button" aria-label="Fermer">×</button>
-    <span class="eyebrow opening-eyebrow">Un petit moment à nous.</span>
+    <button class="dialog-close" data-close-dialog="boosterDialog" type="button" aria-label="Fermer"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button>
+    <span class="eyebrow opening-eyebrow">Ouvre ton booster.</span>
     <div class="booster-stage" id="boosterStage">
       <div class="opening-aura" aria-hidden="true"></div>
       <div class="opening-sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -153,12 +154,12 @@
     <button class="text-button" id="openPackButton" type="button">Ouvrir sans glisser →</button>
   </dialog>
 
-  <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" type="button" aria-label="Fermer">×</button><h2 id="infoTitle">Les petits repères.</h2><div class="finish-legend"><p><i>●</i><span>Commune</span></p><p><i>◇</i><span>Full art</span></p><p><i>✦</i><span>Foil · reflet arc-en-ciel</span></p><p><i>✺</i><span>Full art + foil</span></p><p><i>✵</i><span>Légendaire · défi au choix de sa catégorie · 0,5 %</span></p></div><p class="info-rules">3 cartes par booster · chaque jour à 5 h.<br>Booster : 48 h · collection : 7 jours · activation : 24 h au départ.</p><small>Les anciens exemplaires gardent leur échéance. Chaque doublon a son propre compteur ; le premier à expirer est proposé par défaut. Ouvre ×2, ×3… pour choisir un exemplaire précis. Aucun challenge n’est modifié.</small></dialog>
+  <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" type="button" aria-label="Fermer"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button><h2 id="infoTitle">Règles et raretés.</h2><div class="finish-legend"><p><i>●</i><span>Commune</span></p><p><i>◇</i><span>Full art</span></p><p><i>✦</i><span>Foil · reflet arc-en-ciel</span></p><p><i>✺</i><span>Full art + foil</span></p><p><i>✵</i><span>Légendaire · défi au choix de sa catégorie · 0,5 %</span></p></div><p class="info-rules">3 cartes par booster · chaque jour à 5 h.<br>Booster : 48 h · collection : 7 jours · activation : 24 h au départ.</p><small>Les anciens exemplaires gardent leur échéance. Chaque doublon a son propre compteur ; le premier à expirer est proposé par défaut. Ouvre ×2, ×3… pour choisir un exemplaire précis. Aucun challenge n’est modifié.</small></dialog>
 
   <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle"><span class="eyebrow">À vous de jouer</span><h2 id="confirmTitle"></h2><p id="confirmCopy"></p><div><button id="confirmCancel" class="text-button" type="button">Pas maintenant</button><button id="confirmAccept" class="primary-button" type="button">Confirmer</button></div></dialog>
 
   <dialog class="destroy-dialog" id="destroyDialog" aria-labelledby="destroyTitle">
-    <button class="dialog-close" data-close-dialog="destroyDialog" type="button" aria-label="Annuler la découpe">×</button>
+    <button class="dialog-close" data-close-dialog="destroyDialog" type="button" aria-label="Annuler la découpe"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button>
     <span class="eyebrow">Cet exemplaire seulement</span><h2 id="destroyTitle">À découper.</h2>
     <p class="destroy-hint">Trois gestes à travers la carte. Dans tous les sens.</p>
     <div class="shred-preview" id="shredPreview"></div>
@@ -168,20 +169,26 @@
   </dialog>
 
   <dialog class="stack-dialog" id="stackDialog" aria-labelledby="stackTitle">
-    <button class="dialog-close" data-close-dialog="stackDialog" type="button" aria-label="Fermer la pile">×</button>
-    <span class="eyebrow">Chaque exemplaire a sa vie</span><h2 id="stackTitle"></h2><p id="stackCount"></p>
+    <button class="dialog-close" data-close-dialog="stackDialog" type="button" aria-label="Fermer la pile"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button>
+    <span class="eyebrow">Choisir un exemplaire</span><h2 id="stackTitle"></h2><p id="stackCount"></p>
     <div class="stack-copies" id="stackCopies"></div>
   </dialog>
 
+  <dialog class="selection-dialog" id="selectionDialog" aria-labelledby="selectionTitle">
+    <header class="selection-header"><h2 id="selectionTitle">Choisir une carte</h2><button class="dialog-close" data-close-dialog="selectionDialog" type="button" aria-label="Fermer la sélection"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button></header>
+    <label class="selection-search"><span class="sr-only">Rechercher une carte</span><input type="search" id="selectionSearch" placeholder="Rechercher une carte…" autocomplete="off"></label>
+    <p id="selectionCount" class="selection-count" role="status"></p><div class="selection-grid" id="selectionGrid"></div>
+  </dialog>
+
   <dialog class="card-dialog" id="cardDialog" aria-label="Détail de carte">
-    <button class="dialog-close" data-close-dialog="cardDialog" type="button" aria-label="Fermer">×</button>
+    <button class="dialog-close" data-close-dialog="cardDialog" type="button" aria-label="Fermer"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button>
     <div id="cardDialogContent"></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=10"></script>
-  <script src="app.js?v=10"></script>
+  <script src="booster-gesture.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

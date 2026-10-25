@@ -25,7 +25,7 @@ const state = { data, role:'AG', collectionTab:'known', category:'all' };
 let now = new Date('2026-10-28T22:59:59Z');
 const helpers=source.slice(source.indexOf('  const markupCache ='),source.indexOf('  const escapeHtml ='));
 const api = runInNewContext(helpers+source.slice(source.indexOf('  function finishLabel'), source.indexOf('  function option(')) + '\n({cardMarkup,renderCollection,collectionCards,halloweenActive,groupCards,finishSymbol,putMarkup,expiryHint})', {
-  $, state, serverNow:()=>now, duration:()=>'', name:()=> 'Mamamouth', escapeHtml:v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'), document:{}
+  cardCountdown:()=>'', $, state, serverNow:()=>now, duration:()=>'', name:()=> 'Mamamouth', escapeHtml:v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'), document:{}
 });
 api.renderCollection();
 assert.equal($('#knownTabCount').textContent,'3/90');
@@ -56,12 +56,9 @@ data.my_cards=copies.slice(0,2).map(c=>({...c,status:'available',title:'Film',ca
 api.renderCollection();assert.equal($('#availableTabCount').textContent,2);assert.equal(($('#collectionGrid').innerHTML.match(/class="card-button stacked-card"/g)||[]).length,1);assert.match($('#collectionGrid').innerHTML,/×2/);assert.match($('#collectionGrid').innerHTML,/data-card-id="first"/);
 assert.doesNotMatch($('#collectionGrid').innerHTML,/data-card-id="later"/);
 const stable='<span data-until="2026-10-25">2j 3h</span>';api.putMarkup('#stable',stable);api.putMarkup('#stable',stable.replace('2j 3h','2j 2h'));assert.equal($('#stable').innerHTML,stable,'Countdown updates must not remount the cards');
-const pinnedCopies=copies.slice(0,2).map(c=>({...c,is_pinned:c.id==='later'}));
-const pinnedGroup=api.groupCards(pinnedCopies)[0];assert.equal(pinnedGroup.id,'first');assert.equal(pinnedGroup.pinned_id,'later');assert.equal(pinnedGroup.is_pinned,true);assert.equal(pinnedCopies[1].is_pinned,false);
-data.my_cards=data.my_cards.map(c=>({...c,is_pinned:c.id==='later'}));state.pinnedOnly=true;api.renderCollection();assert.match($('#collectionGrid').innerHTML,/data-pin-card="later"/);assert.equal(api.collectionCards().length,1);
-data.my_cards=data.my_cards.map(c=>({...c,is_pinned:false}));api.renderCollection();assert.match($('#collectionGrid').innerHTML,/Épingle des cartes/);assert.equal(api.collectionCards().length,0);state.pinnedOnly=false;
+data.my_cards=data.my_cards.map(c=>({...c,is_pinned:c.id==='later'}));api.renderCollection();assert.equal(api.collectionCards().length,1);assert.doesNotMatch($('#collectionGrid').innerHTML,/data-pin-card|is-pinned|pin-toggle/,'Legacy pin flags must have no UI or sorting effect');
 now=new Date('2026-10-25T22:30:00Z');assert.equal(api.expiryHint('2026-10-25T22:45:00Z'),'Expire aujourd’hui');assert.equal(api.expiryHint('2026-10-25T23:15:00Z'),'');assert.equal(api.expiryHint('2026-10-25T22:29:59Z'),'Expirée');assert.equal(api.expiryHint('invalid'),'');
-const historyCode=source.slice(source.indexOf('  function cardEventMarkup('),source.indexOf('  function renderTradeSelection('));
+const historyCode=source.slice(source.indexOf('  function icon('),source.indexOf('  const isHalloween'))+source.slice(source.indexOf('  function cardEventMarkup('),source.indexOf('  function renderTradeSelection('));
 const eventMarkup=runInNewContext(historyCode+'\ncardEventMarkup',{state,escapeHtml:v=>String(v??'').replaceAll('<','&lt;').replaceAll('>','&gt;'),name:r=>r==='AG'?'Mamamouth':'Papapouf',finishLabel:()=> 'Commune'});
 const event={title:'<script>fixture</script>',created_at:'2026-10-25T22:00:00Z',finish:'standard',event_type:'give_card',actor_role:'AG',recipient_role:'CL'};
 assert.match(eventMarkup(event),/Donné à Papapouf/);assert.match(eventMarkup({...event,actor_role:'CL',recipient_role:'AG'}),/Reçu de Papapouf/);assert.match(eventMarkup({...event,event_type:'complete_card'}),/Défi réalisé/);assert.doesNotMatch(eventMarkup(event),/<script>/);

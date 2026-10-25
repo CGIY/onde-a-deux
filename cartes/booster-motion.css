@@ -8,7 +8,7 @@ html,body{touch-action:manipulation}
 .sealed-pack:before{display:none}
 .sealed-pack p,.sealed-pack small{color:#f3d7b6;text-shadow:0 1px 5px #29160c}
 .pack-cap{inset:-1px -1px auto;height:53px;clip-path:none;border-radius:3px 3px 0 0;transform-origin:100% 100%;background:repeating-linear-gradient(90deg,#a6744699 0 2px,#f3d4a477 3px 4px),linear-gradient(110deg,#633c2b,#d1a472,#633c2b);border:1px solid #d8b086;border-bottom:1px dashed #f8dec0bb;box-shadow:0 3px 8px #2e160c55;transform:perspective(500px) translateY(calc(var(--pull) * -13px)) rotate(calc(var(--pull) * -7deg)) rotateX(calc(var(--pull) * 22deg));transition:transform .35s,box-shadow .35s}
-.pack-cap:after{content:"✦  LES CARTES  ✦";display:block;text-align:center;font:7px/52px sans-serif;letter-spacing:.35em;color:#42261f99;text-shadow:0 1px #f8e2bd55}
+.pack-cap:after{content:"LES CARTES";display:block;text-align:center;font:7px/52px sans-serif;letter-spacing:.35em;color:#42261f99;text-shadow:0 1px #f8e2bd55}
 .sealed-pack[data-tear-direction="left"] .pack-cap{transform-origin:0 100%;transform:perspective(500px) translateY(calc(var(--pull) * -13px)) rotate(calc(var(--pull) * 7deg)) rotateX(calc(var(--pull) * 22deg))}
 .sealed-pack.dragging .pack-cap{transition:none}
 .tear-line{height:3px;top:52px;pointer-events:none;transform-origin:left;transform:scaleX(calc(.08 + var(--pull) * .92));background:linear-gradient(90deg,#f9d39a,#fff9e4);box-shadow:0 0 8px #f9c479,0 0 22px #dca35299;transition:transform .35s}
@@ -23,7 +23,7 @@ html,body{touch-action:manipulation}
 .awaiting .tear-hint{opacity:.35}
 .awaiting .pack-shine{animation:sealed-glimmer 1.2s linear infinite}
 .opening-aura{position:absolute;width:310px;max-width:85vw;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f7d694aa,#edb97433 40%,transparent 70%);opacity:0;transform:scale(.65);filter:blur(5px)}
-.opening-flight{position:absolute;width:min(63vw,245px);aspect-ratio:5/7;border-radius:12px;background-image:url("assets/card-atlas.jpg");background-size:400% 200%;background-position:100% 100%;border:1px solid #c99960;box-shadow:0 18px 45px #87613533;pointer-events:none;opacity:0;transform:translateY(45px) scale(.88)}
+.opening-flight{position:absolute;width:min(63vw,245px);aspect-ratio:5/7;border-radius:12px;background-image:url("assets/card-atlas.webp");background-size:400% 200%;background-position:100% 100%;border:1px solid #c99960;box-shadow:0 18px 45px #87613533;pointer-events:none;opacity:0;transform:translateY(45px) scale(.88)}
 .opening-sparks{position:absolute;inset:0;pointer-events:none;overflow:visible;opacity:0}
 .opening-sparks i{position:absolute;left:50%;top:45%;width:4px;height:14px;background:linear-gradient(#fff4c9,#bf8547);border-radius:100%;box-shadow:0 0 10px #e6b666;--spark-x:-140px;--spark-y:-130px;--spark-r:-55deg}
 .opening-sparks i:nth-child(2){--spark-x:125px;--spark-y:-160px;--spark-r:50deg}.opening-sparks i:nth-child(3){--spark-x:-170px;--spark-y:20px;--spark-r:-105deg}.opening-sparks i:nth-child(4){--spark-x:160px;--spark-y:35px;--spark-r:110deg}.opening-sparks i:nth-child(5){--spark-x:-80px;--spark-y:180px;--spark-r:-140deg}.opening-sparks i:nth-child(6){--spark-x:90px;--spark-y:170px;--spark-r:140deg}
