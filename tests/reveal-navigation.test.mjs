@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
 const source=readFileSync(new URL('../cartes/app.js',import.meta.url),'utf8');
-const code=source.slice(source.indexOf('  async function advanceReveal('),source.indexOf('  function finishReveal()'));
+const code=source.slice(source.indexOf('  async function advanceReveal('),source.indexOf('  async function finishReveal()'));
 const state={revealMoving:false,revealQueue:[],revealIndex:0,revealedCards:[1,2,3],selectedBooster:'demo'};
 const modal={open:true};let animationDone,rendered=0;
 const nodes={'#revealSlot':{hidden:false},'#revealFront':{animate:()=>({finished:new Promise(resolve=>animationDone=resolve)})}};

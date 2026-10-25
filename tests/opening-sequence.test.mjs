@@ -8,7 +8,7 @@ async function scenario(fail=false) {
   const state={opening:false,selectedBooster:'pack-test',data:{known_cards:[],my_cards:[]},newTemplates:new Set()};
   let resolve,reject,calls=0,reveals=0,now=0,resets=0;const timers=[];
   const pending=new Promise((ok,no)=>{resolve=ok;reject=no;});
-  const fn=runInNewContext(code+'\nrevealBooster',{$,state,performance:{now:()=>now},reducedMotion:{matches:false},boosterDialog:{open:true},exchange:async()=>{calls++;await pending;state.data.my_cards=['energy','challenge','challenge'].map((card_type,i)=>({id:'card-'+i,template_id:'template-'+i,booster_id:'pack-test',card_type}));},feedback:()=>{},setTimeout:(callback,delay)=>{timers.push({callback,delay});return 1;},render:()=>{},renderRevealedCard:()=>reveals++,packGesture:{reset:()=>resets++},friendlyError:error=>error.message,sync:async()=>{}});
+  const fn=runInNewContext(code+'\nrevealBooster',{$,state,performance:{now:()=>now},reducedMotion:{matches:false},boosterDialog:{open:true},exchange:async()=>{calls++;await pending;state.data.my_cards=['energy','challenge','challenge'].map((card_type,i)=>({id:'card-'+i,template_id:'template-'+i,booster_id:'pack-test',card_type}));},feedback:()=>{},setTimeout:(callback,delay)=>{timers.push({callback,delay});return 1;},render:()=>{},renderRevealedCard:()=>reveals++,showOpeningReceipt:()=>reveals++,packGesture:{reset:()=>resets++},friendlyError:error=>error.message,sync:async()=>{}});
   const running=fn();await fn();
   assert.equal(calls,1,'The animation must not trigger a second draw');
   assert($('#boosterStage').classes.has('unsealing'),'Tearing must start while the request is pending');

@@ -20,6 +20,18 @@ L’ouverture tactile suit la déchirure dans les deux sens : bande détachée, 
 
 Tests sans toucher aux données réelles : `node tests/booster-gesture.test.mjs` et `node tests/booster-preview.mjs` (aperçu isolé sur le port 8768, appels réseau bloqués et stockage neutralisé). `?failure=once` simule une coupure pour vérifier la reprise. Aucune migration ni remise à zéro n’accompagne cette retouche d’interface.
 
+### Reprise, exemplaires et présentation V9
+
+Un nouveau booster ouvert crée un reçu privé avec ses trois cartes exactes. Les nouvelles tentatives d'ouverture sur ce booster en cours ne relancent pas le tirage. Le dernier index est sauvegardé côté serveur, avec une position locale sans texte de carte pour couvrir une coupure immédiate ; la plus récente est retenue. Les écritures sont sérialisées et regroupées, et leurs réponses légères ne remplacent jamais la collection. Le bouton « Reprendre la découverte » reste présent jusqu'à « Ranger ». La reprise n'allonge aucune échéance et ne remet pas les cartes données ou utilisées dans la main. Les anciennes ouvertures ne sont pas reconstruites rétroactivement.
+
+Un clic sur ×2, ×3… déploie les copies disponibles, avec usure et compteur. Le choix d'une copie transmet son identifiant exact à toutes les actions et permet aussi de feuilleter les autres copies. Sans choix explicite, l'exemplaire qui expire le premier reste proposé. Les titres d'édition se replient dans « Déjà vues » et conservent leur état pendant les vues et actualisations.
+
+L'attente des actions de jeu apparaît sur le bouton concerné, avec confirmation visuelle après l'accord du serveur. Activation, don et clôture ont un mouvement contextualisé ; la connexion garde son indicateur global. Les full art ont désormais une illustration agrandie bord à bord et une légende sur voile sombre ; les communes gardent leur panneau de texte. Aucun challenge n'est réécrit.
+
+`cartes/preview/index.html` est un prototype animé des cinq légendaires, avec aura, particules, relief au doigt et choix stable au toucher. Aucune légendaire n'est ajoutée aux tirages ni à l'album dans cette version. Les effets Foodies et To do reprennent les propositions de l'utilisateur ; Mise à nue utilise deux exemples non explicites pour cet aperçu. L'image et le prompt sont dans `cartes/preview/`.
+
+Tests supplémentaires : `node tests/resume-opening.test.mjs` ; `supabase/tests/opening_receipts.sql` s'exécute en transaction annulée. La migration `20261025162238_resumable_booster_openings.sql` vérifie que cartes, découvertes, boosters, échanges et historique existants restent identiques.
+
 ### Épingles, échéances et défis réalisés V8
 
 Les cartes disponibles peuvent être épinglées par exemplaire. La collection les place en premier et le bouton « Épinglées » isole la sélection pour la prochaine soirée. Les épingles sont sauvegardées côté serveur pour le profil, sans changer aucune échéance ; elles ne sont pas transmises par un don ou un échange. Les piles gardent leur premier exemplaire à expirer pour jouer la carte, et ciblent l'exemplaire épinglé pour retirer son épingle.

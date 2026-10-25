@@ -139,6 +139,20 @@ alter table public.tcg_card_events add constraint tcg_card_events_check
   check ((event_type='give_card' and recipient_role is not null and recipient_role<>actor_role)
       or (event_type in ('destroy_card','complete_card') and recipient_role is null));
 
+create table if not exists public.tcg_opening_receipts (
+  booster_id uuid primary key references public.tcg_boosters(id),
+  owner_role text not null references public.tcg_players(role),
+  cards jsonb not null check (jsonb_typeof(cards)='array' and jsonb_array_length(cards)=3),
+  reveal_index integer not null default 0 check (reveal_index between 0 and 2),
+  progress_at timestamptz not null default now(),
+  opened_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+create index if not exists tcg_opening_receipts_owner_idx on public.tcg_opening_receipts(owner_role,opened_at);
+alter table public.tcg_opening_receipts enable row level security;
+revoke all on public.tcg_opening_receipts from public, anon, authenticated;
+comment on table public.tcg_opening_receipts is 'Immutable drawn-card snapshots for interrupted discoveries. Token-validated RPC only.';
+
 create table if not exists public.tcg_discoveries (
   role text not null references public.tcg_players(role),
   template_id text not null references public.tcg_card_templates(id),
@@ -387,6 +401,7 @@ as $$
 declare
   player public.tcg_players%rowtype;
   booster public.tcg_boosters%rowtype;
+  receipt public.tcg_opening_receipts%rowtype;
   offered public.tcg_cards%rowtype;
   requested public.tcg_cards%rowtype;
   trade_row public.tcg_trades%rowtype;
@@ -414,7 +429,7 @@ declare
 begin
   if v_role not in ('AG', 'CL')
      or coalesce(p_token, '') !~ '^[a-f0-9]{48}$'
-     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card')
+     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card', 'opening_progress', 'finish_opening')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -444,6 +459,23 @@ begin
   update public.tcg_player_devices set last_seen = now()
   where role = v_role and device_token_hash = v_token_hash;
   update public.tcg_players set device_token_hash = null, last_seen = now() where role = v_role;
+
+  -- Receipt writes never run timed game transitions or create a daily booster.
+  if p_action in ('opening_progress','finish_opening') then
+    begin
+      select * into receipt from public.tcg_opening_receipts
+      where booster_id=(p_payload->>'booster_id')::uuid and owner_role=v_role for update;
+    exception when invalid_text_representation then raise exception 'booster_unavailable'; end;
+    if receipt.booster_id is null then raise exception 'booster_unavailable'; end if;
+    if p_action='finish_opening' then
+      update public.tcg_opening_receipts set completed_at=coalesce(completed_at,now()) where booster_id=receipt.booster_id;
+    else
+      if coalesce(p_payload->>'index','') !~ '^[0-2]$' then raise exception 'invalid_request'; end if;
+      update public.tcg_opening_receipts set reveal_index=(p_payload->>'index')::integer, progress_at=now()
+      where booster_id=receipt.booster_id and completed_at is null;
+    end if;
+    return jsonb_build_object('opening_saved',true,'server_now',now());
+  end if;
 
   -- Timed transitions are server-authoritative.
   update public.tcg_cards
@@ -493,10 +525,12 @@ begin
     exception when invalid_text_representation then
       raise exception 'invalid_booster';
     end;
-    if not found or booster.opened_at is not null or booster.available_at > now() or booster.expires_at <= now() then
+    if not found then raise exception 'booster_unavailable'; end if;
+    if booster.opened_at is null and (booster.available_at > now() or booster.expires_at <= now()) then
       raise exception 'booster_unavailable';
     end if;
 
+    if booster.opened_at is null then
     -- Three cards per booster: one Energy, one challenge, then a challenge
     -- or a rare Joker (10%). The 70/20/8/2 finish split is applied only
     -- to authored challenge pools. Missing special pools fall back to common.
@@ -539,6 +573,19 @@ begin
         set last_seen_at = now(), times_seen = public.tcg_discoveries.times_seen + 1;
     end loop;
     update public.tcg_boosters set opened_at = now() where id = booster.id;
+
+    insert into public.tcg_opening_receipts(booster_id,owner_role,cards)
+    select booster.id,v_role,jsonb_agg(jsonb_build_object(
+      'id',c.id,'template_id',t.id,'category',t.category,'title',t.title,'challenge',t.challenge,
+      'symbol',t.symbol,'palette',t.palette,'card_type',t.card_type,'edition',t.edition,
+      'finish',c.finish,'wear_seed',c.wear_seed,'status','available',
+      'acquired_at',c.acquired_at,'expires_at',c.expires_at,'booster_id',c.booster_id
+    ) order by case t.card_type when 'energy' then 0 when 'challenge' then 1 else 2 end,c.id)
+    from public.tcg_cards c join public.tcg_card_templates t on t.id=c.template_id where c.booster_id=booster.id;
+    elsif not exists(select 1 from public.tcg_opening_receipts where booster_id=booster.id and owner_role=v_role and completed_at is null) then
+      raise exception 'booster_unavailable';
+    end if;
+
 
   elsif p_action = 'activate_card' then
     begin
@@ -775,6 +822,11 @@ begin
     'next_booster_at', ((v_release_date + 1) + time '05:00') at time zone 'Europe/Paris',
     'server_now', now(),
     'partner_online', exists(select 1 from public.tcg_players where role = v_other and last_seen > now() - interval '45 seconds'),
+    'pending_openings', (
+      select coalesce(jsonb_agg(jsonb_build_object('booster_id',r.booster_id,'cards',r.cards,
+        'index',r.reveal_index,'progress_at',r.progress_at,'opened_at',r.opened_at) order by r.opened_at),'[]'::jsonb)
+      from public.tcg_opening_receipts r where r.owner_role=v_role and r.completed_at is null
+    ),
     'boosters', v_boosters,
     'my_cards', v_my_cards,
     'partner_cards', v_partner_cards,
