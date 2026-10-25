@@ -1,0 +1,3 @@
+Generated with the built-in ImageGen tool. Style reference: the five-card mockup supplied by the user.
+Prompt summary: a square 3 by 2 atlas of antique engraved copper card illustrations, tactile grain and worn borders, without text. Row 1: REDUCTO, split medallion with plum palette; PRESTO, winged hourglass with rust palette; ADAGIO, moon hourglass with indigo palette. Row 2: AUGMENTO, twin gems with emerald palette; DESTRUCTO, shattered card with charcoal palette; spare copper star texture. Rich material relief, restrained category colors, coherent with the existing card family.
+Original output: exec-0b9348c7-5cb6-4e39-91c1-5a6050310583.png (1254 x 1254).

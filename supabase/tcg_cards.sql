@@ -52,15 +52,15 @@ alter table public.tcg_card_templates drop constraint if exists tcg_card_templat
 alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_eligible_role_check;
 alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_finish_tier_check;
 alter table public.tcg_card_templates add constraint tcg_card_templates_category_check
-  check (category in ('EN COUPLE', 'POUR L''AUTRE', 'MISE À NUE', 'LES FOODIES', 'TO DO', 'ÉNERGIE', 'JOKER'));
+  check (category in ('EN COUPLE', 'POUR L''AUTRE', 'MISE À NUE', 'LES FOODIES', 'TO DO', 'ÉNERGIE', 'JOKER', 'SORTILÈGES'));
 alter table public.tcg_card_templates add constraint tcg_card_templates_palette_check
-  check (palette in ('couple', 'other', 'nude', 'foodies', 'todo', 'energy', 'joker'));
+  check (palette in ('couple', 'other', 'nude', 'foodies', 'todo', 'energy', 'joker', 'reducto', 'presto', 'adagio', 'augmento', 'destructo'));
 alter table public.tcg_card_templates add constraint tcg_card_templates_card_type_check
-  check (card_type in ('challenge', 'energy', 'joker'));
+  check (card_type in ('challenge', 'energy', 'joker', 'spell'));
 alter table public.tcg_card_templates add constraint tcg_card_templates_eligible_role_check
   check (eligible_role is null or eligible_role in ('AG', 'CL'));
 alter table public.tcg_card_templates add constraint tcg_card_templates_finish_tier_check
-  check (finish_tier in ('standard', 'foil', 'full_art', 'full_art_foil'));
+  check (finish_tier in ('standard', 'foil', 'full_art', 'full_art_foil', 'legendary'));
 
 create table if not exists public.tcg_boosters (
   id uuid primary key default gen_random_uuid(),
@@ -90,7 +90,7 @@ create table if not exists public.tcg_cards (
   template_id text not null references public.tcg_card_templates(id),
   owner_role text not null references public.tcg_players(role),
   status text not null default 'available' check (status in ('available', 'trading', 'activated', 'used', 'expired')),
-  finish text not null default 'standard' check (finish in ('standard', 'foil', 'full_art', 'full_art_foil')),
+  finish text not null default 'standard' check (finish in ('standard', 'foil', 'full_art', 'full_art_foil', 'legendary')),
   wear_seed integer not null check (wear_seed between 0 and 999999),
   acquired_at timestamptz not null default now(),
   expires_at timestamptz not null,
@@ -152,6 +152,36 @@ create index if not exists tcg_opening_receipts_owner_idx on public.tcg_opening_
 alter table public.tcg_opening_receipts enable row level security;
 revoke all on public.tcg_opening_receipts from public, anon, authenticated;
 comment on table public.tcg_opening_receipts is 'Immutable drawn-card snapshots for interrupted discoveries. Token-validated RPC only.';
+
+alter table public.tcg_card_templates add column if not exists spell_code text;
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_spell_check;
+alter table public.tcg_card_templates add constraint tcg_card_templates_spell_check
+  check ((card_type='spell' and spell_code is not null and spell_code in ('reducto','presto','adagio','augmento','destructo')) or (card_type<>'spell' and spell_code is null));
+alter table public.tcg_cards add column if not exists effect_modifier text check (effect_modifier in ('reducto','augmento'));
+alter table public.tcg_cards add column if not exists time_modifier text check (time_modifier in ('presto','adagio'));
+alter table public.tcg_card_events add column if not exists target_card_id uuid references public.tcg_cards(id);
+create index if not exists tcg_card_events_target_idx on public.tcg_card_events(target_card_id);
+alter table public.tcg_card_events drop constraint if exists tcg_card_events_event_type_check;
+alter table public.tcg_card_events add constraint tcg_card_events_event_type_check
+  check (event_type in ('give_card','destroy_card','complete_card','spell_cast'));
+alter table public.tcg_card_events drop constraint if exists tcg_card_events_check;
+alter table public.tcg_card_events add constraint tcg_card_events_check
+  check ((event_type in ('give_card','spell_cast') and recipient_role is not null and recipient_role<>actor_role)
+      or (event_type in ('destroy_card','complete_card') and recipient_role is null));
+alter table public.tcg_card_events drop constraint if exists tcg_card_events_target_check;
+alter table public.tcg_card_events add constraint tcg_card_events_target_check
+  check ((event_type='spell_cast' and target_card_id is not null) or (event_type<>'spell_cast' and target_card_id is null));
+
+alter table public.tcg_card_templates drop constraint if exists tcg_card_templates_finish_tier_check;
+alter table public.tcg_card_templates add constraint tcg_card_templates_finish_tier_check
+  check (finish_tier in ('standard','foil','full_art','full_art_foil','legendary'));
+alter table public.tcg_cards drop constraint if exists tcg_cards_finish_check;
+alter table public.tcg_cards add constraint tcg_cards_finish_check
+  check (finish in ('standard','foil','full_art','full_art_foil','legendary'));
+alter table public.tcg_cards add column if not exists selected_template_id text references public.tcg_card_templates(id);
+create index if not exists tcg_cards_selected_template_idx on public.tcg_cards(selected_template_id);
+alter table public.tcg_cards drop constraint if exists tcg_cards_selected_check;
+alter table public.tcg_cards add constraint tcg_cards_selected_check check (selected_template_id is null or finish='legendary');
 
 create table if not exists public.tcg_discoveries (
   role text not null references public.tcg_players(role),
@@ -367,6 +397,37 @@ on conflict (id) do update set
   rarity = excluded.rarity, active = excluded.active, demo = false,
   edition = excluded.edition, draw_from = excluded.draw_from, draw_until = excluded.draw_until;
 
+insert into public.tcg_card_templates(id,category,title,challenge,symbol,palette,card_type,spell_code,finish_tier,rarity,active,demo,edition) values
+('spell-reducto','SORTILÈGES','REDUCTO','Divise par deux l’effet d’un rituel adverse. Un seul changement d’effet par carte.','◐','reducto','spell','reducto','standard','commune',true,false,'edition_01'),
+('spell-presto','SORTILÈGES','PRESTO','Divise par deux le temps restant d’un rituel adverse. Un seul changement de durée par carte.','⌛','presto','spell','presto','standard','commune',true,false,'edition_01'),
+('spell-adagio','SORTILÈGES','ADAGIO','Double le temps restant d’un rituel adverse. Un seul changement de durée par carte.','☾','adagio','spell','adagio','standard','commune',true,false,'edition_01'),
+('spell-augmento','SORTILÈGES','AUGMENTO','Double l’effet d’un rituel adverse. Un seul changement d’effet par carte.','✧','augmento','spell','augmento','full_art_foil','légendaire',true,false,'edition_01'),
+('spell-destructo','SORTILÈGES','DESTRUCTO','Détruit un exemplaire disponible dans la main adverse, à condition de l’avoir déjà découvert.','◇','destructo','spell','destructo','full_art_foil','légendaire',true,false,'edition_01'),
+('fafoil-foodies-journee','LES FOODIES','on mange TOUT ce que je veux, toute la journée','on mange TOUT ce que je veux, toute la journée','♨','foodies','challenge',null,'full_art_foil','légendaire',false,true,'edition_01'),
+('fafoil-todo-travaux','TO DO','gros travaux effectué par l’autre','gros travaux effectué par l’autre','✓','todo','challenge',null,'full_art_foil','légendaire',false,true,'edition_01')
+on conflict(id) do update set title=excluded.title,challenge=excluded.challenge,category=excluded.category,
+  symbol=excluded.symbol,palette=excluded.palette,card_type=excluded.card_type,spell_code=excluded.spell_code,
+  finish_tier=excluded.finish_tier,rarity=excluded.rarity,active=excluded.active,demo=excluded.demo,edition=excluded.edition;
+
+insert into public.tcg_card_templates(id,category,title,challenge,symbol,palette,card_type,finish_tier,rarity,active,demo,edition) values
+('legend-couple','EN COUPLE','EN COUPLE · LÉGENDAIRE','Choisis un défi full art + foil de cette catégorie.','✵','couple','challenge','legendary','légendaire',true,false,'edition_01'),
+('legend-other','POUR L''AUTRE','POUR L’AUTRE · LÉGENDAIRE','Choisis un défi full art + foil de cette catégorie.','✵','other','challenge','legendary','légendaire',true,false,'edition_01'),
+('legend-nude','MISE À NUE','MISE À NUE · LÉGENDAIRE','Choisis un défi full art + foil de cette catégorie.','✵','nude','challenge','legendary','légendaire',true,false,'edition_01'),
+('legend-foodies','LES FOODIES','LES FOODIES · LÉGENDAIRE','Choisis un défi full art + foil de cette catégorie.','✵','foodies','challenge','legendary','légendaire',true,false,'edition_01'),
+('legend-todo','TO DO','TO DO · LÉGENDAIRE','Choisis un défi full art + foil de cette catégorie.','✵','todo','challenge','legendary','légendaire',true,false,'edition_01')
+on conflict(id) do update set title=excluded.title,challenge=excluded.challenge,category=excluded.category,
+  symbol=excluded.symbol,palette=excluded.palette,card_type=excluded.card_type,finish_tier=excluded.finish_tier,
+  rarity=excluded.rarity,active=excluded.active,demo=excluded.demo,edition=excluded.edition;
+
+create or replace function public.tcg_legendary_options(p_role text,p_category text) returns jsonb
+language sql stable set search_path=public,pg_temp as $$
+  select coalesce(jsonb_agg(jsonb_build_object('id',t.id,'title',t.title,'challenge',t.challenge) order by t.id),'[]'::jsonb)
+  from public.tcg_card_templates t where t.category=p_category and t.card_type='challenge' and t.finish_tier='full_art_foil'
+    and (t.eligible_role is null or t.eligible_role=p_role)
+    and ((t.active and not t.demo) or t.id in ('fafoil-foodies-journee','fafoil-todo-travaux'));
+$$;
+revoke all on function public.tcg_legendary_options(text,text) from public,anon,authenticated;
+
 -- Internal picker: a single source of truth for temporal eligibility, profile
 -- restrictions and the 0.8 individual weight of Mise à nue cards.
 create or replace function public.tcg_pick_template(
@@ -376,8 +437,8 @@ language sql volatile
 set search_path = public, pg_temp
 as $$
   select t.* from public.tcg_card_templates t
-  where t.active and not t.demo and t.card_type = p_card_type
-    and (p_card_type <> 'challenge' or t.finish_tier = p_finish)
+  where t.active and not t.demo and (t.card_type = p_card_type or (p_card_type='challenge_or_spell' and t.card_type in ('challenge','spell')))
+    and (p_card_type not in ('challenge','challenge_or_spell') or t.finish_tier = p_finish)
     and (t.eligible_role is null or t.eligible_role = p_role)
     and (t.draw_from is null or (p_at >= t.draw_from and p_at < t.draw_until))
     and not (t.id = any(coalesce(p_excluded_ids, array[]::text[])))
@@ -402,6 +463,7 @@ declare
   player public.tcg_players%rowtype;
   booster public.tcg_boosters%rowtype;
   receipt public.tcg_opening_receipts%rowtype;
+  choice_row public.tcg_card_templates%rowtype;
   offered public.tcg_cards%rowtype;
   requested public.tcg_cards%rowtype;
   trade_row public.tcg_trades%rowtype;
@@ -419,6 +481,7 @@ declare
   v_draw_index integer;
   v_draw_type text;
   v_desired_finish text;
+  v_pool_type text;
   v_drawn_template_ids text[] := array[]::text[];
   v_boosters jsonb;
   v_my_cards jsonb;
@@ -429,7 +492,7 @@ declare
 begin
   if v_role not in ('AG', 'CL')
      or coalesce(p_token, '') !~ '^[a-f0-9]{48}$'
-     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card', 'opening_progress', 'finish_opening')
+     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card', 'opening_progress', 'finish_opening', 'use_spell')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -531,12 +594,13 @@ begin
     end if;
 
     if booster.opened_at is null then
-    -- Three cards per booster: one Energy, one challenge, then a challenge
-    -- or a rare Joker (10%). The 70/20/8/2 finish split is applied only
-    -- to authored challenge pools. Missing special pools fall back to common.
+    -- Three cards: Energy, guaranteed challenge, then challenge/spell/Joker.
+    -- Challenge finish split: 69.5 / 20 / 8 / 2 / 0.5 percent.
+    -- The one-off test campaign guarantees a spell and excludes legendaries.
     for v_draw_index in 1..3 loop
       v_draw_type := case
         when v_draw_index = 1 then 'energy'
+        when booster.bonus_key='spells-legends-test-2026-10-25' and v_draw_index=3 then 'spell'
         when v_draw_index = 3 and random() < 0.10 then 'joker'
         else 'challenge'
       end;
@@ -547,17 +611,21 @@ begin
       end if;
 
       if v_draw_type = 'challenge' then
+        v_pool_type := case when v_draw_index=3 then 'challenge_or_spell' else 'challenge' end;
         v_roll := random();
         v_desired_finish := case
-          when v_roll < 0.02 then 'full_art_foil'
-          when v_roll < 0.10 then 'foil'
-          when v_roll < 0.30 then 'full_art'
+          when v_roll < 0.005 and booster.bonus_key is distinct from 'spells-legends-test-2026-10-25' then 'legendary'
+          when v_roll < (0.005+0.02) then 'full_art_foil'
+          when v_roll < (0.005+0.10) then 'foil'
+          when v_roll < (0.005+0.30) then 'full_art'
           else 'standard'
         end;
-        select * into template_row from public.tcg_pick_template(v_role, 'challenge', v_desired_finish, v_drawn_template_ids);
+        select * into template_row from public.tcg_pick_template(v_role, v_pool_type, v_desired_finish, v_drawn_template_ids);
         if not found then
-          select * into template_row from public.tcg_pick_template(v_role, 'challenge', 'standard', v_drawn_template_ids);
+          select * into template_row from public.tcg_pick_template(v_role, v_pool_type, 'standard', v_drawn_template_ids);
         end if;
+      elsif v_draw_type = 'spell' then
+        select * into template_row from public.tcg_pick_template(v_role, 'spell', 'standard', v_drawn_template_ids);
       elsif v_draw_type = 'energy' then
         select * into template_row from public.tcg_pick_template(v_role, 'energy', 'standard', v_drawn_template_ids);
       end if;
@@ -577,8 +645,9 @@ begin
     insert into public.tcg_opening_receipts(booster_id,owner_role,cards)
     select booster.id,v_role,jsonb_agg(jsonb_build_object(
       'id',c.id,'template_id',t.id,'category',t.category,'title',t.title,'challenge',t.challenge,
-      'symbol',t.symbol,'palette',t.palette,'card_type',t.card_type,'edition',t.edition,
+      'symbol',t.symbol,'palette',t.palette,'card_type',t.card_type,'spell_code',t.spell_code,'edition',t.edition,
       'finish',c.finish,'wear_seed',c.wear_seed,'status','available',
+      'legendary_options',case when c.finish='legendary' then public.tcg_legendary_options(v_role,t.category) else '[]'::jsonb end,
       'acquired_at',c.acquired_at,'expires_at',c.expires_at,'booster_id',c.booster_id
     ) order by case t.card_type when 'energy' then 0 when 'challenge' then 1 else 2 end,c.id)
     from public.tcg_cards c join public.tcg_card_templates t on t.id=c.template_id where c.booster_id=booster.id;
@@ -601,8 +670,15 @@ begin
     end if;
     select * into template_row from public.tcg_card_templates where id = offered.template_id;
     if template_row.card_type = 'joker' then raise exception 'joker_requires_target'; end if;
+    if template_row.card_type = 'spell' then raise exception 'spell_requires_target'; end if;
+    if offered.finish='legendary' then
+      select * into choice_row from public.tcg_card_templates t where t.id=p_payload->>'choice_template_id'
+        and exists(select 1 from jsonb_array_elements(public.tcg_legendary_options(v_role,template_row.category)) o where o->>'id'=t.id);
+      if not found then raise exception 'invalid_legendary_choice'; end if;
+    end if;
     update public.tcg_cards
-    set status = 'activated', activated_at = now(), active_until = now() + interval '24 hours'
+    set status = 'activated', activated_at = now(), active_until = now() + interval '24 hours',
+      selected_template_id=case when offered.finish='legendary' then choice_row.id end
     where id = offered.id;
 
   elsif p_action in ('pin_card', 'complete_card') then
@@ -644,6 +720,34 @@ begin
     end if;
     insert into public.tcg_card_events(card_id, actor_role, recipient_role, event_type)
     values (offered.id, v_role, case when p_action = 'give_card' then v_other end, p_action);
+
+  elsif p_action='use_spell' then
+    begin
+      select * into offered from public.tcg_cards where id=(p_payload->>'spell_card_id')::uuid and owner_role=v_role for update;
+      select * into requested from public.tcg_cards where id=(p_payload->>'target_card_id')::uuid and owner_role=v_other for update;
+    exception when invalid_text_representation then raise exception 'spell_unavailable'; end;
+    select * into template_row from public.tcg_card_templates where id=offered.template_id;
+    if offered.id is null or requested.id is null or template_row.card_type<>'spell'
+      or offered.status<>'available' or offered.expires_at<=now() then raise exception 'spell_unavailable'; end if;
+    if template_row.spell_code='destructo' then
+      if requested.status<>'available' or requested.expires_at<=now()
+        or not exists(select 1 from public.tcg_discoveries where role=v_role and template_id=requested.template_id) then raise exception 'spell_unavailable'; end if;
+      update public.tcg_cards set status='destroyed',consumed_at=now(),is_pinned=false where id=requested.id;
+    else
+      if requested.status<>'activated' or requested.active_until<=now() then raise exception 'spell_unavailable'; end if;
+      if template_row.spell_code in ('reducto','augmento') then
+        if requested.effect_modifier is not null then raise exception 'effect_already_modified'; end if;
+        update public.tcg_cards set effect_modifier=template_row.spell_code where id=requested.id;
+      elsif template_row.spell_code in ('presto','adagio') then
+        if requested.time_modifier is not null then raise exception 'time_already_modified'; end if;
+        update public.tcg_cards set time_modifier=template_row.spell_code,
+          active_until=now()+(requested.active_until-now())*case when template_row.spell_code='presto' then 0.5 else 2.0 end
+        where id=requested.id;
+      else raise exception 'spell_unavailable'; end if;
+    end if;
+    update public.tcg_cards set status='used',consumed_at=now(),is_pinned=false where id=offered.id;
+    insert into public.tcg_card_events(card_id,actor_role,recipient_role,event_type,target_card_id)
+      values(offered.id,v_role,v_other,'spell_cast',requested.id);
 
   elsif p_action = 'use_joker' then
     begin
@@ -744,6 +848,7 @@ begin
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', b.id,
     'edition', case when now() >= timestamptz '2026-10-29 00:00:00 Europe/Paris' and now() < timestamptz '2026-11-02 00:00:00 Europe/Paris' then 'halloween_2026' else 'edition_01' end,
+    'is_test', b.bonus_key='spells-legends-test-2026-10-25',
     'available_at', b.available_at,
     'expires_at', b.expires_at
   ) order by b.expires_at), '[]'::jsonb)
@@ -753,9 +858,10 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'spell_code', t.spell_code, 'edition', t.edition,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status, 'is_pinned', c.is_pinned,
+    'legendary_options',case when c.finish='legendary' then public.tcg_legendary_options(v_role,t.category) else '[]'::jsonb end,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at, 'booster_id', c.booster_id
   ) order by c.expires_at), '[]'::jsonb)
   into v_my_cards
@@ -764,7 +870,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'spell_code', t.spell_code, 'edition', t.edition,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
     'wear_seed', c.wear_seed, 'status', c.status,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at
@@ -777,19 +883,21 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', c.id, 'owner_role', c.owner_role, 'template_id', t.id,
-    'category', t.category, 'title', t.title, 'challenge', t.challenge,
-    'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'rarity', t.rarity, 'edition', t.edition,
-    'finish', c.finish, 'wear_seed', c.wear_seed,
-    'activated_at', c.activated_at, 'active_until', c.active_until
+    'category', t.category, 'title', coalesce(selected.title,t.title), 'challenge', coalesce(selected.challenge,t.challenge),
+    'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'spell_code', t.spell_code, 'rarity', t.rarity, 'edition', t.edition,
+    'finish', c.finish, 'wear_seed', c.wear_seed, 'selected_template_id',c.selected_template_id,
+    'activated_at', c.activated_at, 'active_until', c.active_until, 'effect_modifier', c.effect_modifier, 'time_modifier', c.time_modifier
   ) order by c.active_until), '[]'::jsonb)
   into v_active_cards
   from public.tcg_cards c join public.tcg_card_templates t on t.id = c.template_id
+  left join public.tcg_card_templates selected on selected.id=c.selected_template_id
   where c.status = 'activated' and c.active_until > now();
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'template_id', t.id, 'category', t.category, 'title', t.title,
-    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
-    'rarity', t.rarity, 'finish_tier', t.finish_tier, 'demo', t.demo, 'first_seen_at', d.first_seen_at,
+    'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'spell_code', t.spell_code, 'edition', t.edition,
+    'rarity', t.rarity, 'finish_tier', t.finish_tier, 'demo', t.demo,
+    'legendary_options',case when t.finish_tier='legendary' then public.tcg_legendary_options(v_role,t.category) else '[]'::jsonb end, 'first_seen_at', d.first_seen_at,
     'last_seen_at', d.last_seen_at, 'times_seen', d.times_seen,
     'owned_count', (select count(*) from public.tcg_cards c where c.owner_role = v_role and c.template_id = t.id and c.status in ('available','trading'))
   ) order by d.first_seen_at desc), '[]'::jsonb)
@@ -856,15 +964,17 @@ begin
       select coalesce(jsonb_agg(jsonb_build_object(
         'id',e.id,'card_id',e.card_id,'event_type',e.event_type,'actor_role',e.actor_role,
         'recipient_role',e.recipient_role,'created_at',e.created_at,'title',t.title,'finish',c.finish,
-        'edition',t.edition
+        'edition',t.edition,'target_title',target.title,'spell_code',t.spell_code
       ) order by e.created_at desc,e.id desc),'[]'::jsonb)
       from (select * from public.tcg_card_events where actor_role=v_role or recipient_role=v_role
             order by created_at desc,id desc limit 40) e
       join public.tcg_cards c on c.id=e.card_id
       join public.tcg_card_templates t on t.id=c.template_id
+      left join public.tcg_cards target_card on target_card.id=e.target_card_id
+      left join public.tcg_card_templates target on target.id=target_card.template_id
     ),
     'trades', v_trades,
-    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10)
+    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10, 'legendary_chance',0.005)
   );
 end;
 $$;
