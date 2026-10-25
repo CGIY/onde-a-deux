@@ -63,7 +63,7 @@
     $(selector).innerHTML = html;
     markupCache.set(selector, signature);
   }
-  const finishSymbol = finish => ({ standard: "●", full_art: "◇", foil: "✦", full_art_foil: "✺" })[finish] || "●";
+  const finishSymbol = finish => ({ standard: "●", full_art: "◇", foil: "✦", full_art_foil: "✺", legendary: "✵" })[finish] || "●";
 
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
@@ -110,6 +110,11 @@
     card_unavailable: "Cette carte n’est plus disponible.",
     joker_requires_target: "Choisis une carte active de l’autre joueur à annuler.",
     joker_unavailable: "Ce Joker ou sa cible n’est plus disponible.",
+    invalid_legendary_choice: "Choisis un défi de cette légendaire avant de l’activer.",
+    spell_requires_target: "Choisis une cible pour ce sortilège.",
+    spell_unavailable: "Ce sortilège ou sa cible n’est plus disponible.",
+    effect_already_modified: "L’effet de cette carte a déjà été modifié.",
+    time_already_modified: "La durée de cette carte a déjà été modifiée.",
     trade_unavailable: "Cet échange n’est plus disponible.",
     no_active_card: "Aucune carte n’est encore publiée.",
     invalid_request: "La demande n’a pas pu être comprise.",
@@ -182,7 +187,7 @@
 
   function finishLabel(finish) {
     return ({
-      standard: "Commune", full_art: "Full art", foil: "Foil", full_art_foil: "Full art · Foil"
+      standard: "Commune", full_art: "Full art", foil: "Foil", full_art_foil: "Full art · Foil", legendary: "Légendaire"
     })[finish] || "Commune";
   }
 
@@ -202,16 +207,35 @@
 
   function cardMarkup(card, options = {}) {
     const finish = card.finish || card.finish_tier || "standard";
+    const choices = finish === "legendary" && !card.selected_template_id ? (card.legendary_options || []) : [];
+    const initial = choices[0];
+    const cycle = choices.length > 1 ? ` data-legend-cycle="${escapeHtml(JSON.stringify(choices.map(choice=>choice.title)))}"` : "";
+    const title = initial?.title || card.title;
+    const challenge = initial ? "Choisis ton défi à l’activation." : card.challenge;
     const seed = Number(card.wear_seed ?? hashString(card.template_id || card.title));
     const wear = Math.abs(seed) % 5;
     const timer = options.timer ? `<span class="card-timer" data-until="${escapeHtml(options.timer)}">${duration(options.timer)}</span>` : "";
+    const modifier = card.effect_modifier === "reducto" ? "REDUCTO · Effet ÷2" : card.effect_modifier === "augmento" ? "AUGMENTO · Effet ×2" : "";
+    const timeModifier = card.time_modifier === "presto" ? "PRESTO · Temps ÷2" : card.time_modifier === "adagio" ? "ADAGIO · Temps ×2" : "";
     return `<article class="game-card palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       <div class="card-top"><span>${escapeHtml(card.category)}</span><i>✦</i></div>
-      ${timer}<div class="card-copy${card.title.length > 34 ? " long-title" : ""}"><h4>${escapeHtml(card.title)}</h4><span class="card-divider" aria-hidden="true">◆</span><p>${escapeHtml(card.challenge || "Carte déjà découverte.")}</p></div>
+      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><span class="card-divider" aria-hidden="true">◆</span><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
       <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}</span></div>
     </article>`;
   }
+
+  function startLegendaryCycle() { setInterval(()=>{
+    if (document.hidden || reducedMotion.matches) return;
+    $$("[data-legend-cycle]").forEach(title=>{
+      if (!title.getClientRects().length) return;
+      let choices; try { choices=JSON.parse(title.dataset.legendCycle); } catch { return; }
+      if (choices.length<2) return;
+      const index=((Number(title.dataset.legendIndex)||0)+1)%choices.length;
+      title.classList.add("legend-changing");
+      setTimeout(()=>{if(!title.isConnected || !title.dataset.legendCycle)return;title.textContent=choices[index];title.dataset.legendIndex=index;title.classList.remove("legend-changing");},170);
+    });
+  },2400); }
 
   function hashString(value) {
     return [...String(value || "")].reduce((hash, character) => ((hash << 5) - hash + character.charCodeAt(0)) | 0, 0);
@@ -321,7 +345,7 @@
     putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">▣</span><strong>Reprendre la découverte<small>3 cartes déjà tirées · carte ${Number(receipt.index)+1} / 3</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
         <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${isHalloween(booster) ? "☾" : "✦"}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
-        <span class="booster-copy"><span>POUR ${escapeHtml(name(state.role))}</span><strong>Ouvrir ce booster <b>↗</b></strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+        <span class="booster-copy"><span>POUR ${escapeHtml(name(state.role))}</span><strong>${booster.is_test ? "Booster offert · test" : "Ouvrir ce booster"} <b>↗</b></strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
 
     putMarkup("#activeCards", data.active_cards.length
@@ -335,7 +359,7 @@
     $("#pinnedOnlyButton").hidden = state.collectionTab !== "available";
     $("#pinnedOnlyButton").setAttribute("aria-pressed", String(state.pinnedOnly));
     $("#pinnedOnlyButton").textContent = `📌 Épinglées · ${available.filter(card=>card.is_pinned).length}`;
-    const catalogueTotal = Number(state.data.catalogue_total || 80);
+    const catalogueTotal = Number(state.data.catalogue_total || 100);
     $("#knownTabCount").textContent = `${state.data.known_cards.length}/${catalogueTotal}`;
     $("#collectionNote").textContent = state.collectionTab === "available"
       ? "7 jours pour les nouveaux tirages · échéance sous chaque carte."
@@ -375,7 +399,7 @@
     const query = $("#cardSearch").value.trim().toLocaleLowerCase("fr");
     const finish = $("#finishFilter").value;
     const edition = $("#editionFilter").value;
-    return source.filter(card => (state.category === "all" || card.palette === state.category)
+    return source.filter(card => (state.category === "all" || card.palette === state.category || (state.category === "spells" && ["joker","spell"].includes(card.card_type)))
       && (state.collectionTab !== "available" || !state.pinnedOnly || card.is_pinned)
       && (edition === "all" || (card.edition || "edition_01") === edition)
       && (finish === "all" || (card.finish || card.finish_tier) === finish)
@@ -425,10 +449,10 @@
 
   function cardEventMarkup(event) {
     const own = event.actor_role === state.role;
-    const label = event.event_type === "give_card" ? own ? `Donné à ${name(event.recipient_role)}` : `Reçu de ${name(event.actor_role)}` : event.event_type === "complete_card" ? "Défi réalisé" : "Exemplaire détruit";
-    const icon = event.event_type === "give_card" ? "↗" : event.event_type === "complete_card" ? "🤝" : "✂";
+    const label = event.event_type === "spell_cast" ? own ? "Sortilège lancé" : "Sortilège reçu" : event.event_type === "give_card" ? own ? `Donné à ${name(event.recipient_role)}` : `Reçu de ${name(event.actor_role)}` : event.event_type === "complete_card" ? "Défi réalisé" : "Exemplaire détruit";
+    const icon = event.event_type === "spell_cast" ? "✧" : event.event_type === "give_card" ? "↗" : event.event_type === "complete_card" ? "🤝" : "✂";
     const date = new Intl.DateTimeFormat("fr-FR",{timeZone:"Europe/Paris",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(event.created_at));
-    return `<article class="card-event"><span aria-hidden="true">${icon}</span><div><small>${escapeHtml(label)}</small><strong>${escapeHtml(event.title)}</strong><time datetime="${escapeHtml(event.created_at)}">${escapeHtml(date)} · ${escapeHtml(finishLabel(event.finish))}</time></div></article>`;
+    return `<article class="card-event"><span aria-hidden="true">${icon}</span><div><small>${escapeHtml(label)}</small><strong>${escapeHtml(event.title)}${event.target_title ? ` → ${escapeHtml(event.target_title)}` : ""}</strong><time datetime="${escapeHtml(event.created_at)}">${escapeHtml(date)} · ${escapeHtml(finishLabel(event.finish))}</time></div></article>`;
   }
 
   function renderTradeSelection() {
@@ -569,6 +593,15 @@
       .find(card => (id && card.id === id) || (!id && templateId && card.template_id === templateId));
   }
 
+  function spellTargets(card) {
+    if (card.spell_code === "destructo") {
+      const known = new Set(state.data.known_cards.map(item=>item.template_id));
+      return state.data.partner_cards.filter(target=>target.status === "available" && new Date(target.expires_at)>serverNow() && known.has(target.template_id));
+    }
+    const effect = ["reducto","augmento"].includes(card.spell_code);
+    return state.data.active_cards.filter(target=>target.owner_role === state.data.partner_role && new Date(target.active_until)>serverNow() && (effect ? !target.effect_modifier : !target.time_modifier));
+  }
+
   function openCard(card, keepList = false) {
     if (!card) return;
     if (!keepList) {
@@ -580,7 +613,10 @@
     card = state.data.my_cards.find(owned => owned.id === card.id) || card;
     const isMine = card.id && state.data.my_cards.some(owned => owned.id === card.id);
     const isJoker = card.card_type === "joker";
-    const canActivate = isMine && card.status === "available" && !isJoker;
+    const isSpell = card.card_type === "spell";
+    const isLegendary = (card.finish || card.finish_tier) === "legendary";
+    const legendaryChoices = isLegendary ? (card.legendary_options || []) : [];
+    const canActivate = isMine && card.status === "available" && !isJoker && !isSpell;
     const active = card.active_until && new Date(card.active_until) > serverNow();
     const canComplete = active && card.owner_role === state.role && state.data.active_cards.some(item=>item.id===card.id);
     const ownership = isMine ? "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
@@ -592,15 +628,28 @@
         ? `<label class="joker-target">Carte active à annuler<select id="jokerTargetSelect">${jokerTargets.map(target => `<option value="${escapeHtml(target.id)}">${escapeHtml(target.title)}</option>`).join("")}</select></label><button class="primary-button" type="button" data-use-joker="${escapeHtml(card.id)}">Utiliser ce Joker</button>`
         : `<p>Aucune carte active de ${escapeHtml(name(state.data.partner_role))} ne peut être annulée pour l’instant.</p>`
       : "";
+    const legendaryAction = isLegendary && canActivate ? `<label class="joker-target">Ton défi au choix<select id="legendaryChoiceSelect">${legendaryChoices.map(choice=>`<option value="${escapeHtml(choice.id)}">${escapeHtml(choice.title)}</option>`).join("")}</select></label>` : "";
+    const targets = isSpell && isMine ? spellTargets(card) : [];
+    const spellAction = isSpell && isMine && card.status === "available"
+      ? targets.length ? `<label class="joker-target">${card.spell_code === "destructo" ? "Carte connue dans la main adverse" : "Rituel adverse à cibler"}<select id="spellTargetSelect">${targets.map(target=>`<option value="${escapeHtml(target.id)}">${escapeHtml(target.title)} · ${duration(target.active_until || target.expires_at)}</option>`).join("")}</select></label><button class="primary-button" type="button" data-use-spell="${escapeHtml(card.id)}">Lancer ${escapeHtml(card.title)}</button>`
+        : `<p>${card.spell_code === "destructo" ? "Aucune carte connue disponible dans la main adverse." : "Aucun rituel adverse ne peut recevoir ce changement pour l’instant."}</p>`
+      : "";
     $("#cardDialogContent").innerHTML = `<div class="viewer-card" id="viewerCard">${cardMarkup(card, { timer: card.active_until || (card.status === "available" ? card.expires_at : null), muted: !card.id })}</div>
       <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>←</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>→</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p>${escapeHtml(card.challenge)}</p>
-      ${jokerAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Cette carte reste active encore ${duration(card.active_until)}.</p>` : ""}
+      ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Cette carte reste active encore ${duration(card.active_until)}.</p>` : ""}
       ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">🤝 Défi réalisé</button>` : ""}
       ${isMine && card.status === "available" ? `<button class="pin-detail" type="button" data-pin-card="${escapeHtml(card.id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}">📌 ${card.is_pinned ? "Épinglée pour notre prochaine soirée" : "Épingler pour notre prochaine soirée"}</button>` : ""}
       ${isMine && card.status === "available" ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}"><span aria-hidden="true">⇄</span>Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}"><span aria-hidden="true">↗</span>Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}"><span aria-hidden="true">×</span>Détruire</button></div>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
     attachFoilMotion(cardDialog);
+    const choiceSelect = $("#legendaryChoiceSelect");
+    if (isLegendary && choiceSelect) choiceSelect.addEventListener("change",()=>{
+      const choice = legendaryChoices.find(item=>item.id===choiceSelect.value);
+      const title = $("#viewerCard h4");
+      if (!choice || !title) return;
+      delete title.dataset.legendCycle; title.classList.remove("legend-changing"); title.textContent=choice.title;
+    });
     setupSwipe($("#cardDialogContent"), (direction, dx) => moveViewer(direction, dx), $("#viewerCard"));
   }
 
@@ -643,7 +692,7 @@
     if (reducedMotion.matches) return;
     const badge = document.createElement("div");
     badge.className = "action-acknowledgment"; badge.setAttribute("aria-hidden","true");
-    badge.innerHTML = `<i>${kind === "give" ? "↗" : "🤝"}</i><span>${escapeHtml(label)}</span>`;
+    badge.innerHTML = `<i>${kind === "give" ? "↗" : kind === "spell" ? "✧" : "🤝"}</i><span>${escapeHtml(label)}</span>`;
     document.body.append(badge); setTimeout(()=>badge.remove(),750);
     if (!ghost) return;
     document.body.append(ghost);
@@ -1090,6 +1139,25 @@
       await performCardManagement(giving, id);
       return;
     }
+    const useSpell = event.target.closest("[data-use-spell]");
+    if (useSpell) {
+      const card = state.data.my_cards.find(item=>item.id===useSpell.dataset.useSpell);
+      const targetId = $("#spellTargetSelect")?.value;
+      const target = card && spellTargets(card).find(item=>item.id===targetId);
+      if (!card || !target) return toast(errorMessages.spell_unavailable);
+      if (!await confirmAction(`Lancer ${card.title} ?`, `${card.challenge} Cible : ${target.title}. Le sortilège sera consommé.`)) return;
+      const ghost = captureCardGhost();
+      const done = contextualBusy(useSpell,"Lancement…");
+      try {
+        await exchange("use_spell",{spell_card_id:card.id,target_card_id:target.id});
+        cardDialog.close(); render();
+        if (card.spell_code !== "destructo") setView("today");
+        acknowledgeCard(ghost,"spell",`${card.title} appliqué`); feedback("card");
+        toast(card.spell_code === "destructo" ? "Exemplaire adverse détruit · découverte conservée." : `${card.title} appliqué au rituel.`);
+      } catch (error) { toast(friendlyError(error)); }
+      finally { done(); }
+      return;
+    }
     const useJoker = event.target.closest("[data-use-joker]");
     if (useJoker) {
       const target = $("#jokerTargetSelect")?.value;
@@ -1112,7 +1180,7 @@
       const ghost = captureCardGhost();
       const done = contextualBusy(activate,"Activation…");
       try {
-        await exchange("activate_card", { card_id: activate.dataset.activateCard });
+        await exchange("activate_card", { card_id: activate.dataset.activateCard, ...($("#legendaryChoiceSelect") ? {choice_template_id:$("#legendaryChoiceSelect").value} : {}) });
         cardDialog.close();
         render();
         setView("today");
@@ -1188,6 +1256,7 @@
   });
   document.addEventListener("visibilitychange", () => document.hidden || sync({ quiet: true }));
   setInterval(updateTimers, 1000);
+  startLegendaryCycle();
   setupBoosterGesture();
   cutGesture = window.CardBoosterGesture.slice(destroyDialog, {
     isLocked: () => !destroyDialog.open || !destruction || destruction.committing,
