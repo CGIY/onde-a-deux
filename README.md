@@ -20,6 +20,16 @@ L’ouverture tactile suit la déchirure dans les deux sens : bande détachée, 
 
 Tests sans toucher aux données réelles : `node tests/booster-gesture.test.mjs` et `node tests/booster-preview.mjs` (aperçu isolé sur le port 8768, appels réseau bloqués et stockage neutralisé). `?failure=once` simule une coupure pour vérifier la reprise. Aucune migration ni remise à zéro n’accompagne cette retouche d’interface.
 
+### Épingles, échéances et défis réalisés V8
+
+Les cartes disponibles peuvent être épinglées par exemplaire. La collection les place en premier et le bouton « Épinglées » isole la sélection pour la prochaine soirée. Les épingles sont sauvegardées côté serveur pour le profil, sans changer aucune échéance ; elles ne sont pas transmises par un don ou un échange. Les piles gardent leur premier exemplaire à expirer pour jouer la carte, et ciblent l'exemplaire épinglé pour retirer son épingle.
+
+Le repère « Expire aujourd’hui » suit la date de Paris et se met à jour avec les compteurs. L'historique d'Actions regroupe les échanges, dons reçus/envoyés, destructions et défis réalisés, avec date et finition. Les événements privés de l'autre joueur ne sont pas exposés ; aucun titre inconnu n'est dévoilé par son historique de destruction. Les 40 événements de carte et 40 échanges les plus récents sont chargés, puis les 40 éléments les plus récents sont affichés.
+
+Le joueur qui a activé une carte peut utiliser **🤝 Défi réalisé**, sur la table ou dans le détail, avec confirmation. La carte devient utilisée et quitte immédiatement la table ; sa découverte et son enregistrement restent conservés. L'autre joueur ne peut pas clôturer cette activation. Le serveur refuse les cartes inactives et les répétitions ; une activation encore valide peut être clôturée même si son échéance initiale de collection est passée.
+
+La migration `20261025153303_pinned_cards_completed_challenges_history.sql` préserve les sauvegardes et journaux existants sous verrou. `supabase/tests/card_preparation.sql` teste les nouvelles opérations et leur confidentialité dans une transaction annulée. Les règles restent : collection 7 jours, activation 24 heures au maximum, aucune récompense de destruction.
+
 ### Gestes libres et gestion des cartes V7
 
 La découpe du booster peut commencer de chaque côté du paquet, avec une marge verticale généreuse. Le déplacement dans le vide ne déclenche aucun tirage. Le corps du paquet reste orientable. Le bandeau doré garde son ancrage jusqu'au détachement.

@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="7">
+  <meta name="tcg-version" content="8">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=7">
-  <link rel="stylesheet" href="daylight.css?v=7">
-  <link rel="stylesheet" href="halloween.css?v=7">
-  <link rel="stylesheet" href="booster-motion.css?v=7">
-  <link rel="stylesheet" href="experience.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="daylight.css?v=8">
+  <link rel="stylesheet" href="halloween.css?v=8">
+  <link rel="stylesheet" href="booster-motion.css?v=8">
+  <link rel="stylesheet" href="experience.css?v=8">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -101,6 +101,7 @@
         <details class="filter-drawer"><summary>Filtrer <b id="filterCount" hidden>0</b><span aria-hidden="true">⌄</span></summary><div class="collection-tools"><input id="cardSearch" type="search" placeholder="Retrouver une carte…" aria-label="Rechercher une carte"><select id="finishFilter" aria-label="Filtrer par finition"><option value="all">Toutes les finitions</option><option value="standard">Communes</option><option value="full_art">Full art</option><option value="foil">Foils</option><option value="full_art_foil">Full art + foil</option></select><select id="editionFilter" aria-label="Filtrer par édition"><option value="all">Toutes les éditions</option><option value="edition_01">Édition 01</option><option value="halloween_2026">Halloween 2026</option></select></div>
         <div class="category-filters" id="categoryFilters" aria-label="Catégories"><button data-category="all" aria-pressed="true" class="selected" type="button">Tout</button><button data-category="couple" aria-pressed="false" type="button">En couple</button><button data-category="other" aria-pressed="false" type="button">Pour l’autre</button><button data-category="nude" aria-pressed="false" type="button">Mise à nue</button><button data-category="foodies" aria-pressed="false" type="button">Les foodies</button><button data-category="todo" aria-pressed="false" type="button">To do</button><button data-category="energy" aria-pressed="false" type="button">Énergie</button><button data-category="joker" aria-pressed="false" type="button">Joker</button></div>
         </details><p class="collection-note" id="collectionNote">Les nouveaux tirages sont utilisables pendant 7 jours.</p>
+        <button class="pinned-filter" id="pinnedOnlyButton" type="button" aria-pressed="false">📌 Épinglées · 0</button>
         <div class="collection-grid" id="collectionGrid"></div>
       </section>
 
@@ -174,7 +175,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="booster-gesture.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

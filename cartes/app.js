@@ -32,6 +32,7 @@
     revealMoving: false,
     revealQueue: [],
     managementMode: "trade",
+    pinnedOnly: false,
     viewerMoving: false,
     viewerSession: 0,
     newTemplates: new Set()
@@ -169,6 +170,13 @@
 
   const isHalloween = card => card.edition === "halloween_2026";
   const editionLabel = edition => edition === "halloween_2026" ? "Halloween 2026" : "Édition 01";
+  function expiryHint(until) {
+    const date = new Date(until), now = serverNow();
+    if (!Number.isFinite(date.getTime())) return "";
+    if (date <= now) return "Expirée";
+    const day = value => new Intl.DateTimeFormat("en-CA", {timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
+    return day(date) === day(now) ? "Expire aujourd’hui" : "";
+  }
   function halloweenActive() {
     const now = serverNow().getTime();
     return now >= Date.parse("2026-10-29T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
@@ -242,10 +250,18 @@
     const groups = new Map();
     for (const card of [...cards].sort((a,b) => new Date(a.expires_at) - new Date(b.expires_at))) {
       const key = `${card.template_id || card.id}:${card.finish || card.finish_tier || "standard"}`;
-      if (groups.has(key)) groups.get(key).stack_count++;
-      else groups.set(key, { ...card, stack_count: 1 });
+      if (groups.has(key)) {
+        const group = groups.get(key); group.stack_count++;
+        if (card.is_pinned) { group.is_pinned = true; group.pinned_id ||= card.id; }
+      }
+      else groups.set(key, { ...card, stack_count: 1, pinned_id: card.is_pinned ? card.id : null });
     }
-    return [...groups.values()];
+    return [...groups.values()].sort((a,b)=>Number(Boolean(b.is_pinned))-Number(Boolean(a.is_pinned)));
+  }
+
+  function collectionTile(card) {
+    const id = card.pinned_id || card.id;
+    return `<div class="collection-tile${card.is_pinned ? " is-pinned" : ""}">${buttonCard(card,{timer:card.expires_at})}<button class="pin-toggle" type="button" data-pin-card="${escapeHtml(id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}" aria-label="${card.is_pinned ? "Retirer l’épingle" : "Épingler pour notre prochaine soirée"}">📌</button><small class="expiry-label" data-expiry="${escapeHtml(card.expires_at)}">${expiryHint(card.expires_at)}</small></div>`;
   }
 
   function renderToday() {
@@ -270,13 +286,16 @@
       </button>`).join("") : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`);
 
     putMarkup("#activeCards", data.active_cards.length
-      ? data.active_cards.map(card => buttonCard(card, { timer: card.active_until })).join("")
+      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until })}${card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Défi réalisé : ${escapeHtml(card.title)}" title="Défi réalisé">🤝</button>` : ""}</div>`).join("")
       : `<div class="table-empty"><span aria-hidden="true">✧</span><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 
   function renderCollection() {
     const available = state.data.my_cards.filter(card => card.status === "available");
     $("#availableTabCount").textContent = available.length;
+    $("#pinnedOnlyButton").hidden = state.collectionTab !== "available";
+    $("#pinnedOnlyButton").setAttribute("aria-pressed", String(state.pinnedOnly));
+    $("#pinnedOnlyButton").textContent = `📌 Épinglées · ${available.filter(card=>card.is_pinned).length}`;
     const catalogueTotal = Number(state.data.catalogue_total || 80);
     $("#knownTabCount").textContent = `${state.data.known_cards.length}/${catalogueTotal}`;
     $("#collectionNote").textContent = state.collectionTab === "available"
@@ -305,10 +324,10 @@
     }
     putMarkup("#collectionGrid", cards.length
       ? cards.map(card => state.collectionTab === "available"
-        ? buttonCard(card, { timer: card.expires_at })
+        ? collectionTile(card)
         : buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
       ).join("")
-      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? "Ouvre un booster pour commencer." : "À découvrir au fil des boosters."));
+      : empty((detailFilter || edition !== "all") ? "Aucune carte ne correspond à ces filtres." : state.collectionTab === "available" ? state.pinnedOnly ? "Épingle des cartes pour préparer votre prochaine soirée." : "Ouvre un booster pour commencer." : "À découvrir au fil des boosters."));
     $("#collectionOwner").textContent = `${state.collectionTab === "known" ? "L’album" : "La réserve"} de ${name(state.role)}`;
   }
 
@@ -318,6 +337,7 @@
     const finish = $("#finishFilter").value;
     const edition = $("#editionFilter").value;
     return source.filter(card => (state.category === "all" || card.palette === state.category)
+      && (state.collectionTab !== "available" || !state.pinnedOnly || card.is_pinned)
       && (edition === "all" || (card.edition || "edition_01") === edition)
       && (finish === "all" || (card.finish || card.finish_tier) === finish)
       && (!query || `${card.title} ${card.category}`.toLocaleLowerCase("fr").includes(query)));
@@ -360,7 +380,16 @@
     $("#navTradeBadge").hidden = !incoming;
     $("#navTradeBadge").textContent = incoming;
     $("#pendingTrades").innerHTML = pending.length ? pending.map(tradeMarkup).join("") : empty("Aucune proposition en attente.");
-    $("#tradeHistory").innerHTML = history.length ? history.map(tradeMarkup).join("") : empty("Les échanges terminés apparaîtront ici.");
+    const timeline = [...history.map(trade=>({at:trade.responded_at || trade.created_at,id:trade.id,html:tradeMarkup(trade)})), ...(state.data.card_events || []).map(event=>({at:event.created_at,id:event.id,html:cardEventMarkup(event)}))].sort((a,b)=>new Date(b.at)-new Date(a.at) || String(b.id).localeCompare(String(a.id))).slice(0,40);
+    putMarkup("#tradeHistory",timeline.length ? timeline.map(entry=>entry.html).join("") : empty("Dons, destructions, défis réalisés et échanges apparaîtront ici."));
+  }
+
+  function cardEventMarkup(event) {
+    const own = event.actor_role === state.role;
+    const label = event.event_type === "give_card" ? own ? `Donné à ${name(event.recipient_role)}` : `Reçu de ${name(event.actor_role)}` : event.event_type === "complete_card" ? "Défi réalisé" : "Exemplaire détruit";
+    const icon = event.event_type === "give_card" ? "↗" : event.event_type === "complete_card" ? "🤝" : "✂";
+    const date = new Intl.DateTimeFormat("fr-FR",{timeZone:"Europe/Paris",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(event.created_at));
+    return `<article class="card-event"><span aria-hidden="true">${icon}</span><div><small>${escapeHtml(label)}</small><strong>${escapeHtml(event.title)}</strong><time datetime="${escapeHtml(event.created_at)}">${escapeHtml(date)} · ${escapeHtml(finishLabel(event.finish))}</time></div></article>`;
   }
 
   function renderTradeSelection() {
@@ -402,6 +431,7 @@
   function updateTimers() {
     $("#nextBoosterCounter").textContent = nextBoosterDuration();
     $$('[data-until]').forEach(element => element.textContent = duration(element.dataset.until));
+    $$('[data-expiry]').forEach(element => element.textContent = expiryHint(element.dataset.expiry));
   }
 
   async function sync({ quiet = false } = {}) {
@@ -446,7 +476,7 @@
 
   async function selectRole(role) {
     if (state.busy) return;
-    if (state.role !== role) state.newTemplates.clear();
+    if (state.role !== role) { state.newTemplates.clear(); state.pinnedOnly = false; }
     state.role = role;
     state.token = storage.get(tokenKey(role));
     $("#loginStatus").textContent = `Connexion de ${name(role)}…`;
@@ -507,10 +537,12 @@
       state.viewerIndex = state.viewerCards.findIndex(item => card.id ? item.id === card.id : item.template_id === card.template_id);
       if (state.viewerIndex < 0) { state.viewerCards = [card]; state.viewerIndex = 0; }
     }
+    card = state.data.my_cards.find(owned => owned.id === card.id) || card;
     const isMine = card.id && state.data.my_cards.some(owned => owned.id === card.id);
     const isJoker = card.card_type === "joker";
     const canActivate = isMine && card.status === "available" && !isJoker;
     const active = card.active_until && new Date(card.active_until) > serverNow();
+    const canComplete = active && card.owner_role === state.role && state.data.active_cards.some(item=>item.id===card.id);
     const ownership = isMine ? "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
     const jokerTargets = isJoker && isMine
       ? state.data.active_cards.filter(target => target.owner_role === state.data.partner_role)
@@ -524,6 +556,8 @@
       <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>←</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>→</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p>${escapeHtml(card.challenge)}</p>
       ${jokerAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Cette carte reste active encore ${duration(card.active_until)}.</p>` : ""}
+      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">🤝 Défi réalisé</button>` : ""}
+      ${isMine && card.status === "available" ? `<button class="pin-detail" type="button" data-pin-card="${escapeHtml(card.id)}" data-pin-value="${!card.is_pinned}" aria-pressed="${Boolean(card.is_pinned)}">📌 ${card.is_pinned ? "Épinglée pour notre prochaine soirée" : "Épingler pour notre prochaine soirée"}</button>` : ""}
       ${isMine && card.status === "available" ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}"><span aria-hidden="true">⇄</span>Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}"><span aria-hidden="true">↗</span>Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}"><span aria-hidden="true">×</span>Détruire</button></div>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
     attachFoilMotion(cardDialog);
@@ -870,6 +904,30 @@
 
   document.addEventListener("click", async event => {
     if (state.busy) return;
+    if (event.target.closest("#pinnedOnlyButton")) { state.pinnedOnly = !state.pinnedOnly; renderCollection(); attachFoilMotion(); return; }
+    const pin = event.target.closest("[data-pin-card]");
+    if (pin) {
+      state.busy = true; pin.disabled = true; pin.setAttribute("aria-busy","true");
+      try {
+        await exchange("pin_card", {card_id:pin.dataset.pinCard,is_pinned:pin.dataset.pinValue === "true"});
+        render();
+        if (cardDialog.open) openCard(state.data.my_cards.find(card=>card.id===pin.dataset.pinCard));
+      } catch (error) { toast(friendlyError(error)); }
+      finally { state.busy = false; pin.disabled = false; pin.removeAttribute("aria-busy"); }
+      return;
+    }
+    const complete = event.target.closest("[data-complete-card]");
+    if (complete) {
+      if (!await confirmAction("Défi réalisé ?", "Vous l’avez fait ? La carte quitte la table et reste dans « Déjà vues ».")) return;
+      setBusy(true);
+      try {
+        await exchange("complete_card", {card_id:complete.dataset.completeCard});
+        cardDialog.close(); render(); feedback("card");
+        toast("🤝 Défi réalisé · découverte conservée.");
+      } catch (error) { toast(friendlyError(error)); }
+      finally { setBusy(false); }
+      return;
+    }
     if (event.target.closest("[data-go-collection]")) return setView("collection");
     if (event.target.closest("[data-viewer-prev]")) return moveViewer(-1);
     if (event.target.closest("[data-viewer-next]")) return moveViewer(1);

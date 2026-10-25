@@ -118,10 +118,10 @@ create table if not exists public.tcg_card_events (
   card_id uuid not null references public.tcg_cards(id),
   actor_role text not null references public.tcg_players(role),
   recipient_role text references public.tcg_players(role),
-  event_type text not null check (event_type in ('give_card', 'destroy_card')),
+  event_type text not null check (event_type in ('give_card', 'destroy_card', 'complete_card')),
   created_at timestamptz not null default now(),
   check ((event_type = 'give_card' and recipient_role is not null and recipient_role <> actor_role)
-      or (event_type = 'destroy_card' and recipient_role is null))
+      or (event_type in ('destroy_card','complete_card') and recipient_role is null))
 );
 create index if not exists tcg_card_events_card_idx on public.tcg_card_events(card_id);
 create index if not exists tcg_card_events_actor_idx on public.tcg_card_events(actor_role);
@@ -129,6 +129,15 @@ create index if not exists tcg_card_events_recipient_idx on public.tcg_card_even
 alter table public.tcg_card_events enable row level security;
 revoke all on public.tcg_card_events from public, anon, authenticated;
 comment on table public.tcg_card_events is 'Append-only gift/destruction audit written only by the token-validated card API. Direct access blocked.';
+
+alter table public.tcg_cards add column if not exists is_pinned boolean not null default false;
+alter table public.tcg_card_events drop constraint if exists tcg_card_events_event_type_check;
+alter table public.tcg_card_events add constraint tcg_card_events_event_type_check
+  check (event_type in ('give_card','destroy_card','complete_card'));
+alter table public.tcg_card_events drop constraint if exists tcg_card_events_check;
+alter table public.tcg_card_events add constraint tcg_card_events_check
+  check ((event_type='give_card' and recipient_role is not null and recipient_role<>actor_role)
+      or (event_type in ('destroy_card','complete_card') and recipient_role is null));
 
 create table if not exists public.tcg_discoveries (
   role text not null references public.tcg_players(role),
@@ -405,7 +414,7 @@ declare
 begin
   if v_role not in ('AG', 'CL')
      or coalesce(p_token, '') !~ '^[a-f0-9]{48}$'
-     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card')
+     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -549,6 +558,22 @@ begin
     set status = 'activated', activated_at = now(), active_until = now() + interval '24 hours'
     where id = offered.id;
 
+  elsif p_action in ('pin_card', 'complete_card') then
+    begin
+      select * into offered from public.tcg_cards
+      where id=(p_payload->>'card_id')::uuid and owner_role=v_role for update;
+    exception when invalid_text_representation then raise exception 'card_unavailable'; end;
+    if offered.id is null then raise exception 'card_unavailable'; end if;
+    if p_action='pin_card' then
+      if offered.status<>'available' or offered.expires_at<=now() then raise exception 'card_unavailable'; end if;
+      if jsonb_typeof(p_payload->'is_pinned') is distinct from 'boolean' then raise exception 'invalid_request'; end if;
+      update public.tcg_cards set is_pinned=(p_payload->>'is_pinned')::boolean where id=offered.id;
+    else
+      if offered.status<>'activated' or offered.active_until<=now() then raise exception 'card_unavailable'; end if;
+      update public.tcg_cards set status='used',consumed_at=now(),active_until=now(),is_pinned=false where id=offered.id;
+      insert into public.tcg_card_events(card_id,actor_role,event_type) values(offered.id,v_role,'complete_card');
+    end if;
+
   elsif p_action in ('give_card', 'destroy_card') then
     begin
       select * into offered from public.tcg_cards
@@ -561,7 +586,7 @@ begin
       raise exception 'card_unavailable';
     end if;
     if p_action = 'give_card' then
-      update public.tcg_cards set owner_role = v_other where id = offered.id;
+      update public.tcg_cards set owner_role = v_other, is_pinned = false where id = offered.id;
       insert into public.tcg_discoveries(role, template_id)
       values (v_other, offered.template_id)
       on conflict (role, template_id) do update
@@ -635,8 +660,8 @@ begin
          or offered.expires_at <= now() or requested.expires_at <= now() then
         raise exception 'trade_unavailable';
       end if;
-      update public.tcg_cards set owner_role = v_role, status = 'available' where id = offered.id;
-      update public.tcg_cards set owner_role = trade_row.proposed_by, status = 'available' where id = requested.id;
+      update public.tcg_cards set owner_role = v_role, status = 'available', is_pinned = false where id = offered.id;
+      update public.tcg_cards set owner_role = trade_row.proposed_by, status = 'available', is_pinned = false where id = requested.id;
       insert into public.tcg_discoveries(role, template_id)
       values (v_role, offered.template_id), (trade_row.proposed_by, requested.template_id)
       on conflict (role, template_id) do update
@@ -683,7 +708,7 @@ begin
     'id', c.id, 'template_id', t.id, 'category', t.category, 'title', t.title,
     'challenge', t.challenge, 'symbol', t.symbol, 'palette', t.palette, 'card_type', t.card_type, 'edition', t.edition,
     'rarity', t.rarity, 'demo', t.demo, 'finish', c.finish,
-    'wear_seed', c.wear_seed, 'status', c.status,
+    'wear_seed', c.wear_seed, 'status', c.status, 'is_pinned', c.is_pinned,
     'acquired_at', c.acquired_at, 'expires_at', c.expires_at, 'booster_id', c.booster_id
   ) order by c.expires_at), '[]'::jsonb)
   into v_my_cards
@@ -774,6 +799,17 @@ begin
         from public.tcg_card_templates t
         left join public.tcg_discoveries d on d.template_id = t.id and d.role = v_role
         where not t.demo group by t.edition) e
+    ),
+    'card_events', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id',e.id,'card_id',e.card_id,'event_type',e.event_type,'actor_role',e.actor_role,
+        'recipient_role',e.recipient_role,'created_at',e.created_at,'title',t.title,'finish',c.finish,
+        'edition',t.edition
+      ) order by e.created_at desc,e.id desc),'[]'::jsonb)
+      from (select * from public.tcg_card_events where actor_role=v_role or recipient_role=v_role
+            order by created_at desc,id desc limit 40) e
+      join public.tcg_cards c on c.id=e.card_id
+      join public.tcg_card_templates t on t.id=c.template_id
     ),
     'trades', v_trades,
     'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10)
