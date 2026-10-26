@@ -73,7 +73,9 @@
     };
     surface.addEventListener("pointerup", event => end(event));
     surface.addEventListener("pointercancel", event => end(event, true));
-    surface.addEventListener("lostpointercapture", event => end(event, true));
+    // Touch starts with implicit capture on the child under the finger. Moving
+    // capture to the modal emits a bubbling loss on that child, not a cancel.
+    surface.addEventListener("lostpointercapture", event => { if (event.target === surface) end(event, true); });
     pack.addEventListener("contextmenu", event => event.preventDefault());
     return { reset };
   }
@@ -109,9 +111,10 @@
       if (element.hasPointerCapture?.(previous.id)) element.releasePointerCapture(previous.id);
     };
     const up = event => end(event), cancel = event => end(event, true);
+    const lost = event => { if (event.target === element) end(event, true); };
     const click = event => { if (event.timeStamp <= suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); } };
     element.addEventListener("click", click, true);
-    const listeners = [["pointerdown",down],["pointermove",move],["pointerup",up],["pointercancel",cancel],["lostpointercapture",cancel]];
+    const listeners = [["pointerdown",down],["pointermove",move],["pointerup",up],["pointercancel",cancel],["lostpointercapture",lost]];
     for (const [type, handler] of listeners) element.addEventListener(type, handler);
     return () => {
       for (const [type, handler] of listeners) element.removeEventListener(type, handler);
@@ -157,7 +160,8 @@
       }
     };
     const up = event => end(event), cancel = event => end(event,true);
-    const listeners = [["pointerdown",down],["pointermove",move],["pointerup",up],["pointercancel",cancel],["lostpointercapture",cancel]];
+    const lost = event => { if (event.target === surface) end(event,true); };
+    const listeners = [["pointerdown",down],["pointermove",move],["pointerup",up],["pointercancel",cancel],["lostpointercapture",lost]];
     for (const [type,handler] of listeners) surface.addEventListener(type,handler);
     const reset = () => { const previous = gesture; gesture = null; if (previous && surface.hasPointerCapture?.(previous.id)) surface.releasePointerCapture(previous.id); };
     const cleanup = () => { for (const [type,handler] of listeners) surface.removeEventListener(type,handler); reset(); };

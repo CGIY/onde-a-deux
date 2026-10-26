@@ -18,10 +18,11 @@ state.data.pending_openings=[receipt];state.revealIndex=0;api.rememberRevealPosi
 assert.equal(calls.length,1,'Cursor writes must serialize');resolveWrite();await new Promise(resolve=>setImmediate(resolve));assert.equal(calls.length,2);assert.equal(calls[1].index,2,'Queued positions coalesce to the latest');resolveWrite();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(JSON.parse(memory.get('les-cartes-reveal:AG:pack')).index,2);
 // Exercise the actual transport: light cursor acknowledgments cannot replace inventory.
-const exchangeCode=source.slice(source.indexOf('  async function exchange('),source.indexOf('  function serverNow('));
 let response={opening_saved:true,server_now:'2026-10-25T16:00:00Z'},releaseFetch;
 const original=state.data;
-const exchange=runInNewContext(exchangeCode+'\nexchange',{state,SUPABASE_URL:'https://example.invalid',SUPABASE_KEY:'fixture',AbortController,setTimeout,clearTimeout,fetch:async()=>{if(releaseFetch===null)await new Promise(resolve=>releaseFetch=resolve);return {ok:true,json:async()=>response};}});
+const transportWindow={};
+runInNewContext(readFileSync(new URL('../cartes/card-transport.js',import.meta.url),'utf8'),{window:transportWindow,AbortController,setTimeout,clearTimeout,fetch:async()=>{if(releaseFetch===null)await new Promise(resolve=>releaseFetch=resolve);return {ok:true,json:async()=>response};}});
+const exchange=transportWindow.CardTransport.create({state,url:'https://example.invalid',key:'fixture'});
 await exchange('opening_progress');assert.equal(state.data,original);
 response={my_cards:[],pending_openings:[]};await exchange('sync');assert.equal(state.data,response);
 releaseFetch=null;const stale=exchange('sync');state.role='CL';state.token='test-cl';releaseFetch();await assert.rejects(stale,/profile_changed/);assert.equal(state.data,response);

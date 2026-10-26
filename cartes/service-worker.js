@@ -1,9 +1,10 @@
-const CACHE = "les-cartes-v12";
+const CACHE = "les-cartes-v13";
 // Only the normal shell is preloaded. Seasonal and rare art load when displayed.
-const SHELL = ["./", "./index.html", "./styles.css?v=12", "./daylight.css?v=12", "./halloween.css?v=12", "./booster-motion.css?v=12", "./experience.css?v=12", "./polish.css?v=12", "./booster-gesture.js?v=12", "./app.js?v=12", "./season-banner.js?v=12", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
+const SHELL = ["./", "./index.html", "./styles.css?v=13", "./daylight.css?v=13", "./halloween.css?v=13", "./booster-motion.css?v=13", "./experience.css?v=13", "./polish.css?v=13", "./booster-gesture.js?v=13", "./app.js?v=13", "./card-transport.js?v=13", "./season-banner.js?v=13", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
 });
+self.addEventListener("message", event => {if(event.data?.type === "ACTIVATE") self.skipWaiting();});
 self.addEventListener("activate", event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("les-cartes-") && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });

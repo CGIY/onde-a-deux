@@ -448,6 +448,19 @@ as $$
 $$;
 revoke all on function public.tcg_pick_template(text,text,text,text[],timestamptz) from public, anon, authenticated;
 
+-- Pure schedule calculation: no inventory changes or new public API.
+create or replace function public.tcg_daily_release_window(p_now timestamptz)
+returns table(release_date date,available_at timestamptz,expires_at timestamptz)
+language sql stable set search_path = '' as $function$
+  select d.day, d.at, d.at + interval '48 hours'
+  from (
+    select ((p_now at time zone 'Europe/Paris' - interval '5 hours')::date - n) as day,
+      (((p_now at time zone 'Europe/Paris' - interval '5 hours')::date - n) + time '05:00') at time zone 'Europe/Paris' as at
+    from generate_series(0,2) n
+  ) d where d.at <= p_now and d.at + interval '48 hours' > p_now;
+$function$;
+revoke all on function public.tcg_daily_release_window(timestamptz) from public,anon,authenticated;
+
 create or replace function public.tcg_exchange(
   p_role text,
   p_token text,
@@ -470,6 +483,7 @@ declare
   template_row public.tcg_card_templates%rowtype;
   v_role text := upper(coalesce(p_role, ''));
   v_other text;
+  v_history_limit integer := case when coalesce(p_payload->>'history_limit','') ~ '^[0-9]{1,3}$' then greatest(20,least(500,(p_payload->>'history_limit')::integer)) else 40 end;
   v_token_hash text;
   v_access_hash text;
   v_device_known boolean;
@@ -574,8 +588,8 @@ begin
   );
 
   insert into public.tcg_boosters(owner_role, release_date, available_at, expires_at)
-  select role, v_release_date, v_available_at, v_available_at + interval '48 hours'
-  from public.tcg_players
+  select p.role, d.release_date, d.available_at, d.expires_at
+  from public.tcg_players p cross join public.tcg_daily_release_window(now()) d
   on conflict (owner_role, release_date) do nothing;
 
   if p_action = 'open_booster' then
@@ -915,7 +929,7 @@ begin
   into v_trades
   from (select * from public.tcg_trades
         where proposed_by in (v_role, v_other)
-        order by created_at desc limit 40) tr
+        order by created_at desc limit v_history_limit) tr
   join public.tcg_cards a on a.id = tr.offered_card_id
   join public.tcg_card_templates ta on ta.id = a.template_id
   join public.tcg_cards b on b.id = tr.requested_card_id
@@ -963,15 +977,17 @@ begin
     'card_events', (
       select coalesce(jsonb_agg(jsonb_build_object(
         'id',e.id,'card_id',e.card_id,'event_type',e.event_type,'actor_role',e.actor_role,
-        'recipient_role',e.recipient_role,'created_at',e.created_at,'title',t.title,'finish',c.finish,
-        'edition',t.edition,'target_title',target.title,'spell_code',t.spell_code
+        'recipient_role',e.recipient_role,'created_at',e.created_at,'title',coalesce(chosen.title,t.title),'finish',c.finish,
+        'edition',t.edition,'target_title',coalesce(target_choice.title,target.title),'spell_code',t.spell_code
       ) order by e.created_at desc,e.id desc),'[]'::jsonb)
       from (select * from public.tcg_card_events where actor_role=v_role or recipient_role=v_role
-            order by created_at desc,id desc limit 40) e
+            order by created_at desc,id desc limit v_history_limit) e
       join public.tcg_cards c on c.id=e.card_id
       join public.tcg_card_templates t on t.id=c.template_id
       left join public.tcg_cards target_card on target_card.id=e.target_card_id
       left join public.tcg_card_templates target on target.id=target_card.template_id
+      left join public.tcg_card_templates chosen on chosen.id=c.selected_template_id
+      left join public.tcg_card_templates target_choice on target_choice.id=target_card.selected_template_id
     ),
     'trades', v_trades,
     'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10, 'legendary_chance',0.005)
