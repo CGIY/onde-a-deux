@@ -12,7 +12,7 @@ http.createServer((req,res)=>{
   const path=new URL(req.url,'http://localhost').pathname;
   if(path==='/'){res.writeHead(302,{Location:'/cartes/'});return res.end();}
   const file=path==='/cartes/'?'index.html':path.slice('/cartes/'.length);
-  if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|app\.js|season-banner\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.(jpg|png|webp)|preview\/(index\.html|legendary-concept\.(png|webp)|legendary\.js|legendary\.css))$/.test(file)){res.writeHead(404);return res.end();}
+  if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|app\.js|season-banner\.js|card-transport\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.(jpg|png|webp)|preview\/(index\.html|legendary-concept\.(png|webp)|legendary\.js|legendary\.css))$/.test(file)){res.writeHead(404);return res.end();}
   try{
     let content=readFileSync(new URL(file,root));
     if(file==='index.html')content=content.toString().replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after,.selection-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after,.selection-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
