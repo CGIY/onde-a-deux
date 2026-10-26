@@ -4,21 +4,13 @@
   const region = document.querySelector("#seasonBanner");
   if (!region) return;
   const prism = document.querySelector("#seasonPrism");
-  const pause = document.querySelector("#seasonPause");
   const live = document.querySelector("#seasonAnnouncement");
   const faces = [...region.querySelectorAll("[data-season-event]")];
   const starts = faces.map(face=>Date.parse(face.dataset?.announceFrom || "2026-10-01T00:00:00+02:00"));
   const pages = [...region.querySelectorAll(".season-pages i")];
   const ends = ["2026-11-02T00:00:00+01:00", "2026-11-09T00:00:00+01:00", "2026-12-26T00:00:00+01:00"].map(Date.parse);
   const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-  let enabled = [0, 1, 2], index = 0, turn = 0, paused = false, hovering = false, offset = 0, resumeFocused = false;
-
-  function updatePause() {
-    pause.hidden = reduce.matches || enabled.length < 2;
-    pause.setAttribute("aria-pressed", String(paused));
-    pause.setAttribute("aria-label", paused ? "Reprendre les annonces" : "Mettre les annonces en pause");
-    pause.innerHTML = `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${paused ? "m9 5 10 7-10 7Z" : "M9 6v12m6-12v12"}"/></svg>`;
-  }
+  let enabled = [0, 1, 2], index = 0, turn = 0, hovering = false, offset = 0;
 
   function show(next, manual = false, direction = 1) {
     if (!enabled.includes(next)) return;
@@ -45,7 +37,6 @@
     enabled = ends.flatMap((end, i) => time >= starts[i] && time < end ? [i] : []);
     region.hidden = !enabled.length;
     if (enabled.length) show(enabled.includes(index) ? index : enabled[0]);
-    updatePause();
   }
 
   function next(manual = false, direction = 1) {
@@ -56,14 +47,12 @@
   }
 
   for (const face of faces) face.addEventListener("click", () => next(true));
-  pause.addEventListener("click", () => { paused = !paused; resumeFocused = !paused; updatePause(); });
   window.CardBoosterGesture?.swipe(region,{includeButtons:true,onMove:()=>{},onEnd:()=>{},onSwipe:direction=>next(true,direction)});
   region.addEventListener("pointerenter", event => { if (event.pointerType === "mouse") hovering = true; });
   region.addEventListener("pointerleave", () => { hovering = false; });
-  reduce.addEventListener("change", updatePause);
   setInterval(() => {
     refresh(new Date(Date.now() + offset));
-    if (paused || hovering || reduce.matches || document.hidden || region.hidden || region.classList.contains("motion-paused") || (region.contains(document.activeElement) && !(resumeFocused && document.activeElement === pause)) || !region.getClientRects().length) return;
+    if (hovering || reduce.matches || document.hidden || region.hidden || region.classList.contains("motion-paused") || region.contains(document.activeElement) || !region.getClientRects().length) return;
     next();
   }, 7000);
   window.SeasonAnnouncements = Object.freeze({ refresh });

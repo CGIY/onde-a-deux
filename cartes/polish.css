@@ -1597,31 +1597,6 @@ body {
   color:#ffd49a;
   animation:none
 }
-.season-pause {
-  position:absolute;
-  z-index:3;
-  top:50%;
-  right:max(8px,calc((100vw - 952px)/2 - 4px));
-  transform:translateY(-50%);
-  width:28px;
-  height:28px;
-  min-width:28px;
-  min-height:28px;
-  border-radius:50%;
-  padding:0;
-  border:1px solid #ffecd02b;
-  background:#180e2022;
-  color:#fff1d7;
-  display:grid;
-  place-items:center;
-  line-height:0;
-  touch-action:manipulation
-}
-.season-pause .ui-icon {
-  width:15px;
-  height:15px;
-  stroke-width:1.8
-}
 .season-face[aria-hidden="true"] .season-bat,.season-face[aria-hidden="true"] .bat-wing {
   animation-play-state:paused!important
 }
@@ -1885,25 +1860,6 @@ body  {
 .sealed-pack:not(.dragging):not(.opened)  {
   transition:transform .38s cubic-bezier(.18,.8,.25,1);
 }
-.season-pause  {
-  width:44px;
-  height:44px;
-  border:0;
-  background:transparent;
-  right:0;
-}
-.season-pause:before  {
-  content:"";
-  position:absolute;
-  width:26px;
-  height:26px;
-  border:1px solid #ffecd044;
-  border-radius:50%;
-  background:#180e2022;
-}
-.season-pause .ui-icon  {
-  position:relative;
-}
 .season-pages  {
   position:absolute;
   bottom:3px;
@@ -1933,3 +1889,50 @@ body  {
     animation:none!important;
   }
 }
+
+/* Seasonal silhouettes share the Halloween scene's subdued depth and movement. */
+.season-face { padding-right:max(18px,calc((100vw - 952px)/2)); }
+.season-scene { position:absolute; inset:0; z-index:0; overflow:hidden; contain:paint; pointer-events:none; }
+.season-scene svg { display:block; width:100%; height:100%; overflow:visible; fill:currentColor; }
+.season-face>.birthday-copy { display:flex; flex-direction:column; gap:2px; line-height:1.2; }
+.birthday-copy b { font-size:10px; font-weight:500; }
+.birthday-copy>span { font-size:9px; color:#ffdda8; }
+.season-mammoth { position:absolute; bottom:-1px; left:-75px; width:40px; height:25px; color:#24131f; opacity:.3; animation:mammoth-procession 29s linear infinite; animation-delay:-8s; }
+.season-mammoth:nth-child(2) { width:28px; height:18px; bottom:0; animation-duration:35s; animation-delay:-18s; opacity:.24; }
+.season-mammoth:nth-child(3) { width:51px; height:31px; bottom:-3px; animation-duration:31s; animation-delay:-24s; opacity:.3; }
+.season-mammoth:nth-child(4) { width:23px; height:15px; bottom:1px; animation-duration:34s; animation-delay:-5s; opacity:.22; }
+.mammoth-body { animation:mammoth-bob .85s ease-in-out infinite; }
+.mammoth-leg { transform-box:fill-box; transform-origin:50% 0; animation:mammoth-step .85s ease-in-out infinite alternate; }
+.mammoth-leg-back { animation-delay:-.42s; opacity:.75; }
+.mammoth-leg.second { animation-direction:alternate-reverse; }
+.mammoth-tusk,.mammoth-ear { fill:none; stroke:#ffe6bd; stroke-width:3; stroke-linecap:round; opacity:.45; }
+.mammoth-ear { stroke-width:1.8; opacity:.25; }
+@keyframes mammoth-procession { from { transform:translateX(0); } to { transform:translateX(calc(100vw + 160px)); } }
+@keyframes mammoth-step { from { transform:rotate(-14deg); } to { transform:rotate(14deg); } }
+@keyframes mammoth-bob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-1px); } }
+.season-flake { position:absolute; top:-16px; left:10%; width:7px; height:7px; opacity:0; color:#fff0d7; animation:season-snow 11s linear infinite; animation-delay:-3s; }
+.season-flake svg { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; }
+.season-flake:nth-child(2n) { width:4px; height:4px; animation-duration:14s; opacity:.2; }
+.season-flake:nth-child(3n) { width:9px; height:9px; animation-duration:10s; }
+.season-flake:nth-child(2) { left:19%; animation-delay:-9s; }
+.season-flake:nth-child(3) { left:28%; animation-delay:-5s; }
+.season-flake:nth-child(4) { left:37%; animation-delay:-12s; }
+.season-flake:nth-child(5) { left:46%; animation-delay:-7s; }
+.season-flake:nth-child(6) { left:55%; animation-delay:-2s; }
+.season-flake:nth-child(7) { left:64%; animation-delay:-9s; }
+.season-flake:nth-child(8) { left:73%; animation-delay:-5s; }
+.season-flake:nth-child(9) { left:82%; animation-delay:-8s; }
+.season-flake:nth-child(10) { left:91%; animation-delay:-1s; }
+.season-flake:nth-child(11) { left:4%; animation-delay:-6s; }
+.season-flake:nth-child(12) { left:98%; animation-delay:-11s; }
+@keyframes season-snow { 0% { transform:translate3d(-8px,0,0) rotate(0deg); opacity:0; } 10%,85% { opacity:.33; } 100% { transform:translate3d(15px,76px,0) rotate(100deg); opacity:0; } }
+.season-sleigh { position:absolute; width:155px; height:36px; left:-180px; top:10px; color:#15222d; opacity:.28; animation:season-sleigh-flight 32s linear infinite; animation-delay:-12s; }
+.sleigh-rope,.sleigh-runner,.deer-antlers,.deer-legs path { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.sleigh-rope { stroke-width:1; }
+.sleigh-bob { animation:mammoth-bob 1.7s ease-in-out infinite; }
+.deer-legs { transform-box:fill-box; transform-origin:50% 0; animation:deer-gallop .8s ease-in-out infinite alternate; animation-delay:var(--deer-delay); }
+@keyframes deer-gallop { from { transform:skewX(-16deg) scaleY(.8); } to { transform:skewX(16deg) scaleY(1); } }
+@keyframes season-sleigh-flight { from { transform:translate3d(0,8px,0) scale(.75); } to { transform:translate3d(calc(100vw + 360px),-7px,0) scale(.62); } }
+.season-face[aria-hidden="true"] .season-scene *,.season-banner.motion-paused .season-scene * { animation-play-state:paused!important; }
+@media(max-width:359px) { .birthday-copy>span { font-size:9px; } .season-face-birthday>strong { font-size:10.5px; } }
+@media(prefers-reduced-motion:reduce) { .season-scene { display:none; } .season-scene * { animation:none!important; } }

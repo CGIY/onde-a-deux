@@ -5,24 +5,34 @@ const source=readFileSync(new URL('../cartes/season-banner.js',import.meta.url),
 const fixed=Date.parse('2026-10-25T12:00:00Z');class Clock extends Date{constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}
 const doc={hidden:false,activeElement:null};const handlers=()=>({events:{},attrs:{},addEventListener(type,fn){this.events[type]=fn;},setAttribute(key,value){this.attrs[key]=value;}});
 const faces=['Halloween','Anniversaire de Mamamouth','Noël'].map((title,index)=>({...handlers(),querySelector(selector){return{textContent:selector==='strong'?title:['29 oct.–1 nov.','08 novembre','18–25 décembre'][index]};},focus(){doc.activeElement=this;}}));
-const pause={...handlers()},live={},style={};let offscreen=false;
-const region={...handlers(),hidden:false,classList:{contains:()=>offscreen},querySelectorAll:()=>faces,getClientRects:()=>[{}],contains:element=>faces.includes(element)||element===pause};
+const live={},style={};let offscreen=false;
+const region={...handlers(),hidden:false,classList:{contains:()=>offscreen},querySelectorAll:()=>faces,getClientRects:()=>[{}],contains:element=>faces.includes(element)};
 const prism={style:{setProperty:(key,value)=>style[key]=value}};
-const nodes={'#seasonBanner':region,'#seasonPrism':prism,'#seasonPause':pause,'#seasonAnnouncement':live};doc.querySelector=key=>nodes[key];
+const nodes={'#seasonBanner':region,'#seasonPrism':prism,'#seasonAnnouncement':live};doc.querySelector=key=>nodes[key];
 const reduce={matches:false,...handlers()};let tick;
 const win={};runInNewContext(source,{document:doc,window:win,matchMedia:()=>reduce,Date:Clock,setInterval:fn=>{tick=fn;}});
 assert.equal(region.hidden,false);assert.equal(faces[0].inert,false);assert.equal(faces[1].inert,true);
 faces[0].events.click();assert.equal(style['--prism-turn'],'-120deg');assert.match(live.textContent,/Mamamouth/);
 faces[1].events.click();assert.equal(style['--prism-turn'],'-240deg');faces[2].events.click();assert.equal(style['--prism-turn'],'-360deg');
 tick();assert.equal(style['--prism-turn'],'-480deg');
-pause.events.click();tick();assert.equal(style['--prism-turn'],'-480deg');assert.equal(pause.attrs['aria-pressed'],'true');pause.events.click();
+
 doc.hidden=true;tick();assert.equal(style['--prism-turn'],'-480deg');doc.hidden=false;
 offscreen=true;tick();assert.equal(style['--prism-turn'],'-480deg');offscreen=false;
 region.events.pointerenter({pointerType:'mouse'});tick();assert.equal(style['--prism-turn'],'-480deg');region.events.pointerleave();
 doc.activeElement=faces[1];tick();assert.equal(style['--prism-turn'],'-480deg');doc.activeElement=null;
-reduce.matches=true;reduce.events.change();tick();assert.equal(style['--prism-turn'],'-480deg');assert.equal(pause.hidden,true);faces[1].events.click();assert.equal(style['--prism-turn'],'-600deg');reduce.matches=false;
+reduce.matches=true;tick();assert.equal(style['--prism-turn'],'-480deg');faces[1].events.click();assert.equal(style['--prism-turn'],'-600deg');reduce.matches=false;
 win.SeasonAnnouncements.refresh('2026-11-01T23:00:00Z');assert.equal(faces[0].inert,true);faces[2].events.click();assert.equal(faces[1].inert,false,'After Halloween, only birthday and Christmas should cycle');
-win.SeasonAnnouncements.refresh('2026-11-08T23:00:00Z');assert.equal(faces[2].inert,false);assert.equal(pause.hidden,true);
+win.SeasonAnnouncements.refresh('2026-11-08T23:00:00Z');assert.equal(faces[2].inert,false);
 win.SeasonAnnouncements.refresh('2026-12-25T23:00:00Z');assert.equal(region.hidden,true);
 assert.deepEqual(Object.keys(win.SeasonAnnouncements),['refresh']);
-console.log('OK: 120-degree prism steps and full wrap, manual/automatic rotation, pause/background/offscreen/focus/reduced motion, inactive faces inaccessible and Paris event end dates. No game API used.');
+assert.doesNotMatch(readFileSync(new URL('../cartes/index.html',import.meta.url),'utf8'),/seasonPause|season-pause/);
+console.log('OK: 120-degree prism steps and full wrap, manual/automatic rotation, background/offscreen/focus/reduced motion, inactive faces inaccessible and Paris event end dates. No game API used.');
+
+const html=readFileSync(new URL('../cartes/index.html',import.meta.url),'utf8');
+assert.equal((html.match(/class="season-mammoth"/g)||[]).length,4);
+assert.equal((html.match(/class="season-flake"/g)||[]).length,12);
+assert.equal((html.match(/class="sleigh-deer"/g)||[]).length,3);
+assert.match(html,/AG · \+1 booster · chances ×2/);
+assert.match(html,/season-scene season-mammoths" aria-hidden="true"/);
+assert.match(html,/season-scene season-winter" aria-hidden="true"/);
+console.log('OK: four mammoths, twelve flakes, three reindeer, noninteractive decorative scenes, no pause button and an explicit AG birthday benefit.');
