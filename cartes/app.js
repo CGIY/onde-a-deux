@@ -374,7 +374,7 @@
     putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Carte ${Number(receipt.index)+1} / 3</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
         <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
-        <span class="booster-copy"><span class="pack-owner">${booster.is_test ? `<b class="gift-badge">Offert</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
 
     putMarkup("#activeCards", data.active_cards.length

@@ -461,6 +461,32 @@ language sql stable set search_path = '' as $function$
 $function$;
 revoke all on function public.tcg_daily_release_window(timestamptz) from public,anon,authenticated;
 
+-- Calendar-only helpers: private, deterministic for a supplied instant.
+create or replace function public.tcg_birthday_multiplier(p_role text,p_now timestamptz)
+returns double precision language sql stable set search_path='' as $fn$
+  select case when p_role='AG' and p_now >= timestamptz '2026-11-08 00:00 Europe/Paris'
+    and p_now < timestamptz '2026-11-09 00:00 Europe/Paris' then 2.0 else 1.0 end;
+$fn$;
+create or replace function public.tcg_challenge_finish(p_role text,p_now timestamptz,p_roll double precision,p_allow_legendary boolean default true)
+returns text language sql stable set search_path='' as $fn$
+  select case when p_roll < .005*m and p_allow_legendary then 'legendary'
+    when p_roll < .025*m then 'full_art_foil'
+    when p_roll < .105*m then 'foil'
+    when p_roll < .305*m then 'full_art' else 'standard' end
+  from (select public.tcg_birthday_multiplier(p_role,p_now) m) b;
+$fn$;
+create or replace function public.tcg_birthday_booster_window(p_now timestamptz)
+returns table(owner_role text,bonus_key text,available_at timestamptz,expires_at timestamptz)
+language sql stable set search_path='' as $fn$
+  select 'AG'::text,'birthday-mamamouth-2026-11-08'::text,
+    timestamptz '2026-11-08 00:00 Europe/Paris',timestamptz '2026-11-10 00:00 Europe/Paris'
+  where p_now >= timestamptz '2026-11-08 00:00 Europe/Paris'
+    and p_now < timestamptz '2026-11-10 00:00 Europe/Paris';
+$fn$;
+revoke all on function public.tcg_birthday_multiplier(text,timestamptz) from public,anon,authenticated;
+revoke all on function public.tcg_challenge_finish(text,timestamptz,double precision,boolean) from public,anon,authenticated;
+revoke all on function public.tcg_birthday_booster_window(timestamptz) from public,anon,authenticated;
+
 create or replace function public.tcg_exchange(
   p_role text,
   p_token text,
@@ -592,6 +618,12 @@ begin
   from public.tcg_players p cross join public.tcg_daily_release_window(now()) d
   on conflict (owner_role, release_date) do nothing;
 
+  -- One birthday gift, additive to daily releases; its original 48h clock never moves.
+  insert into public.tcg_boosters(owner_role,release_date,bonus_key,available_at,expires_at)
+  select w.owner_role,null,w.bonus_key,w.available_at,w.expires_at
+  from public.tcg_birthday_booster_window(now()) w
+  on conflict(owner_role,bonus_key) where bonus_key is not null do nothing;
+
   if p_action = 'open_booster' then
     begin
       select * into booster
@@ -627,13 +659,8 @@ begin
       if v_draw_type = 'challenge' then
         v_pool_type := case when v_draw_index=3 then 'challenge_or_spell' else 'challenge' end;
         v_roll := random();
-        v_desired_finish := case
-          when v_roll < 0.005 and booster.bonus_key is distinct from 'spells-legends-test-2026-10-25' then 'legendary'
-          when v_roll < (0.005+0.02) then 'full_art_foil'
-          when v_roll < (0.005+0.10) then 'foil'
-          when v_roll < (0.005+0.30) then 'full_art'
-          else 'standard'
-        end;
+        v_desired_finish := public.tcg_challenge_finish(v_role,now(),v_roll,
+          booster.bonus_key is distinct from 'spells-legends-test-2026-10-25');
         select * into template_row from public.tcg_pick_template(v_role, v_pool_type, v_desired_finish, v_drawn_template_ids);
         if not found then
           select * into template_row from public.tcg_pick_template(v_role, v_pool_type, 'standard', v_drawn_template_ids);
@@ -863,6 +890,7 @@ begin
     'id', b.id,
     'edition', case when now() >= timestamptz '2026-10-29 00:00:00 Europe/Paris' and now() < timestamptz '2026-11-02 00:00:00 Europe/Paris' then 'halloween_2026' else 'edition_01' end,
     'is_test', b.bonus_key='spells-legends-test-2026-10-25',
+    'is_birthday',b.bonus_key='birthday-mamamouth-2026-11-08',
     'available_at', b.available_at,
     'expires_at', b.expires_at
   ) order by b.expires_at), '[]'::jsonb)
@@ -990,7 +1018,7 @@ begin
       left join public.tcg_card_templates target_choice on target_choice.id=target_card.selected_template_id
     ),
     'trades', v_trades,
-    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10, 'legendary_chance',0.005)
+    'rules', jsonb_build_object('booster_hours', 48, 'booster_cards', 3, 'active_hours', 24, 'collection_days', 7, 'daily_release_hour', 5, 'joker_slot_chance', 0.10, 'legendary_chance',0.005*public.tcg_birthday_multiplier(v_role,now()),'birthday_role','AG','birthday_multiplier',public.tcg_birthday_multiplier(v_role,now()))
   );
 end;
 $$;
