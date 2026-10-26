@@ -1508,12 +1508,13 @@ body {
     animation:none!important
   }
 }
-/* Three 46px faces form an equilateral triangular prism (apothem = 46 / 2√3). */
+/* Three 59.8px faces: previous 46px ribbon enlarged by exactly 30%. */
 .season-banner.season-carousel {
-  --prism-depth:13.279px;
+  --season-ribbon-height:59.8px;
+  --prism-depth:17.263px;
   display:block;
-  height:46px;
-  min-height:46px;
+  height:var(--season-ribbon-height);
+  min-height:var(--season-ribbon-height);
   padding:0;
   border:0;
   background:none;
@@ -1524,7 +1525,7 @@ body {
 .season-prism {
   position:relative;
   width:100%;
-  height:46px;
+  height:var(--season-ribbon-height);
   transform-style:preserve-3d;
   transform:rotateX(var(--prism-turn,0deg));
   transition:transform .85s cubic-bezier(.22,.68,.2,1)
@@ -1536,7 +1537,7 @@ body {
   align-items:center;
   gap:9px;
   width:100%;
-  height:46px;
+  height:var(--season-ribbon-height);
   margin:0;
   padding:9px max(48px,calc((100vw - 952px)/2 + 30px)) 9px max(18px,calc((100vw - 952px)/2));
   border:1px solid #c0936277;
@@ -1554,8 +1555,8 @@ body {
   cursor:pointer
 }
 .season-face-birthday {
-  background:linear-gradient(105deg,#876144,#774a60);
-  border-color:#d5ad8a66
+  background:linear-gradient(105deg,#82628e,#624a78);
+  border-color:#d0b6dc77
 }
 .season-face-christmas {
   background:linear-gradient(105deg,#3e6352,#304d60);

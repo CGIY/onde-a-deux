@@ -1,0 +1,107 @@
+/* One-shot Depressive Deck, 26 October 2026. */
+.deck-preview-launch { display:flex; align-items:center; gap:13px; width:100%; margin:0 0 18px; padding:14px 16px; border:1px solid #a396aa70; border-radius:18px; background:linear-gradient(120deg,#e9e0ebc9,#f8f0e8ab); color:#55445d; text-align:left; }
+.deck-preview-launch>span:first-child { font:28px Georgia,serif; }
+.deck-preview-launch>span:nth-child(2) { flex:1; }
+.deck-preview-launch strong { display:block; font:20px Georgia,serif; }
+.deck-preview-launch small { display:block; margin-top:5px; font-size:12px; color:#746577; }
+.depressive-deck-dialog { position:fixed; inset:0; margin:0; width:100%; max-width:none; height:100dvh; max-height:none; border:0; border-radius:0; padding:52px 24px 28px; background:radial-gradient(ellipse at 10% 5%,#c7b2cb48,transparent 55%),radial-gradient(ellipse at 100% 95%,#c5b19e44,transparent 50%),#f6f0e8; color:#53415a; overflow:auto; overscroll-behavior:contain; }
+.depressive-deck-dialog:before { content:""; position:fixed; inset:0; background-image:var(--surface-grain); background-size:384px; opacity:.19; mix-blend-mode:multiply; pointer-events:none; z-index:0; }
+.deck-content { position:relative; max-width:500px; margin:auto; z-index:1; }
+.deck-close { position:fixed; right:16px; top:38px; width:44px; height:44px; min-height:44px; padding:0; display:grid; place-items:center; border:1px solid #a18caa55; border-radius:50%; color:#62506a; background:#fff9f0b8; font:30px/1 Georgia,serif; z-index:30; }
+.deck-demo-label { position:fixed; top:0; left:0; right:0; z-index:40; padding:8px; background:#4b3c53; color:#f6ebf5; text-align:center; font-size:9px; letter-spacing:.1em; }
+.deck-intro { text-align:center; padding-top:23px; }
+.deck-intro>.eyebrow { color:#8c748f; font-size:10px; }
+.deck-intro h2 { font:400 42px/.96 Georgia,serif; letter-spacing:-.045em; margin:18px 0 14px; }
+.deck-intro h2 em { color:#92728f; font-weight:400; }
+.deck-intro>p { font-size:14px; color:#82717f; margin:0; }
+.deck-primary { width:100%; min-height:51px; padding:14px 18px; border:1px solid #77618155; border-radius:15px; background:linear-gradient(115deg,#79607f,#55435e); color:#fff7f2; font:600 14px/1.4 -apple-system,BlinkMacSystemFont,sans-serif; box-shadow:0 7px 17px #4930521b; }
+.deck-primary:disabled { opacity:.6; }
+.deck-note { display:block; text-align:center; font-size:12px; line-height:1.65; color:#85717e; margin:15px auto 0; max-width:360px; }
+.deck-box-stage { --box-width:186px; --box-height:250px; --box-depth:44px; position:relative; width:var(--box-width); height:var(--box-height); margin:42px auto 38px; perspective:850px; perspective-origin:50% 15%; }
+.deck-box-stage:after { content:""; position:absolute; left:-5%; right:-15%; bottom:-18px; height:18px; border-radius:50%; background:#49364d28; filter:blur(10px); pointer-events:none; }
+/* All six planes share one depth and one projection; no independent skew. */
+.deck-box { position:relative; width:100%; height:100%; transform-style:preserve-3d; transform:rotateX(-20deg) rotateY(-25deg) rotateZ(-3deg); animation:deck-box-idle 5.5s ease-in-out infinite; }
+.deck-box-face,.deck-box-back,.deck-box-side,.deck-box-bottom,.deck-box-mouth { position:absolute; border:1px solid #c7b8b4; backface-visibility:hidden; }
+.deck-box-face { inset:0; transform:translateZ(calc(var(--box-depth) / 2)); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; background:linear-gradient(90deg,#796582 0 8px,#eee3d4 9px,#faf5e9 15px,#f3ebdd 100%); box-shadow:inset -1px 0 3px #fff9ef; color:#68516d; padding:16px 12px 16px 20px; }
+.deck-box-face>span { font-size:7px; letter-spacing:.15em; color:#917b8f; }
+.deck-box-face>b { font:400 23px/.95 Georgia,serif; letter-spacing:-.03em; }
+.deck-box-face>b em { display:block; font-weight:400; font-size:33px; color:#8c718d; }
+.deck-box-face>small { font-size:7px; letter-spacing:.1em; color:#978a8f; margin-top:5px; }
+.deck-box-emblem { display:block; flex:0 0 auto; width:75px; height:94px; background:url('assets/depressive-memory-atlas.jpg') 25% 0 / 500% 200%; mix-blend-mode:multiply; margin:3px 0; border-radius:50%; }
+.deck-box-back { inset:0; transform:rotateY(180deg) translateZ(calc(var(--box-depth) / 2)); background:#938098; }
+.deck-box-side { top:0; width:var(--box-depth); height:100%; background:linear-gradient(90deg,#a491aa,#826d8b); border-color:#8c7693; }
+.deck-box-right { left:calc(100% - var(--box-depth) / 2); transform:rotateY(90deg); }
+.deck-box-left { left:calc(var(--box-depth) / -2); transform:rotateY(-90deg); background:#796582; }
+.deck-box-right:after { content:""; position:absolute; inset:10px 6px; border:1px solid #ded0dc44; }
+.deck-box-bottom,.deck-box-mouth { width:100%; height:var(--box-depth); left:0; }
+.deck-box-bottom { top:calc(100% - var(--box-depth) / 2); transform:rotateX(-90deg); background:#89748d; }
+.deck-box-mouth { top:calc(var(--box-depth) / -2); transform:rotateX(90deg); background:linear-gradient(90deg,#4f4054,#6e5975 45%,#4f4054); box-shadow:inset 0 0 0 4px #c6b9ae; }
+/* The lid pivots around the actual back/top edge, z = -depth/2. */
+.deck-box-lid { position:absolute; top:0; left:0; width:100%; height:var(--box-depth); transform-origin:50% 0; transform-style:preserve-3d; transform:translateZ(calc(var(--box-depth) / -2)) rotateX(90deg); transition:transform .78s cubic-bezier(.2,.65,.2,1); }
+.deck-box-lid:before,.deck-box-lid:after { content:""; position:absolute; inset:0; border:1px solid #c5b7b0; backface-visibility:hidden; }
+.deck-box-lid:before { transform:translateZ(1px); background:linear-gradient(180deg,#ede1d0,#fcf5e8); }
+.deck-box-lid:after { transform:rotateY(180deg); background:#dacbb9; }
+.deck-box-card { position:absolute; inset:12px 12px 7px; transform:translateZ(calc(var(--box-depth) / 2 - 5px)); border:1px solid #c4afbd; border-radius:8px; background:var(--surface-grain),linear-gradient(135deg,#b8a6bc,#8b7594); background-size:180px,auto; box-shadow:0 2px 0 #f7ecdf,0 4px 0 #c6b4bf; transition:transform .8s cubic-bezier(.2,.65,.2,1) .3s; }
+.deck-box-card:after { content:""; position:absolute; inset:8px; border:1px solid #f6eadb77; border-radius:5px; }
+.deck-box.is-opening { animation-play-state:paused; }
+.deck-box.is-opening .deck-box-lid { transform:translateZ(calc(var(--box-depth) / -2)) rotateX(200deg); }
+.deck-box.is-opening .deck-box-card { transform:translateY(-68px) translateZ(calc(var(--box-depth) / 2 - 5px)); }
+@keyframes deck-box-idle { 0%,100% { transform:translateY(0) rotateX(-20deg) rotateY(-25deg) rotateZ(-3deg); } 50% { transform:translateY(-5px) rotateX(-17deg) rotateY(-21deg) rotateZ(-2deg); } }
+.deck-reading-head { text-align:center; margin:22px 0 25px; }
+.deck-reading-head>.eyebrow { font-size:10px; color:#8f7695; }
+.deck-reading-head h2 { font:32px/1.05 Georgia,serif; letter-spacing:-.04em; font-weight:400; margin:12px 0 20px; }
+.deck-totals { display:flex; justify-content:space-between; gap:10px; color:#81717e; font-size:12px; }
+.deck-totals b { color:#5e4865; font-weight:650; font-variant-numeric:tabular-nums; }
+.deck-progress { display:flex; gap:5px; margin-top:12px; }
+.deck-progress i { flex:1; height:3px; border-radius:3px; background:#c6b8c34f; }
+.deck-progress i.complete { background:#8c718d; }
+
+.memory-head { margin:18px 0; }
+.memory-head h2 { font-size:31px; margin:12px 0 18px; }
+.deck-stats { margin-bottom:20px; }
+.memory-grid { width:min(100%,calc((100dvh - 310px)*.64)); min-width:240px; margin-inline:auto; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+.memory-tile { display:block; position:relative; width:100%; aspect-ratio:4/5; padding:0; border:0; border-radius:10px; background:transparent; perspective:600px; touch-action:manipulation; animation:memory-deal .34s cubic-bezier(.2,.75,.2,1) both; animation-delay:var(--tile-delay,0ms); }
+.memory-flip { position:absolute; inset:0; display:block; transform-style:preserve-3d; transition:transform .28s cubic-bezier(.2,.75,.2,1); }
+.memory-tile[data-face="up"] .memory-flip { transform:rotateY(180deg); }
+.memory-back,.memory-front { display:grid; place-items:center; position:absolute; inset:0; border-radius:10px; border:1px solid #c8b9bc; -webkit-backface-visibility:hidden; backface-visibility:hidden; box-shadow:0 3px 7px #49374b18; }
+.memory-back { overflow:hidden; background:var(--surface-grain),linear-gradient(145deg,#b5a2b9,#89708f); background-size:180px,auto; }
+.memory-back:before { content:""; position:absolute; width:24%; aspect-ratio:1; top:35%; left:42%; border-radius:50%; box-shadow:-6px 3px 0 0 #f3e5d4d9; transform:rotate(-20deg); }
+.memory-back:after { content:""; position:absolute; inset:5px; border:1px solid #f6eadb66; border-radius:6px; }
+/* One preloaded sheet for all ten airy watercolor illustrations. */
+.memory-front { transform:rotateY(180deg); overflow:hidden; background:#faf7ec; border-color:#d9cab6; }
+.memory-illustration { position:absolute; inset:0; display:block; border-radius:inherit; background-image:url('assets/depressive-memory-atlas.jpg'); background-size:500% 200%; background-position:var(--motif-x) var(--motif-y); background-repeat:no-repeat; }
+.memory-front:after { content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 0 0 1px #fff9ee88; pointer-events:none; }
+.memory-tile:disabled { opacity:1; cursor:default; }
+.memory-tile.is-matched { opacity:.28; transition:opacity .35s; }
+.memory-tile.is-matched .memory-front { border-color:#a58b60; }
+.memory-status { min-height:42px; margin:18px 0 0; text-align:center; color:#79617e; font-size:13px; line-height:1.5; }
+.memory-help { margin-top:0; font-size:11px; }
+.memory-rules { text-align:center; margin-top:18px; color:#81717e; font-size:13px; line-height:1.5; }
+.memory-rules p { margin:5px 0; }
+.memory-rarity { margin-top:12px; font-size:11px; }
+.memory-rarity summary { cursor:pointer; padding:8px; }
+.memory-rarity p { font-size:11px; line-height:1.6; }
+.memory-prize { position:relative; width:min(70vw,280px); margin:28px auto; }
+.memory-prize .game-card { animation:memory-reveal .4s ease-out both; }
+.memory-prize.is-rare:before { content:""; position:absolute; inset:-25px; border-radius:50%; background:conic-gradient(#e4b97344,#c99bcb55,#84bbbf55,#e4b97344); filter:blur(25px); pointer-events:none; }
+.deck-pair-status { min-height:24px; margin:0 0 18px; color:#735c79; text-align:center; font-size:14px; line-height:1.5; }
+.memory-result { display:flex; flex-direction:column; align-items:center; gap:8px; margin:24px 0; color:#806b84; }
+.memory-result strong { font:32px Georgia,serif; color:#614a69; }
+.memory-result span { font-size:15px; }
+.deck-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:22px 0; }
+.deck-summary>div { position:relative; }
+.deck-summary .game-card { width:100%; }
+.deck-summary .card-copy p { display:none; }
+.memory-energy-count { position:absolute; right:4px; top:4px; display:grid; place-items:center; min-width:32px; height:32px; border-radius:50%; background:#fff8ecb8; backdrop-filter:blur(4px); font-size:13px; color:#64445e; }
+.deck-text { display:block; min-height:44px; padding:10px; border:0; background:none; color:#826c89; font-size:13px; margin:8px auto 0; }
+@keyframes memory-deal { from { transform:translateY(9px) scale(.97); } to { transform:none; } }
+@keyframes memory-reveal { from { opacity:.2; transform:translateY(12px) scale(.94); } to { opacity:1; transform:none; } }
+@media(max-width:359px) { .depressive-deck-dialog { padding-inline:18px; }.memory-grid { gap:7px; }.memory-head h2 { font-size:27px; }.deck-totals { font-size:11px; } }
+@media(max-height:760px) { .deck-intro { padding-top:8px; }.deck-intro h2 { font-size:36px; }.deck-box-stage { --box-width:154px; --box-height:208px; --box-depth:38px; margin:34px auto 30px; }.deck-box-emblem { width:54px; height:68px; }.deck-box-face>b { font-size:20px; }.deck-box-face>b em { font-size:28px; }.memory-head { margin:12px 0; }.memory-head h2 { font-size:27px; margin:9px 0 14px; }.deck-stats { margin-bottom:14px; }.memory-status { margin-top:12px; }.memory-prize { width:min(57vw,230px); margin:20px auto; } }
+@media(prefers-reduced-motion:reduce) { .deck-box-lid,.deck-box-card,.memory-flip,.memory-tile { transition:none; }.deck-box,.memory-tile,.memory-prize .game-card { animation:none; } }
+
+.deck-message { min-height:22px; margin:10px 0; text-align:center; font-size:12px; color:#8d5363; line-height:1.5; }
+.deck-preview-launch[hidden] { display:none; }
+.deck-network-pending .memory-tile { cursor:progress; }
+.deck-preview-launch:focus-visible,.deck-primary:focus-visible,.memory-tile:focus-visible,.deck-close:focus-visible { outline:2px solid #8c718d; outline-offset:3px; }
+@media(max-height:760px) { .deck-intro { padding-top:32px; } }

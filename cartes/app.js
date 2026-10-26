@@ -57,6 +57,7 @@
   let cutGesture;
   let packGesture;
   let openingTimer;
+  let depressiveDeck;
   const markupCache = new Map();
   function putMarkup(selector, html) {
     const signature = html.replace(/(data-until="[^"]*">)[^<]*/g, "$1");
@@ -121,6 +122,11 @@
     invalid_card: "Cet exemplaire n’est plus disponible.",
     invalid_booster: "Ce booster n’est plus disponible.",
     invalid_trade: "Cette proposition n’est plus disponible.",
+    deck_closed: "Les nouvelles parties du Deck sont terminées.",
+    deck_not_started: "Ouvre d’abord ta boîte.",
+    deck_pending: "Termine ce retournement avant de choisir une autre tuile.",
+    deck_tile_unavailable: "Cette tuile est déjà retournée.",
+    deck_state_changed: "Ta partie a été actualisée sur un autre écran.",
     invalid_request: "La demande n’a pas pu être comprise.",
     network_error: "Connexion interrompue. Vérifie ton réseau puis réessaie.",
     profile_changed: "Le profil a changé. Réessaie depuis ce profil.",
@@ -559,6 +565,7 @@
     attachFoilMotion();
     refreshOpenCard();
     updateTimers();
+    depressiveDeck?.refresh();
   }
 
   function updateTimers() {
@@ -609,6 +616,7 @@
   function showLogin(message = "Choisis ton profil.") {
     clearInterval(state.polling);
     state.data = null;
+    depressiveDeck?.refresh();
     appShell.hidden = true;
     loginScreen.hidden = false;
     pairingForm.hidden = true;
@@ -1424,10 +1432,12 @@
   window.CardBoosterGesture.preventDoubleTapZoom(document);
 
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("service-worker.js").then(registration=>{
-    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !destroyDialog.open) registration.waiting.postMessage({type:"ACTIVATE"});};
+    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !destroyDialog.open && !depressiveDeck?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
     registration.addEventListener("updatefound",()=>registration.installing?.addEventListener("statechange",activate));
     document.addEventListener("visibilitychange",activate);for(const dialog of document.querySelectorAll("dialog"))dialog.addEventListener("close",activate);activate();
   }).catch(()=>{});
+  depressiveDeck = window.DepressiveDeck?.mount({getState:()=>state.data?.depressive_deck,getRole:()=>state.role,
+    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   const lastRole = storage.get("les-cartes-last-role");
   if (names[lastRole] && storage.get(tokenKey(lastRole))) selectRole(lastRole);
 })();

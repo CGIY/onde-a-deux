@@ -12,10 +12,11 @@ http.createServer((req,res)=>{
   const path=new URL(req.url,'http://localhost').pathname;
   if(path==='/'){res.writeHead(302,{Location:'/cartes/'});return res.end();}
   const file=path==='/cartes/'?'index.html':path.slice('/cartes/'.length);
-  if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|app\.js|season-banner\.js|card-transport\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.(jpg|png|webp)|preview\/(index\.html|legendary-concept\.(png|webp)|legendary\.js|legendary\.css))$/.test(file)){res.writeHead(404);return res.end();}
+  if(!path.startsWith('/cartes/')||file.includes('..')||! /^(index\.html|_deck-motifs\.jpg|_deck-preview\.(js|css)|app\.js|depressive-deck\.js|season-banner\.js|card-transport\.js|booster-gesture\.js|service-worker\.js|[a-z-]+\.css|icon\.svg|manifest\.webmanifest|assets\/[a-z-]+\.(jpg|png|webp)|preview\/(index\.html|legendary-concept\.(png|webp)|legendary\.js|legendary\.css))$/.test(file)){res.writeHead(404);return res.end();}
   try{
-    let content=readFileSync(new URL(file,root));
-    if(file==='index.html')content=content.toString().replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after,.selection-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after,.selection-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
+    const deckResource=/^_deck-preview\.(js|css)$/.exec(file);
+    let content=readFileSync(file==='_deck-motifs.jpg'?new URL('./assets/depressive-memory-atlas.jpg',import.meta.url):deckResource?new URL(`./depressive-deck-preview.${deckResource[1]}`,import.meta.url):new URL(file,root));
+    if(file==='index.html')content=content.toString().replace('</head>','<link rel="preload" as="image" href="_deck-motifs.jpg"><link rel="stylesheet" href="_deck-preview.css"></head>').replace('<script src="booster-gesture.js','<script src="_deck-preview.js"></script><script src="booster-gesture.js').replace('<body>','<body><div class="demo-notice">DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE</div><style>.demo-notice,.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after,.selection-dialog:after{position:fixed;top:0;left:0;right:0;text-align:center;background:#47685a;color:#fff;padding:7px;font:9px sans-serif;letter-spacing:.1em;z-index:9999}.booster-dialog:after,.card-dialog:after,.info-dialog:after,.destroy-dialog:after,.stack-dialog:after,.selection-dialog:after{content:"DÉMONSTRATION ISOLÉE · AUCUNE SAUVEGARDE"}body{padding-top:25px}</style>');
     if(file==='app.js'){
       const source=content.toString();
       const a=source.indexOf('  const storage = {'),b=source.indexOf('\n\n  const state =',a);
@@ -50,6 +51,9 @@ http.createServer((req,res)=>{
   if(location.search.includes('resume')) {
     demoOpened=true;demoData.my_cards=[...demoCards];demoData.boosters=[];
     demoData.pending_openings=[{booster_id:'demo-pack',cards:structuredClone(demoCards),index:1,opened_at:new Date().toISOString(),progress_at:new Date().toISOString()}];
+  }
+  if(new URLSearchParams(location.search).get('scene')==='deck') {
+    demoData.my_cards=[];demoData.partner_cards=[];demoData.known_cards=[];demoData.boosters=[];demoData.active_cards=[];
   }
   demoDiscover();
   async function exchange(action='sync',payload={}) {
@@ -102,6 +106,31 @@ http.createServer((req,res)=>{
 
 `;
       content=source.slice(0,a)+`  const storage={get:key=>key==='les-cartes-last-role'?'AG':'a'.repeat(48),set:()=>{},remove:()=>{}};`+source.slice(b,c)+mock+source.slice(d);
+      const deckMount = `
+  const deckBank=[
+    ['societe','JEU DE SOCIÉTÉ','EN COUPLE','couple','standard'],
+    ['mot','CACHER UN MOT DOUX','POUR L’AUTRE','other','standard'],
+    ['film','FILM','EN COUPLE','couple','standard'],
+    ['apero','L’AUTRE PRÉPARE UN APÉRO','LES FOODIES','foodies','standard'],
+    ['epaules','MASSAGE DES ÉPAULES','POUR L’AUTRE','other','standard'],
+    ['ranger','L’AUTRE RANGE UNE PIÈCE','TO DO','todo','standard'],
+    ['photo','SÉANCE PHOTO STAR WARS','MISE À NUE','nude','standard'],
+    ['repas','PRÉPARER UN REPAS COMPLET','EN COUPLE','couple','full_art'],
+    ['cadeau20','CADEAU À 20 EUROS','POUR L’AUTRE','other','full_art'],
+    ['marathon','MARATHON DE FILMS / SÉRIE','EN COUPLE','couple','foil'],
+    ['massage','GROS MASSAGE COMPLET','POUR L’AUTRE','other','foil'],
+    ['weekend','PRÉPARATION D’UN WEEK-END AILLEURS','EN COUPLE','couple','full_art_foil'],
+    ['cadeau100','CADEAU À 100 EUROS','POUR L’AUTRE','other','full_art_foil'],
+    ...['couple','other','nude','foodies','todo'].map(palette=>['legend-'+palette,'LÉGENDAIRE · TEST',{'couple':'EN COUPLE','other':'POUR L’AUTRE','nude':'MISE À NUE','foodies':'LES FOODIES','todo':'TO DO'}[palette],palette,'legendary'])
+  ].map(([key,title,category,palette,finish],i)=>({id:'test-memory-template-'+key,template_id:'test-memory-template-'+key,title,category,palette,finish,card_type:'challenge',challenge:'Carte de démonstration. Aucun gain réel.',status:'available',wear_seed:i,edition:'edition_01',acquired_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*86400000).toISOString()}));
+  const deckEnergy={...deckBank[0],id:'test-memory-energy',template_id:'test-memory-energy',title:'ÉNERGIE BISOUS',category:'ÉNERGIE',palette:'energy',finish:'standard',card_type:'energy',challenge:'Cette carte donne droit à un bisou. Démonstration uniquement.'};
+  window.DepressiveDeckPreview.mount({bank:deckBank,energy:deckEnergy,renderCard:cardMarkup,onRewards:cards=>{
+    for(const card of cards)if(!demoData.my_cards.some(copy=>copy.id===card.id))demoData.my_cards.push(card);
+    demoDiscover();state.data=structuredClone(demoData);render();
+  },onCollection:()=>setView('collection')});
+`;
+      const end=content.lastIndexOf('})();');
+      content=content.slice(0,end)+deckMount+content.slice(end);
       if(content.includes('fetch('))throw Error('Unsafe network path remains in preview');
     }
     res.writeHead(200,{'Content-Type':mime[file.slice(file.lastIndexOf('.'))]||'text/plain','Cache-Control':'no-store','Content-Security-Policy':"connect-src 'none'; form-action 'none'; base-uri 'self'"});res.end(content);
