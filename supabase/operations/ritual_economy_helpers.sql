@@ -96,7 +96,7 @@ begin
     insert into public.tcg_ritual_claims(card_id,owner_role,status,claimed_at,resolved_at)
       values(c.id,c.owner_role,'expired',now(),now()) on conflict(card_id) do nothing;
     if found then
-      perform public.tcg_economy_apply(c.owner_role,case when c.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_expired',c.id);
+      perform public.tcg_economy_apply(c.owner_role,-public.tcg_ritual_value(c.finish),'ritual_expired',c.id);
     end if;
   end loop;
   for claim in select card_id,owner_role from public.tcg_ritual_claims
@@ -119,6 +119,7 @@ declare
   category_count integer; card_type_count integer; v_finish text; v_type text; v_price integer;
   reward_id uuid; v_day date:=(timezone('Europe/Paris',now())-interval '5 hours')::date;
   v_week date:=date_trunc('week',timezone('Europe/Paris',now()))::date;
+  v_kind text; v_cost integer;
 begin
   if p_action in ('complete_card','ritual_pass') then
     begin select * into c from public.tcg_cards where id=(p_payload->>'card_id')::uuid and owner_role=p_role for update;
@@ -131,7 +132,7 @@ begin
     else
       insert into public.tcg_ritual_claims(card_id,owner_role,status,resolved_at) values(c.id,p_role,'passed',now());
       update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id;
-      perform public.tcg_economy_apply(p_role,case when not c.economy_eligible or t.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_passed',c.id);
+      perform public.tcg_economy_apply(p_role,case when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_passed',c.id);
     end if;
   elsif p_action='ritual_review' then
     begin select * into claim from public.tcg_ritual_claims where card_id=(p_payload->>'card_id')::uuid for update;
@@ -141,7 +142,7 @@ begin
     select * into c from public.tcg_cards where id=claim.card_id for update;
     select * into t from public.tcg_card_templates where id=c.template_id;
     v_price:=case when p_payload->>'decision'='approve' then public.tcg_ritual_value(c.finish)
-      when not c.economy_eligible or t.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end;
+      when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end;
     update public.tcg_ritual_claims set status=case when v_price>0 then 'approved' else 'rejected' end,
       resolved_at=now(),amount=v_price where card_id=c.id;
     update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id and status='activated';
@@ -167,11 +168,17 @@ begin
     update public.tcg_cards set status='destroyed',consumed_at=now() where id=c.id;
     perform public.tcg_economy_apply(p_role,v_price,'card_sold',c.id);
   elsif p_action='buy_booster' then
-    if exists(select 1 from public.tcg_boosters where owner_role=p_role and bonus_key='economy-'||v_week) then raise exception 'weekly_booster_used'; end if;
-    if (select balance from public.tcg_economy_wallets where role=p_role)<12 then raise exception 'not_enough_shards'; end if;
-    insert into public.tcg_boosters(owner_role,release_date,bonus_key,available_at,expires_at)
-      values(p_role,null,'economy-'||v_week,now(),now()+interval '48 hours');
-    perform public.tcg_economy_apply(p_role,-12,'booster_bought');
+    v_kind:=coalesce(p_payload->>'kind','classic');
+    if v_kind not in ('classic','magician','pleasure','relax') then raise exception 'invalid_request'; end if;
+    v_cost:=case when v_kind='classic' then 12 else 15 end;
+    if (select count(*) from public.tcg_boosters where owner_role=p_role
+      and (bonus_key='economy-'||v_week or bonus_key like 'economy-'||v_week||'-%'))>=3 then
+      raise exception 'weekly_booster_used';
+    end if;
+    if (select balance from public.tcg_economy_wallets where role=p_role)<v_cost then raise exception 'not_enough_shards'; end if;
+    insert into public.tcg_boosters(owner_role,release_date,bonus_key,booster_kind,available_at,expires_at)
+      values(p_role,null,'economy-'||v_week||'-'||gen_random_uuid(),v_kind,now(),now()+interval '48 hours');
+    perform public.tcg_economy_apply(p_role,-v_cost,'booster_bought',null,jsonb_build_object('kind',v_kind));
   elsif p_action='bank_exchange' then
     if exists(select 1 from public.tcg_bank_trades where owner_role=p_role and trade_date=v_day) then raise exception 'bank_used_today'; end if;
     if jsonb_typeof(p_payload->'card_ids')<>'array' then raise exception 'invalid_request'; end if;
@@ -238,7 +245,7 @@ language sql stable set search_path=public,pg_temp as $$
   select jsonb_build_object(
     'balance',(select balance from public.tcg_economy_wallets where role=p_role),
     'bank_used_today',exists(select 1 from public.tcg_bank_trades where owner_role=p_role and trade_date=(timezone('Europe/Paris',now())-interval '5 hours')::date),
-    'weekly_booster_used',exists(select 1 from public.tcg_boosters where owner_role=p_role and bonus_key='economy-'||date_trunc('week',timezone('Europe/Paris',now()))::date),
+    'weekly_boosters_bought',(select count(*) from public.tcg_boosters where owner_role=p_role and (bonus_key='economy-'||date_trunc('week',timezone('Europe/Paris',now()))::date or bonus_key like 'economy-'||date_trunc('week',timezone('Europe/Paris',now()))::date||'-%')),
     'last_bank_trade',(select jsonb_build_object('id',b.id,'recipe',b.recipe,'reward_card_id',b.reward_card_id)
       from public.tcg_bank_trades b where b.owner_role=p_role order by b.created_at desc limit 1),
     'pending_reviews',(select coalesce(jsonb_agg(jsonb_build_object('card_id',r.card_id,'title',coalesce(chosen.title,t.title),

@@ -3,7 +3,7 @@
 .booster-pile>.booster-item { position:relative; z-index:3; width:100%; max-width:none; }
 .booster-pile>.pack-underlay { position:absolute; z-index:1; left:calc(50% - 74px + var(--pile-x)); top:calc(16px + var(--pile-y)); margin:0; transform:rotate(var(--pile-rotate)); animation:none; pointer-events:none; box-shadow:-10px 13px 20px #3f2a3280,4px 0 8px #5c40446b; }
 .booster-pile-count { position:absolute; z-index:4; top:22px; right:2px; display:grid; place-items:center; min-width:39px; height:39px; padding:0 6px; border:1px solid #dfcbb6; border-radius:50%; background:#fff8efec; color:#745440; font:22px/1 Georgia,serif; box-shadow:0 6px 16px #6146322a; pointer-events:none; }
-.management-modes { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.management-modes { grid-template-columns:repeat(3,minmax(0,1fr)); }
 .topbar-controls { display:flex; align-items:center; gap:7px; flex:none; }
 .header-shard-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:42px; padding:7px 10px; border:1px solid #cfb7ca; border-radius:24px; background:#f4eaf3ce; color:#79567c; font:600 13px/1 system-ui,sans-serif; font-variant-numeric:tabular-nums; box-shadow:0 3px 10px #77567912; }
 .header-shard-button>span { font:19px/1 Georgia,serif; }
@@ -16,6 +16,14 @@
 .management-modes .ui-icon { width:17px; height:17px; flex:none; }
 .management-modes [data-management-mode="sell"].selected { color:#755388; background:#f3eafa; }
 .economy-panel { position:relative; overflow:hidden; margin-top:18px; padding:22px 18px 20px; border-radius:25px; border:1px solid #cdb7c881; background:radial-gradient(ellipse at 6% 4%,#dac1dd5e,transparent 56%),radial-gradient(ellipse at 95% 95%,#efd8b053,transparent 60%),#fff9f0c9; box-shadow:0 12px 35px #5a3d4a17; }
+.action-hub-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:14px 0 0; padding:4px; border:1px solid #c9b4bd8c; border-radius:20px; background:#eaded7a3; }
+.action-hub-tabs button { min-height:44px; border:0; border-radius:16px; background:transparent; color:#876d78; font:600 13px system-ui,sans-serif; }
+.action-hub-tabs button.selected { background:#fff9f2df; color:#64475d; box-shadow:0 3px 10px #6147541c; }
+#shopView .management-modes { display:none; }
+#shopView .trade-maker { margin-top:18px; }
+.bottom-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.bottom-nav b { font-size:11px; }
+.trade-maker[hidden],.economy-panel[hidden],.economy-shop-section[hidden],.economy-bank-section[hidden] { display:none!important; }
 .economy-panel:before,.bank-dialog:before,.sale-dialog:before,.economy-tour:before { content:""; position:absolute; inset:0; background-image:var(--surface-grain); background-size:300px; mix-blend-mode:multiply; opacity:.13; pointer-events:none; }
 .economy-head,.economy-buy,.bank-offer,.bank-selected,.bank-card-choice,.sale-quote { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .economy-head { position:relative; margin-bottom:20px; }
@@ -25,12 +33,40 @@
 .economy-balance i,.shard-gem { display:inline-block; width:16px; height:20px; clip-path:polygon(50% 0,97% 28%,83% 79%,50% 100%,17% 79%,3% 28%); background:linear-gradient(145deg,#ffeed5 0 18%,#eeb5b2 20% 35%,#d69ace 38% 58%,#9478b8 62%,#ffe6ac); filter:drop-shadow(0 1px 2px #9a668c66); }
 .economy-balance strong { font:27px Georgia,serif; font-variant-numeric:tabular-nums; }
 .economy-balance.is-negative { color:#a0524a; border-color:#cfa9a4; }
+.economy-shop-head { display:flex; align-items:end; justify-content:space-between; gap:10px; margin:0 2px 10px; }
+.economy-shop-head b,.economy-shop-head small { display:block; }
+.economy-shop-head b { font:22px Georgia,serif; color:#60495c; }
+.economy-shop-head small { margin-top:3px; color:#8c7487; font-size:10px; }
+.economy-shop-head i { flex:none; color:#856781; font-size:10px; font-style:normal; }
+.economy-shop { display:grid; gap:7px; }
 .economy-buy { position:relative; padding:14px 13px; border:1px solid #d6bfd0a8; border-radius:17px; background:#faf0f5a8; }
+.economy-buy-magician { background:linear-gradient(110deg,#e9e0f4d9,#fbf4f4c9); }
+.economy-buy-pleasure { background:linear-gradient(110deg,#f1dce5d9,#fff3efc9); }
+.economy-buy-relax { background:linear-gradient(110deg,#dfede6d9,#fbf7efc9); }
+.economy-buy .shop-mark { flex:none; display:grid; place-items:center; width:31px; height:38px; border:1px solid #bba0b6; border-radius:7px; background:#fff9f1b8; color:#866585; font:22px Georgia,serif; }
+.economy-buy .shop-copy { flex:1; min-width:0; }
 .economy-buy b,.economy-buy small { display:block; }
 .economy-buy b { color:#60495c; font-size:14px; }
 .economy-buy small { margin-top:3px; color:#8c7487; font-size:11px; }
 .economy-buy button { border:0; border-radius:11px; padding:10px 12px; background:#765d7d; color:#fff8f1; font-size:12px; white-space:nowrap; }
 .economy-buy button:disabled { background:#dac8d4; color:#76677a; }
+.mini-pack.pack-magician,#sealedPack.pack-magician { --pack-tint:#463656; --pack-metal:#d8b7e3; --pack-light:#a98fc5; box-shadow:-12px 18px 30px #55466888,6px 0 10px #3b324e55; border-color:#b89ccd; }
+.mini-pack.pack-pleasure,#sealedPack.pack-pleasure { --pack-tint:#642f49; --pack-metal:#e8afbd; --pack-light:#d486a8; box-shadow:-12px 18px 30px #87476577,6px 0 10px #55314155; border-color:#cb96aa; }
+.mini-pack.pack-relax,#sealedPack.pack-relax { --pack-tint:#2f5246; --pack-metal:#c0d9bb; --pack-light:#92bda8; box-shadow:-12px 18px 30px #47675977,6px 0 10px #344b4255; border-color:#9cbdab; }
+.mini-pack:is(.pack-magician,.pack-pleasure,.pack-relax),#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax) { background-image:radial-gradient(circle at 50% 39%,#fff6e02a 0 9%,transparent 38%),linear-gradient(140deg,color-mix(in srgb,var(--pack-tint) 86%,transparent) 3%,color-mix(in srgb,var(--pack-tint) 72%,transparent) 53%,color-mix(in srgb,var(--pack-light) 78%,transparent) 115%),url('assets/card-atlas.webp'); background-size:100% 100%,100% 100%,400% 200%; color:var(--pack-metal); }
+.mini-pack:is(.pack-magician,.pack-pleasure,.pack-relax):before,.mini-pack:is(.pack-magician,.pack-pleasure,.pack-relax):after,#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax):after { background:repeating-linear-gradient(90deg,var(--pack-tint) 0 2px,var(--pack-metal) 3px 4px); border-color:var(--pack-metal); }
+#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax) .pack-cap { background:repeating-linear-gradient(90deg,var(--pack-tint) 0 2px,var(--pack-metal) 3px 4px),linear-gradient(110deg,var(--pack-tint),var(--pack-light),var(--pack-tint)); border-color:var(--pack-metal); }
+.mini-pack:is(.pack-magician,.pack-pleasure,.pack-relax)>i { display:block; margin:0 0 12px; color:var(--pack-metal); font:42px/1 Georgia,serif; text-shadow:0 0 12px var(--pack-light); }
+#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax) .pack-emblem { color:#fff4e9; background:color-mix(in srgb,var(--pack-tint) 76%,transparent); }
+#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax) .pack-emblem:before { content:'☾'; display:block; margin:0 0 9px; color:var(--pack-metal); font:53px/1 Georgia,serif; text-shadow:0 0 18px var(--pack-light); }
+#sealedPack.pack-pleasure .pack-emblem:before { content:'♡'; }
+#sealedPack.pack-relax .pack-emblem:before { content:'❧'; }
+#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax) .pack-emblem span { color:var(--pack-metal); }
+#sealedPack:is(.pack-magician,.pack-pleasure,.pack-relax) p { background:color-mix(in srgb,var(--pack-tint) 84%,transparent); color:#fff4e9; }
+.mini-pack.pack-magician:after,.mini-pack.pack-pleasure:after,.mini-pack.pack-relax:after { height:7px; }
+.mini-pack.pack-magician>small { background:#55436bc9; }
+.mini-pack.pack-pleasure>small { background:#874e68c9; }
+.mini-pack.pack-relax>small { background:#4d7464c9; }
 .economy-bought .economy-balance i { animation:shard-burst .85s ease-out both; }
 .bank-head { position:relative; margin:26px 2px 13px; }
 .bank-head h3 { font-size:32px; }
@@ -143,7 +179,8 @@
 .sale-dialog.is-selling .sale-card-stage:before,.sale-dialog.is-selling .sale-card-stage:after { content:""; position:absolute; inset:15%; background:linear-gradient(135deg,#f5d6ce,#a684b7); clip-path:polygon(50% 0,100% 55%,50% 100%,0 55%); animation:sale-fragment 1s ease-out forwards; }
 .sale-dialog.is-selling .sale-card-stage:after { animation-delay:.08s; transform:rotate(35deg); }
 .sale-dialog.is-selling .sale-quote strong { animation:shard-burst .9s ease-out both; }
-.shard-reveal { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; min-height:310px; overflow:hidden; border:2px solid #cfb6cc; border-radius:18px; background:radial-gradient(circle at 50% 45%,#fffaf1,#e4c7de 48%,#ac8cae); color:#63476b; box-shadow:0 17px 38px #6b486b42; }
+.shards-visible .reveal-front { position:absolute; inset:0; width:100%; height:100%; }
+.shard-reveal { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; aspect-ratio:5/7; min-height:0; overflow:hidden; border:2px solid #cfb6cc; border-radius:18px; background:radial-gradient(circle at 50% 45%,#fffaf1,#e4c7de 48%,#ac8cae); color:#63476b; box-shadow:0 17px 38px #6b486b42; }
 .shard-reveal .shard-halo { position:absolute; width:68%; aspect-ratio:1; border:2px solid #fff8e6a9; border-radius:50%; box-shadow:0 0 35px #ffe6f2; animation:shard-orbit 3s linear infinite; }
 .shard-reveal .shard-gem { width:84px; height:104px; filter:drop-shadow(0 8px 9px #714d76a0); animation:shard-float 2.3s ease-in-out infinite; }
 .shard-reveal strong { margin-top:9px; font:60px Georgia,serif; }

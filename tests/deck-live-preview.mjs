@@ -6,10 +6,13 @@ import {readFile} from 'node:fs/promises';
 import {createDeckDatabase} from './deck-local-db.mjs';
 const migration=await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8');
 const bulkMigration=await readFile(new URL('../supabase/migrations/20261027110500_bulk_card_resale.sql',import.meta.url),'utf8');
+const themedMigration=await readFile(new URL('../supabase/migrations/20261027145200_themed_weekly_boosters.sql',import.meta.url),'utf8');
 async function createPreviewDatabase(){
   const instance=await createDeckDatabase();
   await instance.exec(migration);
   await instance.exec(bulkMigration);
+  await instance.exec(themedMigration);
+  await instance.exec("update public.tcg_economy_wallets set balance=60,updated_at=now() where role in ('AG','CL');");
   await instance.exec("insert into public.tcg_player_devices(role,device_token_hash) values ('AG',encode(extensions.digest(convert_to(repeat('a',48),'UTF8'),'sha256'),'hex')),('CL',encode(extensions.digest(convert_to(repeat('b',48),'UTF8'),'sha256'),'hex'));");
   // Disposable starting hand: enough ingredients to try every Bank recipe.
   for(const role of ['AG','CL']){

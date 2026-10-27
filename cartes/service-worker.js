@@ -1,6 +1,6 @@
-const CACHE = "les-cartes-v19";
+const CACHE = "les-cartes-v20";
 // Only the normal shell is preloaded. Seasonal and rare art load when displayed.
-const SHELL = ["./", "./index.html", "./styles.css?v=19", "./daylight.css?v=19", "./halloween.css?v=19", "./booster-motion.css?v=19", "./experience.css?v=19", "./polish.css?v=19", "./booster-gesture.js?v=19", "./app.js?v=19", "./card-transport.js?v=19", "./season-banner.js?v=19", "./depressive-deck.js?v=19", "./depressive-deck.css?v=19", "./economy.js?v=19", "./economy.css?v=19", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
+const SHELL = ["./", "./index.html", "./styles.css?v=20", "./daylight.css?v=20", "./halloween.css?v=20", "./booster-motion.css?v=20", "./experience.css?v=20", "./polish.css?v=20", "./booster-gesture.js?v=20", "./app.js?v=20", "./card-transport.js?v=20", "./season-banner.js?v=20", "./depressive-deck.js?v=20", "./depressive-deck.css?v=20", "./economy.js?v=20", "./economy.css?v=20", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
 });

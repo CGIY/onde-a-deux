@@ -1305,9 +1305,9 @@ body {
 }
 .paper-noise {
   z-index:0;
-  opacity:.26;
+  opacity:.35;
   background-image:var(--surface-grain);
-  background-size:384px 384px;
+  background-size:320px 320px;
   filter:blur(.18px);
   mix-blend-mode:multiply
 }

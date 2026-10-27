@@ -13,6 +13,7 @@ const expectError=async (fn,pattern) => assert.rejects(fn,pattern);
 try {
   await db.exec(await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20261027110500_bulk_card_resale.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261027145200_themed_weekly_boosters.sql',import.meta.url),'utf8'));
   await db.query(`insert into public.tcg_player_devices(role,device_token_hash)
     select role,encode(extensions.digest(convert_to($1,'UTF8'),'sha256'),'hex') from public.tcg_players`,[token]);
   const first=await api('AG','sync');
@@ -76,10 +77,32 @@ try {
   assert(bulkRows.rows.every(x=>!bulkSold.my_cards.some(c=>c.id===x.id)));
   assert.equal((await db.query("select count(*)::integer as n from public.tcg_cards where id=any($1::uuid[]) and status='destroyed'",[bulkRows.rows.map(x=>x.id)])).rows[0].n,3);
   assert.equal((await db.query("select count(*)::integer as n from public.tcg_discoveries where role='AG' and template_id=(select template_id from public.tcg_cards where id=$1)",[bulkRows.rows[0].id])).rows[0].n,1);
-  await db.query("select public.tcg_economy_apply('AG',20,'fixture')");
-  const bought=await api('AG','buy_booster');
-  assert(bought.boosters.some(x=>x.is_economy));
-  await expectError(()=>api('AG','buy_booster'),/weekly_booster_used/);
+  await db.query("select public.tcg_economy_apply('AG',100,'fixture')");
+  for(const kind of ['magician','pleasure','relax']){
+    const before=(await api('AG','sync')).economy.balance;
+    const bought=await api('AG','buy_booster',{kind});
+    assert.equal(bought.economy.balance,before-15);
+    const pack=bought.boosters.find(x=>x.is_economy&&x.booster_kind===kind);
+    assert(pack);
+    const openedTheme=await api('AG','open_booster',{booster_id:pack.id});
+    const rewards=openedTheme.pending_openings.find(x=>x.booster_id===pack.id).cards;
+    assert.equal(rewards.length,5);
+    assert.equal(rewards[0].card_type,'energy');
+    assert.equal(rewards[1].card_type,'challenge');
+    assert.equal(rewards[2].card_type,'challenge');
+    assert.equal(rewards[3].card_type,kind==='magician'?'spell':'challenge');
+    if(kind==='pleasure')assert.equal(rewards[3].category,'MISE À NUE');
+    if(kind==='relax')assert.match(rewards[3].title,/MASSAGE|SOIN/i);
+    assert.equal(rewards.filter(x=>x.reward_type==='shards').length<=1,true);
+  }
+  assert.equal((await api('AG','sync')).economy.weekly_boosters_bought,3);
+  await expectError(()=>api('AG','buy_booster',{kind:'classic'}),/weekly_booster_used/);
+  await expectError(()=>api('AG','buy_booster',{kind:'invalid'}),/invalid_request/);
+  await db.query("select public.tcg_economy_apply('CL',20,'fixture')");
+  const classicBefore=(await api('CL','sync')).economy.balance;
+  const bought=await api('CL','buy_booster',{kind:'classic'});
+  assert.equal(bought.economy.balance,classicBefore-12);
+  assert(bought.boosters.some(x=>x.is_economy&&x.booster_kind==='classic'));
 
   const energies=await db.query(`insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,expires_at)
     select 'energy-bisou','CL','standard',i,now()+interval '7 days' from generate_series(1,5) i returning id`);
@@ -111,6 +134,22 @@ try {
   const oldActive=(await db.query("insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,status,activated_at,active_until,expires_at) values($1,'CL','standard',8,'activated',now()-interval '1 hour',now()+interval '23 hours',now()+interval '7 days') returning id",[oldActiveTemplate])).rows[0].id;
   const beforePass=(await api('CL','sync')).economy.balance;
   assert.equal((await api('CL','ritual_pass',{card_id:oldActive})).economy.balance,beforePass);
+  const nudeTemplate=(await db.query("select id from public.tcg_card_templates where category='MISE À NUE' and card_type='challenge' and eligible_role is null and finish_tier='standard' and active limit 1")).rows[0].id;
+  const makeNude=async (hours=23)=>{
+    const row=await db.query("insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,status,activated_at,active_until,expires_at,economy_eligible) values($1,'CL','standard',7,'activated',now()-interval '1 hour',now()+($2::integer * interval '1 hour'),now()+interval '7 days',true) returning id",[nudeTemplate,hours]);
+    return row.rows[0].id;
+  };
+  const nudePass=await makeNude();
+  const beforeNudePass=(await api('CL','sync')).economy.balance;
+  assert.equal((await api('CL','ritual_pass',{card_id:nudePass})).economy.balance,beforeNudePass-1);
+  const nudeRejected=await makeNude();
+  await api('CL','complete_card',{card_id:nudeRejected});
+  const beforeNudeReject=(await api('CL','sync')).economy.balance;
+  await api('AG','ritual_review',{card_id:nudeRejected,decision:'reject'});
+  assert.equal((await api('CL','sync')).economy.balance,beforeNudeReject-1);
+  await makeNude(-1);
+  const beforeNudeExpiry=(await db.query("select balance from public.tcg_economy_wallets where role='CL'")).rows[0].balance;
+  assert.equal((await api('CL','sync')).economy.balance,beforeNudeExpiry-1);
   assert.equal((await db.query("select public.tcg_economy_apply('CL',-100,'fixture') as balance")).rows[0].balance,-12);
   assert.equal((await db.query("select public.tcg_economy_apply('CL',-10,'fixture') as balance")).rows[0].balance,-12);
   const priv=await db.query("select has_table_privilege('anon','public.tcg_economy_wallets','SELECT') as wallet,has_function_privilege('anon','public.tcg_economy_action(text,text,jsonb)','EXECUTE') as action");

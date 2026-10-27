@@ -130,8 +130,8 @@
     deck_state_changed: "Ta partie a été actualisée sur un autre écran.",
     ritual_unavailable: "Ce rituel n’attend plus de validation.",
     ritual_already_claimed: "Ce rituel attend déjà une réponse.",
-    not_enough_shards: "Il faut 12 Éclats pour acheter un booster.",
-    weekly_booster_used: "Ton booster en Éclats a déjà été acheté cette semaine.",
+    not_enough_shards: "Pas assez d’Éclats pour ce booster.",
+    weekly_booster_used: "Tu as déjà acheté 3 boosters cette semaine.",
     bank_used_today: "La Banque a déjà réalisé un échange aujourd’hui.",
     bank_invalid_ingredients: "Ces cartes ne correspondent pas à la recette.",
     bank_no_offer: "Aucune carte éligible n’est disponible pour ce tirage.",
@@ -385,13 +385,15 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
+    const packKind=booster=>['magician','pleasure','relax'].includes(booster.booster_kind)?booster.booster_kind:'classic';
+    const packName=booster=>({classic:'ÉDITION 01',magician:'MAGICIEN',pleasure:'PLAISIR',relax:'DÉTENTE'})[packKind(booster)];
     const packMarkup=booster=>`
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
-        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 5 SURPRISES</small></span>
-        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">Payé en Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+        <span class="mini-pack pack-${packKind(booster)}${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${({classic:'',magician:'☾',pleasure:'♡',relax:'❧'})[packKind(booster)]}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN · " : ""}${packName(booster)} · 5 SURPRISES</small></span>
+        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">${packName(booster)} · Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`;
     const stacked=data.boosters.length>1;
-    const packList=stacked?`<div class="booster-pile" aria-label="${data.boosters.length} boosters disponibles. Celui qui expire en premier est devant.">${data.boosters.slice(1,3).reverse().map((booster,i)=>`<span class="mini-pack pack-underlay${isHalloween(booster)?' pack-halloween':''}" style="--pile-x:${(2-i)*12}px;--pile-y:${(2-i)*-8}px;--pile-rotate:${-7+(2-i)*5}deg" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster)?'HALLOWEEN':'ÉDITION 01'} · 5 SURPRISES</small></span>`).join('')}${packMarkup(data.boosters[0])}<span class="booster-pile-count" aria-hidden="true">×${data.boosters.length}</span></div>`:data.boosters.length?packMarkup(data.boosters[0]):pending.length?"":`<button class="text-button" type="button" data-go-collection>Ma collection →</button>`;
+    const packList=stacked?`<div class="booster-pile" aria-label="${data.boosters.length} boosters disponibles. Celui qui expire en premier est devant.">${data.boosters.slice(1,3).reverse().map((booster,i)=>`<span class="mini-pack pack-underlay pack-${packKind(booster)}${isHalloween(booster)?' pack-halloween':''}" style="--pile-x:${(2-i)*12}px;--pile-y:${(2-i)*-8}px;--pile-rotate:${-7+(2-i)*5}deg" aria-hidden="true"><i>${({classic:'',magician:'☾',pleasure:'♡',relax:'❧'})[packKind(booster)]}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster)?'HALLOWEEN · ':''}${packName(booster)} · 5 SURPRISES</small></span>`).join('')}${packMarkup(data.boosters[0])}<span class="booster-pile-count" aria-hidden="true">×${data.boosters.length}</span></div>`:data.boosters.length?packMarkup(data.boosters[0]):pending.length?"":`<button class="text-button" type="button" data-go-collection>Ma collection →</button>`;
     putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("")+packList);
 
     putMarkup("#activeCards", data.active_cards.length
@@ -677,6 +679,8 @@
     state.scrollPositions ||= {};
     state.scrollPositions[state.view] = window.scrollY;
     state.view = view;
+    if(view === 'trade') economy?.enterActions();
+    if(view === 'shop') economy?.enterShop();
     $$(".view").forEach(section => {
       const active = section.dataset.view === view;
       section.hidden = !active;
@@ -689,7 +693,7 @@
     window.scrollTo({ top: state.scrollPositions?.[view] || 0, behavior: "instant" });
     if (view === "today") renderToday();
     else if (view === "collection") renderCollection();
-    else renderTrades();
+    else if(view === 'trade' || view === 'shop') renderTrades();
     attachFoilMotion();
   }
 
@@ -748,7 +752,7 @@
       <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>${icon("back")}</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>${icon("arrow")}</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p class="detail-challenge">${escapeHtml(card.challenge)}</p>
       ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
-      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi${card.category==='MISE À NUE'?' · sans malus':''}</button>` : ""}
+      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi</button>` : ""}
       ${card.ritual_claim_status==='pending' && card.owner_role===state.role ? '<p class="ritual-pending">En attente de l’autre joueur.</p>' : ''}
       ${canReview ? `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider le défi ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : ''}
       ${isMine && isAvailable(card) ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}">${icon("scissors")}Détruire</button></div>` : ""}</div>`;
@@ -1033,9 +1037,13 @@
     $("#sealedPack").classList.remove("opened", "was-touched");
     $("#boosterStage").classList.remove("awaiting", "unsealing", "revealed");
     packGesture?.reset();
-    const seasonal = isHalloween(state.data.boosters.find(booster => booster.id === id) || {});
+    const openingPack=state.data.boosters.find(booster => booster.id === id) || {};
+    const seasonal = isHalloween(openingPack);
+    const kind=['magician','pleasure','relax'].includes(openingPack.booster_kind)?openingPack.booster_kind:'classic';
+    const kindName={classic:'ÉDITION 01 · NOUS DEUX',magician:'BOOSTER DU MAGICIEN',pleasure:'BOOSTER DU PLAISIR',relax:'BOOSTER DE LA DÉTENTE'}[kind];
     $("#sealedPack").classList.toggle("pack-halloween", seasonal);
-    $("#packEdition").textContent = seasonal ? "HALLOWEEN × ÉDITION 01" : "ÉDITION 01 · NOUS DEUX";
+    for(const name of ['magician','pleasure','relax'])$("#sealedPack").classList.toggle(`pack-${name}`,kind===name);
+    $("#packEdition").textContent = seasonal ? `HALLOWEEN × ${kindName}` : kindName;
     $("#sealedPack").hidden = false;
     $("#openPackButton").hidden = false;
     $("#openPackButton").disabled = false;
@@ -1054,7 +1062,7 @@
     }
     const last = state.revealIndex === state.revealedCards.length - 1;
     state.revealMoving = false;
-    const depth = state.revealedCards.length - 1;
+    const depth = state.revealedCards.slice(state.revealIndex+1).filter(item=>item.reward_type!=="shards").length;
     const reward=card.reward_type === "shards" ? `<div class="shard-reveal" role="img" aria-label="${card.amount} Éclat${card.amount>1?'s':''}"><span class="shard-halo"></span><i class="shard-gem"></i><strong>+${card.amount}</strong><span>Éclat${card.amount>1?'s':''}</span></div>` : `${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">Nouvelle découverte</span>' : ""}`;
     $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${reward}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Récompense ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes récompenses →" : "Suivante →"}</button></div>`;
     $("#boosterStatus").textContent = `${state.revealIndex + 1} / ${state.revealedCards.length} · ${card.reward_type==='shards' ? `+${card.amount} Éclat${card.amount>1?'s':''}` : finishLabel(card.finish)} · Glisse pour feuilleter`;
@@ -1118,18 +1126,16 @@
     try {
       await exchange("open_booster", { booster_id: state.selectedBooster });
       const receipt = state.data.pending_openings?.find(item=>item.booster_id===boosterId);
-      state.revealedCards = receipt?.cards || state.data.my_cards
-        .filter(candidate => candidate.booster_id === boosterId)
-        .sort((a, b) => ({ energy: 0, challenge: 1, joker: 2 }[a.card_type] ?? 1) - ({ energy: 0, challenge: 1, joker: 2 }[b.card_type] ?? 1));
+      if(!receipt || ![3,5].includes(receipt.cards?.length)) throw new Error("Les récompenses sont enregistrées. Actualise ta collection.");
+      state.revealedCards = receipt.cards;
       state.revealIndex = 0;
       for (const card of state.revealedCards) if (card.template_id && !previouslyKnown.has(card.template_id)) state.newTemplates.add(card.template_id);
-      if (![3,5].includes(state.revealedCards.length)) throw new Error("Les récompenses sont enregistrées. Actualise ta collection.");
       $("#openPackButton").hidden = true;
       $("#boosterStatus").textContent = "Tes cartes arrivent…";
       feedback("rare");
       openingTimer = setTimeout(() => {
         if (!boosterDialog.open) return;
-        showOpeningReceipt(receipt || {booster_id:boosterId,cards:state.revealedCards,index:0});
+        showOpeningReceipt(receipt);
       }, reducedMotion.matches ? 0 : Math.max(0, 760 - (performance.now() - motionStarted)));
       render();
     } catch (error) {
@@ -1277,7 +1283,7 @@
     const review=event.target.closest('[data-ritual-review]');
     if(review){
       const decision=review.dataset.ritualReview;
-      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés selon la rareté.':'Le malus s’appliquera, sauf pour Mise à nue.'))return;
+      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés selon la rareté.':'Le malus s’appliquera selon la rareté.'))return;
       const done=contextualBusy(review,'Un instant…');
       try {await exchange('ritual_review',{card_id:review.dataset.cardId,decision});if(cardDialog.open)cardDialog.close();render();feedback(decision==='approve'?'rare':'card');toast(decision==='approve'?'Défi validé · Éclats accordés.':'Défi non validé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
@@ -1285,7 +1291,7 @@
     }
     const pass=event.target.closest('[data-ritual-pass]');
     if(pass){
-      if(!await confirmAction('Laisser passer ce défi ?', 'La carte quittera la table. Mise à nue reste sans malus.'))return;
+      if(!await confirmAction('Laisser passer ce défi ?', 'La carte quittera la table et le malus s’appliquera selon sa rareté.'))return;
       const done=contextualBusy(pass,'Un instant…');
       try {await exchange('ritual_pass',{card_id:pass.dataset.ritualPass});if(cardDialog.open)cardDialog.close();render();toast('Rituel terminé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
@@ -1477,7 +1483,9 @@
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   economy = window.CardEconomy?.mount({getState:()=>state.data,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),
-    onActions:()=>{setView("trade");document.querySelector('#economyPanel')?.scrollIntoView({behavior:'smooth',block:'start'});},friendlyError});
+    onShop:()=>setView('shop'),
+    onSellMode:()=>{state.managementMode='sell';renderTradeSelection();},
+    onActionMode:()=>{state.managementMode='trade';renderTradeSelection();},friendlyError});
   const lastRole = storage.get("les-cartes-last-role");
   if (names[lastRole] && storage.get(tokenKey(lastRole))) selectRole(lastRole);
 })();

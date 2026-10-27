@@ -11,13 +11,25 @@
   ];
   const labels={standard:'commune',full_art:'full art',foil:'foil',any:'autre carte'};
   const finishLabels={standard:'Commune',full_art:'Full art',foil:'Foil',full_art_foil:'Full art + foil',legendary:'Légendaire'};
+  const shopOffers=[
+    {kind:'classic',title:'Classique',price:12,promise:'Le tirage habituel',mark:'✦'},
+    {kind:'magician',title:'Magicien',price:15,promise:'1 sortilège garanti',mark:'☾'},
+    {kind:'pleasure',title:'Plaisir',price:15,promise:'1 défi Mise à nue garanti',mark:'♡'},
+    {kind:'relax',title:'Détente',price:15,promise:'1 massage ou soin garanti',mark:'◌'}
+  ];
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,onActions,friendlyError}) {
+  function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,onShop,onSellMode,onActionMode,friendlyError}) {
     const trade=document.querySelector('#tradeView');
+    const shop=document.querySelector('#shopView');
+    const tradeMaker=trade.querySelector('.trade-maker');
+    const tradeInbox=trade.querySelector('#pendingTrades').closest('.content-block');
+    const actionTabs=document.createElement('div');actionTabs.className='action-hub-tabs';actionTabs.setAttribute('role','tablist');actionTabs.setAttribute('aria-label','Boutique');
+    actionTabs.innerHTML='<button type="button" role="tab" data-action-hub="shop">Boosters</button><button type="button" role="tab" data-action-hub="sell">Revendre</button><button type="button" role="tab" data-action-hub="bank">Banque</button>';
+    shop.append(actionTabs);
     const panel=document.createElement('section');panel.className='economy-panel content-block';panel.id='economyPanel';
-    trade.querySelector('.trade-maker').after(panel);
+    shop.append(panel);
     const modal=document.createElement('dialog');modal.className='bank-dialog';modal.setAttribute('aria-label','Banque des cartes');
     modal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer la Banque">×</button><div class="bank-content"></div>';
     document.body.append(modal);
@@ -37,28 +49,43 @@
     const kind=card=>card.card_type==='energy'?'energy':card.finish;
     const textNeeds=needs=>Object.entries(needs).map(([key,n])=>key==='energy'?`${n} Énergie${n>1?'s':''} Bisou${n>1?'s':''}`:`${n} ${labels[key]}${n>1?'s':''}`).join(' + ');
     const cardOf=id=>cards().find(card=>card.id===id);
-    let recipe=null,selected=new Set(),bankStep=0,bankReview=false,busy=false,saleCard=null,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null;
+    let recipe=null,selected=new Set(),bankStep=0,bankReview=false,busy=false,saleCard=null,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null,actionMode='shop';
+    function showActionMode(){
+      if(actionMode==='sell'){
+        actionTabs.after(tradeMaker);
+        tradeMaker.hidden=false;
+        onSellMode();
+      }else{
+        tradeInbox.before(tradeMaker);
+        tradeMaker.hidden=false;
+      }
+      panel.hidden=actionMode==='sell';
+      panel.querySelector('.economy-shop-section')?.toggleAttribute('hidden',actionMode!=='shop');
+      panel.querySelector('.economy-bank-section')?.toggleAttribute('hidden',actionMode!=='bank');
+      actionTabs.querySelectorAll('[data-action-hub]').forEach(button=>{const selected=button.dataset.actionHub===actionMode;button.classList.toggle('selected',selected);button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
+    }
     function countFor(r){const pool=cards();const counts={};for(const c of pool.filter(c=>c.card_type==='challenge'||c.card_type==='energy'))counts[kind(c)]=(counts[kind(c)]||0)+1;
       if(r.id==='reforge')return Math.min(counts.energy||0,3)===3&&pool.some(c=>c.card_type!=='energy');
       return Object.entries(r.needs).every(([k,n])=>(counts[k]||0)>=n);
     }
     function panelMarkup(){const e=state();if(!e)return '';
-      const balance=e.balance||0,canBuy=balance>=12&&!e.weekly_booster_used;
-      return `<div class="economy-head"><div><span class="eyebrow">LA PETITE ÉCONOMIE</span><h3>Mes Éclats.</h3></div><div class="economy-balance ${balance<0?'is-negative':''}" aria-label="Solde ${balance} Éclats"><i aria-hidden="true"></i><strong>${balance>0?'+':''}${balance}</strong></div></div>
-        <div class="economy-buy"><span><b>Booster supplémentaire</b><small>12 Éclats · 1 par semaine</small></span><button type="button" data-economy-buy ${canBuy?'':'disabled'}>${e.weekly_booster_used?'Déjà obtenu':balance<12?`Encore ${12-balance}`:'Obtenir →'}</button></div>
-        <div class="bank-head"><span class="eyebrow">LA BANQUE DES CARTES</span><h3>Changer le destin.</h3><p>Les Énergies Bisous servent aux échanges. Un passage par jour.</p></div>
+      const balance=e.balance||0,bought=Math.min(3,Number(e.weekly_boosters_bought||0));
+      return `<div class="economy-shop-section"><div class="economy-head"><div><span class="eyebrow">LA PETITE ÉCONOMIE</span><h3>Mes Éclats.</h3></div><div class="economy-balance ${balance<0?'is-negative':''}" aria-label="Solde ${balance} Éclats"><i aria-hidden="true"></i><strong>${balance>0?'+':''}${balance}</strong></div></div>
+        <div class="economy-shop-head"><span><b>Choisis ton booster.</b><small>Jusqu’à 3 achats par semaine · ${bought}/3</small></span><i aria-hidden="true">${3-bought} restant${3-bought>1?'s':''}</i></div>
+        <div class="economy-shop">${shopOffers.map(offer=>`<div class="economy-buy economy-buy-${offer.kind}"><span class="shop-mark" aria-hidden="true">${offer.mark}</span><span class="shop-copy"><b>${offer.title}</b><small>${offer.promise}</small></span><button type="button" data-economy-buy="${offer.kind}" ${bought>=3||balance<offer.price?'disabled':''}>${bought>=3?'Épuisé':balance<offer.price?`Encore ${offer.price-balance}`:`${offer.price} Éclats →`}</button></div>`).join('')}</div></div>
+        <div class="economy-bank-section"><div class="bank-head"><span class="eyebrow">LA BANQUE DES CARTES</span><h3>Changer le destin.</h3><p>Un échange par jour.</p></div>
         <div class="bank-offers">${recipes.map((r,i)=>`<button type="button" class="bank-offer bank-offer-${r.motion}" data-bank-open="${r.id}" ${e.bank_used_today||!countFor(r)?'disabled':''}><span class="bank-offer-mark" aria-hidden="true">${['◐','↻','Ⅰ','Ⅱ','Ⅲ','✵'][i]}</span><span><strong>${r.title}</strong><small>${textNeeds(r.needs)} → ${r.result}</small></span><b aria-hidden="true">→</b></button>`).join('')}</div>
         ${e.bank_used_today?'<p class="bank-rest">La Banque rouvre demain à 5 h.</p>':''}
-        <details class="economy-history"><summary>Mouvements d’Éclats <span aria-hidden="true">⌄</span></summary><div>${(e.events||[]).slice(0,12).map(item=>`<p><span>${({launch_bonus:'Cadeau de bienvenue',booster_shards:'Trouvé dans un booster',ritual_approved:'Défi validé',ritual_rejected:'Défi non validé',ritual_expired:'Défi expiré',ritual_passed:'Défi passé',card_sold:'Carte revendue',booster_bought:'Booster obtenu',bank_exchange:'Échange à la Banque',ritual_unanswered:'Demande sans réponse'})[item.type]||'Éclats'}</span><b>${item.amount>0?'+':''}${item.amount}</b></p>`).join('')||'<p>Aucun mouvement.</p>'}</div></details>`;
+        <details class="economy-history"><summary>Mouvements d’Éclats <span aria-hidden="true">⌄</span></summary><div>${(e.events||[]).slice(0,12).map(item=>`<p><span>${({launch_bonus:'Cadeau de bienvenue',booster_shards:'Trouvé dans un booster',ritual_approved:'Défi validé',ritual_rejected:'Défi non validé',ritual_expired:'Défi expiré',ritual_passed:'Défi passé',card_sold:'Carte revendue',booster_bought:'Booster obtenu',bank_exchange:'Échange à la Banque',ritual_unanswered:'Demande sans réponse'})[item.type]||'Éclats'}</span><b>${item.amount>0?'+':''}${item.amount}</b></p>`).join('')||'<p>Aucun mouvement.</p>'}</div></details></div>`;
     }
     function refresh(){
       const e=state(),role=getRole();
       if(!e){panel.hidden=true;headerBalance.hidden=true;if(modal.open)modal.close();if(saleModal.open)saleModal.close();if(bulkModal.open)bulkModal.close();if(shardInfo.open)shardInfo.close();if(tour.open)tour.close();return;}
-      panel.hidden=false;
       headerBalance.hidden=false;document.querySelector('#headerShardCount').textContent=String(e.balance);
       if(shardInfo.open)drawShardInfo();
-      const signature=JSON.stringify([role,e.balance,e.bank_used_today,e.weekly_booster_used,e.events?.[0]?.id,cards().map(c=>[c.id,c.sale_price])]);
+      const signature=JSON.stringify([role,e.balance,e.bank_used_today,e.weekly_boosters_bought,e.events?.[0]?.id,cards().map(c=>[c.id,c.sale_price])]);
       if(signature!==lastSignature){panel.innerHTML=panelMarkup();lastSignature=signature;}
+      showActionMode();
       if(tourRole!==role){tourRole=role;tourIndex=0;}
       if(!localStorage.getItem(`les-cartes-economy-tour:v18:${role}`)&&!document.querySelector('dialog[open]')){drawTour();tour.showModal();}
     }
@@ -120,38 +147,39 @@
         catch(error){const synced=await exchange('sync');if(ids.some(id=>synced.my_cards.some(c=>c.id===id)))throw error;result=synced;}
         const amount=result.economy.balance-before;
         bulkModal.classList.add('is-selling');await wait(reduced.matches?80:1050);
-        bulkModal.querySelector('.bulk-sale-content').innerHTML=`<div class="bulk-sale-result"><span class="eyebrow">REVENTE TERMINÉE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>+${amount}</strong></div><h2>${ids.length} cartes revendues.</h2><p>Leurs découvertes restent dans ta collection.</p><button type="button" class="bank-submit" data-bulk-finish>Retour aux Actions →</button></div>`;
+        bulkModal.querySelector('.bulk-sale-content').innerHTML=`<div class="bulk-sale-result"><span class="eyebrow">REVENTE TERMINÉE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>+${amount}</strong></div><h2>${ids.length} cartes revendues.</h2><p>Leurs découvertes restent dans ta collection.</p><button type="button" class="bank-submit" data-bulk-finish>Retour à la Boutique →</button></div>`;
         onUpdate();
       }catch(error){button.disabled=false;button.textContent='Revendre le lot →';bulkModal.querySelector('.bulk-sale-total').insertAdjacentHTML('beforebegin',`<p class="bulk-sale-error">${escape(friendlyError(error))}</p>`);}
       finally{busy=false;}
     }
-    function drawShardInfo(){const e=state();if(!e)return;shardInfo.querySelector('.shard-info-content').innerHTML=`<span class="eyebrow">MON SOLDE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>${e.balance>0?'+':''}${e.balance}</strong><span>Éclats</span></div><h2>Mes Éclats.</h2><p>Les défis validés rapportent de 1 à 10 Éclats selon leur rareté. Tu peux aussi revendre les cartes de ta main ou en trouver dans un booster.</p><div class="shard-info-uses"><span><b>12 Éclats</b><small>Un booster supplémentaire par semaine</small></span><span><b>La Banque</b><small>Échange des cartes et des Énergies Bisous</small></span></div><p class="shard-info-note">Un défi laissé passer peut réduire le solde, jusqu’à −12. Mise à nue reste sans malus.</p><button type="button" class="bank-submit" data-shard-actions>Voir les Actions →</button>`;}
+    function drawShardInfo(){const e=state();if(!e)return;shardInfo.querySelector('.shard-info-content').innerHTML=`<span class="eyebrow">MON SOLDE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>${e.balance>0?'+':''}${e.balance}</strong><span>Éclats</span></div><h2>Mes Éclats.</h2><p>Les défis validés rapportent de 1 à 10 Éclats selon leur rareté. Tu peux aussi revendre les cartes de ta main ou en trouver dans un booster.</p><div class="shard-info-uses"><span><b>12 ou 15 Éclats</b><small>Jusqu’à 3 boosters par semaine, classiques ou à thème</small></span><span><b>La Banque</b><small>Échange des cartes et des Énergies Bisous</small></span></div><p class="shard-info-note">Un défi laissé passer peut réduire le solde selon sa rareté, jusqu’à −12.</p><button type="button" class="bank-submit" data-shard-actions>Ouvrir la Boutique →</button>`;}
     async function confirmSale(){if(busy||!saleCard)return;busy=true;const id=saleCard.id,price=saleCard.sale_price;
       const button=saleModal.querySelector('[data-sale-confirm]');button.disabled=true;button.textContent='Un instant…';
       try{await exchange('sell_card',{card_id:id});saleModal.classList.add('is-selling');saleModal.querySelector('.sale-quote strong').textContent=`+${price} Éclat${price>1?'s':''}`;await wait(reduced.matches?80:1050);if(saleModal.open)saleModal.close();onUpdate();}
       catch(error){button.disabled=false;button.textContent='Revendre →';saleModal.querySelector('p').textContent=friendlyError(error);}
       finally{busy=false;saleCard=null;}
     }
-    async function buy(){if(busy||state()?.balance<12||state()?.weekly_booster_used)return;busy=true;
-      const button=panel.querySelector('[data-economy-buy]');button.disabled=true;button.textContent='Un instant…';
-      try{await exchange('buy_booster');panel.classList.add('economy-bought');onUpdate();await wait(reduced.matches?80:850);panel.classList.remove('economy-bought');document.querySelector('[data-nav="today"]')?.click();}
+    async function buy(kind){const offer=shopOffers.find(item=>item.kind===kind);if(!offer||busy||state()?.balance<offer.price||Number(state()?.weekly_boosters_bought||0)>=3)return;busy=true;
+      const button=panel.querySelector(`[data-economy-buy="${kind}"]`);button.disabled=true;button.textContent='Un instant…';
+      try{await exchange('buy_booster',{kind});panel.classList.add('economy-bought');onUpdate();await wait(reduced.matches?80:850);panel.classList.remove('economy-bought');document.querySelector('[data-nav="today"]')?.click();}
       catch(error){button.textContent=friendlyError(error);await wait(1500);onUpdate();}
       finally{busy=false;}
     }
     const slides=[
       {icon:'✦',title:'Cinq surprises.',copy:'Chaque booster contient au moins trois cartes. Les deux autres places peuvent révéler des Éclats.'},
       {icon:'♡',title:'Un défi à deux.',copy:'Après un rituel, demande sa validation. L’autre confirme et les Éclats suivent la rareté. Une carte non réalisée peut coûter des Éclats, jusqu’à −12.'},
-      {icon:'◌',title:'Revendre une carte.',copy:'Dans Actions, échange un exemplaire contre des Éclats. Le prix dépend de sa rareté et du temps qu’il lui reste.'},
+      {icon:'◌',title:'Revendre une carte.',copy:'Dans Boutique, échange un exemplaire contre des Éclats. Le prix dépend de sa rareté et du temps qu’il lui reste.'},
       {icon:'✵',title:'La Banque des cartes.',copy:'Dépose des cartes et des Énergies Bisous pour tenter un nouveau tirage, une Refrappe ou une transmutation. Une fois par jour.'}
     ];
     function drawTour(){const s=slides[tourIndex];tour.querySelector('.tour-content').innerHTML=`<button type="button" class="tour-skip" data-tour-skip>Passer</button><div class="tour-visual tour-visual-${tourIndex}" aria-hidden="true"><i>${s.icon}</i>${Array.from({length:5},(_,i)=>`<b style="--i:${i}"></b>`).join('')}</div><div class="tour-pages" aria-label="Étape ${tourIndex+1} sur ${slides.length}">${slides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('')}</div><h2>${escape(s.title)}</h2><p>${escape(s.copy)}</p><button type="button" class="bank-submit" data-tour-next>${tourIndex===slides.length-1?'C’est parti':'Suivant →'}</button>`;}
     function closeTour(){localStorage.setItem(`les-cartes-economy-tour:v18:${getRole()}`,'1');tour.close();}
     document.addEventListener('click',event=>{
-      if(event.target.closest('[data-economy-buy]'))return void buy();
+      const purchase=event.target.closest('[data-economy-buy]');if(purchase)return void buy(purchase.dataset.economyBuy);
       const opener=event.target.closest('[data-bank-open]');if(opener)return openBank(opener.dataset.bankOpen);
     });
+    actionTabs.addEventListener('click',event=>{const button=event.target.closest('[data-action-hub]');if(!button)return;actionMode=button.dataset.actionHub;showActionMode();});
     headerBalance.addEventListener('click',()=>{drawShardInfo();shardInfo.showModal();});
-    shardInfo.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return shardInfo.close();if(event.target.closest('[data-shard-actions]')){shardInfo.close();onActions();}});
+    shardInfo.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return shardInfo.close();if(event.target.closest('[data-shard-actions]')){shardInfo.close();actionMode='shop';onShop();showActionMode();}});
     modal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return modal.close();if(busy)return;
       if(event.target.closest('[data-bank-auto]'))return autoSelect();
       const pick=event.target.closest('[data-bank-card]');if(pick)return toggleCard(pick.dataset.bankCard);
@@ -172,7 +200,10 @@
     tour.addEventListener('cancel',event=>{event.preventDefault();closeTour();});
     modal.addEventListener('close',()=>{recipe=null;selected.clear();bankStep=0;bankReview=false;});
     saleModal.addEventListener('close',()=>{saleCard=null;});
-    return Object.freeze({refresh,sell,openBulk,isOpen:()=>modal.open||saleModal.open||bulkModal.open||shardInfo.open||tour.open});
+    return Object.freeze({refresh,sell,openBulk,
+      enterActions:()=>{tradeInbox.before(tradeMaker);tradeMaker.hidden=false;onActionMode();},
+      enterShop:()=>{actionMode='shop';showActionMode();},
+      isOpen:()=>modal.open||saleModal.open||bulkModal.open||shardInfo.open||tour.open});
   }
   window.CardEconomy=Object.freeze({mount});
 })();

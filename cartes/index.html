@@ -8,17 +8,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="19">
+  <meta name="tcg-version" content="20">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=19">
-  <link rel="stylesheet" href="daylight.css?v=19">
-  <link rel="stylesheet" href="halloween.css?v=19">
-  <link rel="stylesheet" href="booster-motion.css?v=19">
-  <link rel="stylesheet" href="experience.css?v=19">
-  <link rel="stylesheet" href="polish.css?v=19">
-  <link rel="stylesheet" href="depressive-deck.css?v=19">
-  <link rel="stylesheet" href="economy.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="daylight.css?v=20">
+  <link rel="stylesheet" href="halloween.css?v=20">
+  <link rel="stylesheet" href="booster-motion.css?v=20">
+  <link rel="stylesheet" href="experience.css?v=20">
+  <link rel="stylesheet" href="polish.css?v=20">
+  <link rel="stylesheet" href="depressive-deck.css?v=20">
+  <link rel="stylesheet" href="economy.css?v=20">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -124,7 +124,7 @@
         <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>Actions.</h2></div></header>
 
         <section class="trade-maker content-block">
-          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg> Échanger</button><button type="button" data-management-mode="give" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-gift"/></svg> Donner</button><button type="button" data-management-mode="sell" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M7 9h10M7 12h8M7 15h10"/></svg> Revendre</button><button type="button" data-management-mode="destroy" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-scissors"/></svg> Détruire</button></div>
+          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg> Échanger</button><button type="button" data-management-mode="give" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-gift"/></svg> Donner</button><button type="button" data-management-mode="destroy" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-scissors"/></svg> Détruire</button></div>
           <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><span class="trade-label" id="offeredCardLabel">Je donne</span><button class="trade-pick-button" id="offeredCardPicker" type="button" data-pick-card="offered" aria-haspopup="dialog" aria-label="Choisir ma carte"><span class="trade-preview" id="offeredPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg></span><div class="trade-pick" id="requestedCardPick"><span class="trade-label">Je reçois</span><button class="trade-pick-button" id="requestedCardPicker" type="button" data-pick-card="requested" aria-haspopup="dialog" aria-label="Choisir une carte adverse"><span class="trade-preview" id="requestedPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
           <p class="trade-hint" id="tradeHint"></p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer →</button>
@@ -140,12 +140,16 @@
           <div class="trade-list" id="tradeHistory"></div><button type="button" class="text-button" id="moreHistory" hidden>Voir davantage</button>
         </details>
       </section>
+      <section class="view" id="shopView" data-view="shop" hidden>
+        <header class="view-heading"><div><span class="eyebrow">MES ÉCLATS</span><h2>Boutique.</h2></div></header>
+      </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation principale">
       <button class="selected" data-nav="today" aria-current="page" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-sun"/></svg></span><b>Le rituel</b><i class="nav-badge" id="navBoosterBadge" aria-hidden="true" hidden></i></button>
       <button data-nav="collection" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-album"/></svg></span><b>Collection</b></button>
       <button data-nav="trade" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-hand"/></svg></span><b>Actions</b><i class="nav-badge" id="navTradeBadge" aria-hidden="true" hidden></i></button>
+      <button data-nav="shop" type="button"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-wand"/></svg></span><b>Boutique</b></button>
     </nav>
   </div>
 
@@ -159,7 +163,7 @@
       <div class="sealed-pack" id="sealedPack">
         <span class="pack-side pack-side-left" aria-hidden="true"></span><span class="pack-side pack-side-right" aria-hidden="true"></span><span class="pack-back-face" aria-hidden="true"></span>
         <div class="pack-cap"></div><div class="pack-shine"></div><div class="pack-emblem">Les Cartes<span>à deux.</span></div>
-        <p id="packEdition">ÉDITION 01 · NOUS DEUX</p><small>3 CARTES À COLLECTIONNER</small>
+        <p id="packEdition">ÉDITION 01 · NOUS DEUX</p><small>5 SURPRISES · 3 CARTES MINIMUM</small>
         <div class="tear-line"><i id="tearProgress"></i></div>
         <b class="tear-hint"><span aria-hidden="true">⟵</span><span id="tearPercent">Glisse pour ouvrir</span><span aria-hidden="true">⟶</span></b>
       </div>
@@ -169,7 +173,7 @@
     <button class="text-button" id="openPackButton" type="button">Ouvrir sans glisser →</button>
   </dialog>
 
-  <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" type="button" aria-label="Fermer"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button><h2 id="infoTitle">Règles et raretés.</h2><div class="finish-legend"><p><i>●</i><span>Commune</span></p><p><i>◇</i><span>Full art</span></p><p><i>✦</i><span>Foil · reflet arc-en-ciel</span></p><p><i>✺</i><span>Full art + foil</span></p><p><i>✵</i><span>Légendaire · défi au choix de sa catégorie · 0,5 %</span></p></div><p class="info-rules">3 cartes par booster · chaque jour à 5 h.<br>Booster : 48 h · collection : 7 jours · activation : 24 h au départ.</p><small>Les anciens exemplaires gardent leur échéance. Chaque doublon a son propre compteur ; le premier à expirer est proposé par défaut. Ouvre ×2, ×3… pour choisir un exemplaire précis. Les défis et les découvertes sont conservés.</small><button class="text-button" id="logoutDevice" type="button">Déconnecter cet appareil</button></dialog>
+  <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" type="button" aria-label="Fermer"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-close"/></svg></button><h2 id="infoTitle">Règles et raretés.</h2><div class="finish-legend"><p><i>●</i><span>Commune</span></p><p><i>◇</i><span>Full art</span></p><p><i>✦</i><span>Foil · reflet arc-en-ciel</span></p><p><i>✺</i><span>Full art + foil</span></p><p><i>✵</i><span>Légendaire · défi au choix de sa catégorie · 0,5 %</span></p></div><p class="info-rules">5 surprises par booster, dont 3 cartes minimum · chaque jour à 5 h.<br>Booster : 48 h · collection : 7 jours · activation : 24 h au départ.</p><small>Les anciens exemplaires gardent leur échéance. Chaque doublon a son propre compteur ; le premier à expirer est proposé par défaut. Ouvre ×2, ×3… pour choisir un exemplaire précis. Les défis et les découvertes sont conservés.</small><button class="text-button" id="logoutDevice" type="button">Déconnecter cet appareil</button></dialog>
 
   <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle"><span class="eyebrow">À vous de jouer</span><h2 id="confirmTitle"></h2><p id="confirmCopy"></p><div><button id="confirmCancel" class="text-button" type="button">Pas maintenant</button><button id="confirmAccept" class="primary-button" type="button">Confirmer</button></div></dialog>
 
@@ -203,11 +207,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=19"></script>
-  <script src="season-banner.js?v=19"></script>
-  <script src="card-transport.js?v=19"></script>
-  <script src="depressive-deck.js?v=19"></script>
-  <script src="economy.js?v=19"></script>
-  <script src="app.js?v=19"></script>
+  <script src="booster-gesture.js?v=20"></script>
+  <script src="season-banner.js?v=20"></script>
+  <script src="card-transport.js?v=20"></script>
+  <script src="depressive-deck.js?v=20"></script>
+  <script src="economy.js?v=20"></script>
+  <script src="app.js?v=20"></script>
 </body>
 </html>

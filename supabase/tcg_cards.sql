@@ -67,6 +67,7 @@ create table if not exists public.tcg_boosters (
   owner_role text not null references public.tcg_players(role),
   release_date date,
   bonus_key text,
+  booster_kind text not null default 'classic',
   available_at timestamptz not null,
   expires_at timestamptz not null,
   opened_at timestamptz,
@@ -77,6 +78,10 @@ create table if not exists public.tcg_boosters (
 
 -- Daily release uniqueness remains untouched; gifts have no daily release date.
 alter table public.tcg_boosters add column if not exists bonus_key text;
+alter table public.tcg_boosters add column if not exists booster_kind text not null default 'classic';
+alter table public.tcg_boosters drop constraint if exists tcg_boosters_kind_check;
+alter table public.tcg_boosters add constraint tcg_boosters_kind_check
+  check (booster_kind in ('classic','magician','pleasure','relax'));
 alter table public.tcg_boosters alter column release_date drop not null;
 alter table public.tcg_boosters drop constraint if exists tcg_boosters_source_check;
 alter table public.tcg_boosters add constraint tcg_boosters_source_check
@@ -454,6 +459,26 @@ as $$
 $$;
 revoke all on function public.tcg_pick_template(text,text,text,text[],timestamptz) from public, anon, authenticated;
 
+-- One guaranteed themed reward in a purchased packet. Keep the normal finish roll.
+create or replace function public.tcg_pick_themed_template(
+  p_role text, p_kind text, p_finish text, p_excluded_ids text[], p_at timestamptz default now()
+) returns setof public.tcg_card_templates
+language sql volatile set search_path=public,pg_temp as $$
+  select t.* from public.tcg_card_templates t
+  where t.active and not t.demo and t.finish_tier=p_finish
+    and (t.eligible_role is null or t.eligible_role=p_role)
+    and (t.draw_from is null or (p_at>=t.draw_from and p_at<t.draw_until))
+    and not (t.id=any(coalesce(p_excluded_ids,array[]::text[])))
+    and ((p_kind='magician' and t.card_type='spell')
+      or (p_kind='pleasure' and t.card_type='challenge' and t.category='MISE À NUE')
+      or (p_kind='relax' and t.card_type='challenge' and t.category='POUR L''AUTRE'
+        and (t.title ilike '%MASSAGE%' or t.title ilike '%SOIN%')))
+  order by -ln(greatest(random(),0.000000000001)) /
+    case when t.category='MISE À NUE' then 0.8 else 1.0 end
+  limit 1;
+$$;
+revoke all on function public.tcg_pick_themed_template(text,text,text,text[],timestamptz) from public,anon,authenticated;
+
 -- Pure schedule calculation: no inventory changes or new public API.
 create or replace function public.tcg_daily_release_window(p_now timestamptz)
 returns table(release_date date,available_at timestamptz,expires_at timestamptz)
@@ -758,7 +783,7 @@ begin
     insert into public.tcg_ritual_claims(card_id,owner_role,status,claimed_at,resolved_at)
       values(c.id,c.owner_role,'expired',now(),now()) on conflict(card_id) do nothing;
     if found then
-      perform public.tcg_economy_apply(c.owner_role,case when c.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_expired',c.id);
+      perform public.tcg_economy_apply(c.owner_role,-public.tcg_ritual_value(c.finish),'ritual_expired',c.id);
     end if;
   end loop;
   for claim in select card_id,owner_role from public.tcg_ritual_claims
@@ -781,6 +806,7 @@ declare
   category_count integer; card_type_count integer; v_finish text; v_type text; v_price integer;
   reward_id uuid; v_day date:=(timezone('Europe/Paris',now())-interval '5 hours')::date;
   v_week date:=date_trunc('week',timezone('Europe/Paris',now()))::date;
+  v_kind text; v_cost integer;
 begin
   if p_action in ('complete_card','ritual_pass') then
     begin select * into c from public.tcg_cards where id=(p_payload->>'card_id')::uuid and owner_role=p_role for update;
@@ -793,7 +819,7 @@ begin
     else
       insert into public.tcg_ritual_claims(card_id,owner_role,status,resolved_at) values(c.id,p_role,'passed',now());
       update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id;
-      perform public.tcg_economy_apply(p_role,case when not c.economy_eligible or t.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_passed',c.id);
+      perform public.tcg_economy_apply(p_role,case when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_passed',c.id);
     end if;
   elsif p_action='ritual_review' then
     begin select * into claim from public.tcg_ritual_claims where card_id=(p_payload->>'card_id')::uuid for update;
@@ -803,7 +829,7 @@ begin
     select * into c from public.tcg_cards where id=claim.card_id for update;
     select * into t from public.tcg_card_templates where id=c.template_id;
     v_price:=case when p_payload->>'decision'='approve' then public.tcg_ritual_value(c.finish)
-      when not c.economy_eligible or t.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end;
+      when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end;
     update public.tcg_ritual_claims set status=case when v_price>0 then 'approved' else 'rejected' end,
       resolved_at=now(),amount=v_price where card_id=c.id;
     update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id and status='activated';
@@ -829,11 +855,17 @@ begin
     update public.tcg_cards set status='destroyed',consumed_at=now() where id=c.id;
     perform public.tcg_economy_apply(p_role,v_price,'card_sold',c.id);
   elsif p_action='buy_booster' then
-    if exists(select 1 from public.tcg_boosters where owner_role=p_role and bonus_key='economy-'||v_week) then raise exception 'weekly_booster_used'; end if;
-    if (select balance from public.tcg_economy_wallets where role=p_role)<12 then raise exception 'not_enough_shards'; end if;
-    insert into public.tcg_boosters(owner_role,release_date,bonus_key,available_at,expires_at)
-      values(p_role,null,'economy-'||v_week,now(),now()+interval '48 hours');
-    perform public.tcg_economy_apply(p_role,-12,'booster_bought');
+    v_kind:=coalesce(p_payload->>'kind','classic');
+    if v_kind not in ('classic','magician','pleasure','relax') then raise exception 'invalid_request'; end if;
+    v_cost:=case when v_kind='classic' then 12 else 15 end;
+    if (select count(*) from public.tcg_boosters where owner_role=p_role
+      and (bonus_key='economy-'||v_week or bonus_key like 'economy-'||v_week||'-%'))>=3 then
+      raise exception 'weekly_booster_used';
+    end if;
+    if (select balance from public.tcg_economy_wallets where role=p_role)<v_cost then raise exception 'not_enough_shards'; end if;
+    insert into public.tcg_boosters(owner_role,release_date,bonus_key,booster_kind,available_at,expires_at)
+      values(p_role,null,'economy-'||v_week||'-'||gen_random_uuid(),v_kind,now(),now()+interval '48 hours');
+    perform public.tcg_economy_apply(p_role,-v_cost,'booster_bought',null,jsonb_build_object('kind',v_kind));
   elsif p_action='bank_exchange' then
     if exists(select 1 from public.tcg_bank_trades where owner_role=p_role and trade_date=v_day) then raise exception 'bank_used_today'; end if;
     if jsonb_typeof(p_payload->'card_ids')<>'array' then raise exception 'invalid_request'; end if;
@@ -900,7 +932,7 @@ language sql stable set search_path=public,pg_temp as $$
   select jsonb_build_object(
     'balance',(select balance from public.tcg_economy_wallets where role=p_role),
     'bank_used_today',exists(select 1 from public.tcg_bank_trades where owner_role=p_role and trade_date=(timezone('Europe/Paris',now())-interval '5 hours')::date),
-    'weekly_booster_used',exists(select 1 from public.tcg_boosters where owner_role=p_role and bonus_key='economy-'||date_trunc('week',timezone('Europe/Paris',now()))::date),
+    'weekly_boosters_bought',(select count(*) from public.tcg_boosters where owner_role=p_role and (bonus_key='economy-'||date_trunc('week',timezone('Europe/Paris',now()))::date or bonus_key like 'economy-'||date_trunc('week',timezone('Europe/Paris',now()))::date||'-%')),
     'last_bank_trade',(select jsonb_build_object('id',b.id,'recipe',b.recipe,'reward_card_id',b.reward_card_id)
       from public.tcg_bank_trades b where b.owner_role=p_role order by b.created_at desc limit 1),
     'pending_reviews',(select coalesce(jsonb_agg(jsonb_build_object('card_id',r.card_id,'title',coalesce(chosen.title,t.title),
@@ -1095,7 +1127,7 @@ begin
     -- Each flexible slot has a 60% chance of yielding 1–3 shards instead.
     -- Existing three-card opening receipts stay valid and resumable.
     for v_draw_index in 1..5 loop
-      if v_draw_index>=4 and random()<0.60 then
+      if v_draw_index>=4 and not (v_draw_index=4 and booster.booster_kind<>'classic') and random()<0.60 then
         v_roll:=random();
         v_reward_amount:=case when v_roll<0.70 then 1 when v_roll<0.95 then 2 else 3 end;
         perform public.tcg_economy_apply(v_role,v_reward_amount,'booster_shards',null,jsonb_build_object('booster_id',booster.id,'slot',v_draw_index));
@@ -1105,6 +1137,8 @@ begin
       v_draw_type := case
         when v_draw_index = 1 then 'energy'
         when booster.bonus_key='spells-legends-test-2026-10-25' and v_draw_index=3 then 'spell'
+        when v_draw_index=4 and booster.booster_kind='magician' then 'spell'
+        when v_draw_index=4 and booster.booster_kind in ('pleasure','relax') then 'challenge'
         when v_draw_index >= 4 and random() < 0.10 then 'joker'
         else 'challenge'
       end;
@@ -1119,12 +1153,27 @@ begin
         v_roll := random();
         v_desired_finish := public.tcg_challenge_finish(v_role,now(),v_roll,
           booster.bonus_key is distinct from 'spells-legends-test-2026-10-25');
-        select * into template_row from public.tcg_pick_template(v_role, v_pool_type, v_desired_finish, v_drawn_template_ids);
-        if not found then
-          select * into template_row from public.tcg_pick_template(v_role, v_pool_type, 'standard', v_drawn_template_ids);
+        if v_draw_index=4 and booster.booster_kind in ('pleasure','relax') then
+          select * into template_row from public.tcg_pick_themed_template(v_role,booster.booster_kind,v_desired_finish,v_drawn_template_ids);
+          if not found then
+            select * into template_row from public.tcg_pick_themed_template(v_role,booster.booster_kind,'standard',v_drawn_template_ids);
+          end if;
+        else
+          select * into template_row from public.tcg_pick_template(v_role, v_pool_type, v_desired_finish, v_drawn_template_ids);
+          if not found then
+            select * into template_row from public.tcg_pick_template(v_role, v_pool_type, 'standard', v_drawn_template_ids);
+          end if;
         end if;
       elsif v_draw_type = 'spell' then
-        select * into template_row from public.tcg_pick_template(v_role, 'spell', 'standard', v_drawn_template_ids);
+        if v_draw_index=4 and booster.booster_kind='magician' then
+          v_desired_finish:=public.tcg_challenge_finish(v_role,now(),random());
+          select * into template_row from public.tcg_pick_themed_template(v_role,'magician',v_desired_finish,v_drawn_template_ids);
+          if not found then
+            select * into template_row from public.tcg_pick_themed_template(v_role,'magician','standard',v_drawn_template_ids);
+          end if;
+        else
+          select * into template_row from public.tcg_pick_template(v_role, 'spell', 'standard', v_drawn_template_ids);
+        end if;
       elsif v_draw_type = 'energy' then
         select * into template_row from public.tcg_pick_template(v_role, 'energy', 'standard', v_drawn_template_ids);
       end if;
@@ -1345,6 +1394,7 @@ begin
     'is_test', b.bonus_key='spells-legends-test-2026-10-25',
     'is_birthday',b.bonus_key='birthday-mamamouth-2026-11-08',
     'is_economy',b.bonus_key like 'economy-%',
+    'booster_kind',b.booster_kind,
     'available_at', b.available_at,
     'expires_at', b.expires_at
   ) order by b.expires_at), '[]'::jsonb)
