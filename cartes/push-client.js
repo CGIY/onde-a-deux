@@ -44,5 +44,30 @@
       await subscription.unsubscribe();
     }
   }
-  window.CardPush = Object.freeze({ enablePush, disablePush });
+  function bindToggle() {
+    const toggle = document.getElementById('pushToggle');
+    if (!toggle || toggle.dataset.pushBound) return;
+    toggle.dataset.pushBound = '1';
+    toggle.addEventListener('click', async () => {
+      const state = window.CardTransport?.getState?.();
+      const role = state?.role, token = state?.token;
+      if (!role || !token) return;
+      toggle.disabled = true;
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const existing = Notification.permission === 'granted' ? await registration.pushManager.getSubscription() : null;
+        if (existing) {
+          await disablePush(role, token);
+          toggle.textContent = 'Activer les notifications';
+        } else {
+          const enabled = await enablePush(role, token);
+          toggle.textContent = enabled ? 'Désactiver les notifications' : 'Notifications indisponibles';
+        }
+      } catch (error) { /* silent: permission denied or network */ }
+      finally { toggle.disabled = false; }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindToggle);
+  else bindToggle();
+  window.CardPush = Object.freeze({ enablePush, disablePush, bindToggle });
 })();
