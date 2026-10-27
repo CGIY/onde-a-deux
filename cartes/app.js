@@ -230,13 +230,21 @@
     const date = new Date(until), now = serverNow();
     if (!Number.isFinite(date.getTime())) return "";
     if (date <= now) return "Expirée";
-    const formatter=expiryHint.formatter ||= new Intl.DateTimeFormat("en-CA", {timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"});
+    const formatter=expiryHint.formatter ||= new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Paris",year:"numeric",month:"2-digit",day:"2-digit"});
     const day = value => formatter.format(value);
     return day(date) === day(now) ? "Expire aujourd’hui" : "";
   }
   function halloweenActive() {
     const now = serverNow().getTime();
     return now >= Date.parse("2026-10-29T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
+  }
+
+  const CARD_ART_BASE = "https://tgkhgafkqvritsgdapcz.supabase.co/storage/v1/object/public/cards/";
+  const CARD_ART = {"autre-cadeau-ville":"autre-cadeau-ville","autre-cadeau-vinted":"autre-cadeau-vinted","autre-massage-cuisses":"autre-massage-cuisses","autre-massage-dos":"autre-massage-dos","autre-massage-epaules":"autre-massage-epaules","autre-massage-tete":"autre-massage-tete","autre-massage-visage":"autre-massage-visage","autre-mot-doux":"autre-mot-doux","couple-aquarelle":"couple-aquarelle","couple-balade-rapide":"couple-balade","couple-dessin":"couple-dessin","couple-film":"couple-film","couple-gateau":"couple-gateau","couple-jeu-societe":"couple-jeu","couple-serie":"couple-serie","couple-tour-ville":"couple-tour-ville","energy-bisou":"energy-bisou","fa-autre-cadeau-20":"autre-cadeau-20","fa-autre-cadeau-25":"autre-cadeau-25","fa-couple-choix-activite":"couple-choix-activite","fa-couple-repas-complet":"couple-repas-complet","fa-foodies-repas-choix-paye":"foodies-repas-choix-paye","fa-foodies-repas-choix-prepare":"foodies-repas-choix-prepare","fa-nue-anal":"nue-anal","fa-nue-fessees-filmees":"nue-fessees","fa-nue-reddit-boobs":"nue-reddit-boobs","fa-nue-reproduction-porno":"nue-porno-1-1","fa-nue-webcam-boobs":"nue-webcam-boobs","fa-todo-impose-tache":"todo-impose-tache","faf-autre-cadeau-100":"autre-cadeau-100","faf-couple-super-sortie":"couple-super-sortie","faf-couple-weekend":"couple-weekend","faf-nue-achat-scandale":"nue-achat-scandale","faf-nue-golden-shower":"nue-golden-shower","faf-nue-gros-sextoy":"nue-gros-sextoy","faf-nue-reddit-faciale":"nue-reddit-faciale","faf-nue-roleplay-violent":"nue-roleplay","faf-nue-webcam-faciale":"nue-webcam-faciale","foil-autre-cadeau-50":"autre-cadeau-50","foil-autre-massage-complet":"autre-massage-complet","foil-couple-marathon":"couple-marathon","foil-couple-soiree-theme":"couple-soiree-theme","foil-couple-sortie-choisie":"couple-sortie-choisie","foil-foodies-dessert-luxe":"foodies-dessert-luxe","foil-foodies-plat-luxe":"foodies-plat-luxe","foil-foodies-restaurant":"foodies-restaurant","foil-nue-blowjob-eglise":"nue-blowjob-eglise","foil-nue-petit-sextoy":"nue-petit-sextoy","foil-nue-porno-hardcore":"nue-porno-hardcore","foil-nue-reddit-pussy":"nue-reddit-pussy","foil-nue-site-echangiste":"nue-site-echangiste","foil-nue-soumission":"nue-soumission","foil-nue-webcam-pussy":"nue-webcam-pussy","foil-todo-refaire-piece":"todo-refaire-piece","foodies-apero":"foodies-apero","foodies-cafe-ville":"foodies-cafe","foodies-fast-food":"foodies-fast-food","foodies-gateau":"foodies-gateau","hw-autre-cadeau-666":"autre-cadeau-666","hw-couple-film-horreur":"couple-film-horreur","hw-couple-urbex":"couple-urbex","hw-energy-griffure":"energy-griffure","hw-energy-morsure":"energy-morsure","hw-fa-foodies-repas":"foodies-repas-effrayant","hw-foil-autre-cadeau-66":"autre-cadeau-66","hw-foil-nue-faciale-eglise":"nue-faciale-eglise","hw-foodies-gateau":"foodies-gateau-halloween","hw-nue-photo-horreur":"nue-photo-horreur","joker-annulation":"joker","legend-couple":"couple-legendaire","legend-foodies":"foodies-legendaire","legend-nude":"nue-legendaire","legend-other":"autre-legendaire","legend-todo":"todo-legendaire","nue-assise-visage":"nue-assise-visage","nue-avaler":"nue-avaler","nue-faciale":"nue-faciale","nue-grosse-levrette":"nue-grosse-levrette","nue-leche-partenaire":"nue-leche","nue-massage-nuru":"nue-massage-nuru","nue-photo-apres-sport":"nue-photo-sport","nue-photo-berlin":"nue-photo-berlin","nue-photo-cuisine":"nue-photo-cuisine","nue-photo-douche-vapeur":"nue-photo-douche","nue-photo-linge":"nue-photo-linge","nue-photo-neon":"nue-photo-neon","nue-photo-pluie":"nue-photo-pluie","nue-photo-star-wars":"nue-photo-starwars","nue-suce-partenaire":"nue-suce","spell-adagio":"spell-adagio","spell-augmento":"spell-augmento","spell-destructo":"spell-destructo","spell-presto":"spell-presto","spell-reducto":"spell-reducto","todo-linge":"todo-linge","todo-machine":"todo-machine","todo-piece":"todo-piece","todo-placard":"todo-placard","todo-poubelles":"todo-poubelles","todo-vaisselle":"todo-vaisselle"};
+  function cardArtStyle(card) {
+    const slug = CARD_ART[card.template_id];
+    if (!slug) return "";
+    return ` style="background-image:url('${CARD_ART_BASE}${slug}.jpg');background-size:cover;background-position:center"`;
   }
 
   function cardMarkup(card, options = {}) {
@@ -254,7 +262,7 @@
     const modifier = card.effect_modifier === "reducto" ? "REDUCTO · Effet ÷2" : card.effect_modifier === "augmento" ? "AUGMENTO · Effet ×2" : "";
     const timeModifier = card.time_modifier === "presto" ? "PRESTO · Temps ÷2" : card.time_modifier === "adagio" ? "ADAGIO · Temps ×2" : "";
     return `<article class="game-card palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
-      <div class="card-art" aria-hidden="true"></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
+      <div class="card-art" aria-hidden="true"${cardArtStyle(card)}></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       <div class="card-top"><span>${escapeHtml(card.category)}</span></div>
       ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
       <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}${number}</span></div>
@@ -808,7 +816,7 @@
     const session = state.viewerSession;
     $("#cardDialogContent").inert = true;
     const element = $("#viewerCard");
-    await element.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${-direction*65}%) rotate(${-direction*7}deg)`, opacity: 0 }], { duration: reducedMotion.matches ? 0 : 160, easing: "cubic-bezier(.2,.7,.2,1)" }).finished.catch(() => {});
+    await element.animate([{ transform: `translateX(${dx}px)` }, { transform: `translateX(${-direction*65}%) rotate(${-direction*7}deg)`, opacity: 0 }], { duration: reducedMotion.matches ? 0 : 160, easing: "cubic-bezier(.2,.7,.2,.1)" }).finished.catch(() => {});
     state.viewerMoving = false;
     $("#cardDialogContent").inert = false;
     if (!cardDialog.open || session !== state.viewerSession) return;
@@ -885,8 +893,7 @@
         const card = typeof visual === "function" ? visual() : visual;
         if (!card) return;
         card.classList.remove("dragging");
-        card.style.removeProperty("--drag-x"); card.style.removeProperty("--drag-rotate");
-        card.style.removeProperty("--drag-y");
+        card.style.removeProperty("--drag-x"); card.style.removeProperty("--drag-rotate"); card.style.removeProperty("--drag-y");
       },
       onSwipe
     });
@@ -1183,7 +1190,7 @@
     const done=contextualBusy($("#moreHistory"),"Chargement…");
     try {await exchange("sync",{history_limit:state.historyLimit});renderTrades();}catch(error){toast(friendlyError(error));}finally{done();}
   });
-  $$("[data-collection-tab]").forEach(tab=>tab.addEventListener("keydown",event=>{
+  $$('[data-collection-tab]').forEach(tab=>tab.addEventListener("keydown",event=>{
     if (!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
     event.preventDefault();const tabs=$$("[data-collection-tab]");const target=event.key==="Home"?tabs[0]:event.key==="End"?tabs.at(-1):tabs[(tabs.indexOf(tab)+1)%tabs.length];target.click();target.focus();
   }));
@@ -1307,8 +1314,7 @@
       const done = contextualBusy(useJoker,"Annulation…");
       try {
         await exchange("use_joker", { joker_card_id: useJoker.dataset.useJoker, target_card_id: target });
-        cardDialog.close();
-        render();
+        cardDialog.close(); render();
         setView("today");
         toast("La carte active a été annulée.");
       } catch (error) { toast(friendlyError(error)); }
@@ -1322,8 +1328,7 @@
       const done = contextualBusy(activate,"Activation…");
       try {
         await exchange("activate_card", { card_id: activate.dataset.activateCard, ...($("#legendaryChoiceSelect") ? {choice_template_id:$("#legendaryChoiceSelect").value} : {}) });
-        cardDialog.close();
-        render();
+        cardDialog.close(); render();
         setView("today");
         flyToTable(ghost, activate.dataset.activateCard);
         toast("Challenge activé pour 24 h.");
