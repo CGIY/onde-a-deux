@@ -1,6 +1,6 @@
 const CACHE = "les-cartes-v18";
 // Only the normal shell is preloaded. Seasonal and rare art load when displayed.
-const SHELL = ["./", "./index.html", "./styles.css?v=18", "./daylight.css?v=18", "./halloween.css?v=18", "./booster-motion.css?v=18", "./experience.css?v=18", "./polish.css?v=18", "./booster-gesture.js?v=18", "./app.js?v=18", "./card-transport.js?v=18", "./season-banner.js?v=18", "./depressive-deck.js?v=18", "./depressive-deck.css?v=18", "./economy.js?v=18", "./economy.css?v=18", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
+const SHELL = ["./", "./index.html", "./styles.css?v=18", "./daylight.css?v=18", "./halloween.css?v=18", "./booster-motion.css?v=18", "./experience.css?v=18", "./polish.css?v=18", "./booster-gesture.js?v=18", "./app.js?v=18", "./card-transport.js?v=18", "./season-banner.js?v=18", "./depressive-deck.js?v=18", "./depressive-deck.css?v=18", "./economy.js?v=18", "./economy.css?v=18", "./push-client.js?v=1", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
 });
@@ -30,7 +30,7 @@ self.addEventListener("fetch", event => {
 self.addEventListener("push", event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
-  event.waitUntil(self.registration.showNotification(data.title || "Les Cartes \u00e0 deux", {
+  event.waitUntil(self.registration.showNotification(data.title || "Les Cartes à deux", {
     body: data.body || "Une nouvelle attend votre retour.",
     icon: "./icon.svg",
     badge: "./icon.svg",
