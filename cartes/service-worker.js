@@ -13,16 +13,36 @@ self.addEventListener("fetch", event => {
   if (event.request.method !== "GET" || url.origin !== location.origin || !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
   const image = /\.(webp|png|jpg|svg)$/.test(url.pathname);
   event.respondWith((async () => {
-    if (image) { const cached = await caches.match(event.request); if (cached) return cached; }
+    if (image) { const cache = await caches.match(event.request); if (cache) return cache; }
     try {
       const response = await fetch(event.request);
       if (response.ok) { const copy = response.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, copy))); }
       return response;
     } catch {
-      const cached = await caches.match(event.request);
-      if (cached) return cached;
+      const cache = await caches.match(event.request);
+      if (cache) return cache;
       if (event.request.mode === "navigate") return caches.match("./index.html");
       return Response.error();
     }
   })());
+});
+
+self.addEventListener("push", event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+  event.waitUntil(self.registration.showNotification(data.title || "Les Cartes \u00e0 deux", {
+    body: data.body || "Une nouvelle attend votre retour.",
+    icon: "./icon.svg",
+    badge: "./icon.svg",
+    tag: "les-cartes",
+    data: { path: data.path || "./" }
+  }));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(clients => {
+    for (const client of clients) { if ("focus" in client) { client.focus(); return; } }
+    return self.clients.openWindow((event.notification.data && event.notification.data.path) || "./");
+  }));
 });
