@@ -68,6 +68,33 @@
 .bank-recipe strong { text-align:right; font-size:12px; }
 .bank-selected { margin:19px 3px 9px; font-size:12px; color:#806678; }
 .bank-selected button { border:0; background:none; color:#7f4e79; text-decoration:underline; font-size:12px; }
+.bank-progress { display:flex; align-items:stretch; gap:5px; overflow-x:auto; padding:3px 0 8px; scrollbar-width:none; }
+.bank-progress::-webkit-scrollbar { display:none; }
+.bank-progress-step,.bank-progress-result { flex:1 0 88px; min-width:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; padding:8px 9px; border:1px solid #d8c4ce; border-radius:12px; background:#fff9f1a8; color:#755d70; text-align:left; }
+.bank-progress-step.current { border-color:#916d91; background:#eee0ec; box-shadow:inset 0 0 0 1px #916d9140; }
+.bank-progress-step.done { border-color:#ab8c9b; }
+.bank-progress-step:disabled { opacity:.55; }
+.bank-progress-step small,.bank-progress-result small,.bank-review-result small { font-size:8px; letter-spacing:.12em; font-weight:700; color:#9a788a; }
+.bank-progress-step strong,.bank-progress-result strong { font-size:11px; line-height:1.15; }
+.bank-progress-step em { font-size:10px; font-style:normal; color:#9a788a; }
+.bank-progress-result { flex:0 0 88px; background:#eadbecae; border-color:#cdb1c8; }
+.bank-stage-heading { position:relative; margin:15px 2px 0; padding-right:110px; }
+.bank-stage-heading .eyebrow { font-size:9px; color:#9a788a; }
+.bank-stage-heading h3,.bank-review h3 { margin:5px 0 0; font:22px/1.13 Georgia,serif; color:#604658; }
+.bank-stage-heading>.bank-rarity-tag { position:absolute; right:0; bottom:1px; }
+.bank-rarity-tag,.bank-card-rarity { display:inline-block; border:1px solid #bca3b6; border-radius:999px; padding:3px 7px; background:#f4e8ee; color:#735774; font-size:9px; font-weight:750; letter-spacing:.035em; text-transform:uppercase; }
+.bank-card-rarity { padding:1px 5px; font-size:8px; vertical-align:1px; }
+.bank-step-actions { display:flex; align-items:center; gap:9px; margin-top:14px; }
+.bank-step-actions>.bank-submit { flex:1; margin-top:0; }
+.bank-step-actions>button:not(.bank-submit) { flex:0 0 auto; min-height:50px; padding:0 15px; border:1px solid #cbb4c1; border-radius:15px; background:#fff9f0c4; color:#755d70; font-size:12px; }
+.bank-review { margin-top:18px; padding:16px; border:1px solid #d0b7c8; border-radius:18px; background:#fffaf2b5; }
+.bank-review>.eyebrow { color:#98758a; font-size:9px; }
+.bank-review h3 { margin-bottom:13px; }
+.bank-review-group { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:5px 10px; padding:11px 0; border-bottom:1px solid #d7c4cd8c; }
+.bank-review-group strong { justify-self:end; font-size:11px; }
+.bank-review-group small { grid-column:1/-1; color:#917c8d; font-size:10px; line-height:1.4; }
+.bank-review-result { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-top:14px; }
+.bank-review-result strong { flex:1; font:18px Georgia,serif; }
 .bank-card-list { display:grid; gap:7px; max-height:min(52dvh,485px); overflow:auto; padding:3px; overscroll-behavior:contain; }
 .bank-card-choice { width:100%; min-height:60px; border:1px solid #d7c4c8; border-radius:14px; padding:8px 11px; background:#fffaf2c9; color:#604d5d; text-align:left; }
 .bank-card-choice.selected { border-color:#927199; background:#eee1ed; box-shadow:inset 0 0 0 1px #92719955; }

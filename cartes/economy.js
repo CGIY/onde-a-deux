@@ -37,7 +37,7 @@
     const kind=card=>card.card_type==='energy'?'energy':card.finish;
     const textNeeds=needs=>Object.entries(needs).map(([key,n])=>key==='energy'?`${n} Énergie${n>1?'s':''} Bisou${n>1?'s':''}`:`${n} ${labels[key]}${n>1?'s':''}`).join(' + ');
     const cardOf=id=>cards().find(card=>card.id===id);
-    let recipe=null,selected=new Set(),busy=false,saleCard=null,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null;
+    let recipe=null,selected=new Set(),bankStep=0,bankReview=false,busy=false,saleCard=null,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null;
     function countFor(r){const pool=cards();const counts={};for(const c of pool.filter(c=>c.card_type==='challenge'||c.card_type==='energy'))counts[kind(c)]=(counts[kind(c)]||0)+1;
       if(r.id==='reforge')return Math.min(counts.energy||0,3)===3&&pool.some(c=>c.card_type!=='energy');
       return Object.entries(r.needs).every(([k,n])=>(counts[k]||0)>=n);
@@ -62,23 +62,33 @@
       if(tourRole!==role){tourRole=role;tourIndex=0;}
       if(!localStorage.getItem(`les-cartes-economy-tour:v18:${role}`)&&!document.querySelector('dialog[open]')){drawTour();tour.showModal();}
     }
-    function eligible(r){return cards().filter(c=>c.card_type==='energy'||r.id==='reforge'&&c.card_type!=='energy'||r.id==='legendary'&&c.card_type==='challenge'&&['full_art','foil'].includes(c.finish)||r.id==='common_to_art'&&c.card_type==='challenge'&&c.finish==='standard'||r.id==='art_to_foil'&&c.card_type==='challenge'&&c.finish==='full_art'||r.id==='foil_to_artfoil'&&c.card_type==='challenge'&&c.finish==='foil');}
-    function valid(){if(!recipe)return false;const picked=[...selected].map(cardOf).filter(Boolean),groups={};picked.forEach(c=>groups[kind(c)]=(groups[kind(c)]||0)+1);
-      if(recipe.id==='reforge')return picked.length===4&&groups.energy===3&&picked.filter(c=>c.card_type!=='energy').length===1;
-      return picked.length===Object.values(recipe.needs).reduce((a,b)=>a+b,0)&&Object.entries(recipe.needs).every(([key,n])=>groups[key]===n);
+    const stageLabel=key=>({energy:'Énergie Bisou',any:'Carte à refrapper',standard:'Commune',full_art:'Full art',foil:'Foil'})[key]||key;
+    const stagePhrase=(key,amount)=>key==='energy'?`${amount} Énergie${amount>1?'s':''} Bisou${amount>1?'s':''}`:key==='any'?`${amount} carte${amount>1?'s':''} à refrapper`:`${amount} ${stageLabel(key)}${amount>1?'s':''}`;
+    function stages(){return recipe?Object.entries(recipe.needs).map(([key,amount])=>({key,amount})):[];}
+    function stageCards(key){return cards().filter(c=>key==='energy'?c.card_type==='energy':key==='any'?c.card_type!=='energy':c.card_type==='challenge'&&c.finish===key).sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));}
+    function stageCount(key){return stageCards(key).filter(c=>selected.has(c.id)).length;}
+    function stageReady(index){const stage=stages()[index];return !!stage&&stageCount(stage.key)===stage.amount;}
+    function valid(){const parts=stages();return parts.length>0&&parts.every((_,i)=>stageReady(i))&&selected.size===parts.reduce((sum,part)=>sum+part.amount,0);}
+    function resultRarity(){if(recipe?.id==='reforge'){const source=[...selected].map(cardOf).find(c=>c&&c.card_type!=='energy');return source?finishLabels[source.finish]||source.finish:'Même rareté';}return ({draw:'Aléatoire',common_to_art:'Full art',art_to_foil:'Foil',foil_to_artfoil:'Full art + foil',legendary:'Légendaire'})[recipe?.id]||'';}
+    function drawSelection(){if(!recipe||!modal.open)return;
+      const list=modal.querySelector('.bank-card-list'),scroll=list?.scrollTop||0,parts=stages(),current=parts[bankStep];
+      const progress=`<div class="bank-progress" aria-label="Progression">${parts.map((part,i)=>`<button type="button" data-bank-step="${i}" class="bank-progress-step ${!bankReview&&bankStep===i?'current':''} ${stageReady(i)?'done':''}" ${i>0&&!parts.slice(0,i).every((_,n)=>stageReady(n))?'disabled':''}><small>ÉTAPE ${i+1}</small><strong>${escape(stageLabel(part.key))}</strong><em>${stageCount(part.key)}/${part.amount}</em></button>`).join('')}<span class="bank-progress-result"><small>RÉSULTAT</small><strong>${escape(resultRarity())}</strong></span></div>`;
+      const intro=`<div class="bank-intro"><span class="eyebrow">BANQUE DES CARTES · ${escape(recipe.title)}</span><h2>${escape(recipe.result)}</h2><p>${escape(recipe.subtitle)}</p></div>${progress}`;
+      if(bankReview){const groups=parts.map(part=>`<div class="bank-review-group"><span class="bank-rarity-tag">${escape(stageLabel(part.key))}</span><strong>${part.amount} carte${part.amount>1?'s':''}</strong><small>${stageCards(part.key).filter(c=>selected.has(c.id)).map(c=>escape(c.title)).join(' · ')}</small></div>`).join('');
+        modal.querySelector('.bank-content').innerHTML=`${intro}<div class="bank-review"><span class="eyebrow">DERNIÈRE VÉRIFICATION</span><h3>Tu déposes</h3>${groups}<div class="bank-review-result"><small>TU REÇOIS</small><strong>${escape(recipe.result)}</strong><span class="bank-rarity-tag">${escape(resultRarity())}</span></div></div><p class="bank-warning">Les cartes déposées restent dans « Déjà vues ». La Refrappe peut rendre la même carte.</p><div class="bank-step-actions"><button type="button" data-bank-edit>Modifier</button><button type="button" class="bank-submit" data-bank-submit ${valid()?'':'disabled'}>Sceller l’échange →</button></div>`;return;
+      }
+      const pool=stageCards(current.key);
+      modal.querySelector('.bank-content').innerHTML=`${intro}<div class="bank-stage-heading"><span class="eyebrow">ÉTAPE ${bankStep+1} / ${parts.length}</span><h3>Choisis ${escape(stagePhrase(current.key,current.amount))}</h3><span class="bank-rarity-tag">${escape(stageLabel(current.key))}</span></div><div class="bank-selected"><b>${stageCount(current.key)} / ${current.amount}</b><button type="button" data-bank-auto>Compléter cette étape</button></div><div class="bank-card-list">${pool.map(c=>`<button type="button" data-bank-card="${escape(c.id)}" class="bank-card-choice ${selected.has(c.id)?'selected':''}" aria-pressed="${selected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${escape(c.symbol||'✧')}</span><span><strong>${escape(c.title)}</strong><small><span class="bank-card-rarity">${escape(c.card_type==='energy'?'Énergie Bisou':finishLabels[c.finish]||c.finish)}</span> · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><i>${selected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><div class="bank-step-actions">${bankStep>0?'<button type="button" data-bank-previous>Retour</button>':''}<button type="button" class="bank-submit" data-bank-next ${stageReady(bankStep)?'':'disabled'}>${bankStep===parts.length-1?'Vérifier mes cartes →':`Continuer : ${escape(stageLabel(parts[bankStep+1].key))} →`}</button></div>`;
+      modal.querySelector('.bank-card-list').scrollTop=scroll;
     }
-    function drawSelection(){if(!recipe||!modal.open)return;const pool=eligible(recipe),picked=[...selected].map(cardOf).filter(Boolean);
-      modal.querySelector('.bank-content').innerHTML=`<div class="bank-intro"><span class="eyebrow">BANQUE DES CARTES · ${escape(recipe.title)}</span><h2>${escape(recipe.result)}</h2><p>${escape(recipe.subtitle)}</p></div><div class="bank-recipe"><span>À déposer</span><strong>${escape(textNeeds(recipe.needs))}</strong></div><div class="bank-selected"><b>${picked.length} / ${Object.values(recipe.needs).reduce((a,b)=>a+b,0)}</b><button type="button" data-bank-auto>Choisir automatiquement</button></div><div class="bank-card-list">${pool.map(c=>`<button type="button" data-bank-card="${escape(c.id)}" class="bank-card-choice ${selected.has(c.id)?'selected':''}" aria-pressed="${selected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${escape(c.symbol||'✧')}</span><span><strong>${escape(c.title)}</strong><small>${escape(c.card_type==='energy'?'Énergie Bisous':finishLabels[c.finish]||c.finish)} · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><i>${selected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><p class="bank-warning">Les cartes déposées restent dans « Déjà vues ». La Refrappe peut rendre la même carte.</p><button type="button" class="bank-submit" data-bank-submit ${valid()?'':'disabled'}>Sceller l’échange →</button>`;
-    }
-    function openBank(id){recipe=recipes.find(r=>r.id===id);if(!recipe||state()?.bank_used_today)return;selected=new Set();modal.className='bank-dialog';modal.showModal();drawSelection();}
-    function autoSelect(){selected.clear();const needed={...recipe.needs};if(recipe.id==='reforge')needed.any=1;
-      for(const c of eligible(recipe).sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at))){const k=c.card_type==='energy'?'energy':recipe.id==='reforge'?'any':kind(c);if(needed[k]>0){selected.add(c.id);needed[k]--;}}
+    function openBank(id){recipe=recipes.find(r=>r.id===id);if(!recipe||state()?.bank_used_today)return;selected=new Set();bankStep=0;bankReview=false;modal.className='bank-dialog';modal.showModal();drawSelection();}
+    function autoSelect(){const stage=stages()[bankStep];if(!stage)return;let left=stage.amount-stageCount(stage.key);
+      for(const c of stageCards(stage.key)){if(left<=0)break;if(!selected.has(c.id)){selected.add(c.id);left--;}}
       drawSelection();
     }
-    function toggleCard(id){const c=cardOf(id);if(!c)return;if(selected.has(id)){selected.delete(id);return drawSelection();}
-      const k=c.card_type==='energy'?'energy':recipe.id==='reforge'?'any':kind(c);
-      const max=recipe.needs[k]||0,count=[...selected].map(cardOf).filter(item=>item&&(item.card_type==='energy'?'energy':recipe.id==='reforge'?'any':kind(item))===k).length;
-      if(count<max)selected.add(id);drawSelection();
+    function toggleCard(id){const stage=stages()[bankStep],c=stageCards(stage?.key).find(item=>item.id===id);if(!c)return;
+      if(selected.has(id))selected.delete(id);else if(stageCount(stage.key)<stage.amount)selected.add(id);
+      drawSelection();
     }
     async function submit(){if(busy||!valid())return;busy=true;const r=recipe,ids=[...selected],oldId=state()?.last_bank_trade?.id;
       modal.querySelector('.bank-content').innerHTML=`<div class="bank-ceremony bank-${r.motion}"><span class="eyebrow">${escape(r.title)}</span><div class="bank-vortex" aria-hidden="true">${Array.from({length:Math.min(ids.length,15)},(_,i)=>`<i style="--i:${i};--n:${Math.min(ids.length,15)}"></i>`).join('')}<span class="bank-core"></span></div><h2>Les cartes se transforment…</h2></div>`;
@@ -142,14 +152,25 @@
     });
     headerBalance.addEventListener('click',()=>{drawShardInfo();shardInfo.showModal();});
     shardInfo.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return shardInfo.close();if(event.target.closest('[data-shard-actions]')){shardInfo.close();onActions();}});
-    modal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return modal.close();if(event.target.closest('[data-bank-auto]'))return autoSelect();const pick=event.target.closest('[data-bank-card]');if(pick)return toggleCard(pick.dataset.bankCard);if(event.target.closest('[data-bank-submit]'))return void submit();if(event.target.closest('[data-bank-back]'))return drawSelection();if(event.target.closest('[data-bank-finish]')){modal.close();onCollection();}});
+    modal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return modal.close();if(busy)return;
+      if(event.target.closest('[data-bank-auto]'))return autoSelect();
+      const pick=event.target.closest('[data-bank-card]');if(pick)return toggleCard(pick.dataset.bankCard);
+      const step=event.target.closest('[data-bank-step]');if(step&&!step.disabled){bankStep=Number(step.dataset.bankStep);bankReview=false;return drawSelection();}
+      if(event.target.closest('[data-bank-previous]')){bankStep=Math.max(0,bankStep-1);return drawSelection();}
+      if(event.target.closest('[data-bank-next]')&&stageReady(bankStep)){if(bankStep===stages().length-1)bankReview=true;else bankStep++;return drawSelection();}
+      if(event.target.closest('[data-bank-edit]')){bankReview=false;return drawSelection();}
+      if(event.target.closest('[data-bank-submit]')&&bankReview)return void submit();
+      if(event.target.closest('[data-bank-back]')){bankReview=false;return drawSelection();}
+      if(event.target.closest('[data-bank-finish]')){modal.close();onCollection();}
+    });
+    modal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
     saleModal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return saleModal.close();if(event.target.closest('[data-sale-confirm]'))return void confirmSale();});
     bulkModal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return bulkModal.close();const pick=event.target.closest('[data-bulk-card]');if(pick&&!busy){const id=pick.dataset.bulkCard;if(bulkSelected.has(id))bulkSelected.delete(id);else bulkSelected.add(id);return drawBulk();}if(event.target.closest('[data-bulk-all]')&&!busy){bulkSelected=new Set(cards().map(c=>c.id));return drawBulk();}if(event.target.closest('[data-bulk-clear]')&&!busy){bulkSelected.clear();return drawBulk();}if(event.target.closest('[data-bulk-confirm]'))return void confirmBulk();if(event.target.closest('[data-bulk-finish]'))bulkModal.close();});
     bulkModal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
     bulkModal.addEventListener('close',()=>bulkSelected.clear());
     tour.addEventListener('click',event=>{if(event.target.closest('[data-tour-skip]'))return closeTour();if(event.target.closest('[data-tour-next]')){if(tourIndex===slides.length-1)closeTour();else{tourIndex++;drawTour();}}});
     tour.addEventListener('cancel',event=>{event.preventDefault();closeTour();});
-    modal.addEventListener('close',()=>{recipe=null;selected.clear();});
+    modal.addEventListener('close',()=>{recipe=null;selected.clear();bankStep=0;bankReview=false;});
     saleModal.addEventListener('close',()=>{saleCard=null;});
     return Object.freeze({refresh,sell,openBulk,isOpen:()=>modal.open||saleModal.open||bulkModal.open||shardInfo.open||tour.open});
   }
