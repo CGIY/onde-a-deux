@@ -42,6 +42,11 @@
   }
   function matchesMutation(snapshot,action,payload,role) {
     if(!snapshot)return false;
+    if(action==='sell_card'||action==='sell_cards'){
+      const ids=action==='sell_card'?[payload.card_id]:payload.card_ids||[];
+      const sold=new Set((snapshot.economy?.events||[]).filter(event=>event.type==='card_sold').map(event=>event.card_id));
+      return ids.length>0&&ids.every(id=>sold.has(id));
+    }
     const events=snapshot.card_events || [];
     const eventType={give_card:"give_card",destroy_card:"destroy_card",complete_card:"complete_card",use_spell:"spell_cast"}[action];
     if(eventType)return events.some(event=>event.actor_role===role && event.card_id===(payload.card_id || payload.spell_card_id) && event.event_type===eventType);

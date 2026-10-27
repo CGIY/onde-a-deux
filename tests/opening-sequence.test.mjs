@@ -8,7 +8,7 @@ async function scenario(fail=false) {
   const state={opening:false,selectedBooster:'pack-test',data:{known_cards:[],my_cards:[]},newTemplates:new Set()};
   let resolve,reject,calls=0,reveals=0,now=0,resets=0;const timers=[];
   const pending=new Promise((ok,no)=>{resolve=ok;reject=no;});
-  const fn=runInNewContext(code+'\nrevealBooster',{$,state,performance:{now:()=>now},reducedMotion:{matches:false},boosterDialog:{open:true},exchange:async()=>{calls++;await pending;state.data.my_cards=['energy','challenge','challenge'].map((card_type,i)=>({id:'card-'+i,template_id:'template-'+i,booster_id:'pack-test',card_type}));},feedback:()=>{},setTimeout:(callback,delay)=>{timers.push({callback,delay});return 1;},render:()=>{},renderRevealedCard:()=>reveals++,showOpeningReceipt:()=>reveals++,packGesture:{reset:()=>resets++},friendlyError:error=>error.message,sync:async()=>{}});
+  const fn=runInNewContext(code+'\nrevealBooster',{$,state,performance:{now:()=>now},reducedMotion:{matches:false},boosterDialog:{open:true},exchange:async()=>{calls++;await pending;state.data.my_cards=['energy','challenge','challenge'].map((card_type,i)=>({id:'card-'+i,template_id:'template-'+i,booster_id:'pack-test',card_type}));state.data.pending_openings=[{booster_id:'pack-test',cards:[...state.data.my_cards,{reward_type:'shards',amount:2},{reward_type:'shards',amount:1}]}];},feedback:()=>{},setTimeout:(callback,delay)=>{timers.push({callback,delay});return 1;},render:()=>{},renderRevealedCard:()=>reveals++,showOpeningReceipt:()=>reveals++,packGesture:{reset:()=>resets++},friendlyError:error=>error.message,sync:async()=>{}});
   const running=fn();await fn();
   assert.equal(calls,1,'The animation must not trigger a second draw');
   assert($('#boosterStage').classes.has('unsealing'),'Tearing must start while the request is pending');
@@ -18,7 +18,7 @@ async function scenario(fail=false) {
   if(fail)reject(Error('network_error'));else resolve();
   await running;
   if(fail){assert.equal(state.opening,false);assert(!$('#sealedPack').classes.has('opened'));assert.equal(resets,1);assert.equal($('#openPackButton').disabled,false);assert.equal(reveals,0);}
-  else {assert.equal(timers[0].delay,0,'Network latency must overlap the animation, not add 760ms');assert.equal(reveals,0);timers[0].callback();assert.equal(reveals,1);assert.equal(state.newTemplates.size,3);}
+  else {assert.equal(timers[0].delay,0,'Network latency must overlap the animation, not add 760ms');assert.equal(reveals,0);timers[0].callback();assert.equal(reveals,1);assert.equal(state.newTemplates.size,3);assert.equal(state.revealedCards.length,5);}
 }
 await scenario();await scenario(true);
 console.log('OK: immediate motion, hidden faces before acknowledgment, one draw, latency overlap, new discoveries, error rollback of visual state only.');
