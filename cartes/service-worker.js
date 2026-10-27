@@ -1,6 +1,6 @@
-const CACHE = "les-cartes-v22";
+const CACHE = "les-cartes-v23";
 // Only the normal shell is preloaded. Seasonal and rare art load when displayed.
-const SHELL = ["./", "./index.html", "./styles.css?v=22", "./daylight.css?v=22", "./halloween.css?v=22", "./booster-motion.css?v=22", "./experience.css?v=22", "./polish.css?v=22", "./booster-gesture.js?v=22", "./app.js?v=22", "./card-transport.js?v=22", "./season-banner.js?v=22", "./depressive-deck.js?v=22", "./depressive-deck.css?v=22", "./economy.js?v=22", "./economy.css?v=22", "./push-client.js?v=1", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
+const SHELL = ["./", "./index.html", "./styles.css?v=23", "./daylight.css?v=23", "./halloween.css?v=23", "./booster-motion.css?v=23", "./experience.css?v=23", "./polish.css?v=23", "./booster-gesture.js?v=23", "./app.js?v=23", "./card-transport.js?v=23", "./season-banner.js?v=23", "./depressive-deck.js?v=23", "./depressive-deck.css?v=23", "./economy.js?v=23", "./economy.css?v=23", "./push-client.js?v=2", "./assets/card-atlas.webp", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
 });
@@ -41,8 +41,12 @@ self.addEventListener("push", event => {
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(clients => {
-    for (const client of clients) { if ("focus" in client) { client.focus(); return; } }
-    return self.clients.openWindow((event.notification.data && event.notification.data.path) || "./");
-  }));
+  event.waitUntil((async()=>{
+    const scope=new URL(self.registration.scope);
+    let target;try{target=new URL(event.notification.data?.path||'./',scope);}catch{target=scope;}
+    if(target.origin!==scope.origin||!target.pathname.startsWith(scope.pathname))target=scope;
+    const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const client of clients){if(client.url.startsWith(scope.href)&&'focus' in client){await client.navigate(target.href);return client.focus();}}
+    return self.clients.openWindow(target.href);
+  })());
 });

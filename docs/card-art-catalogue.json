@@ -1,0 +1,802 @@
+[
+  {
+    "id": "autre-cadeau-ville",
+    "title": "CADEAU EN VILLE · 10 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-cadeau-vinted",
+    "title": "CADEAU VINTED · 5 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-massage-cuisses",
+    "title": "MASSAGE DES CUISSES",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-massage-dos",
+    "title": "MASSAGE DU DOS",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-massage-epaules",
+    "title": "MASSAGE DES ÉPAULES",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-massage-tete",
+    "title": "MASSAGE DE LA TÊTE",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-massage-visage",
+    "title": "MASSAGE DU VISAGE",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "autre-mot-doux",
+    "title": "CACHER UN MOT DOUX",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-aquarelle",
+    "title": "AQUARELLE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-balade-rapide",
+    "title": "BALADE RAPIDE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-dessin",
+    "title": "DESSIN",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-film",
+    "title": "FILM",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-gateau",
+    "title": "FAIRE UN GÂTEAU",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-jeu-societe",
+    "title": "JEU DE SOCIÉTÉ",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-serie",
+    "title": "SÉRIE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "couple-tour-ville",
+    "title": "PETIT TOUR EN VILLE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "energy-bisou",
+    "title": "ÉNERGIE BISOUS",
+    "category": "ÉNERGIE",
+    "palette": "energy",
+    "finish_tier": "standard",
+    "card_type": "energy"
+  },
+  {
+    "id": "fa-autre-cadeau-20",
+    "title": "CADEAU · 20 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-autre-cadeau-25",
+    "title": "CADEAU · 25 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-couple-choix-activite",
+    "title": "LAISSER L’AUTRE CHOISIR L’ACTIVITÉ",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-couple-repas-complet",
+    "title": "PRÉPARER UN REPAS COMPLET",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-foodies-repas-choix-paye",
+    "title": "L’AUTRE PAIE LE REPAS DE TON CHOIX",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-foodies-repas-choix-prepare",
+    "title": "L’AUTRE PRÉPARE LE REPAS DE TON CHOIX",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-nue-anal",
+    "title": "L’AUTRE ACCEPTE · ANAL",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-nue-fessees-filmees",
+    "title": "30 MINUTES DE FESSÉES FILMÉES",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-nue-reddit-boobs",
+    "title": "REDDIT · BOOBS",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-nue-reproduction-porno",
+    "title": "REPRODUCTION FILM PORNO · 1:1",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-nue-webcam-boobs",
+    "title": "WEBCAM NUDE · BOOBS",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "fa-todo-impose-tache",
+    "title": "IMPOSE TA TÂCHE MÉNAGÈRE À L’AUTRE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-autre-cadeau-100",
+    "title": "CADEAU · 100 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-couple-super-sortie",
+    "title": "L’AUTRE PRÉPARE UNE SUPER SORTIE À DEUX",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-couple-weekend",
+    "title": "PRÉPARATION D’UN WEEK-END AILLEURS",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-nue-achat-scandale",
+    "title": "ACHAT SUR SCANDALE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-nue-golden-shower",
+    "title": "GOLDEN SHOWER SUR L’AUTRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-nue-gros-sextoy",
+    "title": "ACHAT D’UN GROS SEXTOY",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-nue-reddit-faciale",
+    "title": "REDDIT · FACIALE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-nue-roleplay-violent",
+    "title": "ROLEPLAY VIOLENT SUR L’AUTRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "faf-nue-webcam-faciale",
+    "title": "WEBCAM NUDE · FACIALE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-autre-cadeau-50",
+    "title": "CADEAU · 50 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-autre-massage-complet",
+    "title": "GROS MASSAGE COMPLET",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-couple-marathon",
+    "title": "MARATHON DE FILMS / SÉRIE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-couple-soiree-theme",
+    "title": "SOIRÉE À THÈME DÉCIDÉE PAR L’AUTRE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-couple-sortie-choisie",
+    "title": "LA SORTIE CHOISIE PAR L’AUTRE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-foodies-dessert-luxe",
+    "title": "L’AUTRE TE PROPOSE UN DESSERT DE LUXE",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-foodies-plat-luxe",
+    "title": "L’AUTRE TE PROPOSE UN PLAT DE LUXE",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-foodies-restaurant",
+    "title": "L’AUTRE PAIE SON RESTAURANT",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-blowjob-eglise",
+    "title": "BLOWJOB À L’ÉGLISE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-petit-sextoy",
+    "title": "ACHAT D’UN PETIT SEXTOY",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-porno-hardcore",
+    "title": "REPRODUCTION FILM PORNO HARDCORE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-reddit-pussy",
+    "title": "REDDIT · PUSSY",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-site-echangiste",
+    "title": "SITE ÉCHANGISTE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-soumission",
+    "title": "UNE HEURE DE SOUMISSION",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-nue-webcam-pussy",
+    "title": "WEBCAM NUDE · PUSSY",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foil-todo-refaire-piece",
+    "title": "L’AUTRE DOIT REFAIRE UN ÉLÉMENT D’UNE PIÈCE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foodies-apero",
+    "title": "L’AUTRE PRÉPARE UN APÉRO",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foodies-cafe-ville",
+    "title": "L’AUTRE PAIE SON CAFÉ EN VILLE",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foodies-fast-food",
+    "title": "L’AUTRE PAIE LE FAST-FOOD",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "foodies-gateau",
+    "title": "L’AUTRE FAIT UN GÂTEAU",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-autre-cadeau-666",
+    "title": "CADEAU · 6,66 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-couple-film-horreur",
+    "title": "FILM D’HORREUR",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-couple-urbex",
+    "title": "URBEX",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-energy-griffure",
+    "title": "UNE GRIFFURE",
+    "category": "ÉNERGIE",
+    "palette": "energy",
+    "finish_tier": "standard",
+    "card_type": "energy"
+  },
+  {
+    "id": "hw-energy-morsure",
+    "title": "UNE MORSURE",
+    "category": "ÉNERGIE",
+    "palette": "energy",
+    "finish_tier": "standard",
+    "card_type": "energy"
+  },
+  {
+    "id": "hw-fa-foodies-repas",
+    "title": "REPAS EFFRAYANT PROPOSÉ PAR L’AUTRE",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "full_art",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-foil-autre-cadeau-66",
+    "title": "CADEAU · 66 €",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-foil-nue-faciale-eglise",
+    "title": "FACIALE À L’ÉGLISE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "foil",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-foodies-gateau",
+    "title": "L’AUTRE FAIT UN GÂTEAU D’HALLOWEEN",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "hw-nue-photo-horreur",
+    "title": "SÉANCE PHOTO NUDES D’HORREUR (COSTUME)",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "joker-annulation",
+    "title": "JOKER",
+    "category": "JOKER",
+    "palette": "joker",
+    "finish_tier": "standard",
+    "card_type": "joker"
+  },
+  {
+    "id": "legend-couple",
+    "title": "EN COUPLE · LÉGENDAIRE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "legendary",
+    "card_type": "challenge"
+  },
+  {
+    "id": "legend-foodies",
+    "title": "LES FOODIES · LÉGENDAIRE",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "legendary",
+    "card_type": "challenge"
+  },
+  {
+    "id": "legend-nude",
+    "title": "MISE À NUE · LÉGENDAIRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "legendary",
+    "card_type": "challenge"
+  },
+  {
+    "id": "legend-other",
+    "title": "POUR L’AUTRE · LÉGENDAIRE",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "legendary",
+    "card_type": "challenge"
+  },
+  {
+    "id": "legend-todo",
+    "title": "TO DO · LÉGENDAIRE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "legendary",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-assise-visage",
+    "title": "L’AUTRE S’ASSOIT SUR LE VISAGE DE SON PARTENAIRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-avaler",
+    "title": "L’AUTRE ACCEPTE D’AVALER",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-faciale",
+    "title": "L’AUTRE FAIT UNE FACIALE À SA PARTENAIRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-grosse-levrette",
+    "title": "UNE GROSSE LEVRETTE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-leche-partenaire",
+    "title": "L’AUTRE LÈCHE SA PARTENAIRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-massage-nuru",
+    "title": "L’AUTRE DOIT FAIRE UN MASSAGE NURU",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-apres-sport",
+    "title": "SÉANCE PHOTO APRÈS-SPORT",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-berlin",
+    "title": "SÉANCE PHOTO BERLIN",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-cuisine",
+    "title": "SÉANCE PHOTO CUISINE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-douche-vapeur",
+    "title": "SÉANCE PHOTO DOUCHE VAPEUR",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-linge",
+    "title": "SÉANCE PHOTO MACHINE À LAVER / LINGE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-neon",
+    "title": "SÉANCE PHOTO NÉON",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-pluie",
+    "title": "SÉANCE PHOTO SOUS LA PLUIE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-photo-star-wars",
+    "title": "SÉANCE PHOTO STAR WARS",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "nue-suce-partenaire",
+    "title": "L’AUTRE SUCE SON PARTENAIRE",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "spell-adagio",
+    "title": "ADAGIO",
+    "category": "SORTILÈGES",
+    "palette": "adagio",
+    "finish_tier": "standard",
+    "card_type": "spell"
+  },
+  {
+    "id": "spell-augmento",
+    "title": "AUGMENTO",
+    "category": "SORTILÈGES",
+    "palette": "augmento",
+    "finish_tier": "full_art_foil",
+    "card_type": "spell"
+  },
+  {
+    "id": "spell-destructo",
+    "title": "DESTRUCTO",
+    "category": "SORTILÈGES",
+    "palette": "destructo",
+    "finish_tier": "full_art_foil",
+    "card_type": "spell"
+  },
+  {
+    "id": "spell-presto",
+    "title": "PRESTO",
+    "category": "SORTILÈGES",
+    "palette": "presto",
+    "finish_tier": "standard",
+    "card_type": "spell"
+  },
+  {
+    "id": "spell-reducto",
+    "title": "REDUCTO",
+    "category": "SORTILÈGES",
+    "palette": "reducto",
+    "finish_tier": "standard",
+    "card_type": "spell"
+  },
+  {
+    "id": "todo-linge",
+    "title": "L’AUTRE ÉTEND / PLIE LE PROCHAIN LINGE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "todo-machine",
+    "title": "L’AUTRE FAIT LA PROCHAINE MACHINE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "todo-piece",
+    "title": "L’AUTRE RANGE UNE PIÈCE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "todo-placard",
+    "title": "L’AUTRE RANGE UN PLACARD",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "todo-poubelles",
+    "title": "L’AUTRE S’OCCUPE DES POUBELLES",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  },
+  {
+    "id": "todo-vaisselle",
+    "title": "L’AUTRE FAIT LE PROCHAIN LAVE-VAISSELLE",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge"
+  }
+]

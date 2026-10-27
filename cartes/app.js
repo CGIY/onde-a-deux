@@ -54,6 +54,7 @@
   const selectionDialog = $("#selectionDialog");
   state.selectionSide = null;
   let recycle = null;
+  let recycleGesture;
   let packGesture;
   let openingTimer;
   let depressiveDeck;
@@ -129,7 +130,8 @@
     deck_state_changed: "Ta partie a été actualisée sur un autre écran.",
     ritual_unavailable: "Ce rituel n’attend plus de validation.",
     ritual_already_claimed: "Ce rituel attend déjà une réponse.",
-    not_enough_shards: "Pas assez d’Éclats pour ce booster.",
+    not_enough_shards: "Pas assez d’Éclats pour cette opération.",
+    nothing_to_steal: "Le solde adverse est déjà à −12. Aucun Éclat à voler.",
     weekly_booster_used: "Tu as déjà acheté 3 boosters cette semaine.",
     bank_used_today: "La Banque a déjà réalisé un échange aujourd’hui.",
     bank_invalid_ingredients: "Ces cartes ne correspondent pas à la recette.",
@@ -239,12 +241,12 @@
     return now >= Date.parse("2026-10-29T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
   }
 
-  const CARD_ART_BASE = "https://tgkhgafkqvritsgdapcz.supabase.co/storage/v1/object/public/cards/";
+  const CARD_ART_BASE = "assets/cards-v3/";
   const CARD_ART = {"autre-cadeau-ville":"autre-cadeau-ville","autre-cadeau-vinted":"autre-cadeau-vinted","autre-massage-cuisses":"autre-massage-cuisses","autre-massage-dos":"autre-massage-dos","autre-massage-epaules":"autre-massage-epaules","autre-massage-tete":"autre-massage-tete","autre-massage-visage":"autre-massage-visage","autre-mot-doux":"autre-mot-doux","couple-aquarelle":"couple-aquarelle","couple-balade-rapide":"couple-balade","couple-dessin":"couple-dessin","couple-film":"couple-film","couple-gateau":"couple-gateau","couple-jeu-societe":"couple-jeu","couple-serie":"couple-serie","couple-tour-ville":"couple-tour-ville","energy-bisou":"energy-bisou","fa-autre-cadeau-20":"autre-cadeau-20","fa-autre-cadeau-25":"autre-cadeau-25","fa-couple-choix-activite":"couple-choix-activite","fa-couple-repas-complet":"couple-repas-complet","fa-foodies-repas-choix-paye":"foodies-repas-choix-paye","fa-foodies-repas-choix-prepare":"foodies-repas-choix-prepare","fa-nue-anal":"nue-anal","fa-nue-fessees-filmees":"nue-fessees","fa-nue-reddit-boobs":"nue-reddit-boobs","fa-nue-reproduction-porno":"nue-porno-1-1","fa-nue-webcam-boobs":"nue-webcam-boobs","fa-todo-impose-tache":"todo-impose-tache","faf-autre-cadeau-100":"autre-cadeau-100","faf-couple-super-sortie":"couple-super-sortie","faf-couple-weekend":"couple-weekend","faf-nue-achat-scandale":"nue-achat-scandale","faf-nue-golden-shower":"nue-golden-shower","faf-nue-gros-sextoy":"nue-gros-sextoy","faf-nue-reddit-faciale":"nue-reddit-faciale","faf-nue-roleplay-violent":"nue-roleplay","faf-nue-webcam-faciale":"nue-webcam-faciale","foil-autre-cadeau-50":"autre-cadeau-50","foil-autre-massage-complet":"autre-massage-complet","foil-couple-marathon":"couple-marathon","foil-couple-soiree-theme":"couple-soiree-theme","foil-couple-sortie-choisie":"couple-sortie-choisie","foil-foodies-dessert-luxe":"foodies-dessert-luxe","foil-foodies-plat-luxe":"foodies-plat-luxe","foil-foodies-restaurant":"foodies-restaurant","foil-nue-blowjob-eglise":"nue-blowjob-eglise","foil-nue-petit-sextoy":"nue-petit-sextoy","foil-nue-porno-hardcore":"nue-porno-hardcore","foil-nue-reddit-pussy":"nue-reddit-pussy","foil-nue-site-echangiste":"nue-site-echangiste","foil-nue-soumission":"nue-soumission","foil-nue-webcam-pussy":"nue-webcam-pussy","foil-todo-refaire-piece":"todo-refaire-piece","foodies-apero":"foodies-apero","foodies-cafe-ville":"foodies-cafe","foodies-fast-food":"foodies-fast-food","foodies-gateau":"foodies-gateau","hw-autre-cadeau-666":"autre-cadeau-666","hw-couple-film-horreur":"couple-film-horreur","hw-couple-urbex":"couple-urbex","hw-energy-griffure":"energy-griffure","hw-energy-morsure":"energy-morsure","hw-fa-foodies-repas":"foodies-repas-effrayant","hw-foil-autre-cadeau-66":"autre-cadeau-66","hw-foil-nue-faciale-eglise":"nue-faciale-eglise","hw-foodies-gateau":"foodies-gateau-halloween","hw-nue-photo-horreur":"nue-photo-horreur","joker-annulation":"joker","legend-couple":"couple-legendaire","legend-foodies":"foodies-legendaire","legend-nude":"nue-legendaire","legend-other":"autre-legendaire","legend-todo":"todo-legendaire","nue-assise-visage":"nue-assise-visage","nue-avaler":"nue-avaler","nue-faciale":"nue-faciale","nue-grosse-levrette":"nue-grosse-levrette","nue-leche-partenaire":"nue-leche","nue-massage-nuru":"nue-massage-nuru","nue-photo-apres-sport":"nue-photo-sport","nue-photo-berlin":"nue-photo-berlin","nue-photo-cuisine":"nue-photo-cuisine","nue-photo-douche-vapeur":"nue-photo-douche","nue-photo-linge":"nue-photo-linge","nue-photo-neon":"nue-photo-neon","nue-photo-pluie":"nue-photo-pluie","nue-photo-star-wars":"nue-photo-starwars","nue-suce-partenaire":"nue-suce","spell-adagio":"spell-adagio","spell-augmento":"spell-augmento","spell-destructo":"spell-destructo","spell-presto":"spell-presto","spell-reducto":"spell-reducto","todo-linge":"todo-linge","todo-machine":"todo-machine","todo-piece":"todo-piece","todo-placard":"todo-placard","todo-poubelles":"todo-poubelles","todo-vaisselle":"todo-vaisselle"};
   function cardArtStyle(card) {
-    const slug = CARD_ART[card.template_id];
+    const slug = CARD_ART[card.template_id || card.id];
     if (!slug) return "";
-    return ` style="background-image:url('${CARD_ART_BASE}${slug}.jpg');background-size:cover;background-position:center"`;
+    return ` style="background-image:url('${CARD_ART_BASE}${slug}.webp'),url('assets/card-atlas.webp');background-size:cover,400% 200%;background-position:center,var(--art-x) var(--art-y)"`;
   }
 
   function cardMarkup(card, options = {}) {
@@ -261,7 +263,7 @@
     const timer = options.timer ? `<span class="card-timer" data-until="${escapeHtml(options.timer)}" data-timer-kind="${card.active_until ? "active" : "available"}">${duration(options.timer, card.active_until ? "Terminé" : "Expirée")}</span>` : "";
     const modifier = card.effect_modifier === "reducto" ? "REDUCTO · Effet ÷2" : card.effect_modifier === "augmento" ? "AUGMENTO · Effet ×2" : "";
     const timeModifier = card.time_modifier === "presto" ? "PRESTO · Temps ÷2" : card.time_modifier === "adagio" ? "ADAGIO · Temps ×2" : "";
-    return `<article class="game-card palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
+    return `<article class="game-card${CARD_ART[card.template_id || card.id]?' art-individual':''} palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"${cardArtStyle(card)}></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       <div class="card-top"><span>${escapeHtml(card.category)}</span></div>
       ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
@@ -929,6 +931,49 @@
 
 
 
+  function openRecycling(cards) {
+    if (!cards.length || cards.some(card=>!isAvailable(card))) return toast(errorMessages.card_unavailable);
+    recycle={cards,cuts:[],committing:false};
+    const price=cards.reduce((sum,card)=>sum+Number(card.sale_price||0),0);
+    $("#recycleTitle").textContent=cards.length>1?`Recycler ${cards.length} cartes.`:'Recycler cette carte.';
+    $("#recyclePreview").innerHTML=cardMarkup(cards[0]);
+    $("#recyclePreview").classList.remove('shredded');
+    $("#recycleStatus").textContent=`Trois découpes · +${price} Éclats · découverte conservée`;
+    $$('#recycleMeter i').forEach(dot=>dot.classList.remove('cut'));
+    recycleDialog.showModal();
+  }
+
+  async function commitRecycling() {
+    if (!recycle || recycle.committing) return;
+    const session=recycle, ids=session.cards.map(card=>card.id);
+    session.committing=true;
+    const done=contextualBusy($("#recycleWithoutGesture"),'Recyclage…');
+    $("#recycleStatus").textContent='Les cartes se transforment en Éclats…';
+    try {
+      try { await exchange(ids.length>1?'sell_cards':'sell_card',ids.length>1?{card_ids:ids}:{card_id:ids[0]}); }
+      catch(error) {
+        const snapshot=await exchange('sync');
+        if (!window.CardTransport.matchesMutation(snapshot,ids.length>1?'sell_cards':'sell_card',ids.length>1?{card_ids:ids}:{card_id:ids[0]},state.role)) throw error;
+      }
+      const pieces=window.CardBoosterGesture.fragments(session.cuts);
+      $("#recyclePreview").insertAdjacentHTML('beforeend',`<div class="card-fragments" aria-hidden="true">${pieces.map((piece,i)=>{
+        const x=piece.reduce((sum,p)=>sum+p.x,0)/piece.length;
+        return `<div class="card-fragment" style="clip-path:polygon(${piece.map(p=>`${p.x}% ${p.y}%`).join(',')});--piece-x:${(x-50)*3}px;--piece-y:${100+(i%3)*45}px;--piece-rotate:${(i%2?1:-1)*(15+i*4)}deg">${cardMarkup(session.cards[0])}</div>`;
+      }).join('')}</div>`);
+      $("#recyclePreview").classList.add('shredded');
+      render();cardDialog.close();feedback('card');
+      await new Promise(resolve=>setTimeout(resolve,reducedMotion.matches?0:650));
+      if(recycle===session)recycleDialog.close();
+      toast(`${ids.length>1?ids.length+' cartes recyclées':'Carte recyclée'} · Éclats versés.`);
+    } catch(error) {
+      session.committing=false;session.cuts=[];
+      $$('#recyclePreview .cut-scar').forEach(scar=>scar.remove());
+      $$('#recycleMeter i').forEach(dot=>dot.classList.remove('cut'));
+      $("#recycleStatus").textContent=friendlyError(error);
+      render();
+    } finally {done();}
+  }
+
   const revealPositionKey = id => `les-cartes-reveal:${state.role}:${id}`;
   const pendingProgress = new Map();
   let progressWriting = false;
@@ -1137,7 +1182,7 @@
   $("#confirmCancel").addEventListener("click", () => $("#confirmDialog").close("cancel"));
   $("#recycleWithoutGesture").addEventListener("click", async () => {
     if (!recycle || recycle.committing) return;
-    if (await confirmAction("Recycler cet exemplaire ?", "Il quitte ta main et reste dans « Déjà vues ».")) economy?.confirmRecycle();
+    if (await confirmAction('Recycler ces cartes ?', 'Elles quittent ta main contre des Éclats. Leur découverte est conservée.')) commitRecycling();
   });
   for (const id of ["cardSearch", "finishFilter", "editionFilter", "sortFilter"]) $("#" + id).addEventListener(id === "cardSearch" ? "input" : "change", () => { renderCollection(); attachFoilMotion(); });
   $$('[data-category]').forEach(button => button.addEventListener("click", () => {
@@ -1272,7 +1317,7 @@
       return finishReveal();
     }
     const managementMode = event.target.closest("[data-management-mode]");
-    if (managementMode) { state.managementMode = managementMode.dataset.managementMode; renderTradeSelection(); return; }
+    if (managementMode) { if(['trade','give'].includes(managementMode.dataset.managementMode)){state.managementMode=managementMode.dataset.managementMode;renderTradeSelection();}return; }
     const exchangeCard = event.target.closest("[data-exchange-card]");
     if (exchangeCard) {
       state.managementMode = "trade"; cardDialog.close(); setView("trade");
@@ -1280,10 +1325,10 @@
       renderTradeSelection();
       return;
     }
-    const manageCard = event.target.closest("[data-give-card],[data-destroy-card]");
+    const manageCard = event.target.closest("[data-give-card],[data-recycle-card]");
     if (manageCard) {
       const giving = Boolean(manageCard.dataset.giveCard);
-      const id = manageCard.dataset.giveCard || manageCard.dataset.destroyCard;
+      const id = manageCard.dataset.giveCard || manageCard.dataset.recycleCard;
       await performCardManagement(giving, id);
       return;
     }
@@ -1355,7 +1400,7 @@
     if (state.busy) return;
     const offered = $("#offeredCardSelect").value;
     const requested = $("#requestedCardSelect").value;
-    if (state.managementMode === "sell") return economy?.sell(offered);
+    if (state.managementMode === "recycle") return economy?.recycle(offered);
     if (state.managementMode !== "trade") return performCardManagement(state.managementMode === "give", offered);
     if (!offered || !requested) return toast("Choisis les deux cartes de l’échange.");
     const done = contextualBusy($("#proposeTradeButton"),"Envoi…");
@@ -1366,7 +1411,7 @@
     } catch (error) { toast(friendlyError(error)); }
     finally { done(); }
   });
-  $("#bulkSellButton").addEventListener("click",()=>economy?.openBulk());
+  $("#bulkRecycleButton").addEventListener("click",()=>economy?.openBulk());
 
   $$('[data-close-dialog]').forEach(button => button.addEventListener("click", () => {
     const dialog = document.getElementById(button.dataset.closeDialog);
@@ -1398,7 +1443,7 @@
     if (section.open) state.collapsedEditions.delete(section.dataset.albumEdition); else state.collapsedEditions.add(section.dataset.albumEdition);
   },true);
   recycleDialog.addEventListener("cancel", event => { if (recycle?.committing) event.preventDefault(); });
-  recycleDialog.addEventListener("close", () => { recycle = null; });
+  recycleDialog.addEventListener("close", () => { recycle = null; recycleGesture?.reset(); });
   document.addEventListener("keydown", event => {
     if ($("#confirmDialog").open || recycleDialog.open || state.busy || event.target.closest?.("input,select,textarea,[contenteditable]")) return;
     if (cardDialog.open && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); moveViewer(event.key === "ArrowRight" ? 1 : -1); }
@@ -1410,6 +1455,24 @@
   setInterval(updateTimers, 1000);
   startLegendaryCycle();
   setupBoosterGesture();
+  recycleGesture=window.CardBoosterGesture.slice(recycleDialog,{
+    isLocked:()=>!recycleDialog.open||!recycle||recycle.committing,
+    getCardRect:()=>$("#recyclePreview").getBoundingClientRect(),
+    onTrace:(a,b)=>{
+      if(reducedMotion.matches)return;
+      const trail=document.createElement('i');trail.className='blade-trail';trail.setAttribute('aria-hidden','true');
+      Object.assign(trail.style,{left:`${a.x}px`,top:`${a.y}px`,width:`${Math.hypot(b.x-a.x,b.y-a.y)}px`,transform:`rotate(${Math.atan2(b.y-a.y,b.x-a.x)}rad)`});
+      recycleDialog.append(trail);setTimeout(()=>trail.remove(),300);
+    },
+    onCut:(a,b,rect)=>{
+      const point=p=>({x:(p.x-rect.left)/rect.width*100,y:(p.y-rect.top)/rect.height*100});
+      const first=point(a),last=point(b);recycle.cuts.push([first,last]);
+      $("#recyclePreview").insertAdjacentHTML('beforeend',`<svg class="cut-scar" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="${first.x}" y1="${first.y}" x2="${last.x}" y2="${last.y}"/></svg>`);
+      $$('#recycleMeter i').forEach((dot,i)=>dot.classList.toggle('cut',i<recycle.cuts.length));
+      $("#recycleStatus").textContent=`${recycle.cuts.length} / 3 · Découverte conservée`;
+      feedback('card');if(recycle.cuts.length>=3)commitRecycling();
+    }
+  });
   window.CardBoosterGesture.preventDoubleTapZoom(document);
 
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("service-worker.js").then(registration=>{
@@ -1423,6 +1486,7 @@
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),
     onShop:()=>setView('shop'),
     onRecycleMode:()=>{state.managementMode='recycle';renderTradeSelection();},
+    onRecycle:cards=>openRecycling(cards),
     onActionMode:()=>{state.managementMode='trade';renderTradeSelection();},friendlyError});
   const lastRole = storage.get("les-cartes-last-role");
   if (names[lastRole] && storage.get(tokenKey(lastRole))) selectRole(lastRole);

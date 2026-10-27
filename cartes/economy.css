@@ -3,12 +3,49 @@
 .booster-pile>.booster-item { position:relative; z-index:3; width:100%; max-width:none; }
 .booster-pile>.pack-underlay { position:absolute; z-index:1; left:calc(50% - 74px + var(--pile-x)); top:calc(16px + var(--pile-y)); margin:0; transform:rotate(var(--pile-rotate)); animation:none; pointer-events:none; box-shadow:-10px 13px 20px #3f2a3280,4px 0 8px #5c40446b; }
 .booster-pile-count { position:absolute; z-index:4; top:22px; right:2px; display:grid; place-items:center; min-width:39px; height:39px; padding:0 6px; border:1px solid #dfcbb6; border-radius:50%; background:#fff8efec; color:#745440; font:22px/1 Georgia,serif; box-shadow:0 6px 16px #6146322a; pointer-events:none; }
-.management-modes { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.management-modes { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .topbar-controls { display:flex; align-items:center; gap:7px; flex:none; }
 .header-shard-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:42px; padding:7px 10px; border:1px solid #cfb7ca; border-radius:24px; background:#f4eaf3ce; color:#79567c; font:600 13px/1 system-ui,sans-serif; font-variant-numeric:tabular-nums; box-shadow:0 3px 10px #77567912; }
 .header-shard-button>span { font:19px/1 Georgia,serif; }
 .header-shard-button[hidden] { display:none; }
 .header-shard-button:active { transform:scale(.96); }
+.header-shard-button.wallet-bar { width:100%; display:flex; gap:10px; margin:14px 0 0; padding:10px 16px; min-height:52px; border:1px solid #aa8596a3; border-radius:18px; background:linear-gradient(105deg,#e5d1e2e8,#f8ece6e0); color:#63466b; box-shadow:0 5px 18px #74527320; }
+.wallet-bar #headerShardCount { font:600 29px/1 Georgia,serif; font-variant-numeric:tabular-nums; }
+.wallet-bar .wallet-label { font:600 13px/1 system-ui,sans-serif; }
+.wallet-bar .wallet-gem { font-size:23px; }
+.wallet-bar .wallet-more { margin-left:auto; font:500 12px/1 system-ui,sans-serif; color:#7e617c; }
+.wallet-bar[hidden] { display:none; }
+.wallet-bar.economy-bought .wallet-gem { animation:shard-burst .85s ease-out both; }
+@media(prefers-reduced-motion:reduce){.wallet-bar.economy-bought .wallet-gem,.round-button.syncing .ui-icon{animation:none;}}
+.game-card.art-individual .card-art { transform:none!important; filter:saturate(.82) contrast(.94) brightness(1.04); }
+.game-card .card-art:before,.game-card .card-art:after { content:""; position:absolute; inset:0; pointer-events:none; }
+.game-card .card-art:before { background:#f5dfbf; opacity:.065; }
+.game-card .card-art:after { background-image:var(--surface-grain); background-size:180px 180px; opacity:.4; mix-blend-mode:soft-light; }
+.game-card.art-individual:is(.finish-foil,.finish-full_art_foil) .card-shine { background-image:repeating-linear-gradient(115deg,#ff83bdaa 0%,#ffe78daa 14%,#79e8cfaa 28%,#88b8ffaa 42%,#d89affaa 56%,#ff9bb9aa 70%,#ffe78daa 84%,#79e8cfaa 100%); mix-blend-mode:screen; filter:saturate(1.4); animation:foil-patina-breathe 7s ease-in-out infinite; }
+.game-card.art-individual:is(.finish-foil,.finish-full_art_foil):before { opacity:.18; }
+@keyframes foil-patina-breathe { 0%,100%{opacity:.42}50%{opacity:.62} }
+@media(prefers-reduced-motion:reduce){.game-card.art-individual:is(.finish-foil,.finish-full_art_foil) .card-shine{animation:none;opacity:.42;}}
+.art-individual:is(.finish-full_art,.finish-full_art_foil) .card-copy { background:linear-gradient(0deg,#221414e8 0%,#221414bb 65%,transparent); border:0; box-shadow:none; }
+.art-individual:is(.finish-full_art,.finish-full_art_foil) .card-copy :is(h4,p) { color:#fff1d7; text-shadow:0 1px 4px #1b1111; }
+.push-status { margin:8px 0 0; font-size:12px; line-height:1.5; color:#806e7d; }
+.heading-actions { gap:2px; align-items:center; }
+.view-heading .round-button { width:44px; height:44px; min-width:44px; min-height:44px; border:0; background:transparent; box-shadow:none; color:#92725b; }
+.view-heading .round-button .ui-icon { width:18px; height:18px; }
+.round-button.syncing { animation:none; }
+.round-button.syncing .ui-icon { animation:spin .9s linear infinite; }
+.helper-drawer { margin-top:20px; border-top:1px solid #bca2b54d; }
+.helper-drawer>summary { display:flex; align-items:center; gap:10px; padding:16px 2px; cursor:pointer; list-style:none; font:23px Georgia,serif; color:#60495c; }
+.helper-drawer>summary::-webkit-details-marker { display:none; }
+.helper-drawer>summary small { font:12px system-ui,sans-serif; color:#8c7487; }
+.helper-drawer>summary>span { margin-left:auto; font:17px system-ui,sans-serif; }
+.bank-card-sigil:has(.game-card) { width:42px; height:58px; flex:0 0 42px; padding:0; overflow:hidden; border-radius:6px; background:none; }
+.bank-card-sigil .game-card { width:100%; height:100%; border-radius:5px; transform:none; box-shadow:none; }
+.bank-card-sigil :is(.card-top,.card-copy,.card-footer,.legend-orbit,.legend-motes) { display:none; }
+ #recycleDialog .shred-preview { position:relative; width:min(62vw,245px); aspect-ratio:5/7; margin:22px auto; }
+ #recycleDialog .shred-preview>.game-card { width:100%; height:100%; }
+.recycle-dialog .cut-meter { display:flex; gap:7px; justify-content:center; }
+.recycle-dialog .cut-meter i { width:26px; height:4px; border-radius:4px; background:#d4c1ce; }
+.recycle-dialog .cut-meter i.cut { background:#8a658d; }
 @media(max-width:390px) { .topbar-controls { gap:4px; } .header-shard-button { min-height:38px; padding:6px 7px; } .topbar-controls .profile-pill { padding:8px; } }
 .management-modes button { gap:4px; font-size:11px; }
 .bulk-recycle-link { display:block; width:100%; margin:10px auto 0; text-align:center; color:#775a7b; font-size:13px; }

@@ -23,10 +23,10 @@ assert(pieces.length>=5);assert(Math.abs(pieces.reduce((sum,p)=>sum+area(p),0)-1
 assert.equal(window.CardBoosterGesture.fragments([]).length,1);
 assert.equal(window.CardBoosterGesture.fragments([[{x:-20,y:-20},{x:-10,y:-10}]]).reduce((sum,p)=>sum+area(p),0),10000);
 const app=readFileSync(new URL('../cartes/app.js',import.meta.url),'utf8');
-const commit=app.slice(app.indexOf('  async function commitDestruction()'),app.indexOf('  function openBooster('));
+const commit=app.slice(app.indexOf('  async function commitRecycling()'),app.indexOf('  const revealPositionKey'));
 const nodes=new Map();const $=key=>{if(!nodes.has(key))nodes.set(key,{textContent:'',insertAdjacentHTML:()=>insertions++,classList:{add:()=>{}}});return nodes.get(key);};
 let resolve,calls=0,insertions=0,closed=0;
-const pending=new Promise(ok=>resolve=ok),destruction={card:{id:'fixture'},cuts:lines,committing:false};
-const fn=runInNewContext(commit+'\ncommitDestruction',{destruction,$,$$:()=>[],state:{data:{my_cards:[{id:'fixture'}]}},window,exchange:async()=>{calls++;await pending;},setBusy:()=>{},contextualBusy:()=>()=>{},cardMarkup:()=>'<article>fixture</article>',destroyDialog:{close:()=>closed++},cardDialog:{close:()=>{}},render:()=>{},feedback:()=>{},setTimeout:callback=>{callback();},reducedMotion:{matches:true},toast:()=>{}});
+const pending=new Promise(ok=>resolve=ok),recycle={cards:[{id:'fixture'}],cuts:lines,committing:false};
+const fn=runInNewContext(commit+'\ncommitRecycling',{recycle,$,$$:()=>[],state:{role:'AG',data:{my_cards:[{id:'fixture'}]}},window,exchange:async action=>{assert.equal(action,'sell_card');calls++;await pending;},contextualBusy:()=>()=>{},cardMarkup:()=>'<article>fixture</article>',recycleDialog:{close:()=>closed++},cardDialog:{close:()=>{}},render:()=>{},feedback:()=>{},setTimeout:callback=>{callback();},reducedMotion:{matches:true},toast:()=>{}});
 const running=fn();await fn();assert.equal(calls,1,'Rapid cuts must commit exactly once');assert.equal(insertions,0,'No final shattering before server acknowledgment');resolve();await running;assert.equal(insertions,1);assert.equal(closed,1);
-console.log('OK: crossing/vertical/air/cancelled strokes, exact cut polygons, full area preserved, one server commit, shatter only after acknowledgment.');
+console.log('OK: crossing strokes, preserved fragment area, one recycle transaction, shatter only after acknowledgment.');
