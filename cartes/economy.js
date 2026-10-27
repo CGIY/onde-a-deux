@@ -26,6 +26,8 @@
     document.body.append(saleModal);
     const tour=document.createElement('dialog');tour.className='economy-tour';tour.setAttribute('aria-label','Nouveautés des Cartes à deux');
     tour.innerHTML='<div class="tour-content"></div>';document.body.append(tour);
+    const headerBalance=document.createElement('span');headerBalance.className='header-shard-count';headerBalance.setAttribute('aria-label','Solde d’Éclats');
+    document.querySelector('#profileMenu').insertBefore(headerBalance,document.querySelector('#presenceDot'));
     const state=()=>getState()?.economy;
     const cards=()=>getState()?.my_cards?.filter(c=>c.status==='available'&&new Date(c.expires_at)>new Date(getState().server_now))||[];
     const kind=card=>card.card_type==='energy'?'energy':card.finish;
@@ -47,12 +49,13 @@
     }
     function refresh(){
       const e=state(),role=getRole();
-      if(!e){panel.hidden=true;if(modal.open)modal.close();if(saleModal.open)saleModal.close();if(tour.open)tour.close();return;}
+      if(!e){panel.hidden=true;headerBalance.hidden=true;if(modal.open)modal.close();if(saleModal.open)saleModal.close();if(tour.open)tour.close();return;}
       panel.hidden=false;
+      headerBalance.hidden=false;headerBalance.textContent=`✦ ${e.balance}`;
       const signature=JSON.stringify([role,e.balance,e.bank_used_today,e.weekly_booster_used,e.events?.[0]?.id,cards().map(c=>[c.id,c.sale_price])]);
       if(signature!==lastSignature){panel.innerHTML=panelMarkup();lastSignature=signature;}
       if(tourRole!==role){tourRole=role;tourIndex=0;}
-      if(!localStorage.getItem(`les-cartes-economy-tour:v17:${role}`)&&!document.querySelector('dialog[open]')){drawTour();tour.showModal();}
+      if(!localStorage.getItem(`les-cartes-economy-tour:v18:${role}`)&&!document.querySelector('dialog[open]')){drawTour();tour.showModal();}
     }
     function eligible(r){return cards().filter(c=>c.card_type==='energy'||r.id==='reforge'&&c.card_type!=='energy'||r.id==='legendary'&&c.card_type==='challenge'&&['full_art','foil'].includes(c.finish)||r.id==='common_to_art'&&c.card_type==='challenge'&&c.finish==='standard'||r.id==='art_to_foil'&&c.card_type==='challenge'&&c.finish==='full_art'||r.id==='foil_to_artfoil'&&c.card_type==='challenge'&&c.finish==='foil');}
     function valid(){if(!recipe)return false;const picked=[...selected].map(cardOf).filter(Boolean),groups={};picked.forEach(c=>groups[kind(c)]=(groups[kind(c)]||0)+1);
@@ -106,7 +109,7 @@
       {icon:'✵',title:'La Banque des cartes.',copy:'Dépose des cartes et des Énergies Bisous pour tenter un nouveau tirage, une Refrappe ou une transmutation. Une fois par jour.'}
     ];
     function drawTour(){const s=slides[tourIndex];tour.querySelector('.tour-content').innerHTML=`<button type="button" class="tour-skip" data-tour-skip>Passer</button><div class="tour-visual tour-visual-${tourIndex}" aria-hidden="true"><i>${s.icon}</i>${Array.from({length:5},(_,i)=>`<b style="--i:${i}"></b>`).join('')}</div><div class="tour-pages" aria-label="Étape ${tourIndex+1} sur ${slides.length}">${slides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('')}</div><h2>${escape(s.title)}</h2><p>${escape(s.copy)}</p><button type="button" class="bank-submit" data-tour-next>${tourIndex===slides.length-1?'C’est parti':'Suivant →'}</button>`;}
-    function closeTour(){localStorage.setItem(`les-cartes-economy-tour:v17:${getRole()}`,'1');tour.close();}
+    function closeTour(){localStorage.setItem(`les-cartes-economy-tour:v18:${getRole()}`,'1');tour.close();}
     document.addEventListener('click',event=>{
       if(event.target.closest('[data-economy-buy]'))return void buy();
       const opener=event.target.closest('[data-bank-open]');if(opener)return openBank(opener.dataset.bankOpen);

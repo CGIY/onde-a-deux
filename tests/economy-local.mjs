@@ -11,7 +11,7 @@ const api=async (role,action,payload={}) => {
 };
 const expectError=async (fn,pattern) => assert.rejects(fn,pattern);
 try {
-  await db.exec(await readFile(new URL('../supabase/migrations/20261027102308_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
   await db.query(`insert into public.tcg_player_devices(role,device_token_hash)
     select role,encode(extensions.digest(convert_to($1,'UTF8'),'sha256'),'hex') from public.tcg_players`,[token]);
   const first=await api('AG','sync');
