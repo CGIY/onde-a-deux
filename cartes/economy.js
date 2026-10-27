@@ -11,69 +11,111 @@
   ];
   const labels={standard:'commune',full_art:'full art',foil:'foil',any:'autre carte'};
   const finishLabels={standard:'Commune',full_art:'Full art',foil:'Foil',full_art_foil:'Full art + foil',legendary:'Légendaire'};
+  const shopOffers=[
+    {kind:'classic',title:'Classique',price:12,promise:'Le tirage habituel',mark:'✦'},
+    {kind:'magician',title:'Magicien',price:15,promise:'1 sortilège garanti',mark:'☾'},
+    {kind:'pleasure',title:'Plaisir',price:15,promise:'1 défi Mise à nue garanti',mark:'♡'},
+    {kind:'relax',title:'Détente',price:15,promise:'1 massage ou soin garanti',mark:'◌'}
+  ];
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,friendlyError}) {
+  function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,onShop,onSellMode,onActionMode,friendlyError}) {
     const trade=document.querySelector('#tradeView');
+    const shop=document.querySelector('#shopView');
+    const tradeMaker=trade.querySelector('.trade-maker');
+    const tradeInbox=trade.querySelector('#pendingTrades').closest('.content-block');
+    const actionTabs=document.createElement('div');actionTabs.className='action-hub-tabs';actionTabs.setAttribute('role','tablist');actionTabs.setAttribute('aria-label','Boutique');
+    actionTabs.innerHTML='<button type="button" role="tab" data-action-hub="shop">Boosters</button><button type="button" role="tab" data-action-hub="recycle">Recycler</button><button type="button" role="tab" data-action-hub="bank">Banque</button>';
+    shop.append(actionTabs);
     const panel=document.createElement('section');panel.className='economy-panel content-block';panel.id='economyPanel';
-    trade.querySelector('.trade-maker').after(panel);
+    shop.append(panel);
     const modal=document.createElement('dialog');modal.className='bank-dialog';modal.setAttribute('aria-label','Banque des cartes');
     modal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer la Banque">×</button><div class="bank-content"></div>';
     document.body.append(modal);
-    const saleModal=document.createElement('dialog');saleModal.className='sale-dialog';saleModal.setAttribute('aria-label','Revendre une carte');
-    saleModal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="sale-content"></div>';
-    document.body.append(saleModal);
+    const recycleModal=document.createElement('dialog');recycleModal.className='recycle-dialog';recycleModal.setAttribute('aria-label','Recycler une carte');
+    recycleModal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="recycle-content"></div>';
+    document.body.append(recycleModal);
+    const bulkModal=document.createElement('dialog');bulkModal.className='bulk-recycle-dialog';bulkModal.setAttribute('aria-label','Recycler plusieurs cartes');
+    bulkModal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="bulk-recycle-content"></div>';
+    document.body.append(bulkModal);
     const tour=document.createElement('dialog');tour.className='economy-tour';tour.setAttribute('aria-label','Nouveautés des Cartes à deux');
     tour.innerHTML='<div class="tour-content"></div>';document.body.append(tour);
-    const headerBalance=document.createElement('span');headerBalance.className='header-shard-count';headerBalance.setAttribute('aria-label','Solde d’Éclats');
-    document.querySelector('#profileMenu').insertBefore(headerBalance,document.querySelector('#presenceDot'));
+    const headerBalance=document.querySelector('#headerShardButton');
+    const shardInfo=document.createElement('dialog');shardInfo.className='shard-info-dialog';shardInfo.setAttribute('aria-label','Mes Éclats');
+    shardInfo.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="shard-info-content"></div>';document.body.append(shardInfo);
     const state=()=>getState()?.economy;
     const cards=()=>getState()?.my_cards?.filter(c=>c.status==='available'&&new Date(c.expires_at)>new Date(getState().server_now))||[];
     const kind=card=>card.card_type==='energy'?'energy':card.finish;
     const textNeeds=needs=>Object.entries(needs).map(([key,n])=>key==='energy'?`${n} Énergie${n>1?'s':''} Bisou${n>1?'s':''}`:`${n} ${labels[key]}${n>1?'s':''}`).join(' + ');
     const cardOf=id=>cards().find(card=>card.id===id);
-    let recipe=null,selected=new Set(),busy=false,saleCard=null,lastSignature='',tourIndex=0,tourRole=null;
+    let recipe=null,selected=new Set(),bankStep=0,bankReview=false,busy=false,recycleCard=null,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null,actionMode='shop';
+    function showActionMode(){
+      if(actionMode==='recycle'){
+        actionTabs.after(tradeMaker);
+        tradeMaker.hidden=false;
+        onRecycleMode();
+      }else{
+        tradeInbox.before(tradeMaker);
+        tradeMaker.hidden=false;
+      }
+      panel.hidden=actionMode==='recycle';
+      panel.querySelector('.economy-shop-section')?.toggleAttribute('hidden',actionMode!=='shop');
+      panel.querySelector('.economy-bank-section')?.toggleAttribute('hidden',actionMode!=='bank');
+      actionTabs.querySelectorAll('[data-action-hub]').forEach(button=>{const selected=button.dataset.actionHub===actionMode;button.classList.toggle('selected',selected);button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
+    }
     function countFor(r){const pool=cards();const counts={};for(const c of pool.filter(c=>c.card_type==='challenge'||c.card_type==='energy'))counts[kind(c)]=(counts[kind(c)]||0)+1;
       if(r.id==='reforge')return Math.min(counts.energy||0,3)===3&&pool.some(c=>c.card_type!=='energy');
       return Object.entries(r.needs).every(([k,n])=>(counts[k]||0)>=n);
     }
     function panelMarkup(){const e=state();if(!e)return '';
-      const balance=e.balance||0,canBuy=balance>=12&&!e.weekly_booster_used;
-      return `<div class="economy-head"><div><span class="eyebrow">LA PETITE ÉCONOMIE</span><h3>Mes Éclats.</h3></div><div class="economy-balance ${balance<0?'is-negative':''}" aria-label="Solde ${balance} Éclats"><i aria-hidden="true"></i><strong>${balance>0?'+':''}${balance}</strong></div></div>
-        <div class="economy-buy"><span><b>Booster supplémentaire</b><small>12 Éclats · 1 par semaine</small></span><button type="button" data-economy-buy ${canBuy?'':'disabled'}>${e.weekly_booster_used?'Déjà obtenu':balance<12?`Encore ${12-balance}`:'Obtenir →'}</button></div>
-        <div class="bank-head"><span class="eyebrow">LA BANQUE DES CARTES</span><h3>Changer le destin.</h3><p>Les Énergies Bisous servent aux échanges. Un passage par jour.</p></div>
+      const balance=e.balance||0,bought=Math.min(3,Number(e.weekly_boosters_bought||0));
+      return `<div class="economy-shop-section"><div class="economy-head"><div><span class="eyebrow">LA PETITE ÉCONOMIE</span><h3>Mes Éclats.</h3></div><div class="economy-balance ${balance<0?'is-negative':''}" aria-label="Solde ${balance} Éclats"><i aria-hidden="true"></i><strong>${balance>0?'+':''}${balance}</strong></div></div>
+        <div class="economy-shop-head"><span><b>Choisis ton booster.</b><small>Jusqu’à 3 achats par semaine · ${bought}/3</small></span><i aria-hidden="true">${3-bought} restant${3-bought>1?'s':''}</i></div>
+        <div class="economy-shop">${shopOffers.map(offer=>`<div class="economy-buy economy-buy-${offer.kind}"><span class="shop-mark" aria-hidden="true">${offer.mark}</span><span class="shop-copy"><b>${offer.title}</b><small>${offer.promise}</small></span><button type="button" data-economy-buy="${offer.kind}" ${bought>=3||balance<offer.price?'disabled':''}>${bought>=3?'Épuisé':balance<offer.price?`Encore ${offer.price-balance}`:`${offer.price} Éclats →`}</button></div>`).join('')}</div></div>
+        <div class="economy-bank-section"><div class="bank-head"><span class="eyebrow">LA BANQUE DES CARTES</span><h3>Changer le destin.</h3><p>Un échange par jour.</p></div>
         <div class="bank-offers">${recipes.map((r,i)=>`<button type="button" class="bank-offer bank-offer-${r.motion}" data-bank-open="${r.id}" ${e.bank_used_today||!countFor(r)?'disabled':''}><span class="bank-offer-mark" aria-hidden="true">${['◐','↻','Ⅰ','Ⅱ','Ⅲ','✵'][i]}</span><span><strong>${r.title}</strong><small>${textNeeds(r.needs)} → ${r.result}</small></span><b aria-hidden="true">→</b></button>`).join('')}</div>
         ${e.bank_used_today?'<p class="bank-rest">La Banque rouvre demain à 5 h.</p>':''}
-        <details class="economy-history"><summary>Mouvements d’Éclats <span aria-hidden="true">⌄</span></summary><div>${(e.events||[]).slice(0,12).map(item=>`<p><span>${({launch_bonus:'Cadeau de bienvenue',booster_shards:'Trouvé dans un booster',ritual_approved:'Défi validé',ritual_rejected:'Défi non validé',ritual_expired:'Défi expiré',ritual_passed:'Défi passé',card_sold:'Carte revendue',booster_bought:'Booster obtenu',bank_exchange:'Échange à la Banque',ritual_unanswered:'Demande sans réponse'})[item.type]||'Éclats'}</span><b>${item.amount>0?'+':''}${item.amount}</b></p>`).join('')||'<p>Aucun mouvement.</p>'}</div></details>`;
+        <details class="economy-history"><summary>Mouvements d’Éclats <span aria-hidden="true">⌄</span></summary><div>${(e.events||[]).slice(0,12).map(item=>`<p><span>${({launch_bonus:'Cadeau de bienvenue',booster_shards:'Trouvé dans un booster',ritual_approved:'Défi validé',ritual_rejected:'Défi non validé',ritual_expired:'Défi expiré',ritual_passed:'Défi passé',card_sold:'Carte revendue',booster_bought:'Booster obtenu',bank_exchange:'Échange à la Banque',ritual_unanswered:'Demande sans réponse'})[item.type]||'Éclats'}</span><b>${item.amount>0?'+':''}${item.amount}</b></p>`).join('')||'<p>Aucun mouvement.</p>'}</div></details></div>`;
     }
     function refresh(){
       const e=state(),role=getRole();
-      if(!e){panel.hidden=true;headerBalance.hidden=true;if(modal.open)modal.close();if(saleModal.open)saleModal.close();if(tour.open)tour.close();return;}
-      panel.hidden=false;
-      headerBalance.hidden=false;headerBalance.textContent=`✦ ${e.balance}`;
-      const signature=JSON.stringify([role,e.balance,e.bank_used_today,e.weekly_booster_used,e.events?.[0]?.id,cards().map(c=>[c.id,c.sale_price])]);
+      if(!e){panel.hidden=true;headerBalance.hidden=true;if(modal.open)modal.close();if(recycleModal.open)recycleModal.close();if(bulkModal.open)bulkModal.close();if(shardInfo.open)shardInfo.close();if(tour.open)tour.close();return;}
+      headerBalance.hidden=false;document.querySelector('#headerShardCount').textContent=String(e.balance);
+      if(shardInfo.open)drawShardInfo();
+      const signature=JSON.stringify([role,e.balance,e.bank_used_today,e.weekly_boosters_bought,e.events?.[0]?.id,cards().map(c=>[c.id,c.sale_price])]);
       if(signature!==lastSignature){panel.innerHTML=panelMarkup();lastSignature=signature;}
+      showActionMode();
       if(tourRole!==role){tourRole=role;tourIndex=0;}
       if(!localStorage.getItem(`les-cartes-economy-tour:v18:${role}`)&&!document.querySelector('dialog[open]')){drawTour();tour.showModal();}
     }
-    function eligible(r){return cards().filter(c=>c.card_type==='energy'||r.id==='reforge'&&c.card_type!=='energy'||r.id==='legendary'&&c.card_type==='challenge'&&['full_art','foil'].includes(c.finish)||r.id==='common_to_art'&&c.card_type==='challenge'&&c.finish==='standard'||r.id==='art_to_foil'&&c.card_type==='challenge'&&c.finish==='full_art'||r.id==='foil_to_artfoil'&&c.card_type==='challenge'&&c.finish==='foil');}
-    function valid(){if(!recipe)return false;const picked=[...selected].map(cardOf).filter(Boolean),groups={};picked.forEach(c=>groups[kind(c)]=(groups[kind(c)]||0)+1);
-      if(recipe.id==='reforge')return picked.length===4&&groups.energy===3&&picked.filter(c=>c.card_type!=='energy').length===1;
-      return picked.length===Object.values(recipe.needs).reduce((a,b)=>a+b,0)&&Object.entries(recipe.needs).every(([key,n])=>groups[key]===n);
+    const stageLabel=key=>({energy:'Énergie Bisou',any:'Carte à refrapper',standard:'Commune',full_art:'Full art',foil:'Foil'})[key]||key;
+    const stagePhrase=(key,amount)=>key==='energy'?`${amount} Énergie${amount>1?'s':''} Bisou${amount>1?'s':''}`:key==='any'?`${amount} carte${amount>1?'s':''} à refrapper`:`${amount} ${stageLabel(key)}${amount>1?'s':''}`;
+    function stages(){return recipe?Object.entries(recipe.needs).map(([key,amount])=>({key,amount})):[];}
+    function stageCards(key){return cards().filter(c=>key==='energy'?c.card_type==='energy':key==='any'?c.card_type!=='energy':c.card_type==='challenge'&&c.finish===key).sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));}
+    function stageCount(key){return stageCards(key).filter(c=>selected.has(c.id)).length;}
+    function stageReady(index){const stage=stages()[index];return !!stage&&stageCount(stage.key)===stage.amount;}
+    function valid(){const parts=stages();return parts.length>0&&parts.every((_,i)=>stageReady(i))&&selected.size===parts.reduce((sum,part)=>sum+part.amount,0);}
+    function resultRarity(){if(recipe?.id==='reforge'){const source=[...selected].map(cardOf).find(c=>c&&c.card_type!=='energy');return source?finishLabels[source.finish]||source.finish:'Même rareté';}return ({draw:'Aléatoire',common_to_art:'Full art',art_to_foil:'Foil',foil_to_artfoil:'Full art + foil',legendary:'Légendaire'})[recipe?.id]||'';}
+    function drawSelection(){if(!recipe||!modal.open)return;
+      const list=modal.querySelector('.bank-card-list'),scroll=list?.scrollTop||0,parts=stages(),current=parts[bankStep];
+      const progress=`<div class="bank-progress" aria-label="Progression">${parts.map((part,i)=>`<button type="button" data-bank-step="${i}" class="bank-progress-step ${!bankReview&&bankStep===i?'current':''} ${stageReady(i)?'done':''}" ${i>0&&!parts.slice(0,i).every((_,n)=>stageReady(n))?'disabled':''}><small>ÉTAPE ${i+1}</small><strong>${escape(stageLabel(part.key))}</strong><em>${stageCount(part.key)}/${part.amount}</em></button>`).join('')}<span class="bank-progress-result"><small>RÉSULTAT</small><strong>${escape(resultRarity())}</strong></span></div>`;
+      const intro=`<div class="bank-intro"><span class="eyebrow">BANQUE DES CARTES · ${escape(recipe.title)}</span><h2>${escape(recipe.result)}</h2><p>${escape(recipe.subtitle)}</p></div>${progress}`;
+      if(bankReview){const groups=parts.map(part=>`<div class="bank-review-group"><span class="bank-rarity-tag">${escape(stageLabel(part.key))}</span><strong>${part.amount} carte${part.amount>1?'s':''}</strong><small>${stageCards(part.key).filter(c=>selected.has(c.id)).map(c=>escape(c.title)).join(' · ')}</small></div>`).join('');
+        modal.querySelector('.bank-content').innerHTML=`${intro}<div class="bank-review"><span class="eyebrow">DERNIÈRE VÉRIFICATION</span><h3>Tu déposes</h3>${groups}<div class="bank-review-result"><small>TU REÇOIS</small><strong>${escape(recipe.result)}</strong><span class="bank-rarity-tag">${escape(resultRarity())}</span></div></div><p class="bank-warning">Les cartes déposées restent dans « Déjà vues ». La Refrappe peut rendre la même carte.</p><div class="bank-step-actions"><button type="button" data-bank-edit>Modifier</button><button type="button" class="bank-submit" data-bank-submit ${valid()?'':'disabled'}>Sceller l’échange →</button></div>`;return;
+      }
+      const pool=stageCards(current.key);
+      modal.querySelector('.bank-content').innerHTML=`${intro}<div class="bank-stage-heading"><span class="eyebrow">ÉTAPE ${bankStep+1} / ${parts.length}</span><h3>Choisis ${escape(stagePhrase(current.key,current.amount))}</h3><span class="bank-rarity-tag">${escape(stageLabel(current.key))}</span></div><div class="bank-selected"><b>${stageCount(current.key)} / ${current.amount}</b><button type="button" data-bank-auto>Compléter cette étape</button></div><div class="bank-card-list">${pool.map(c=>`<button type="button" data-bank-card="${escape(c.id)}" class="bank-card-choice ${selected.has(c.id)?'selected':''}" aria-pressed="${selected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${escape(c.symbol||'✧')}</span><span><strong>${escape(c.title)}</strong><small><span class="bank-card-rarity">${escape(c.card_type==='energy'?'Énergie Bisou':finishLabels[c.finish]||c.finish)}</span> · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><i>${selected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><div class="bank-step-actions">${bankStep>0?'<button type="button" data-bank-previous>Retour</button>':''}<button type="button" class="bank-submit" data-bank-next ${stageReady(bankStep)?'':'disabled'}>${bankStep===parts.length-1?'Vérifier mes cartes →':`Continuer : ${escape(stageLabel(parts[bankStep+1].key))} →`}</button></div>`;
+      modal.querySelector('.bank-card-list').scrollTop=scroll;
     }
-    function drawSelection(){if(!recipe||!modal.open)return;const pool=eligible(recipe),picked=[...selected].map(cardOf).filter(Boolean);
-      modal.querySelector('.bank-content').innerHTML=`<div class="bank-intro"><span class="eyebrow">BANQUE DES CARTES · ${escape(recipe.title)}</span><h2>${escape(recipe.result)}</h2><p>${escape(recipe.subtitle)}</p></div><div class="bank-recipe"><span>À déposer</span><strong>${escape(textNeeds(recipe.needs))}</strong></div><div class="bank-selected"><b>${picked.length} / ${Object.values(recipe.needs).reduce((a,b)=>a+b,0)}</b><button type="button" data-bank-auto>Choisir automatiquement</button></div><div class="bank-card-list">${pool.map(c=>`<button type="button" data-bank-card="${escape(c.id)}" class="bank-card-choice ${selected.has(c.id)?'selected':''}" aria-pressed="${selected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${escape(c.symbol||'✧')}</span><span><strong>${escape(c.title)}</strong><small>${escape(c.card_type==='energy'?'Énergie Bisous':finishLabels[c.finish]||c.finish)} · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><i>${selected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><p class="bank-warning">Les cartes déposées restent dans « Déjà vues ». La Refrappe peut rendre la même carte.</p><button type="button" class="bank-submit" data-bank-submit ${valid()?'':'disabled'}>Sceller l’échange →</button>`;
-    }
-    function openBank(id){recipe=recipes.find(r=>r.id===id);if(!recipe||state()?.bank_used_today)return;selected=new Set();modal.className='bank-dialog';modal.showModal();drawSelection();}
-    function autoSelect(){selected.clear();const needed={...recipe.needs};if(recipe.id==='reforge')needed.any=1;
-      for(const c of eligible(recipe).sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at))){const k=c.card_type==='energy'?'energy':recipe.id==='reforge'?'any':kind(c);if(needed[k]>0){selected.add(c.id);needed[k]--;}}
+    function openBank(id){recipe=recipes.find(r=>r.id===id);if(!recipe||state()?.bank_used_today)return;selected=new Set();bankStep=0;bankReview=false;modal.className='bank-dialog';modal.showModal();drawSelection();}
+    function autoSelect(){const stage=stages()[bankStep];if(!stage)return;let left=stage.amount-stageCount(stage.key);
+      for(const c of stageCards(stage.key)){if(left<=0)break;if(!selected.has(c.id)){selected.add(c.id);left--;}}
       drawSelection();
     }
-    function toggleCard(id){const c=cardOf(id);if(!c)return;if(selected.has(id)){selected.delete(id);return drawSelection();}
-      const k=c.card_type==='energy'?'energy':recipe.id==='reforge'?'any':kind(c);
-      const max=recipe.needs[k]||0,count=[...selected].map(cardOf).filter(item=>item&&(item.card_type==='energy'?'energy':recipe.id==='reforge'?'any':kind(item))===k).length;
-      if(count<max)selected.add(id);drawSelection();
+    function toggleCard(id){const stage=stages()[bankStep],c=stageCards(stage?.key).find(item=>item.id===id);if(!c)return;
+      if(selected.has(id))selected.delete(id);else if(stageCount(stage.key)<stage.amount)selected.add(id);
+      drawSelection();
     }
     async function submit(){if(busy||!valid())return;busy=true;const r=recipe,ids=[...selected],oldId=state()?.last_bank_trade?.id;
       modal.querySelector('.bank-content').innerHTML=`<div class="bank-ceremony bank-${r.motion}"><span class="eyebrow">${escape(r.title)}</span><div class="bank-vortex" aria-hidden="true">${Array.from({length:Math.min(ids.length,15)},(_,i)=>`<i style="--i:${i};--n:${Math.min(ids.length,15)}"></i>`).join('')}<span class="bank-core"></span></div><h2>Les cartes se transforment…</h2></div>`;
@@ -89,38 +131,79 @@
       }catch(error){modal.querySelector('.bank-content').innerHTML=`<div class="bank-error"><h2>Échange interrompu</h2><p>${escape(friendlyError(error))}</p><button class="bank-submit" type="button" data-bank-back>Revoir les cartes</button></div>`;}
       finally{busy=false;}
     }
-    function sell(id){const c=cardOf(id);if(!c||busy)return;saleCard=c;saleModal.className='sale-dialog';saleModal.querySelector('.sale-content').innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Revendre cet exemplaire ?</h2><div class="sale-card-stage">${renderCard(c)}</div><div class="sale-quote"><span>Prix du jour</span><strong>+${c.sale_price} Éclat${c.sale_price>1?'s':''}</strong></div><p>La carte quitte ta main. Sa découverte reste dans « Déjà vues ».</p><button type="button" class="bank-submit" data-sale-confirm>Revendre →</button>`;saleModal.showModal();}
-    async function confirmSale(){if(busy||!saleCard)return;busy=true;const id=saleCard.id,price=saleCard.sale_price;
-      const button=saleModal.querySelector('[data-sale-confirm]');button.disabled=true;button.textContent='Un instant…';
-      try{await exchange('sell_card',{card_id:id});saleModal.classList.add('is-selling');saleModal.querySelector('.sale-quote strong').textContent=`+${price} Éclat${price>1?'s':''}`;await wait(reduced.matches?80:1050);if(saleModal.open)saleModal.close();onUpdate();}
-      catch(error){button.disabled=false;button.textContent='Revendre →';saleModal.querySelector('p').textContent=friendlyError(error);}
-      finally{busy=false;saleCard=null;}
+    function recycle(id){const c=cardOf(id);if(!c||busy)return;recycleCard=c;recycleModal.className='recycle-dialog';recycleModal.querySelector('.recycle-content').innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Recycler cet exemplaire ?</h2><div class="recycle-card-stage">${renderCard(c)}</div><div class="recycle-quote"><span>Prix du jour</span><strong>+${c.sale_price} Éclat${c.sale_price>1?'s':''}</strong></div><p>La carte quitte ta main. Sa découverte reste dans « Déjà vues ».</p><button type="button" class="bank-submit" data-recycle-confirm>Recycler →</button>`;recycleModal.showModal();}
+    function openBulk(){if(busy||cards().length<2)return;bulkSelected=new Set();bulkModal.className='bulk-recycle-dialog';bulkModal.showModal();drawBulk();}
+    function drawBulk(){if(!bulkModal.open||busy)return;const scroll=bulkModal.querySelector('.bulk-recycle-list')?.scrollTop||0;const pool=cards().sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));
+      bulkSelected=new Set([...bulkSelected].filter(id=>pool.some(c=>c.id===id)));
+      const picked=pool.filter(c=>bulkSelected.has(c.id)),total=picked.reduce((sum,c)=>sum+c.sale_price,0);
+      bulkModal.querySelector('.bulk-recycle-content').innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Recycler en lot.</h2><p>Choisis les exemplaires à céder. Leur découverte reste dans « Déjà vues ».</p><div class="bulk-recycle-tools"><button type="button" data-bulk-all>Tout sélectionner</button><button type="button" data-bulk-clear>Effacer</button></div><div class="bulk-recycle-list">${pool.map((c,i)=>`<button type="button" class="bulk-recycle-row ${bulkSelected.has(c.id)?'selected':''}" style="--row-index:${Math.min(i,8)}" data-bulk-card="${escape(c.id)}" aria-pressed="${bulkSelected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${escape(c.symbol||'✧')}</span><span class="bulk-recycle-card-copy"><strong>${escape(c.title)}</strong><small>${escape(finishLabels[c.finish]||c.finish)} · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><b>+${c.sale_price}</b><i>${bulkSelected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><div class="bulk-recycle-total"><span>${picked.length} carte${picked.length>1?'s':''} sélectionnée${picked.length>1?'s':''}</span><strong>+${total} Éclat${total>1?'s':''}</strong></div><button type="button" class="bank-submit" data-bulk-confirm ${picked.length<2?'disabled':''}>Recycler le lot →</button>`;
+      bulkModal.querySelector('.bulk-recycle-list').scrollTop=scroll;
     }
-    async function buy(){if(busy||state()?.balance<12||state()?.weekly_booster_used)return;busy=true;
-      const button=panel.querySelector('[data-economy-buy]');button.disabled=true;button.textContent='Un instant…';
-      try{await exchange('buy_booster');panel.classList.add('economy-bought');onUpdate();await wait(reduced.matches?80:850);panel.classList.remove('economy-bought');document.querySelector('[data-nav="today"]')?.click();}
+    async function confirmBulk(){if(busy||bulkSelected.size<2)return;const ids=[...bulkSelected],before=state()?.balance||0;busy=true;
+      const button=bulkModal.querySelector('[data-bulk-confirm]');button.disabled=true;button.textContent='Recyclage en cours…';
+      try{
+        let result;
+        try{result=await exchange('sell_cards',{card_ids:ids});}
+        catch(error){const synced=await exchange('sync');if(ids.some(id=>synced.my_cards.some(c=>c.id===id)))throw error;result=synced;}
+        const amount=result.economy.balance-before;
+        bulkModal.classList.add('is-recycling');await wait(reduced.matches?80:1050);
+        bulkModal.querySelector('.bulk-recycle-content').innerHTML=`<div class="bulk-recycle-result"><span class="eyebrow">RECYCLAGE TERMINÉ</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>+${amount}</strong></div><h2>${ids.length} cartes recyclées.</h2><p>Leurs découvertes restent dans ta collection.</p><button type="button" class="bank-submit" data-bulk-finish>Retour à la Boutique →</button></div>`;
+        onUpdate();
+      }catch(error){button.disabled=false;button.textContent='Recycler le lot →';bulkModal.querySelector('.bulk-recycle-total').insertAdjacentHTML('beforebegin',`<p class="bulk-recycle-error">${escape(friendlyError(error))}</p>`);}
+      finally{busy=false;}
+    }
+    function drawShardInfo(){const e=state();if(!e)return;shardInfo.querySelector('.shard-info-content').innerHTML=`<span class="eyebrow">MON SOLDE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>${e.balance>0?'+':''}${e.balance}</strong><span>Éclats</span></div><h2>Mes Éclats.</h2><p>Les défis validés rapportent de 1 à 10 Éclats selon leur rareté. Tu peux aussi recycler les cartes de ta main ou en trouver dans un booster.</p><div class="shard-info-uses"><span><b>12 ou 15 Éclats</b><small>Jusqu’à 3 boosters par semaine, classiques ou à thème</small></span><span><b>La Banque</b><small>Échange des cartes et des Énergies Bisous</small></span></div><p class="shard-info-note">Un défi laissé passer peut réduire le solde selon sa rareté, jusqu’à −12.</p><button type="button" class="bank-submit" data-shard-actions>Ouvrir la Boutique →</button>`;}
+    async function confirmRecycle(){if(busy||!recycleCard)return;busy=true;const id=recycleCard.id,price=recycleCard.sale_price;
+      const button=recycleModal.querySelector('[data-recycle-confirm]');button.disabled=true;button.textContent='Un instant…';
+      try{await exchange('sell_card',{card_id:id});recycleModal.classList.add('is-recycling');recycleModal.querySelector('.recycle-quote strong').textContent=`+${price} Éclat${price>1?'s':''}`;await wait(reduced.matches?80:1050);if(recycleModal.open)recycleModal.close();onUpdate();}
+      catch(error){button.disabled=false;button.textContent='Recycler →';recycleModal.querySelector('p').textContent=friendlyError(error);}
+      finally{busy=false;recycleCard=null;}
+    }
+    async function buy(kind){const offer=shopOffers.find(item=>item.kind===kind);if(!offer||busy||state()?.balance<offer.price||Number(state()?.weekly_boosters_bought||0)>=3)return;busy=true;
+      const button=panel.querySelector(`[data-economy-buy="${kind}"]`);button.disabled=true;button.textContent='Un instant…';
+      try{await exchange('buy_booster',{kind});panel.classList.add('economy-bought');onUpdate();await wait(reduced.matches?80:850);panel.classList.remove('economy-bought');document.querySelector('[data-nav="today"]')?.click();}
       catch(error){button.textContent=friendlyError(error);await wait(1500);onUpdate();}
       finally{busy=false;}
     }
     const slides=[
       {icon:'✦',title:'Cinq surprises.',copy:'Chaque booster contient au moins trois cartes. Les deux autres places peuvent révéler des Éclats.'},
       {icon:'♡',title:'Un défi à deux.',copy:'Après un rituel, demande sa validation. L’autre confirme et les Éclats suivent la rareté. Une carte non réalisée peut coûter des Éclats, jusqu’à −12.'},
-      {icon:'◌',title:'Revendre une carte.',copy:'Dans Actions, échange un exemplaire contre des Éclats. Le prix dépend de sa rareté et du temps qu’il lui reste.'},
+      {icon:'◌',title:'Revendre une carte.',copy:'Dans Boutique, échange un exemplaire contre des Éclats. Le prix dépend de sa rareté et du temps qu’il lui reste.'},
       {icon:'✵',title:'La Banque des cartes.',copy:'Dépose des cartes et des Énergies Bisous pour tenter un nouveau tirage, une Refrappe ou une transmutation. Une fois par jour.'}
     ];
     function drawTour(){const s=slides[tourIndex];tour.querySelector('.tour-content').innerHTML=`<button type="button" class="tour-skip" data-tour-skip>Passer</button><div class="tour-visual tour-visual-${tourIndex}" aria-hidden="true"><i>${s.icon}</i>${Array.from({length:5},(_,i)=>`<b style="--i:${i}"></b>`).join('')}</div><div class="tour-pages" aria-label="Étape ${tourIndex+1} sur ${slides.length}">${slides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('')}</div><h2>${escape(s.title)}</h2><p>${escape(s.copy)}</p><button type="button" class="bank-submit" data-tour-next>${tourIndex===slides.length-1?'C’est parti':'Suivant →'}</button>`;}
     function closeTour(){localStorage.setItem(`les-cartes-economy-tour:v18:${getRole()}`,'1');tour.close();}
     document.addEventListener('click',event=>{
-      if(event.target.closest('[data-economy-buy]'))return void buy();
+      const purchase=event.target.closest('[data-economy-buy]');if(purchase)return void buy(purchase.dataset.economyBuy);
       const opener=event.target.closest('[data-bank-open]');if(opener)return openBank(opener.dataset.bankOpen);
     });
-    modal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return modal.close();if(event.target.closest('[data-bank-auto]'))return autoSelect();const pick=event.target.closest('[data-bank-card]');if(pick)return toggleCard(pick.dataset.bankCard);if(event.target.closest('[data-bank-submit]'))return void submit();if(event.target.closest('[data-bank-back]'))return drawSelection();if(event.target.closest('[data-bank-finish]')){modal.close();onCollection();}});
-    saleModal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return saleModal.close();if(event.target.closest('[data-sale-confirm]'))return void confirmSale();});
+    actionTabs.addEventListener('click',event=>{const button=event.target.closest('[data-action-hub]');if(!button)return;actionMode=button.dataset.actionHub;showActionMode();});
+    headerBalance.addEventListener('click',()=>{drawShardInfo();shardInfo.showModal();});
+    shardInfo.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return shardInfo.close();if(event.target.closest('[data-shard-actions]')){shardInfo.close();actionMode='shop';onShop();showActionMode();}});
+    modal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return modal.close();if(busy)return;
+      if(event.target.closest('[data-bank-auto]'))return autoSelect();
+      const pick=event.target.closest('[data-bank-card]');if(pick)return toggleCard(pick.dataset.bankCard);
+      const step=event.target.closest('[data-bank-step]');if(step&&!step.disabled){bankStep=Number(step.dataset.bankStep);bankReview=false;return drawSelection();}
+      if(event.target.closest('[data-bank-previous]')){bankStep=Math.max(0,bankStep-1);return drawSelection();}
+      if(event.target.closest('[data-bank-next]')&&stageReady(bankStep)){if(bankStep===stages().length-1)bankReview=true;else bankStep++;return drawSelection();}
+      if(event.target.closest('[data-bank-edit]')){bankReview=false;return drawSelection();}
+      if(event.target.closest('[data-bank-submit]')&&bankReview)return void submit();
+      if(event.target.closest('[data-bank-back]')){bankReview=false;return drawSelection();}
+      if(event.target.closest('[data-bank-finish]')){modal.close();onCollection();}
+    });
+    modal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+    recycleModal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return recycleModal.close();if(event.target.closest('[data-recycle-confirm]'))return void confirmRecycle();});
+    bulkModal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return bulkModal.close();const pick=event.target.closest('[data-bulk-card]');if(pick&&!busy){const id=pick.dataset.bulkCard;if(bulkSelected.has(id))bulkSelected.delete(id);else bulkSelected.add(id);return drawBulk();}if(event.target.closest('[data-bulk-all]')&&!busy){bulkSelected=new Set(cards().map(c=>c.id));return drawBulk();}if(event.target.closest('[data-bulk-clear]')&&!busy){bulkSelected.clear();return drawBulk();}if(event.target.closest('[data-bulk-confirm]'))return void confirmBulk();if(event.target.closest('[data-bulk-finish]'))bulkModal.close();});
+    bulkModal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+    bulkModal.addEventListener('close',()=>bulkSelected.clear());
     tour.addEventListener('click',event=>{if(event.target.closest('[data-tour-skip]'))return closeTour();if(event.target.closest('[data-tour-next]')){if(tourIndex===slides.length-1)closeTour();else{tourIndex++;drawTour();}}});
     tour.addEventListener('cancel',event=>{event.preventDefault();closeTour();});
-    modal.addEventListener('close',()=>{recipe=null;selected.clear();});
-    saleModal.addEventListener('close',()=>{saleCard=null;});
-    return Object.freeze({refresh,sell,isOpen:()=>modal.open||saleModal.open||tour.open});
+    modal.addEventListener('close',()=>{recipe=null;selected.clear();bankStep=0;bankReview=false;});
+    recycleModal.addEventListener('close',()=>{recycleCard=null;});
+    return Object.freeze({refresh,recycle,openBulk,
+      enterActions:()=>{tradeInbox.before(tradeMaker);tradeMaker.hidden=false;onActionMode();},
+      enterShop:()=>{actionMode='shop';showActionMode();},
+      isOpen:()=>modal.open||recycleModal.open||bulkModal.open||shardInfo.open||tour.open});
   }
   window.CardEconomy=Object.freeze({mount});
 })();

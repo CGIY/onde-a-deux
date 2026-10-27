@@ -1346,10 +1346,7 @@ html:has(dialog[open]),body:has(dialog[open]) {
   font-size:21px;
   line-height:1
 }
-.card-options .destroy-option {
-  color:#9b5041;
-  background:#f5e4da
-}
+
 .card-options button:active {
   transform:scale(.96)
 }
@@ -1375,9 +1372,7 @@ html:has(dialog[open]),body:has(dialog[open]) {
   box-shadow:0 2px 7px #6f4a2722;
   color:#513720
 }
-.management-modes [data-management-mode="destroy"].selected {
-  color:#9b5041
-}
+
 .single-card-selection {
   grid-template-columns:minmax(0,160px);
   justify-content:center
@@ -1386,7 +1381,7 @@ html:has(dialog[open]),body:has(dialog[open]) {
   background:linear-gradient(120deg,#a45e4d,#814335)!important;
   color:#fff2df!important
 }
-.destroy-dialog {
+.recycle-dialog {
   position:fixed;
   inset:0;
   margin:0;
@@ -1404,22 +1399,22 @@ html:has(dialog[open]),body:has(dialog[open]) {
   text-align:center;
   padding:max(50px,env(safe-area-inset-top)) 18px max(20px,env(safe-area-inset-bottom))
 }
-.destroy-dialog[open] {
+.recycle-dialog[open] {
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center
 }
-.destroy-dialog>.eyebrow {
+.recycle-dialog>.eyebrow {
   font-size:8px;
   color:#9b6b4e
 }
-.destroy-dialog h2 {
+.recycle-dialog h2 {
   font:32px Georgia,serif;
   color:#644832;
   margin:8px 0
 }
-.destroy-hint {
+.recycle-hint {
   font-size:11px;
   color:#886c53;
   margin:0 0 22px
@@ -1451,18 +1446,18 @@ html:has(dialog[open]),body:has(dialog[open]) {
   background:#b07546;
   box-shadow:0 0 10px #d3a25a66
 }
-.destroy-dialog #destroyStatus {
+.recycle-dialog #recycleStatus {
   font-size:11px;
   color:#806148;
   min-height:18px;
   margin:12px 0
 }
-.destroy-dialog>.text-button {
+.recycle-dialog>.text-button {
   font-size:10px;
   min-height:42px;
   color:#8e6450
 }
-.blade-trail {
+.recycle-trail {
   position:fixed;
   height:3px;
   transform-origin:left center;
@@ -1471,7 +1466,7 @@ html:has(dialog[open]),body:has(dialog[open]) {
   box-shadow:0 0 6px #ffcc7c,0 0 18px #e9964f;
   border-radius:100%;
   z-index:30;
-  animation:blade-fade .3s ease-out both
+  animation:recycle-fade .3s ease-out both
 }
 .cut-scar {
   position:absolute;
@@ -1501,7 +1496,7 @@ html:has(dialog[open]),body:has(dialog[open]) {
 .shred-preview.shredded>.game-card,.shred-preview.shredded>.cut-scar {
   visibility:hidden
 }
-@keyframes blade-fade {
+@keyframes recycle-fade {
   from {
     opacity:1
   }

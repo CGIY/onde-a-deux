@@ -49,12 +49,11 @@
   const loadingVeil = $("#loadingVeil");
   const boosterDialog = $("#boosterDialog");
   const cardDialog = $("#cardDialog");
-  const destroyDialog = $("#destroyDialog");
+  const recycleDialog = $("#recycleDialog");
   const stackDialog = $("#stackDialog");
   const selectionDialog = $("#selectionDialog");
   state.selectionSide = null;
-  let destruction = null;
-  let cutGesture;
+  let recycle = null;
   let packGesture;
   let openingTimer;
   let depressiveDeck;
@@ -82,7 +81,7 @@
     loginScreen.inert = busy;
     appShell.inert = busy;
     cardDialog.inert = busy;
-    destroyDialog.inert = busy;
+    recycleDialog.inert = busy;
   }
 
   function contextualBusy(button, label) {
@@ -130,8 +129,8 @@
     deck_state_changed: "Ta partie a été actualisée sur un autre écran.",
     ritual_unavailable: "Ce rituel n’attend plus de validation.",
     ritual_already_claimed: "Ce rituel attend déjà une réponse.",
-    not_enough_shards: "Il faut 12 Éclats pour acheter un booster.",
-    weekly_booster_used: "Ton booster en Éclats a déjà été acheté cette semaine.",
+    not_enough_shards: "Pas assez d’Éclats pour ce booster.",
+    weekly_booster_used: "Tu as déjà acheté 3 boosters cette semaine.",
     bank_used_today: "La Banque a déjà réalisé un échange aujourd’hui.",
     bank_invalid_ingredients: "Ces cartes ne correspondent pas à la recette.",
     bank_no_offer: "Aucune carte éligible n’est disponible pour ce tirage.",
@@ -385,11 +384,16 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
-    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
+    const packKind=booster=>['magician','pleasure','relax'].includes(booster.booster_kind)?booster.booster_kind:'classic';
+    const packName=booster=>({classic:'ÉDITION 01',magician:'MAGICIEN',pleasure:'PLAISIR',relax:'DÉTENTE'})[packKind(booster)];
+    const packMarkup=booster=>`
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
-        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 5 SURPRISES</small></span>
-        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">Payé en Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
-      </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
+        <span class="mini-pack pack-${packKind(booster)}${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${({classic:'',magician:'☾',pleasure:'♡',relax:'❧'})[packKind(booster)]}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN · " : ""}${packName(booster)} · 5 SURPRISES</small></span>
+        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">${packName(booster)} · Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+      </button>`;
+    const stacked=data.boosters.length>1;
+    const packList=stacked?`<div class="booster-pile" aria-label="${data.boosters.length} boosters disponibles. Celui qui expire en premier est devant.">${data.boosters.slice(1,3).reverse().map((booster,i)=>`<span class="mini-pack pack-underlay pack-${packKind(booster)}${isHalloween(booster)?' pack-halloween':''}" style="--pile-x:${(2-i)*12}px;--pile-y:${(2-i)*-8}px;--pile-rotate:${-7+(2-i)*5}deg" aria-hidden="true"><i>${({classic:'',magician:'☾',pleasure:'♡',relax:'❧'})[packKind(booster)]}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster)?'HALLOWEEN · ':''}${packName(booster)} · 5 SURPRISES</small></span>`).join('')}${packMarkup(data.boosters[0])}<span class="booster-pile-count" aria-hidden="true">×${data.boosters.length}</span></div>`:data.boosters.length?packMarkup(data.boosters[0]):pending.length?"":`<button class="text-button" type="button" data-go-collection>Ma collection →</button>`;
+    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("")+packList);
 
     putMarkup("#activeCards", data.active_cards.length
       ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.ritual_claim_status==='pending' ? card.owner_role===state.role ? '<span class="ritual-pending">En attente de validation</span>' : `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>` : ""}</div>`).join("")
@@ -516,11 +520,12 @@
     $("#requestedCardPick").hidden = !trading;
     $("#tradeArrow").hidden = !trading;
     const saleCard=mine.find(card=>card.id===$("#offeredCardSelect").value);
-    $("#offeredCardLabel").textContent = trading ? "Je donne" : state.managementMode === "give" ? "À offrir" : state.managementMode === "sell" ? "À revendre" : "À détruire";
-    $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : state.managementMode === "sell" ? `Revendre · +${saleCard?.sale_price ?? '—'} Éclat${saleCard?.sale_price>1?'s':''} →` : "Détruire cet exemplaire";
-    $("#proposeTradeButton").classList.toggle("danger-button", state.managementMode === "destroy");
+    $("#offeredCardLabel").textContent = trading ? "Je donne" : state.managementMode === "give" ? "À offrir" : "À recycler";
+    $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : `Recycler · +${saleCard?.sale_price ?? '—'} Éclat${saleCard?.sale_price>1?'s':''} →`;
+    $("#proposeTradeButton").classList.toggle("danger-button", false);
     $("#proposeTradeButton").disabled = !$("#offeredCardSelect").value || !mine.length || (trading && (!$("#requestedCardSelect").value || !partner.length));
-    $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : state.managementMode === "sell" ? "Prix calculé selon la rareté et le temps restant. Découverte conservée." : "Un exemplaire en moins. Toujours dans « Déjà vues ».";
+    $("#bulkRecycleButton").hidden = state.managementMode !== "recycle" || mine.length < 2;
+    $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : "Prix calculé selon la rareté et le temps restant. Découverte conservée.";
     $$("[data-management-mode]").forEach(button => { const selected = button.dataset.managementMode === state.managementMode; button.classList.toggle("selected", selected); button.setAttribute("aria-pressed", String(selected)); });
     attachFoilMotion($("#tradeView"));
   }
@@ -673,6 +678,8 @@
     state.scrollPositions ||= {};
     state.scrollPositions[state.view] = window.scrollY;
     state.view = view;
+    if(view === 'trade') economy?.enterActions();
+    if(view === 'shop') economy?.enterShop();
     $$(".view").forEach(section => {
       const active = section.dataset.view === view;
       section.hidden = !active;
@@ -685,7 +692,7 @@
     window.scrollTo({ top: state.scrollPositions?.[view] || 0, behavior: "instant" });
     if (view === "today") renderToday();
     else if (view === "collection") renderCollection();
-    else renderTrades();
+    else if(view === 'trade' || view === 'shop') renderTrades();
     attachFoilMotion();
   }
 
@@ -744,10 +751,10 @@
       <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>${icon("back")}</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>${icon("arrow")}</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p class="detail-challenge">${escapeHtml(card.challenge)}</p>
       ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
-      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi${card.category==='MISE À NUE'?' · sans malus':''}</button>` : ""}
+      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi</button>` : ""}
       ${card.ritual_claim_status==='pending' && card.owner_role===state.role ? '<p class="ritual-pending">En attente de l’autre joueur.</p>' : ''}
       ${canReview ? `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider le défi ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : ''}
-      ${isMine && isAvailable(card) ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}">${icon("scissors")}Détruire</button></div>` : ""}</div>`;
+      ${isMine && isAvailable(card) ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" data-recycle-card="${escapeHtml(card.id)}">${icon("scissors")}Recycler</button></div>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
     for (const [kind,id] of [["joker","jokerTargetSelect"],["spell","spellTargetSelect"],["legendary","legendaryChoiceSelect"]]) {
       const select=$("#"+id);if(!select)continue;
@@ -899,7 +906,7 @@
   async function performCardManagement(giving, id) {
     const card = state.data.my_cards.find(item => item.id === id);
     if (!card || card.status !== "available") return toast(errorMessages.card_unavailable);
-    if (!giving) return openDestruction(card);
+    if (!giving) return economy?.recycle(id);
     const partner = name(state.data.partner_role);
     if (!await confirmAction(`Donner à ${partner} ?`, `« ${card.title} » rejoint sa main avec le même compteur. Elle reste dans tes cartes déjà vues.`)) return;
     const ghost = captureCardGhost(cardDialog.open ? "#viewerCard .game-card" : "#offeredPreview .game-card");
@@ -913,57 +920,7 @@
     finally { done(); }
   }
 
-  function bladeTrace(a, b) {
-    if (reducedMotion.matches) return;
-    const trail = document.createElement("i");
-    trail.className = "blade-trail"; trail.setAttribute("aria-hidden", "true");
-    Object.assign(trail.style, {left:`${a.x}px`,top:`${a.y}px`,width:`${Math.hypot(b.x-a.x,b.y-a.y)}px`,transform:`rotate(${Math.atan2(b.y-a.y,b.x-a.x)}rad)`});
-    destroyDialog.append(trail);
-    setTimeout(() => trail.remove(),300);
-  }
 
-  function openDestruction(card) {
-    destruction = {card,cuts:[],committing:false};
-    $("#shredPreview").innerHTML = cardMarkup(card);
-    $("#shredPreview").classList.remove("shredded");
-    $("#destroyStatus").textContent = "0 / 3 · Sa découverte reste dans « Déjà vues ».";
-    $$("#cutMeter i").forEach(dot => dot.classList.remove("cut"));
-    destroyDialog.showModal();
-  }
-
-  async function commitDestruction() {
-    if (!destruction || destruction.committing) return;
-    const session = destruction;
-    session.committing = true;
-    const done = contextualBusy($("#destroyWithoutGesture"),"Découpe…");
-    $("#destroyStatus").textContent = "La découpe se termine…";
-    try {
-      await exchange("destroy_card", {card_id:session.card.id});
-      const pieces = window.CardBoosterGesture.fragments(session.cuts);
-      $("#shredPreview").insertAdjacentHTML("beforeend", `<div class="card-fragments" aria-hidden="true">${pieces.map((piece,i) => {
-        const x = piece.reduce((sum,p)=>sum+p.x,0)/piece.length;
-        return `<div class="card-fragment" style="clip-path:polygon(${piece.map(p=>`${p.x}% ${p.y}%`).join(",")});--piece-x:${(x-50)*3}px;--piece-y:${100+(i%3)*45}px;--piece-rotate:${(i%2?1:-1)*(15+i*4)}deg">${cardMarkup(session.card)}</div>`;
-      }).join("")}</div>`);
-      $("#shredPreview").classList.add("shredded");
-      $("#destroyStatus").textContent = "Exemplaire détruit · découverte conservée.";
-      render(); cardDialog.close(); feedback("card");
-      await new Promise(resolve => setTimeout(resolve,reducedMotion.matches ? 0 : 480));
-      if (destruction === session) destroyDialog.close();
-      toast("Exemplaire détruit · découverte conservée.");
-    } catch (error) {
-      let refreshed = false;
-      try { await exchange("sync"); render(); refreshed = true; } catch {}
-      if (refreshed && !state.data.my_cards.some(card => card.id === session.card.id)) {
-        destroyDialog.close();
-        toast("Cet exemplaire n’est plus disponible. Collection actualisée.");
-        return;
-      }
-      session.committing = false; session.cuts = [];
-      $$("#shredPreview .cut-scar").forEach(scar=>scar.remove());
-      $$("#cutMeter i").forEach(dot => dot.classList.remove("cut"));
-      $("#destroyStatus").textContent = friendlyError(error);
-    } finally { done(); }
-  }
 
   const revealPositionKey = id => `les-cartes-reveal:${state.role}:${id}`;
   const pendingProgress = new Map();
@@ -1029,9 +986,13 @@
     $("#sealedPack").classList.remove("opened", "was-touched");
     $("#boosterStage").classList.remove("awaiting", "unsealing", "revealed");
     packGesture?.reset();
-    const seasonal = isHalloween(state.data.boosters.find(booster => booster.id === id) || {});
+    const openingPack=state.data.boosters.find(booster => booster.id === id) || {};
+    const seasonal = isHalloween(openingPack);
+    const kind=['magician','pleasure','relax'].includes(openingPack.booster_kind)?openingPack.booster_kind:'classic';
+    const kindName={classic:'ÉDITION 01 · NOUS DEUX',magician:'BOOSTER DU MAGICIEN',pleasure:'BOOSTER DU PLAISIR',relax:'BOOSTER DE LA DÉTENTE'}[kind];
     $("#sealedPack").classList.toggle("pack-halloween", seasonal);
-    $("#packEdition").textContent = seasonal ? "HALLOWEEN × ÉDITION 01" : "ÉDITION 01 · NOUS DEUX";
+    for(const name of ['magician','pleasure','relax'])$("#sealedPack").classList.toggle(`pack-${name}`,kind===name);
+    $("#packEdition").textContent = seasonal ? `HALLOWEEN × ${kindName}` : kindName;
     $("#sealedPack").hidden = false;
     $("#openPackButton").hidden = false;
     $("#openPackButton").disabled = false;
@@ -1050,7 +1011,7 @@
     }
     const last = state.revealIndex === state.revealedCards.length - 1;
     state.revealMoving = false;
-    const depth = state.revealedCards.length - 1;
+    const depth = state.revealedCards.slice(state.revealIndex+1).filter(item=>item.reward_type!=="shards").length;
     const reward=card.reward_type === "shards" ? `<div class="shard-reveal" role="img" aria-label="${card.amount} Éclat${card.amount>1?'s':''}"><span class="shard-halo"></span><i class="shard-gem"></i><strong>+${card.amount}</strong><span>Éclat${card.amount>1?'s':''}</span></div>` : `${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">Nouvelle découverte</span>' : ""}`;
     $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${reward}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Récompense ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes récompenses →" : "Suivante →"}</button></div>`;
     $("#boosterStatus").textContent = `${state.revealIndex + 1} / ${state.revealedCards.length} · ${card.reward_type==='shards' ? `+${card.amount} Éclat${card.amount>1?'s':''}` : finishLabel(card.finish)} · Glisse pour feuilleter`;
@@ -1114,18 +1075,16 @@
     try {
       await exchange("open_booster", { booster_id: state.selectedBooster });
       const receipt = state.data.pending_openings?.find(item=>item.booster_id===boosterId);
-      state.revealedCards = receipt?.cards || state.data.my_cards
-        .filter(candidate => candidate.booster_id === boosterId)
-        .sort((a, b) => ({ energy: 0, challenge: 1, joker: 2 }[a.card_type] ?? 1) - ({ energy: 0, challenge: 1, joker: 2 }[b.card_type] ?? 1));
+      if(!receipt || ![3,5].includes(receipt.cards?.length)) throw new Error("Les récompenses sont enregistrées. Actualise ta collection.");
+      state.revealedCards = receipt.cards;
       state.revealIndex = 0;
       for (const card of state.revealedCards) if (card.template_id && !previouslyKnown.has(card.template_id)) state.newTemplates.add(card.template_id);
-      if (![3,5].includes(state.revealedCards.length)) throw new Error("Les récompenses sont enregistrées. Actualise ta collection.");
       $("#openPackButton").hidden = true;
       $("#boosterStatus").textContent = "Tes cartes arrivent…";
       feedback("rare");
       openingTimer = setTimeout(() => {
         if (!boosterDialog.open) return;
-        showOpeningReceipt(receipt || {booster_id:boosterId,cards:state.revealedCards,index:0});
+        showOpeningReceipt(receipt);
       }, reducedMotion.matches ? 0 : Math.max(0, 760 - (performance.now() - motionStarted)));
       render();
     } catch (error) {
@@ -1169,9 +1128,9 @@
   $("#openPackButton").addEventListener("click", revealBooster);
   $("#confirmAccept").addEventListener("click", () => $("#confirmDialog").close("accept"));
   $("#confirmCancel").addEventListener("click", () => $("#confirmDialog").close("cancel"));
-  $("#destroyWithoutGesture").addEventListener("click", async () => {
-    if (!destruction || destruction.committing) return;
-    if (await confirmAction("Détruire cet exemplaire ?", "Il quitte ta main et reste dans « Déjà vues ».")) commitDestruction();
+  $("#recycleWithoutGesture").addEventListener("click", async () => {
+    if (!recycle || recycle.committing) return;
+    if (await confirmAction("Recycler cet exemplaire ?", "Il quitte ta main et reste dans « Déjà vues ».")) economy?.confirmRecycle();
   });
   for (const id of ["cardSearch", "finishFilter", "editionFilter", "sortFilter"]) $("#" + id).addEventListener(id === "cardSearch" ? "input" : "change", () => { renderCollection(); attachFoilMotion(); });
   $$('[data-category]').forEach(button => button.addEventListener("click", () => {
@@ -1273,7 +1232,7 @@
     const review=event.target.closest('[data-ritual-review]');
     if(review){
       const decision=review.dataset.ritualReview;
-      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés selon la rareté.':'Le malus s’appliquera, sauf pour Mise à nue.'))return;
+      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés selon la rareté.':'Le malus s’appliquera selon la rareté.'))return;
       const done=contextualBusy(review,'Un instant…');
       try {await exchange('ritual_review',{card_id:review.dataset.cardId,decision});if(cardDialog.open)cardDialog.close();render();feedback(decision==='approve'?'rare':'card');toast(decision==='approve'?'Défi validé · Éclats accordés.':'Défi non validé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
@@ -1281,7 +1240,7 @@
     }
     const pass=event.target.closest('[data-ritual-pass]');
     if(pass){
-      if(!await confirmAction('Laisser passer ce défi ?', 'La carte quittera la table. Mise à nue reste sans malus.'))return;
+      if(!await confirmAction('Laisser passer ce défi ?', 'La carte quittera la table et le malus s’appliquera selon sa rareté.'))return;
       const done=contextualBusy(pass,'Un instant…');
       try {await exchange('ritual_pass',{card_id:pass.dataset.ritualPass});if(cardDialog.open)cardDialog.close();render();toast('Rituel terminé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
@@ -1402,10 +1361,11 @@
     } catch (error) { toast(friendlyError(error)); }
     finally { done(); }
   });
+  $("#bulkSellButton").addEventListener("click",()=>economy?.openBulk());
 
   $$('[data-close-dialog]').forEach(button => button.addEventListener("click", () => {
     const dialog = document.getElementById(button.dataset.closeDialog);
-    if (dialog === destroyDialog && destruction?.committing) return;
+    if (dialog === recycleDialog && recycle?.committing) return;
     if (dialog === boosterDialog && state.opening && !state.revealedCards.length) return toast("Tes cartes arrivent…");
     dialog.close();
   }));
@@ -1432,10 +1392,10 @@
     if (!section.matches?.("details[data-album-edition]")) return;
     if (section.open) state.collapsedEditions.delete(section.dataset.albumEdition); else state.collapsedEditions.add(section.dataset.albumEdition);
   },true);
-  destroyDialog.addEventListener("cancel", event => { if (destruction?.committing) event.preventDefault(); });
-  destroyDialog.addEventListener("close", () => { destruction = null; cutGesture?.reset(); $$(".blade-trail").forEach(trail=>trail.remove()); });
+  recycleDialog.addEventListener("cancel", event => { if (recycle?.committing) event.preventDefault(); });
+  recycleDialog.addEventListener("close", () => { recycle = null; });
   document.addEventListener("keydown", event => {
-    if ($("#confirmDialog").open || destroyDialog.open || state.busy || event.target.closest?.("input,select,textarea,[contenteditable]")) return;
+    if ($("#confirmDialog").open || recycleDialog.open || state.busy || event.target.closest?.("input,select,textarea,[contenteditable]")) return;
     if (cardDialog.open && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); moveViewer(event.key === "ArrowRight" ? 1 : -1); }
     if (boosterDialog.open && state.revealedCards.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(event.key)) { event.preventDefault(); advanceReveal(0, ["ArrowLeft", "ArrowDown"].includes(event.key) ? -1 : 1); }
   });
@@ -1445,33 +1405,20 @@
   setInterval(updateTimers, 1000);
   startLegendaryCycle();
   setupBoosterGesture();
-  cutGesture = window.CardBoosterGesture.slice(destroyDialog, {
-    isLocked: () => !destroyDialog.open || !destruction || destruction.committing,
-    getCardRect: () => $("#shredPreview").getBoundingClientRect(),
-    onTrace: bladeTrace,
-    onCut: (a,b,rect) => {
-      const point = p => ({x:(p.x-rect.left)/rect.width*100,y:(p.y-rect.top)/rect.height*100});
-      const first=point(a),last=point(b);
-      destruction.cuts.push([first,last]);
-      $("#shredPreview").insertAdjacentHTML("beforeend", `<svg class="cut-scar" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="${first.x}" y1="${first.y}" x2="${last.x}" y2="${last.y}"/></svg>`);
-      $$("#cutMeter i").forEach((dot,i)=>dot.classList.toggle("cut",i<destruction.cuts.length));
-      $("#destroyStatus").textContent = `${destruction.cuts.length} / 3 · Sa découverte reste dans « Déjà vues ».`;
-      if (!reducedMotion.matches) $("#shredPreview").animate([{transform:"rotate(-1deg)"},{transform:"rotate(1deg)"},{transform:"none"}],{duration:120});
-      feedback("card");
-      if (destruction.cuts.length >= 3) commitDestruction();
-    }
-  });
   window.CardBoosterGesture.preventDoubleTapZoom(document);
 
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("service-worker.js").then(registration=>{
-    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !destroyDialog.open && !depressiveDeck?.isOpen() && !economy?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
+    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !recycleDialog.open && !depressiveDeck?.isOpen() && !economy?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
     registration.addEventListener("updatefound",()=>registration.installing?.addEventListener("statechange",activate));
     document.addEventListener("visibilitychange",activate);for(const dialog of document.querySelectorAll("dialog"))dialog.addEventListener("close",activate);activate();
   }).catch(()=>{});
   depressiveDeck = window.DepressiveDeck?.mount({getState:()=>state.data?.depressive_deck,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   economy = window.CardEconomy?.mount({getState:()=>state.data,getRole:()=>state.role,
-    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
+    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),
+    onShop:()=>setView('shop'),
+    onRecycleMode:()=>{state.managementMode='recycle';renderTradeSelection();},
+    onActionMode:()=>{state.managementMode='trade';renderTradeSelection();},friendlyError});
   const lastRole = storage.get("les-cartes-last-role");
   if (names[lastRole] && storage.get(tokenKey(lastRole))) selectRole(lastRole);
 })();
