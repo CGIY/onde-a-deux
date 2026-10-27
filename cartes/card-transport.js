@@ -1,7 +1,9 @@
 /* Ordered transport only. No rendering, credential storage or automatic retries. */
 (() => {
   "use strict";
+  let sharedState = null;
   function create({state,url,key}) {
+  sharedState = state;
   async function exchange(action = "sync", payload = {}, accessCode = null) {
     if (!state.role || !state.token) throw new Error("pairing_required");
     const requestRole = state.role, requestToken = state.token;
@@ -48,5 +50,5 @@
     const status=action==="trade_cancel"?"cancelled":action==="trade_respond"?(payload.decision==="accept"?"accepted":"rejected"):null;
     return Boolean(status && (snapshot.trades || []).some(trade=>trade.id===payload.trade_id && trade.status===status));
   }
-  window.CardTransport=Object.freeze({create,matchesMutation});
+  window.CardTransport=Object.freeze({create,matchesMutation,getState:()=>sharedState});
 })();
