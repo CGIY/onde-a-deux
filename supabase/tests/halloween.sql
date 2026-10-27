@@ -19,7 +19,7 @@ begin
     select count(*) into n from public.tcg_pick_template('AG','energy','standard',base_ids,v_at);
     if n <> 0 then raise exception 'Seasonal energy outside its window'; end if;
   end loop;
-  foreach v_at in array array[timestamptz '2026-10-29 00:00:00 Europe/Paris', timestamptz '2026-11-01 23:59:59 Europe/Paris'] loop
+  foreach v_at in array array[timestamptz '2026-10-27 00:00:00 Europe/Paris', timestamptz '2026-11-01 23:59:59 Europe/Paris'] loop
     select * into sample from public.tcg_pick_template('AG','challenge','standard',base_ids,v_at);
     if sample.edition is distinct from 'halloween_2026' then raise exception 'Missing seasonal challenge'; end if;
     select * into sample from public.tcg_pick_template('CL','energy','standard',base_ids,v_at);
@@ -55,7 +55,7 @@ begin
   if (select count(*) from public.tcg_cards c join public.tcg_card_templates t on t.id=c.template_id where c.booster_id=v_booster_id and t.card_type='energy') <> 1 then raise exception 'Energy slot missing'; end if;
   for v_card in select * from public.tcg_cards c where c.booster_id = v_booster_id loop
     if v_card.expires_at <> v_card.acquired_at + interval '7 days' then raise exception 'Not seven days'; end if;
-    if now() < timestamptz '2026-10-29 00:00:00 Europe/Paris' and v_card.template_id like 'hw-%' then raise exception 'Early seasonal drop'; end if;
+    if now() < timestamptz '2026-10-27 00:00:00 Europe/Paris' and v_card.template_id like 'hw-%' then raise exception 'Early seasonal drop'; end if;
   end loop;
   begin
     perform public.tcg_exchange('AG',token,null,'open_booster',jsonb_build_object('booster_id',v_booster_id));

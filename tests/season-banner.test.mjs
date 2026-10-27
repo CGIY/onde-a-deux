@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const source=readFileSync(new URL('../cartes/season-banner.js',import.meta.url),'utf8');
 const fixed=Date.parse('2026-10-25T12:00:00Z');class Clock extends Date{constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}
 const doc={hidden:false,activeElement:null};const handlers=()=>({events:{},attrs:{},addEventListener(type,fn){this.events[type]=fn;},setAttribute(key,value){this.attrs[key]=value;}});
-const faces=['Halloween','Anniversaire de Mamamouth','Noël'].map((title,index)=>({...handlers(),querySelector(selector){return{textContent:selector==='strong'?title:['29 oct.–1 nov.','08 novembre','18–25 décembre'][index]};},focus(){doc.activeElement=this;}}));
+const faces=['Halloween','Anniversaire de Mamamouth','Noël'].map((title,index)=>({...handlers(),querySelector(selector){return{textContent:selector==='strong'?title:['27 oct.–1 nov.','08 novembre','18–25 décembre'][index]};},focus(){doc.activeElement=this;}}));
 const live={},style={};let offscreen=false;
 const region={...handlers(),hidden:false,classList:{contains:()=>offscreen},querySelectorAll:()=>faces,getClientRects:()=>[{}],contains:element=>faces.includes(element)};
 const prism={style:{setProperty:(key,value)=>style[key]=value}};

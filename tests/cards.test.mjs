@@ -22,7 +22,7 @@ const data = {
 };
 data.catalogue_slots = data.editions.flatMap(edition => Array.from({length:edition.total},(_,i) => ({number:i+1,edition:edition.id,template_id:edition.id==='edition_01' ? (i===0?'known-base':null) : (i===0?'known-foil':i===1?'known-art':null)})));
 const state = { data, role:'AG', collectionTab:'known', category:'all' };
-let now = new Date('2026-10-28T22:59:59Z');
+let now = new Date('2026-10-26T22:59:59Z');
 const helpers=source.slice(source.indexOf('  const markupCache ='),source.indexOf('  const escapeHtml ='));
 const api = runInNewContext(helpers+source.slice(source.indexOf('  function isAvailable('),source.indexOf('  function expireLocalData('))+source.slice(source.indexOf('  function finishLabel'), source.indexOf('  function option(')) + '\n({cardMarkup,renderCollection,collectionCards,halloweenActive,groupCards,finishSymbol,putMarkup,expiryHint})', {
   cardCountdown:()=>'', $, state, serverNow:()=>now, duration:()=>'', name:()=> 'Mamamouth', escapeHtml:v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'), document:{}
@@ -45,7 +45,7 @@ state.collectionTab='available'; $('#cardSearch').value=''; $('#editionFilter').
 assert.doesNotMatch($('#collectionGrid').innerHTML,/empty-card-slot|class="card-button"/);
 assert.match($('#collectionNote').textContent,/7 jours/);
 assert.equal(api.halloweenActive(),false);
-now=new Date('2026-10-28T23:00:00Z'); assert.equal(api.halloweenActive(),true);
+now=new Date('2026-10-26T23:00:00Z'); assert.equal(api.halloweenActive(),true);
 now=new Date('2026-11-01T22:59:59Z'); assert.equal(api.halloweenActive(),true);
 now=new Date('2026-11-01T23:00:00Z'); assert.equal(api.halloweenActive(),false);
 assert.match(api.cardMarkup({...data.known_cards[1],title:'<img onerror="oops">'}),/&lt;img/);

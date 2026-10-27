@@ -107,3 +107,16 @@
     grid-column:auto
   }
 }
+
+/* Seasonal effects run only on reveal, touch or successful play. */
+.halloween-motes {position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;border-radius:inherit;opacity:0;}
+.halloween-motes i {position:absolute;left:calc(12% + var(--mote)*18%);top:70%;width:18px;height:9px;background:#51233b;clip-path:polygon(0 0,30% 22%,42% 0,50% 30%,58% 0,70% 22%,100% 0,85% 80%,65% 65%,50% 100%,35% 65%,15% 80%);}
+#revealFront .edition-halloween .halloween-motes,.edition-halloween.halloween-played .halloween-motes {animation:halloween-appear 1.3s ease-out both;}
+#revealFront .edition-halloween .halloween-motes i,.edition-halloween.halloween-played .halloween-motes i {animation:halloween-flight 1.2s calc(var(--mote)*45ms) ease-out both;}
+.edition-halloween.is-touching {box-shadow:0 0 20px #c9733988,0 12px 35px #50243d55;}
+.edition-halloween:is(.finish-standard,.finish-full_art).is-touching .card-shine {background:radial-gradient(circle at var(--pointer-x,50%) var(--pointer-y,50%),#ffce8c88,transparent 55%);}
+.edition-halloween.halloween-played {animation:halloween-glow 1.4s ease-out;}
+@keyframes halloween-appear {0%,100%{opacity:0}15%,70%{opacity:.65}}
+@keyframes halloween-flight {from{transform:translateY(20px) scale(.5)}to{transform:translateY(-220px) scale(1.2) rotate(15deg)}}
+@keyframes halloween-glow {0%,100%{filter:none}35%{filter:drop-shadow(0 0 20px #d67a37)}}
+@media(prefers-reduced-motion:reduce){.halloween-motes,.edition-halloween.halloween-played{animation:none!important}.halloween-motes{display:none}}
