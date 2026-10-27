@@ -97,8 +97,13 @@ begin
     n:=coalesce(cardinality(ids),0);
     if n<2 or n>50 or n<>coalesce((select count(distinct x) from unnest(ids) x),0) then raise exception 'invalid_request'; end if;
     if (select count(*) from public.tcg_cards where id=any(ids) and owner_role=p_role and status='available' and expires_at>now())<>n then raise exception 'card_unavailable'; end if;
-    for c in select * from public.tcg_cards where id=any(ids) and owner_role=p_role for update loop
-      v_price:=public.tcg_sale_price(c.finish,c.expires_at);
+    select count(*) into standard_count from public.tcg_cards where id=any(ids) and finish='standard';
+    if standard_count%3<>0 then raise exception 'recycle_incomplete_group'; end if;
+    energy_count:=0;
+    for c in select * from public.tcg_cards where id=any(ids) and owner_role=p_role order by id for update loop
+      if c.finish='standard' then energy_count:=energy_count+1; end if;
+      v_price:=case when c.finish='standard' then case when energy_count%3=0 then 1 else 0 end
+        else public.tcg_sale_price(c.finish,c.expires_at) end;
       update public.tcg_cards set status='destroyed',consumed_at=now() where id=c.id;
       perform public.tcg_economy_apply(p_role,v_price,'card_sold',c.id);
     end loop;
@@ -106,13 +111,14 @@ begin
     begin select * into c from public.tcg_cards where id=(p_payload->>'card_id')::uuid and owner_role=p_role for update;
     exception when invalid_text_representation then raise exception 'card_unavailable'; end;
     if c.id is null or c.status<>'available' or c.expires_at<=now() then raise exception 'card_unavailable'; end if;
+    if c.finish='standard' then raise exception 'recycle_incomplete_group'; end if;
     v_price:=public.tcg_sale_price(c.finish,c.expires_at);
     update public.tcg_cards set status='destroyed',consumed_at=now() where id=c.id;
     perform public.tcg_economy_apply(p_role,v_price,'card_sold',c.id);
   elsif p_action='buy_booster' then
     v_kind:=coalesce(p_payload->>'kind','classic');
     if v_kind not in ('classic','magician','pleasure','relax') then raise exception 'invalid_request'; end if;
-    v_cost:=case when v_kind='classic' then 12 else 15 end;
+    v_cost:=case when v_kind='classic' then 20 else 25 end;
     if (select count(*) from public.tcg_boosters where owner_role=p_role
       and (bonus_key='economy-'||v_week or bonus_key like 'economy-'||v_week||'-%'))>=3 then
       raise exception 'weekly_booster_used';
@@ -379,7 +385,7 @@ begin
     for v_draw_index in 1..5 loop
       if v_draw_index>=4 and not (v_draw_index=4 and booster.booster_kind<>'classic') and random()<0.60 then
         v_roll:=random();
-        v_reward_amount:=case when v_roll<0.70 then 1 when v_roll<0.95 then 2 else 3 end;
+        v_reward_amount:=1;
         perform public.tcg_economy_apply(v_role,v_reward_amount,'booster_shards',null,jsonb_build_object('booster_id',booster.id,'slot',v_draw_index));
         v_rewards:=v_rewards||jsonb_build_array(jsonb_build_object('reward_type','shards','amount',v_reward_amount,'slot',v_draw_index));
         continue;

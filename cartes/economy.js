@@ -12,14 +12,14 @@
   const labels={standard:'commune',full_art:'full art',foil:'foil',any:'autre carte'};
   const finishLabels={standard:'Commune',full_art:'Full art',foil:'Foil',full_art_foil:'Full art + foil',legendary:'Légendaire'};
   const shopOffers=[
-    {kind:'classic',title:'Classique',price:12,promise:'Le tirage habituel',mark:'✦'},
-    {kind:'magician',title:'Magicien',price:15,promise:'1 sortilège garanti',mark:'☾'},
-    {kind:'pleasure',title:'Plaisir',price:15,promise:'1 défi Mise à nue garanti',mark:'♡'},
-    {kind:'relax',title:'Détente',price:15,promise:'1 massage ou soin garanti',mark:'◌'}
+    {kind:'classic',title:'Classique',price:20,promise:'Le tirage habituel',mark:'✦'},
+    {kind:'magician',title:'Magicien',price:25,promise:'1 sortilège garanti',mark:'☾'},
+    {kind:'pleasure',title:'Plaisir',price:25,promise:'1 défi Mise à nue garanti',mark:'♡'},
+    {kind:'relax',title:'Détente',price:25,promise:'1 massage ou soin garanti',mark:'◌'}
   ];
   const helperOffers=[
-    {kind:'assassin',title:'Assassin',price:15,promise:'Détruit une carte au hasard de la main adverse',mark:'☠'},
-    {kind:'druide',title:'Druide',price:15,promise:'Rend 7 jours de vie à une carte de ta main',mark:'☘'},
+    {kind:'assassin',title:'Assassin',price:25,promise:'Détruit une carte au hasard de la main adverse',mark:'☠'},
+    {kind:'druide',title:'Druide',price:18,promise:'Rend 7 jours de vie à une carte de ta main',mark:'☘'},
     {kind:'voleur',title:'Voleur',price:8,promise:'Vole 1 à 10 Éclats à l’autre joueur',mark:'⇄'}
   ];
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -35,6 +35,7 @@
     shop.append(actionTabs);
     const panel=document.createElement('section');panel.className='economy-panel content-block';panel.id='economyPanel';
     shop.append(panel);
+    const recyclePanel=document.createElement('section');recyclePanel.className='recycle-inline bulk-recycle-content';recyclePanel.hidden=true;shop.append(recyclePanel);
     let boosterShopOpen=true;
     panel.addEventListener('toggle',event=>{if(event.target.matches('.booster-shop-drawer'))boosterShopOpen=event.target.open;},true);
     const modal=document.createElement('dialog');modal.className='bank-dialog';modal.setAttribute('aria-label','Banque des cartes');
@@ -57,14 +58,9 @@
     const cardOf=id=>cards().find(card=>card.id===id);
     let recipe=null,selected=new Set(),bankStep=0,bankReview=false,busy=false,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null,actionMode='shop';
     function showActionMode(){
-      if(actionMode==='recycle'){
-        actionTabs.after(tradeMaker);
-        tradeMaker.hidden=false;
-        onRecycleMode();
-      }else{
-        tradeInbox.before(tradeMaker);
-        tradeMaker.hidden=false;
-      }
+      tradeInbox.before(tradeMaker);tradeMaker.hidden=false;
+      recyclePanel.hidden=actionMode!=='recycle';
+      if(actionMode==='recycle')drawBulk();
       panel.hidden=actionMode==='recycle';
       panel.querySelector('.economy-shop-section')?.toggleAttribute('hidden',actionMode!=='shop');
       panel.querySelector('.economy-bank-section')?.toggleAttribute('hidden',actionMode!=='bank');
@@ -137,16 +133,16 @@
       }catch(error){modal.querySelector('.bank-content').innerHTML=`<div class="bank-error"><h2>Échange interrompu</h2><p>${escape(friendlyError(error))}</p><button class="bank-submit" type="button" data-bank-back>Revoir les cartes</button></div>`;}
       finally{busy=false;}
     }
-    function recycle(id){const c=cardOf(id);if(c&&!busy)onRecycle([c]);}
-    function openBulk(){if(busy||cards().length<2)return;bulkSelected=new Set();bulkModal.className='bulk-recycle-dialog';bulkModal.showModal();drawBulk();}
-    function drawBulk(){if(!bulkModal.open||busy)return;const scroll=bulkModal.querySelector('.bulk-recycle-list')?.scrollTop||0;const pool=cards().sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));
+    function recycle(id){const c=cardOf(id);if(!c||busy)return;if(c.finish==='standard')return openBulk(id);onRecycle([c]);}
+    function openBulk(selectedId){if(busy)return;bulkSelected=new Set(typeof selectedId==='string'?[selectedId]:[]);bulkModal.className='bulk-recycle-dialog';bulkModal.showModal();drawBulk();}
+    function drawBulk(){if((!bulkModal.open&&actionMode!=='recycle')||busy)return;const target=bulkModal.open?bulkModal.querySelector('.bulk-recycle-content'):recyclePanel;const scroll=target.querySelector('.bulk-recycle-list')?.scrollTop||0;const pool=cards().sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));
       bulkSelected=new Set([...bulkSelected].filter(id=>pool.some(c=>c.id===id)));
-      const picked=pool.filter(c=>bulkSelected.has(c.id)),total=picked.reduce((sum,c)=>sum+c.sale_price,0);
-      bulkModal.querySelector('.bulk-recycle-content').innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Recycler en lot.</h2><p>Choisis les exemplaires à céder. Leur découverte reste dans « Déjà vues ».</p><div class="bulk-recycle-tools"><button type="button" data-bulk-all>Tout sélectionner</button><button type="button" data-bulk-clear>Effacer</button></div><div class="bulk-recycle-list">${pool.map((c,i)=>`<button type="button" class="bulk-recycle-row ${bulkSelected.has(c.id)?'selected':''}" style="--row-index:${Math.min(i,8)}" data-bulk-card="${escape(c.id)}" aria-pressed="${bulkSelected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${renderCard(c)}</span><span class="bulk-recycle-card-copy"><strong>${escape(c.title)}</strong><small>${escape(finishLabels[c.finish]||c.finish)} · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><b>+${c.sale_price}</b><i>${bulkSelected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><div class="bulk-recycle-total"><span>${picked.length} carte${picked.length>1?'s':''} sélectionnée${picked.length>1?'s':''}</span><strong>+${total} Éclat${total>1?'s':''}</strong></div><button type="button" class="bank-submit" data-bulk-confirm ${picked.length<2?'disabled':''}>Recycler le lot →</button>`;
-      bulkModal.querySelector('.bulk-recycle-list').scrollTop=scroll;
+      const picked=pool.filter(c=>bulkSelected.has(c.id)),commons=picked.filter(c=>c.finish==='standard').length,total=Math.floor(commons/3)+picked.filter(c=>c.finish!=='standard').reduce((sum,c)=>sum+c.sale_price,0);
+      target.innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Trois cartes. Un Éclat.</h2><p>Choisis les exemplaires à céder. Communes et Énergies : 3 cartes → 1 Éclat. Découvertes conservées.</p><div class="recycle-triplet" aria-label="Cartes du lot">${[0,1,2].map(i=>`<span class="recycle-triplet-slot">${picked.filter(c=>c.finish==='standard')[i]?renderCard(picked.filter(c=>c.finish==='standard')[i]):`<i>${i+1}</i>`}</span>`).join('')}</div><div class="bulk-recycle-tools"><button type="button" data-bulk-all>Tout sélectionner</button><button type="button" data-bulk-clear>Effacer</button></div><div class="bulk-recycle-list">${pool.map((c,i)=>`<button type="button" class="bulk-recycle-row ${bulkSelected.has(c.id)?'selected':''}" style="--row-index:${Math.min(i,8)}" data-bulk-card="${escape(c.id)}" aria-pressed="${bulkSelected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${renderCard(c)}</span><span class="bulk-recycle-card-copy"><strong>${escape(c.title)}</strong><small>${escape(finishLabels[c.finish]||c.finish)} · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><b>${c.finish==='standard'?'3 → 1':`+${c.sale_price}`}</b><i>${bulkSelected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><div class="bulk-recycle-total"><span>${picked.length} carte${picked.length>1?'s':''} sélectionnée${picked.length>1?'s':''}</span><strong>+${total} Éclat${total>1?'s':''}</strong></div><button type="button" class="bank-submit" data-bulk-confirm ${!picked.length||picked.length>50||commons%3!==0?'disabled':''}>${commons%3?`Encore ${3-commons%3} commune${3-commons%3>1?'s':''} ou Énergie${3-commons%3>1?'s':''}`:'Recycler le lot →'}</button>`;
+      target.querySelector('.bulk-recycle-list').scrollTop=scroll;
     }
-    function confirmBulk(){if(busy||bulkSelected.size<2)return;const picked=cards().filter(c=>bulkSelected.has(c.id));if(picked.length<2)return;bulkModal.close();onRecycle(picked);}
-    function drawShardInfo(){const e=state();if(!e)return;shardInfo.querySelector('.shard-info-content').innerHTML=`<span class="eyebrow">MON SOLDE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>${e.balance>0?'+':''}${e.balance}</strong><span>Éclats</span></div><h2>Mes Éclats.</h2><p>Les défis validés rapportent de 1 à 10 Éclats selon leur rareté. Tu peux aussi recycler les cartes de ta main ou en trouver dans un booster.</p><div class="shard-info-uses"><span><b>12 ou 15 Éclats</b><small>Jusqu’à 3 boosters par semaine, classiques ou à thème</small></span><span><b>La Banque</b><small>Échange des cartes et des Énergies Bisous</small></span></div><p class="shard-info-note">Un défi laissé passer peut réduire le solde selon sa rareté, jusqu’à −12.</p><button type="button" class="bank-submit" data-shard-actions>Ouvrir la Boutique →</button>`;}
+    function confirmBulk(){if(busy)return;const picked=cards().filter(c=>bulkSelected.has(c.id));if(!picked.length||picked.length>50||picked.filter(c=>c.finish==='standard').length%3)return;if(bulkModal.open)bulkModal.close();onRecycle(picked);}
+    function drawShardInfo(){const e=state();if(!e)return;shardInfo.querySelector('.shard-info-content').innerHTML=`<span class="eyebrow">MON SOLDE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>${e.balance>0?'+':''}${e.balance}</strong><span>Éclats</span></div><h2>Mes Éclats.</h2><p>Les défis validés rapportent de 1 à 10 Éclats selon leur rareté. Tu peux aussi recycler les cartes de ta main ou en trouver dans un booster.</p><div class="shard-info-uses"><span><b>20 ou 25 Éclats</b><small>Jusqu’à 3 boosters par semaine, classiques ou à thème</small></span><span><b>La Banque</b><small>Échange des cartes et des Énergies Bisous</small></span></div><p class="shard-info-note">Un défi laissé passer peut réduire le solde selon sa rareté, jusqu’à −12.</p><button type="button" class="bank-submit" data-shard-actions>Ouvrir la Boutique →</button>`;}
     async function buy(kind){const offer=shopOffers.find(item=>item.kind===kind);if(!offer||busy||state()?.balance<offer.price||Number(state()?.weekly_boosters_bought||0)>=3)return;busy=true;
       const button=panel.querySelector(`[data-economy-buy="${kind}"]`);button.disabled=true;button.textContent='Un instant…';
       try{await exchange('buy_booster',{kind});headerBalance.classList.add('economy-bought');onUpdate();await wait(reduced.matches?80:850);headerBalance.classList.remove('economy-bought');document.querySelector('[data-nav="today"]')?.click();}
@@ -182,7 +178,7 @@
     function openDruidePicker(){
       const pool=cards().slice().sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));
       helperModal.className='bank-dialog';
-      helperModal.querySelector('.helper-content').innerHTML=`<div class="bank-intro"><span class="eyebrow">LE DRUIDE · 15 ÉCLATS</span><h2>Choisis la carte à sauver.</h2><p>Le compteur repart à 7 jours.</p></div>
+      helperModal.querySelector('.helper-content').innerHTML=`<div class="bank-intro"><span class="eyebrow">LE DRUIDE · 18 ÉCLATS</span><h2>Choisis la carte à sauver.</h2><p>Le compteur repart à 7 jours.</p></div>
         <div class="bank-card-list">${pool.map(c=>`<button type="button" data-helper-card="${escape(c.id)}" class="bank-card-choice"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${renderCard(c)}</span><span><strong>${escape(c.title)}</strong><small><span class="bank-card-rarity">${escape(finishLabels[c.finish]||c.finish)}</span> · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/3600000))} h restantes</small></span><i>→</i></button>`).join('')||'<p class="bulk-recycle-error">Aucune carte à sauver pour l’instant.</p>'}</div>
         <div class="bank-step-actions"><button type="button" data-helper-finish>Annuler</button></div>`;
       helperModal.showModal();
@@ -237,7 +233,8 @@
       if(event.target.closest('[data-bank-finish]')){modal.close();onCollection();}
     });
     modal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
-    bulkModal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return bulkModal.close();const pick=event.target.closest('[data-bulk-card]');if(pick&&!busy){const id=pick.dataset.bulkCard;if(bulkSelected.has(id))bulkSelected.delete(id);else bulkSelected.add(id);return drawBulk();}if(event.target.closest('[data-bulk-all]')&&!busy){bulkSelected=new Set(cards().map(c=>c.id));return drawBulk();}if(event.target.closest('[data-bulk-clear]')&&!busy){bulkSelected.clear();return drawBulk();}if(event.target.closest('[data-bulk-confirm]'))return void confirmBulk();if(event.target.closest('[data-bulk-finish]'))bulkModal.close();});
+    const handleBulkClick=event=>{if(event.target.closest('.bank-close')&&!busy)return bulkModal.close();const pick=event.target.closest('[data-bulk-card]');if(pick&&!busy){const id=pick.dataset.bulkCard;if(bulkSelected.has(id))bulkSelected.delete(id);else bulkSelected.add(id);return drawBulk();}if(event.target.closest('[data-bulk-all]')&&!busy){bulkSelected=new Set(cards().slice(0,50).map(c=>c.id));return drawBulk();}if(event.target.closest('[data-bulk-clear]')&&!busy){bulkSelected.clear();return drawBulk();}if(event.target.closest('[data-bulk-confirm]'))return void confirmBulk();if(event.target.closest('[data-bulk-finish]'))bulkModal.close();};
+    bulkModal.addEventListener('click',handleBulkClick);recyclePanel.addEventListener('click',handleBulkClick);
     bulkModal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
     bulkModal.addEventListener('close',()=>bulkSelected.clear());
     tour.addEventListener('click',event=>{if(event.target.closest('[data-tour-skip]'))return closeTour();if(event.target.closest('[data-tour-next]')){if(tourIndex===slides.length-1)closeTour();else{tourIndex++;drawTour();}}});

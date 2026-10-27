@@ -4,9 +4,11 @@ import {createDeckDatabase} from './deck-local-db.mjs';
 const db=await createDeckDatabase();
 try{
   await db.exec(await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/operations/current_tcg_rules.sql',import.meta.url),'utf8'));
   await db.exec("create or replace function public.tcg_push_notify(text,text,text,text) returns void language sql as $$ select; $$;");
   const sql=await readFile(new URL('../supabase/operations/audit_helper_push_repairs.sql',import.meta.url),'utf8');
   await db.exec(sql.slice(0,sql.indexOf('alter table public.tcg_push_sent')));
+  await db.exec(await readFile(new URL('../supabase/operations/rebalance_economy_v26.sql',import.meta.url),'utf8'));
   await db.exec("insert into public.tcg_economy_wallets(role,balance) values ('AG',60),('CL',-11) on conflict(role) do update set balance=excluded.balance;");
   await db.query("select public.tcg_helper_action('AG','voleur','{}'::jsonb)");
   const balances=async()=>Object.fromEntries((await db.query('select role,balance from public.tcg_economy_wallets')).rows.map(x=>[x.role,x.balance]));
@@ -16,14 +18,14 @@ try{
   const card=(await db.query("insert into public.tcg_cards(owner_role,template_id,finish,wear_seed,acquired_at,expires_at,status) values('AG','couple-film','standard',1,now()-interval '6 days 23 hours',now()+interval '1 hour','available') returning id")).rows[0].id;
   await db.query("select public.tcg_helper_action('AG','druide',$1::jsonb)",[JSON.stringify({card_id:card})]);
   const saved=(await db.query('select expires_at>now()+interval \'6 days 23 hours\' as extended from public.tcg_cards where id=$1',[card])).rows[0];
-  assert.equal(saved.extended,true);assert.equal((await balances()).AG,38);
+  assert.equal(saved.extended,true);assert.equal((await balances()).AG,35);
   await assert.rejects(()=>db.query("select public.tcg_helper_action('CL','druide',$1::jsonb)",[JSON.stringify({card_id:card})]),/not_enough_shards/);
   await db.exec("update public.tcg_economy_wallets set balance=30 where role='CL'");
   await assert.rejects(()=>db.query("select public.tcg_helper_action('CL','druide',$1::jsonb)",[JSON.stringify({card_id:card})]),/card_unavailable/);
   const discoveries=(await db.query('select count(*)::integer n from public.tcg_discoveries')).rows[0].n;
   await db.query("select public.tcg_helper_action('CL','assassin','{}'::jsonb)");
   assert.equal((await db.query('select status from public.tcg_cards where id=$1',[card])).rows[0].status,'destroyed');
-  assert.equal((await balances()).CL,15);
+  assert.equal((await balances()).CL,5);
   assert.equal((await db.query('select count(*)::integer n from public.tcg_discoveries')).rows[0].n,discoveries);
   await db.exec('set role anon');
   await assert.rejects(()=>db.query("select public.tcg_helper_action('AG','voleur','{}'::jsonb)"),/permission denied/);
