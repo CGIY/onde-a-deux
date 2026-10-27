@@ -1,0 +1,802 @@
+{
+ "couple-aquarelle": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-aquarelle"
+ },
+ "couple-balade": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 1,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-balade-rapide"
+ },
+ "couple-choix-activite": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 2,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "fa-couple-choix-activite"
+ },
+ "couple-dessin": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 3,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-dessin"
+ },
+ "couple-film-horreur": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 4,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "hw-couple-film-horreur"
+ },
+ "couple-film": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 5,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-film"
+ },
+ "couple-gateau": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 6,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-gateau"
+ },
+ "couple-jeu": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 7,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-jeu-societe"
+ },
+ "couple-legendaire": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 8,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "legend-couple"
+ },
+ "couple-marathon": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 9,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "foil-couple-marathon"
+ },
+ "couple-repas-complet": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 10,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "fa-couple-repas-complet"
+ },
+ "couple-serie": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 11,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-serie"
+ },
+ "couple-soiree-theme": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 12,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "foil-couple-soiree-theme"
+ },
+ "couple-sortie-choisie": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 13,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "foil-couple-sortie-choisie"
+ },
+ "couple-super-sortie": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 14,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "faf-couple-super-sortie"
+ },
+ "couple-tour-ville": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 15,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "couple-tour-ville"
+ },
+ "couple-urbex": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 16,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "hw-couple-urbex"
+ },
+ "couple-weekend": {
+  "atlas": "card-atlas-v2-couple.jpg",
+  "atlas_cat": "couple",
+  "slot": 17,
+  "cols": 2,
+  "rows": 9,
+  "template_id": "faf-couple-weekend"
+ },
+ "autre-cadeau-100": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 0,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "faf-autre-cadeau-100"
+ },
+ "autre-cadeau-20": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 1,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "fa-autre-cadeau-20"
+ },
+ "autre-cadeau-25": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 2,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "fa-autre-cadeau-25"
+ },
+ "autre-cadeau-50": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 3,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "foil-autre-cadeau-50"
+ },
+ "autre-cadeau-66": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 4,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "hw-foil-autre-cadeau-66"
+ },
+ "autre-cadeau-666": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 5,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "hw-autre-cadeau-666"
+ },
+ "autre-cadeau-ville": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 6,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-cadeau-ville"
+ },
+ "autre-cadeau-vinted": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 7,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-cadeau-vinted"
+ },
+ "autre-legendaire": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 8,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "legend-other"
+ },
+ "autre-massage-complet": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 9,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "foil-autre-massage-complet"
+ },
+ "autre-massage-cuisses": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 10,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-massage-cuisses"
+ },
+ "autre-massage-dos": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 11,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-massage-dos"
+ },
+ "autre-massage-epaules": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 12,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-massage-epaules"
+ },
+ "autre-massage-tete": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 13,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-massage-tete"
+ },
+ "autre-massage-visage": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 14,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-massage-visage"
+ },
+ "autre-mot-doux": {
+  "atlas": "card-atlas-v2-autre.jpg",
+  "atlas_cat": "autre",
+  "slot": 15,
+  "cols": 2,
+  "rows": 8,
+  "template_id": "autre-mot-doux"
+ },
+ "nue-achat-scandale": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 0,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "faf-nue-achat-scandale"
+ },
+ "nue-anal": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 1,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "fa-nue-anal"
+ },
+ "nue-assise-visage": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 2,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-assise-visage"
+ },
+ "nue-avaler": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 3,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-avaler"
+ },
+ "nue-blowjob-eglise": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 4,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-blowjob-eglise"
+ },
+ "nue-faciale-eglise": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 5,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "hw-foil-nue-faciale-eglise"
+ },
+ "nue-faciale": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 6,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-faciale"
+ },
+ "nue-fessees": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 7,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "fa-nue-fessees-filmees"
+ },
+ "nue-golden-shower": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 8,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "faf-nue-golden-shower"
+ },
+ "nue-gros-sextoy": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 9,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "faf-nue-gros-sextoy"
+ },
+ "nue-grosse-levrette": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 10,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-grosse-levrette"
+ },
+ "nue-leche": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 11,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-leche-partenaire"
+ },
+ "nue-legendaire": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 12,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "legend-nude"
+ },
+ "nue-massage-nuru": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 13,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-massage-nuru"
+ },
+ "nue-petit-sextoy": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 14,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-petit-sextoy"
+ },
+ "nue-photo-berlin": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 15,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-berlin"
+ },
+ "nue-photo-cuisine": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 16,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-cuisine"
+ },
+ "nue-photo-douche": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 17,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-douche-vapeur"
+ },
+ "nue-photo-horreur": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 18,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "hw-nue-photo-horreur"
+ },
+ "nue-photo-linge": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 19,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-linge"
+ },
+ "nue-photo-neon": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 20,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-neon"
+ },
+ "nue-photo-pluie": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 21,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-pluie"
+ },
+ "nue-photo-sport": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 22,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-apres-sport"
+ },
+ "nue-photo-starwars": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 23,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-photo-star-wars"
+ },
+ "nue-porno-1-1": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 24,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "fa-nue-reproduction-porno"
+ },
+ "nue-porno-hardcore": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 25,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-porno-hardcore"
+ },
+ "nue-reddit-boobs": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 26,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "fa-nue-reddit-boobs"
+ },
+ "nue-reddit-faciale": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 27,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "faf-nue-reddit-faciale"
+ },
+ "nue-reddit-pussy": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 28,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-reddit-pussy"
+ },
+ "nue-roleplay": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 29,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "faf-nue-roleplay-violent"
+ },
+ "nue-site-echangiste": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 30,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-site-echangiste"
+ },
+ "nue-soumission": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 31,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-soumission"
+ },
+ "nue-suce": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 32,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "nue-suce-partenaire"
+ },
+ "nue-webcam-boobs": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 33,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "fa-nue-webcam-boobs"
+ },
+ "nue-webcam-faciale": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 34,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "faf-nue-webcam-faciale"
+ },
+ "nue-webcam-pussy": {
+  "atlas": "card-atlas-v2-nue.jpg",
+  "atlas_cat": "nue",
+  "slot": 35,
+  "cols": 2,
+  "rows": 18,
+  "template_id": "foil-nue-webcam-pussy"
+ },
+ "foodies-apero": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 0,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foodies-apero"
+ },
+ "foodies-cafe": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 1,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foodies-cafe-ville"
+ },
+ "foodies-dessert-luxe": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 2,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foil-foodies-dessert-luxe"
+ },
+ "foodies-fast-food": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 3,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foodies-fast-food"
+ },
+ "foodies-gateau-halloween": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 4,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "hw-foodies-gateau"
+ },
+ "foodies-gateau": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 5,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foodies-gateau"
+ },
+ "foodies-legendaire": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 6,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "legend-foodies"
+ },
+ "foodies-plat-luxe": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 7,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foil-foodies-plat-luxe"
+ },
+ "foodies-repas-choix-paye": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 8,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "fa-foodies-repas-choix-paye"
+ },
+ "foodies-repas-choix-prepare": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 9,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "fa-foodies-repas-choix-prepare"
+ },
+ "foodies-repas-effrayant": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 10,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "hw-fa-foodies-repas"
+ },
+ "foodies-restaurant": {
+  "atlas": "card-atlas-v2-foodies.jpg",
+  "atlas_cat": "foodies",
+  "slot": 11,
+  "cols": 2,
+  "rows": 6,
+  "template_id": "foil-foodies-restaurant"
+ },
+ "todo-impose-tache": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 0,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "fa-todo-impose-tache"
+ },
+ "todo-legendaire": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 1,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "legend-todo"
+ },
+ "todo-linge": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 2,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "todo-linge"
+ },
+ "todo-machine": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 3,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "todo-machine"
+ },
+ "todo-piece": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 4,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "todo-piece"
+ },
+ "todo-placard": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 5,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "todo-placard"
+ },
+ "todo-poubelles": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 6,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "todo-poubelles"
+ },
+ "todo-refaire-piece": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 7,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "foil-todo-refaire-piece"
+ },
+ "todo-vaisselle": {
+  "atlas": "card-atlas-v2-todo.jpg",
+  "atlas_cat": "todo",
+  "slot": 8,
+  "cols": 2,
+  "rows": 5,
+  "template_id": "todo-vaisselle"
+ },
+ "energy-bisou": {
+  "atlas": "card-atlas-v2-energy.jpg",
+  "atlas_cat": "energy",
+  "slot": 0,
+  "cols": 2,
+  "rows": 2,
+  "template_id": "energy-bisou"
+ },
+ "energy-griffure": {
+  "atlas": "card-atlas-v2-energy.jpg",
+  "atlas_cat": "energy",
+  "slot": 1,
+  "cols": 2,
+  "rows": 2,
+  "template_id": "hw-energy-griffure"
+ },
+ "energy-morsure": {
+  "atlas": "card-atlas-v2-energy.jpg",
+  "atlas_cat": "energy",
+  "slot": 2,
+  "cols": 2,
+  "rows": 2,
+  "template_id": "hw-energy-morsure"
+ },
+ "joker": {
+  "atlas": "card-atlas-v2-joker.jpg",
+  "atlas_cat": "joker",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "joker-annulation"
+ },
+ "spell-adagio": {
+  "atlas": "card-atlas-v2-spell.jpg",
+  "atlas_cat": "spell",
+  "slot": 0,
+  "cols": 2,
+  "rows": 3,
+  "template_id": "spell-adagio"
+ },
+ "spell-augmento": {
+  "atlas": "card-atlas-v2-spell.jpg",
+  "atlas_cat": "spell",
+  "slot": 1,
+  "cols": 2,
+  "rows": 3,
+  "template_id": "spell-augmento"
+ },
+ "spell-destructo": {
+  "atlas": "card-atlas-v2-spell.jpg",
+  "atlas_cat": "spell",
+  "slot": 2,
+  "cols": 2,
+  "rows": 3,
+  "template_id": "spell-destructo"
+ },
+ "spell-presto": {
+  "atlas": "card-atlas-v2-spell.jpg",
+  "atlas_cat": "spell",
+  "slot": 3,
+  "cols": 2,
+  "rows": 3,
+  "template_id": "spell-presto"
+ },
+ "spell-reducto": {
+  "atlas": "card-atlas-v2-spell.jpg",
+  "atlas_cat": "spell",
+  "slot": 4,
+  "cols": 2,
+  "rows": 3,
+  "template_id": "spell-reducto"
+ }
+}
