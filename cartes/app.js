@@ -1309,7 +1309,7 @@
       return openCard(findCard(cardButton));
     }
     const nextReveal = event.target.closest("[data-reveal-next]");
-    if (nextReveal) {
+    if (nextReveal || event.target.closest("#revealFront")) {
       return advanceReveal();
     }
     const finishButton = event.target.closest("[data-reveal-finish]");
