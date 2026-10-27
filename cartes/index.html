@@ -129,6 +129,8 @@
           <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><span class="trade-label" id="offeredCardLabel">Je donne</span><button class="trade-pick-button" id="offeredCardPicker" type="button" data-pick-card="offered" aria-haspopup="dialog" aria-label="Choisir ma carte"><span class="trade-preview" id="offeredPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg></span><div class="trade-pick" id="requestedCardPick"><span class="trade-label">Je reçois</span><button class="trade-pick-button" id="requestedCardPicker" type="button" data-pick-card="requested" aria-haspopup="dialog" aria-label="Choisir une carte adverse"><span class="trade-preview" id="requestedPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
           <p class="trade-hint" id="tradeHint"></p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer →</button>
+          <button class="text-button bulk-recycle-link" id="bulkRecycleButton" type="button" hidden>Recycler plusieurs cartes →</button>
+          <button class="text-button bulk-recycle-link" id="bulkSellButton" type="button" hidden>Revendre plusieurs cartes →</button>
         </section>
 
         <section class="content-block">
@@ -139,7 +141,10 @@
         <details class="content-block history-block trade-history"><summary>Historique <span aria-hidden="true">⌄</span></summary>
           <div class="trade-list" id="tradeHistory"></div><button type="button" class="text-button" id="moreHistory" hidden>Voir davantage</button>
         </details>
-      </service>
+      </section>
+      <section class="view" id="shopView" data-view="shop" hidden>
+        <header class="view-heading"><div><span class="eyebrow">MES ÉCLATS</span><h2>Boutique.</h2></div></header>
+      </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation principale">
@@ -162,7 +167,7 @@
         <div class="pack-cap"></div><div class="pack-shine"></div><div class="pack-emblem">Les Cartes<span>à deux.</span></div>
         <p id="packEdition">ÉDITION 01 · NOUS DEUX</p><small>3 CARTES À COLLECTIONNER</small>
         <div class="tear-line"><i id="tearProgress"></i></div>
-        <b class="tear-hint"><span aria-hidden="true">⇵</span><span id="tearPercent">Glisse pour ouvrir</span><span aria-hidden="true">⇶</span></b>
+        <b class="tear-hint"><span aria-hidden="true">⇅</span><span id="tearPercent">Glisse pour ouvrir</span><span aria-hidden="true">⇆</span></b>
       </div>
       <div class="reveal-slot" id="revealSlot" hidden></div>
     </div>
