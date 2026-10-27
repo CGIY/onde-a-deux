@@ -386,16 +386,16 @@ insert into public.tcg_card_templates(
   eligible_role, finish_tier, rarity, active, demo, edition, draw_from, draw_until
 )
 values
-  ('hw-couple-film-horreur', 'EN COUPLE', 'FILM D’HORREUR', 'Regardez un film d’horreur ensemble.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-couple-urbex', 'EN COUPLE', 'URBEX', 'Faites une sortie urbex ensemble, dans un lieu accessible et autorisé.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-autre-cadeau-666', 'POUR L''AUTRE', 'CADEAU · 6,66 €', 'Un cadeau à 6,66 euros.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-nue-photo-horreur', 'MISE À NUE', 'SÉANCE PHOTO NUDES D’HORREUR (COSTUME)', 'Séance photo nudes d’horreur, en costume.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-foodies-gateau', 'LES FOODIES', 'L’AUTRE FAIT UN GÂTEAU D’HALLOWEEN', 'L’autre fait un gâteau d’Halloween.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-fa-foodies-repas', 'LES FOODIES', 'REPAS EFFRAYANT PROPOSÉ PAR L’AUTRE', 'Un repas effrayant proposé par l’autre.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-foil-autre-cadeau-66', 'POUR L''AUTRE', 'CADEAU · 66 €', 'Un cadeau à 66 euros.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-foil-nue-faciale-eglise', 'MISE À NUE', 'FACIALE À L’ÉGLISE', 'Faciale à l’église.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-energy-morsure', 'ÉNERGIE', 'UNE MORSURE', 'Cette carte donne droit à une morsure.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
-  ('hw-energy-griffure', 'ÉNERGIE', 'UNE GRIFFURE', 'Cette carte donne droit à une griffure.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-29 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris')
+  ('hw-couple-film-horreur', 'EN COUPLE', 'FILM D’HORREUR', 'Regardez un film d’horreur ensemble.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-couple-urbex', 'EN COUPLE', 'URBEX', 'Faites une sortie urbex ensemble, dans un lieu accessible et autorisé.', '◎', 'couple', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-autre-cadeau-666', 'POUR L''AUTRE', 'CADEAU · 6,66 €', 'Un cadeau à 6,66 euros.', '◇', 'other', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-nue-photo-horreur', 'MISE À NUE', 'SÉANCE PHOTO NUDES D’HORREUR (COSTUME)', 'Séance photo nudes d’horreur, en costume.', '◒', 'nude', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-foodies-gateau', 'LES FOODIES', 'L’AUTRE FAIT UN GÂTEAU D’HALLOWEEN', 'L’autre fait un gâteau d’Halloween.', '♨', 'foodies', 'challenge', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-fa-foodies-repas', 'LES FOODIES', 'REPAS EFFRAYANT PROPOSÉ PAR L’AUTRE', 'Un repas effrayant proposé par l’autre.', '♨', 'foodies', 'challenge', null, 'full_art', 'rare', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-foil-autre-cadeau-66', 'POUR L''AUTRE', 'CADEAU · 66 €', 'Un cadeau à 66 euros.', '◇', 'other', 'challenge', null, 'foil', 'rare', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-foil-nue-faciale-eglise', 'MISE À NUE', 'FACIALE À L’ÉGLISE', 'Faciale à l’église.', '◒', 'nude', 'challenge', null, 'foil', 'rare', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-energy-morsure', 'ÉNERGIE', 'UNE MORSURE', 'Cette carte donne droit à une morsure.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris'),
+  ('hw-energy-griffure', 'ÉNERGIE', 'UNE GRIFFURE', 'Cette carte donne droit à une griffure.', '♥', 'energy', 'energy', null, 'standard', 'commune', true, false, 'halloween_2026', '2026-10-27 00:00:00 Europe/Paris', '2026-11-02 00:00:00 Europe/Paris')
 on conflict (id) do update set
   title = excluded.title, challenge = excluded.challenge, category = excluded.category,
   symbol = excluded.symbol, palette = excluded.palette, card_type = excluded.card_type,
@@ -1329,7 +1329,7 @@ begin
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', b.id,
-    'edition', case when now() >= timestamptz '2026-10-29 00:00:00 Europe/Paris' and now() < timestamptz '2026-11-02 00:00:00 Europe/Paris' then 'halloween_2026' else 'edition_01' end,
+    'edition', case when now() >= timestamptz '2026-10-27 00:00:00 Europe/Paris' and now() < timestamptz '2026-11-02 00:00:00 Europe/Paris' then 'halloween_2026' else 'edition_01' end,
     'is_test', b.bonus_key='spells-legends-test-2026-10-25',
     'is_birthday',b.bonus_key='birthday-mamamouth-2026-11-08',
     'is_economy',b.bonus_key like 'economy-%',

@@ -238,7 +238,7 @@
   }
   function halloweenActive() {
     const now = serverNow().getTime();
-    return now >= Date.parse("2026-10-29T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
+    return now >= Date.parse("2026-10-27T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
   }
 
   const CARD_ART_BASE = "assets/cards-v3/";
@@ -265,7 +265,7 @@
     const timeModifier = card.time_modifier === "presto" ? "PRESTO · Temps ÷2" : card.time_modifier === "adagio" ? "ADAGIO · Temps ×2" : "";
     return `<article class="game-card${CARD_ART[card.template_id || card.id]?' art-individual':''} palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"${cardArtStyle(card)}></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
-      <div class="card-top"><span>${escapeHtml(card.category)}</span></div>
+      ${isHalloween(card) ? `<span class="halloween-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--mote:${i}"></i>`).join("")}</span>` : ""}<div class="card-top"><span>${escapeHtml(card.category)}</span></div>
       ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
       <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}${number}</span></div>
     </article>`;
@@ -431,7 +431,7 @@
       const known = new Map(cards.map(card => [card.template_id, card]));
       putMarkup("#collectionGrid", (state.data.editions || []).filter(item => edition === "all" || item.id === edition).map(item => `
         <details class="album-edition" style="--album-progress:${Math.min(100,item.discovered/item.total*100)}%" data-album-edition="${escapeHtml(item.id)}" ${state.collapsedEditions?.has(item.id) ? "" : "open"}>
-          <summary><div><span class="eyebrow">${item.id === "halloween_2026" ? "Du 29 octobre au 1er novembre" : "La collection originale"}</span><h3>${editionLabel(item.id)}</h3></div><b>${item.discovered}/${item.total}</b><i aria-hidden="true">⌄</i></summary>
+          <summary><div><span class="eyebrow">${item.id === "halloween_2026" ? "Du 27 octobre au 1er novembre" : "La collection originale"}</span><h3>${editionLabel(item.id)}</h3></div><b>${item.discovered}/${item.total}</b><i aria-hidden="true">⌄</i></summary>
           <div class="album-slots">${state.data.catalogue_slots.filter(slot => slot.edition === item.id).map(slot => {
             const card = known.get(slot.template_id);
             return card ? buttonCard({ ...card, id: "", finish: card.finish_tier || "standard", wear_seed: hashString(card.template_id) }, { muted: Number(card.owned_count) === 0 })
@@ -579,7 +579,7 @@
     $("#profileMenu").title = `${name(state.data.partner_role)} ${state.data.partner_online ? "est en ligne" : "est hors ligne"}`;
     window.SeasonAnnouncements?.refresh(serverNow());
     $("#seasonHeading").textContent = halloweenActive() ? "Halloween" : "Halloween bientôt";
-    $("#seasonCopy").textContent = "29 oct.–1 nov. · 10 exclusives";
+    $("#seasonCopy").textContent = "27 oct.–1 nov. · 10 exclusives";
 
     renderToday();
     renderCollection();
@@ -862,6 +862,7 @@
     requestAnimationFrame(() => {
       const target = $(`#activeCards [data-card-id="${cardId}"] .game-card`);
       if (!target) { ghost.remove(); return; }
+      if (target.classList.contains("edition-halloween")) { target.classList.add("halloween-played"); setTimeout(()=>target.classList.remove("halloween-played"),1500); }
       const rect = target.getBoundingClientRect(), origin = ghost._origin;
       ghost.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${rect.left-origin.left}px,${rect.top-origin.top}px) scale(${rect.width/origin.width})`, opacity: .1 }], { duration: 520, easing: "cubic-bezier(.2,.75,.2,1)", fill: "forwards" }).finished.catch(() => {}).finally(() => ghost.remove());
       feedback("card");
