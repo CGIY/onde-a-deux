@@ -58,6 +58,7 @@
   let packGesture;
   let openingTimer;
   let depressiveDeck;
+  let economy;
   const markupCache = new Map();
   function putMarkup(selector, html) {
     const signature = html.replace(/(data-until="[^"]*">)[^<]*/g, "$1");
@@ -127,6 +128,13 @@
     deck_pending: "Termine ce retournement avant de choisir une autre tuile.",
     deck_tile_unavailable: "Cette tuile est déjà retournée.",
     deck_state_changed: "Ta partie a été actualisée sur un autre écran.",
+    ritual_unavailable: "Ce rituel n’attend plus de validation.",
+    ritual_already_claimed: "Ce rituel attend déjà une réponse.",
+    not_enough_shards: "Il faut 12 Éclats pour acheter un booster.",
+    weekly_booster_used: "Ton booster en Éclats a déjà été acheté cette semaine.",
+    bank_used_today: "La Banque a déjà réalisé un échange aujourd’hui.",
+    bank_invalid_ingredients: "Ces cartes ne correspondent pas à la recette.",
+    bank_no_offer: "Aucune carte éligible n’est disponible pour ce tirage.",
     invalid_request: "La demande n’a pas pu être comprise.",
     network_error: "Connexion interrompue. Vérifie ton réseau puis réessaie.",
     profile_changed: "Le profil a changé. Réessaie depuis ce profil.",
@@ -365,7 +373,7 @@
     const pending = data.pending_openings || [];
     const hasPack = Boolean(data.boosters.length || pending.length);
     $("#heroEdition").textContent = halloweenActive() ? "Spéciale Halloween × Édition 01" : "Édition 01 — Nous deux";
-    $("#heroContents").textContent = "3 cartes";
+    $("#heroContents").textContent = "5 surprises · 3 cartes minimum";
     $("#todayView").classList.toggle("has-booster", hasPack);
     $("#dailyHero").classList.toggle("no-pack", !hasPack);
     $("#navBoosterBadge").hidden = !data.boosters.length;
@@ -377,14 +385,14 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
-    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Carte ${Number(receipt.index)+1} / 3</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
+    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
-        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 3 CARTES</small></span>
-        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>3 cartes · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+        <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 5 SURPRISES</small></span>
+        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">Payé en Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
 
     putMarkup("#activeCards", data.active_cards.length
-      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Défi réalisé : ${escapeHtml(card.title)}" title="Défi réalisé">${icon("handshake")}</button>` : ""}</div>`).join("")
+      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.ritual_claim_status==='pending' ? card.owner_role===state.role ? '<span class="ritual-pending">En attente de validation</span>' : `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>` : ""}</div>`).join("")
       : `<div class="table-empty"><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 
@@ -507,11 +515,12 @@
     $("#tradeSelection").classList.toggle("single-card-selection", !trading);
     $("#requestedCardPick").hidden = !trading;
     $("#tradeArrow").hidden = !trading;
-    $("#offeredCardLabel").textContent = trading ? "Je donne" : state.managementMode === "give" ? "À offrir" : "À détruire";
-    $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : "Détruire cet exemplaire";
+    const saleCard=mine.find(card=>card.id===$("#offeredCardSelect").value);
+    $("#offeredCardLabel").textContent = trading ? "Je donne" : state.managementMode === "give" ? "À offrir" : state.managementMode === "sell" ? "À revendre" : "À détruire";
+    $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : state.managementMode === "sell" ? `Revendre · +${saleCard?.sale_price ?? '—'} Éclat${saleCard?.sale_price>1?'s':''} →` : "Détruire cet exemplaire";
     $("#proposeTradeButton").classList.toggle("danger-button", state.managementMode === "destroy");
     $("#proposeTradeButton").disabled = !$("#offeredCardSelect").value || !mine.length || (trading && (!$("#requestedCardSelect").value || !partner.length));
-    $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : "Un exemplaire en moins. Toujours dans « Déjà vues ».";
+    $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : state.managementMode === "sell" ? "Prix calculé selon la rareté et le temps restant. Découverte conservée." : "Un exemplaire en moins. Toujours dans « Déjà vues ».";
     $$("[data-management-mode]").forEach(button => { const selected = button.dataset.managementMode === state.managementMode; button.classList.toggle("selected", selected); button.setAttribute("aria-pressed", String(selected)); });
     attachFoilMotion($("#tradeView"));
   }
@@ -566,6 +575,7 @@
     refreshOpenCard();
     updateTimers();
     depressiveDeck?.refresh();
+    economy?.refresh();
   }
 
   function updateTimers() {
@@ -617,6 +627,7 @@
     clearInterval(state.polling);
     state.data = null;
     depressiveDeck?.refresh();
+    economy?.refresh();
     appShell.hidden = true;
     loginScreen.hidden = false;
     pairingForm.hidden = true;
@@ -712,7 +723,8 @@
     state.viewerCardId = card.id || null;
     state.viewerTemplateId = card.template_id;
     const active = card.active_until && new Date(card.active_until) > serverNow();
-    const canComplete = active && card.owner_role === state.role && state.data.active_cards.some(item=>item.id===card.id);
+    const canComplete = active && card.owner_role === state.role && !card.ritual_claim_status && state.data.active_cards.some(item=>item.id===card.id);
+    const canReview = active && card.owner_role === state.data.partner_role && card.ritual_claim_status==='pending';
     const ownership = isMine ? card.status === "trading" ? "Réservée pour un échange" : "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
     const jokerTargets = isJoker && isMine
       ? state.data.active_cards.filter(target => target.owner_role === state.data.partner_role && new Date(target.active_until)>serverNow())
@@ -732,7 +744,9 @@
       <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>${icon("back")}</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>${icon("arrow")}</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p class="detail-challenge">${escapeHtml(card.challenge)}</p>
       ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
-      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Défi réalisé</button>` : ""}
+      ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi${card.category==='MISE À NUE'?' · sans malus':''}</button>` : ""}
+      ${card.ritual_claim_status==='pending' && card.owner_role===state.role ? '<p class="ritual-pending">En attente de l’autre joueur.</p>' : ''}
+      ${canReview ? `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider le défi ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : ''}
       ${isMine && isAvailable(card) ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" class="destroy-option" data-destroy-card="${escapeHtml(card.id)}">${icon("scissors")}Détruire</button></div>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
     for (const [kind,id] of [["joker","jokerTargetSelect"],["spell","spellTargetSelect"],["legendary","legendaryChoiceSelect"]]) {
@@ -983,7 +997,7 @@
     state.revealIndex = Number(receipt.index) || 0;
     try {
       const local = JSON.parse(storage.get(revealPositionKey(receipt.booster_id)) || "null");
-      if (local && Number.isInteger(local.index) && local.index >= 0 && local.index <= 2 && local.at > new Date(receipt.progress_at || receipt.opened_at).getTime()) state.revealIndex = local.index;
+      if (local && Number.isInteger(local.index) && local.index >= 0 && local.index < receipt.cards.length && local.at > new Date(receipt.progress_at || receipt.opened_at).getTime()) state.revealIndex = local.index;
     } catch {}
     $("#sealedPack").hidden = true; $("#openPackButton").hidden = true;
     $("#boosterStage").classList.remove("unsealing","awaiting");
@@ -993,7 +1007,7 @@
 
   function resumeOpening(id) {
     const receipt = state.data.pending_openings?.find(item=>item.booster_id===id);
-    if (!receipt || receipt.cards.length !== 3) return;
+    if (!receipt || ![3,5].includes(receipt.cards.length)) return;
     openBooster(id); showOpeningReceipt(receipt);
   }
 
@@ -1037,11 +1051,13 @@
     const last = state.revealIndex === state.revealedCards.length - 1;
     state.revealMoving = false;
     const depth = state.revealedCards.length - 1;
-    $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">Nouvelle découverte</span>' : ""}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Carte ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes 3 cartes →" : "Suivante →"}</button></div>`;
-    $("#boosterStatus").textContent = `${state.revealIndex + 1} / 3 · ${finishLabel(card.finish)} · Glisse pour feuilleter`;
+    const reward=card.reward_type === "shards" ? `<div class="shard-reveal" role="img" aria-label="${card.amount} Éclat${card.amount>1?'s':''}"><span class="shard-halo"></span><i class="shard-gem"></i><strong>+${card.amount}</strong><span>Éclat${card.amount>1?'s':''}</span></div>` : `${cardMarkup(card)}${state.newTemplates.has(card.template_id) ? '<span class="reveal-new">Nouvelle découverte</span>' : ""}`;
+    $("#revealSlot").innerHTML = `<div class="reveal-stack" id="revealStack">${Array.from({length: depth}, (_, i) => `<div class="card-back" style="--depth:${depth-i}" aria-hidden="true"></div>`).join("")}<div class="reveal-front" id="revealFront">${reward}</div></div><div class="reveal-controls"><div class="reveal-dots" aria-label="Récompense ${state.revealIndex + 1} sur ${state.revealedCards.length}">${state.revealedCards.map((_, i) => `<i class="${i === state.revealIndex ? "selected" : ""}"></i>`).join("")}</div><button class="primary-button" type="button" ${last ? "data-reveal-finish" : "data-reveal-next"}>${last ? "Ranger mes récompenses →" : "Suivante →"}</button></div>`;
+    $("#boosterStatus").textContent = `${state.revealIndex + 1} / ${state.revealedCards.length} · ${card.reward_type==='shards' ? `+${card.amount} Éclat${card.amount>1?'s':''}` : finishLabel(card.finish)} · Glisse pour feuilleter`;
     boosterDialog.setAttribute("data-revealing","true");
-    $("#revealSlot").classList.toggle("rare-reveal", card.finish !== "standard");
-    if (card.finish !== "standard") feedback("rare");
+    $("#revealSlot").classList.toggle("rare-reveal", card.reward_type !== 'shards' && card.finish !== "standard");
+    $("#revealSlot").classList.toggle("shards-visible",card.reward_type==='shards');
+    if (card.reward_type === 'shards') feedback('card'); else if (card.finish !== "standard") feedback("rare");
     attachFoilMotion($("#revealSlot"));
     rememberRevealPosition();
   }
@@ -1102,8 +1118,8 @@
         .filter(candidate => candidate.booster_id === boosterId)
         .sort((a, b) => ({ energy: 0, challenge: 1, joker: 2 }[a.card_type] ?? 1) - ({ energy: 0, challenge: 1, joker: 2 }[b.card_type] ?? 1));
       state.revealIndex = 0;
-      for (const card of state.revealedCards) if (!previouslyKnown.has(card.template_id)) state.newTemplates.add(card.template_id);
-      if (state.revealedCards.length !== 3) throw new Error("Les cartes sont enregistrées. Actualise ta collection.");
+      for (const card of state.revealedCards) if (card.template_id && !previouslyKnown.has(card.template_id)) state.newTemplates.add(card.template_id);
+      if (![3,5].includes(state.revealedCards.length)) throw new Error("Les récompenses sont enregistrées. Actualise ta collection.");
       $("#openPackButton").hidden = true;
       $("#boosterStatus").textContent = "Tes cartes arrivent…";
       feedback("rare");
@@ -1244,16 +1260,31 @@
     }
     const complete = event.target.closest("[data-complete-card]");
     if (complete) {
-      if (!await confirmAction("Défi réalisé ?", "Vous l’avez fait ? La carte quitte la table et reste dans « Déjà vues ».")) return;
-      const ghost = captureCardGhost(cardDialog.open ? "#viewerCard .game-card" : `#activeCards [data-card-id="${complete.dataset.completeCard}"] .game-card`);
-      const done = contextualBusy(complete,"Validation…");
+      if (!await confirmAction("Défi réalisé ?", "L’autre joueur recevra une demande de validation. La récompense arrive après sa réponse.")) return;
+      const done = contextualBusy(complete,"Demande…");
       try {
         await exchange("complete_card", {card_id:complete.dataset.completeCard});
-        cardDialog.close(); render(); feedback("card");
-        acknowledgeCard(ghost,"complete","Défi réalisé");
-        toast("Défi réalisé · découverte conservée.");
+        if(cardDialog.open)cardDialog.close(); render(); feedback("card");
+        toast("Demande envoyée · en attente de l’autre joueur.");
       } catch (error) { toast(friendlyError(error)); }
       finally { done(); }
+      return;
+    }
+    const review=event.target.closest('[data-ritual-review]');
+    if(review){
+      const decision=review.dataset.ritualReview;
+      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés selon la rareté.':'Le malus s’appliquera, sauf pour Mise à nue.'))return;
+      const done=contextualBusy(review,'Un instant…');
+      try {await exchange('ritual_review',{card_id:review.dataset.cardId,decision});if(cardDialog.open)cardDialog.close();render();feedback(decision==='approve'?'rare':'card');toast(decision==='approve'?'Défi validé · Éclats accordés.':'Défi non validé.');}
+      catch(error){toast(friendlyError(error));}finally{done();}
+      return;
+    }
+    const pass=event.target.closest('[data-ritual-pass]');
+    if(pass){
+      if(!await confirmAction('Laisser passer ce défi ?', 'La carte quittera la table. Mise à nue reste sans malus.'))return;
+      const done=contextualBusy(pass,'Un instant…');
+      try {await exchange('ritual_pass',{card_id:pass.dataset.ritualPass});if(cardDialog.open)cardDialog.close();render();toast('Rituel terminé.');}
+      catch(error){toast(friendlyError(error));}finally{done();}
       return;
     }
     if (event.target.closest("[data-go-collection]")) return setView("collection");
@@ -1360,6 +1391,7 @@
     if (state.busy) return;
     const offered = $("#offeredCardSelect").value;
     const requested = $("#requestedCardSelect").value;
+    if (state.managementMode === "sell") return economy?.sell(offered);
     if (state.managementMode !== "trade") return performCardManagement(state.managementMode === "give", offered);
     if (!offered || !requested) return toast("Choisis les deux cartes de l’échange.");
     const done = contextualBusy($("#proposeTradeButton"),"Envoi…");
@@ -1432,11 +1464,13 @@
   window.CardBoosterGesture.preventDoubleTapZoom(document);
 
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("service-worker.js").then(registration=>{
-    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !destroyDialog.open && !depressiveDeck?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
+    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !destroyDialog.open && !depressiveDeck?.isOpen() && !economy?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
     registration.addEventListener("updatefound",()=>registration.installing?.addEventListener("statechange",activate));
     document.addEventListener("visibilitychange",activate);for(const dialog of document.querySelectorAll("dialog"))dialog.addEventListener("close",activate);activate();
   }).catch(()=>{});
   depressiveDeck = window.DepressiveDeck?.mount({getState:()=>state.data?.depressive_deck,getRole:()=>state.role,
+    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
+  economy = window.CardEconomy?.mount({getState:()=>state.data,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   const lastRole = storage.get("les-cartes-last-role");
   if (names[lastRole] && storage.get(tokenKey(lastRole))) selectRole(lastRole);

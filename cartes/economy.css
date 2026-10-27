@@ -1,0 +1,146 @@
+/* Éclats, Banque and the four-step introduction. All effects respect reduced motion. */
+.management-modes { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.management-modes button { gap:4px; font-size:11px; }
+.management-modes .ui-icon { width:17px; height:17px; flex:none; }
+.management-modes [data-management-mode="sell"].selected { color:#755388; background:#f3eafa; }
+.economy-panel { position:relative; overflow:hidden; margin-top:18px; padding:22px 18px 20px; border-radius:25px; border:1px solid #cdb7c881; background:radial-gradient(ellipse at 6% 4%,#dac1dd5e,transparent 56%),radial-gradient(ellipse at 95% 95%,#efd8b053,transparent 60%),#fff9f0c9; box-shadow:0 12px 35px #5a3d4a17; }
+.economy-panel:before,.bank-dialog:before,.sale-dialog:before,.economy-tour:before { content:""; position:absolute; inset:0; background-image:var(--surface-grain); background-size:300px; mix-blend-mode:multiply; opacity:.13; pointer-events:none; }
+.economy-head,.economy-buy,.bank-offer,.bank-selected,.bank-card-choice,.sale-quote { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.economy-head { position:relative; margin-bottom:20px; }
+.economy-head h3,.bank-head h3 { margin:5px 0 0; font:36px/.98 Georgia,serif; letter-spacing:-.045em; color:#584154; }
+.economy-head .eyebrow,.bank-head .eyebrow { color:#956e83; font-size:10px; }
+.economy-balance { display:flex; align-items:center; gap:7px; padding:7px 11px; border:1px solid #d4b8aa; border-radius:22px; background:#fffaf2a8; color:#8a6079; box-shadow:inset 0 1px #fff; }
+.economy-balance i,.shard-gem { display:inline-block; width:16px; height:20px; clip-path:polygon(50% 0,97% 28%,83% 79%,50% 100%,17% 79%,3% 28%); background:linear-gradient(145deg,#ffeed5 0 18%,#eeb5b2 20% 35%,#d69ace 38% 58%,#9478b8 62%,#ffe6ac); filter:drop-shadow(0 1px 2px #9a668c66); }
+.economy-balance strong { font:27px Georgia,serif; font-variant-numeric:tabular-nums; }
+.economy-balance.is-negative { color:#a0524a; border-color:#cfa9a4; }
+.economy-buy { position:relative; padding:14px 13px; border:1px solid #d6bfd0a8; border-radius:17px; background:#faf0f5a8; }
+.economy-buy b,.economy-buy small { display:block; }
+.economy-buy b { color:#60495c; font-size:14px; }
+.economy-buy small { margin-top:3px; color:#8c7487; font-size:11px; }
+.economy-buy button { border:0; border-radius:11px; padding:10px 12px; background:#765d7d; color:#fff8f1; font-size:12px; white-space:nowrap; }
+.economy-buy button:disabled { background:#dac8d4; color:#76677a; }
+.economy-bought .economy-balance i { animation:shard-burst .85s ease-out both; }
+.bank-head { position:relative; margin:26px 2px 13px; }
+.bank-head h3 { font-size:32px; }
+.bank-head p { margin:7px 0 0; color:#897382; font-size:12px; line-height:1.5; }
+.bank-offers { display:grid; gap:8px; }
+.bank-offer { position:relative; width:100%; min-height:62px; border:1px solid #d4c2c988; border-radius:17px; padding:10px 13px; background:linear-gradient(110deg,#fffdf6bb,#f4e9e9a8); color:#6c5366; text-align:left; transition:transform .25s,box-shadow .25s; }
+.bank-offer:enabled:hover { transform:translateY(-2px); box-shadow:0 8px 21px #8159721e; }
+.bank-offer:enabled:active { transform:scale(.98); }
+.bank-offer:disabled { opacity:.55; }
+.bank-offer>span:nth-child(2) { flex:1; min-width:0; }
+.bank-offer strong,.bank-offer small { display:block; }
+.bank-offer strong { font:18px Georgia,serif; }
+.bank-offer small { margin-top:3px; color:#927b8b; font-size:10px; line-height:1.3; }
+.bank-offer b { font:20px Georgia,serif; }
+.bank-offer-mark { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:#e8d5e2; color:#795d80; font:23px Georgia,serif; }
+.bank-offer-legendary { background:linear-gradient(115deg,#f5e7d4b8,#e7d3e6aa,#e1d9ebaa); border-color:#bc9fbb; }
+.bank-offer-legendary .bank-offer-mark { background:#d7bfdc; box-shadow:0 0 12px #bb8bbd88; }
+.bank-rest { font-size:11px; color:#8b7887; text-align:center; }
+.economy-history { position:relative; margin-top:18px; border-top:1px solid #a98b9a46; color:#6f596a; }
+.economy-history summary { list-style:none; cursor:pointer; padding:16px 2px 0; font-size:12px; }
+.economy-history summary::-webkit-details-marker { display:none; }
+.economy-history summary span { float:right; }
+.economy-history p { display:flex; justify-content:space-between; margin:0; padding:10px 2px; border-bottom:1px solid #ac93a125; font-size:12px; }
+.economy-history b { color:#76517a; font-variant-numeric:tabular-nums; }
+.bank-dialog,.sale-dialog,.economy-tour { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; padding:30px 18px 34px; overflow:auto; background:radial-gradient(ellipse at 14% 5%,#e8d6e8,transparent 55%),radial-gradient(ellipse at 85% 90%,#f2dfcf,transparent 60%),#f9f2e9; color:#604b5b; }
+.bank-dialog::backdrop,.sale-dialog::backdrop,.economy-tour::backdrop { background:#23151dd9; backdrop-filter:blur(7px); }
+.bank-content,.sale-content,.tour-content { position:relative; z-index:1; max-width:520px; margin:40px auto 0; }
+.bank-close { position:fixed; right:15px; top:15px; z-index:5; display:grid; place-items:center; width:44px; height:44px; border:1px solid #ac8b9f66; border-radius:50%; background:#fff8f1d4; color:#604658; font:29px/1 Georgia,serif; }
+.bank-intro,.bank-result,.bank-error { text-align:center; }
+.bank-intro .eyebrow,.bank-result .eyebrow { color:#97718d; font-size:10px; letter-spacing:.17em; }
+.bank-intro h2,.bank-result h2,.sale-content h2,.bank-error h2,.tour-content h2 { margin:12px 0 7px; font:40px/1 Georgia,serif; letter-spacing:-.045em; color:#584256; }
+.bank-intro p { margin:0 0 23px; color:#90798a; font-size:13px; }
+.bank-recipe { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:13px 14px; border:1px solid #d2b8c7; border-radius:15px; background:#fffaf2a8; }
+.bank-recipe span { font-size:11px; color:#967c8d; }
+.bank-recipe strong { text-align:right; font-size:12px; }
+.bank-selected { margin:19px 3px 9px; font-size:12px; color:#806678; }
+.bank-selected button { border:0; background:none; color:#7f4e79; text-decoration:underline; font-size:12px; }
+.bank-card-list { display:grid; gap:7px; max-height:min(52dvh,485px); overflow:auto; padding:3px; overscroll-behavior:contain; }
+.bank-card-choice { width:100%; min-height:60px; border:1px solid #d7c4c8; border-radius:14px; padding:8px 11px; background:#fffaf2c9; color:#604d5d; text-align:left; }
+.bank-card-choice.selected { border-color:#927199; background:#eee1ed; box-shadow:inset 0 0 0 1px #92719955; }
+.bank-card-choice>span:nth-child(2) { flex:1; min-width:0; }
+.bank-card-choice strong,.bank-card-choice small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bank-card-choice strong { font-size:13px; }
+.bank-card-choice small { margin-top:3px; color:#947e8e; font-size:10px; }
+.bank-card-choice i { display:grid; place-items:center; width:25px; height:25px; border-radius:50%; background:#eadce5; font-style:normal; }
+.bank-card-sigil { display:grid; place-items:center; width:37px; height:43px; border:1px solid #d1a790; border-radius:6px; background:#a7716b; color:#fff1e4; font:22px Georgia,serif; }
+.bank-card-sigil.palette-nude { background:#6b3943; }
+.bank-card-sigil.palette-foodies { background:#6e7653; }
+.bank-card-sigil.palette-todo { background:#45627a; }
+.bank-card-sigil.palette-energy { background:#c08778; }
+.bank-warning { color:#8c7989; font-size:11px; line-height:1.5; text-align:center; }
+.bank-submit { width:100%; min-height:50px; margin-top:10px; padding:12px 16px; border:1px solid #8c708e; border-radius:15px; background:linear-gradient(115deg,#8b6e91,#65506e); color:#fffaf4; font-size:14px; font-weight:650; box-shadow:0 9px 23px #5d3c6526; }
+.bank-submit:disabled { opacity:.48; }
+.bank-ceremony { min-height:77dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.bank-ceremony>.eyebrow { color:#956d87; }
+.bank-ceremony h2 { font:28px Georgia,serif; color:#684f67; }
+.bank-vortex { position:relative; width:min(68vw,290px); aspect-ratio:1; margin:40px auto; perspective:800px; transform-style:preserve-3d; }
+.bank-vortex:before,.bank-vortex:after { content:""; position:absolute; inset:8%; border-radius:50%; border:1px solid #a780a888; box-shadow:0 0 20px #d8a6db74; animation:bank-ring 1.5s ease-in-out infinite; }
+.bank-vortex:after { inset:25%; animation-delay:-.5s; }
+.bank-vortex>i { position:absolute; left:43%; top:39%; display:block; width:14%; height:21%; border:1px solid #bb8a9b; border-radius:7px; background:linear-gradient(130deg,#f8e9d6,#bf98b5); box-shadow:0 5px 10px #593b5b40; transform:rotate(calc(var(--i)*360deg/var(--n))) translateY(-110px) rotate(8deg); animation:bank-ingest 1.35s cubic-bezier(.18,.8,.2,1) both; animation-delay:calc(var(--i)*42ms); }
+.bank-core { position:absolute; left:40%; top:40%; width:20%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#fff9ec,#d8b7db 46%,#7d608b); box-shadow:0 0 25px #bb8abb,0 0 65px #c8a5d9; animation:bank-core 1.4s ease-in-out infinite; }
+.bank-draw .bank-vortex>i { border-radius:50%; width:12%; height:12%; background:linear-gradient(145deg,#fcebdc,#c48ab4); animation-name:bank-orbit; }
+.bank-reforge .bank-vortex>i { animation-name:bank-fold; }
+.bank-rise .bank-vortex>i { animation-name:bank-stack; }
+.bank-foil .bank-vortex>i { animation-name:bank-foil-stream; background:linear-gradient(140deg,#fce6ba,#95dcd4,#d6a9e9); }
+.bank-prism .bank-vortex { filter:hue-rotate(48deg); }
+.bank-prism .bank-vortex>i { animation-name:bank-prism-stream; }
+.bank-legendary .bank-vortex { animation:bank-legendary-pulse 2.2s ease-in-out both; }
+.bank-legendary .bank-vortex>i { animation-name:bank-legendary-star; }
+.bank-legendary .bank-core { box-shadow:0 0 25px #ffd987,0 0 100px #c087e4,0 0 150px #f4caa8; }
+.bank-result { animation:bank-reward-enter .7s cubic-bezier(.2,.8,.2,1) both; }
+.bank-reward-card { width:min(70vw,280px); margin:20px auto; filter:drop-shadow(0 18px 20px #6d4f6944); }
+.bank-reward-card .game-card { width:100%; }
+.sale-content { text-align:center; }
+.sale-content>.eyebrow { color:#9a7788; }
+.sale-card-stage { position:relative; width:min(64vw,270px); margin:22px auto; perspective:900px; }
+.sale-card-stage>.game-card { width:100%; }
+.sale-quote { border:1px solid #c8a6bb; border-radius:16px; padding:12px 16px; background:#fff8f0bd; }
+.sale-quote span { font-size:12px; }
+.sale-quote strong { color:#825a80; font:24px Georgia,serif; }
+.sale-content p { color:#8c7886; font-size:12px; line-height:1.5; }
+.sale-dialog.is-selling .sale-card-stage { animation:sale-fold 1s cubic-bezier(.3,.1,.6,1) forwards; }
+.sale-dialog.is-selling .sale-card-stage:before,.sale-dialog.is-selling .sale-card-stage:after { content:""; position:absolute; inset:15%; background:linear-gradient(135deg,#f5d6ce,#a684b7); clip-path:polygon(50% 0,100% 55%,50% 100%,0 55%); animation:sale-fragment 1s ease-out forwards; }
+.sale-dialog.is-selling .sale-card-stage:after { animation-delay:.08s; transform:rotate(35deg); }
+.sale-dialog.is-selling .sale-quote strong { animation:shard-burst .9s ease-out both; }
+.shard-reveal { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; min-height:310px; overflow:hidden; border:2px solid #cfb6cc; border-radius:18px; background:radial-gradient(circle at 50% 45%,#fffaf1,#e4c7de 48%,#ac8cae); color:#63476b; box-shadow:0 17px 38px #6b486b42; }
+.shard-reveal .shard-halo { position:absolute; width:68%; aspect-ratio:1; border:2px solid #fff8e6a9; border-radius:50%; box-shadow:0 0 35px #ffe6f2; animation:shard-orbit 3s linear infinite; }
+.shard-reveal .shard-gem { width:84px; height:104px; filter:drop-shadow(0 8px 9px #714d76a0); animation:shard-float 2.3s ease-in-out infinite; }
+.shard-reveal strong { margin-top:9px; font:60px Georgia,serif; }
+.shard-reveal>span:last-child { letter-spacing:.14em; text-transform:uppercase; font-size:12px; }
+.ritual-pending { display:block; padding:7px 10px; border-radius:12px; background:#efe2ebd8; color:#825e76; text-align:center; font-size:11px; }
+.ritual-review-actions { display:flex; gap:7px; margin-top:8px; }
+.ritual-review-actions button { flex:1; min-height:40px; border:1px solid #be9fb3; border-radius:12px; background:#e7d6e5; color:#644662; font-size:12px; }
+.ritual-review-actions button:first-child { background:#846c87; color:#fff8ef; }
+.economy-tour .tour-content { display:flex; flex-direction:column; min-height:80dvh; justify-content:center; text-align:center; }
+.tour-skip { position:absolute; top:-20px; right:0; border:0; background:none; color:#907b87; font-size:12px; }
+.tour-visual { position:relative; width:210px; height:210px; margin:0 auto 27px; display:grid; place-items:center; border:1px solid #c6a9c3; border-radius:50%; background:radial-gradient(circle,#fffaf1,#e9d6e9); box-shadow:0 0 35px #d3afcf99; }
+.tour-visual>i { font:92px Georgia,serif; font-style:normal; color:#87618c; animation:tour-heart 3s ease-in-out infinite; }
+.tour-visual>b { position:absolute; left:48%; top:48%; width:9px; height:13px; border-radius:50%; background:#d3a7cb; transform:rotate(calc(var(--i)*72deg)) translateY(-115px); animation:tour-orbit 4s linear infinite; animation-delay:calc(var(--i)*-.3s); }
+.tour-pages { display:flex; justify-content:center; gap:7px; }
+.tour-pages i { width:6px; height:6px; border-radius:50%; background:#d8c7d5; }
+.tour-pages i.active { width:23px; border-radius:8px; background:#8f718e; }
+.tour-content h2 { margin-top:20px; }
+.tour-content p { max-width:330px; margin:8px auto 25px; color:#846e7e; font-size:15px; line-height:1.55; }
+.tour-content .bank-submit { max-width:350px; margin:0 auto; }
+@keyframes bank-ring { 50% { transform:rotate(25deg) scale(1.1); opacity:.4; } }
+@keyframes bank-core { 50% { transform:scale(1.35); filter:brightness(1.25); } }
+@keyframes bank-ingest { to { transform:translate(0,0) rotate(180deg) scale(0); opacity:0; } }
+@keyframes bank-orbit { 50% { transform:rotate(calc(var(--i)*360deg/var(--n) + 180deg)) translateY(-112px); } to { transform:rotate(calc(var(--i)*360deg/var(--n) + 360deg)) translateY(0) scale(0); opacity:0; } }
+@keyframes bank-fold { 50% { transform:rotate(calc(var(--i)*360deg/var(--n))) translateY(-60px) rotateY(85deg); } to { transform:rotateY(180deg) scale(0); opacity:0; } }
+@keyframes bank-stack { 50% { transform:translateY(calc(20px - var(--i)*3px)) rotate(0); } to { transform:translateY(-150px) scale(.15); opacity:0; } }
+@keyframes bank-foil-stream { 50% { transform:translateX(calc((var(--i) - 3)*15px)) translateY(-70px) rotate(45deg); filter:hue-rotate(150deg); } to { transform:translateY(0) scale(0); opacity:0; } }
+@keyframes bank-prism-stream { 50% { transform:rotate(calc(var(--i)*360deg/var(--n) + 140deg)) translateY(-80px) rotateY(75deg); } to { transform:rotate(360deg) scale(0); opacity:0; } }
+@keyframes bank-legendary-star { 45% { transform:rotate(calc(var(--i)*360deg/var(--n) + 65deg)) translateY(-125px) rotateZ(90deg); } 80% { opacity:1; } to { transform:translateY(0) rotate(720deg) scale(0); opacity:0; } }
+@keyframes bank-legendary-pulse { 40% { transform:scale(1.1); filter:brightness(1.15); } 75% { transform:scale(.72); } to { transform:scale(1.4); opacity:.2; } }
+@keyframes bank-reward-enter { from { opacity:0; transform:translateY(28px) scale(.91); filter:blur(10px); } to { opacity:1; transform:none; filter:blur(0); } }
+@keyframes sale-fold { 35% { transform:rotateY(-28deg) scale(.95); } 70% { transform:rotateY(80deg) scale(.35); opacity:1; } to { transform:rotateY(150deg) scale(0); opacity:0; } }
+@keyframes sale-fragment { 45% { opacity:1; } to { transform:translate(95px,-170px) rotate(220deg) scale(.15); opacity:0; } }
+@keyframes shard-burst { 50% { transform:scale(1.5); filter:brightness(1.6); } to { transform:scale(1); } }
+@keyframes shard-orbit { to { transform:rotate(360deg); } }
+@keyframes shard-float { 50% { transform:translateY(-11px) rotate(4deg); } }
+@keyframes tour-heart { 50% { transform:scale(1.12) rotate(4deg); } }
+@keyframes tour-orbit { 50% { opacity:.35; } }
+@media(max-width:380px) { .management-modes button { flex-direction:column; gap:2px; font-size:10px; } .bank-intro h2,.bank-result h2 { font-size:34px; } }
+@media(prefers-reduced-motion:reduce) { .economy-panel *, .bank-dialog *, .sale-dialog *, .economy-tour *, .shard-reveal * { animation-duration:.01ms!important; transition-duration:.01ms!important; } }

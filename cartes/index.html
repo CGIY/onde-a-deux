@@ -8,16 +8,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="16">
+  <meta name="tcg-version" content="17">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=16">
-  <link rel="stylesheet" href="daylight.css?v=16">
-  <link rel="stylesheet" href="halloween.css?v=16">
-  <link rel="stylesheet" href="booster-motion.css?v=16">
-  <link rel="stylesheet" href="experience.css?v=16">
-  <link rel="stylesheet" href="polish.css?v=16">
-  <link rel="stylesheet" href="depressive-deck.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="daylight.css?v=17">
+  <link rel="stylesheet" href="halloween.css?v=17">
+  <link rel="stylesheet" href="booster-motion.css?v=17">
+  <link rel="stylesheet" href="experience.css?v=17">
+  <link rel="stylesheet" href="polish.css?v=17">
+  <link rel="stylesheet" href="depressive-deck.css?v=17">
+  <link rel="stylesheet" href="economy.css?v=17">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -120,7 +121,7 @@
         <header class="view-heading"><div><span class="eyebrow">Mamamouth ⇄ Papapouf</span><h2>Actions.</h2></div></header>
 
         <section class="trade-maker content-block">
-          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg> Échanger</button><button type="button" data-management-mode="give" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-gift"/></svg> Donner</button><button type="button" data-management-mode="destroy" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-scissors"/></svg> Détruire</button></div>
+          <div class="management-modes" role="group" aria-label="Action sur mes cartes"><button type="button" data-management-mode="trade" class="selected" aria-pressed="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg> Échanger</button><button type="button" data-management-mode="give" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-gift"/></svg> Donner</button><button type="button" data-management-mode="sell" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M7 9h10M7 12h8M7 15h10"/></svg> Revendre</button><button type="button" data-management-mode="destroy" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-scissors"/></svg> Détruire</button></div>
           <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><span class="trade-label" id="offeredCardLabel">Je donne</span><button class="trade-pick-button" id="offeredCardPicker" type="button" data-pick-card="offered" aria-haspopup="dialog" aria-label="Choisir ma carte"><span class="trade-preview" id="offeredPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg></span><div class="trade-pick" id="requestedCardPick"><span class="trade-label">Je reçois</span><button class="trade-pick-button" id="requestedCardPicker" type="button" data-pick-card="requested" aria-haspopup="dialog" aria-label="Choisir une carte adverse"><span class="trade-preview" id="requestedPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
           <p class="trade-hint" id="tradeHint"></p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer →</button>
@@ -198,10 +199,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=16"></script>
-  <script src="season-banner.js?v=16"></script>
-  <script src="card-transport.js?v=16"></script>
-  <script src="depressive-deck.js?v=16"></script>
-  <script src="app.js?v=16"></script>
+  <script src="booster-gesture.js?v=17"></script>
+  <script src="season-banner.js?v=17"></script>
+  <script src="card-transport.js?v=17"></script>
+  <script src="depressive-deck.js?v=17"></script>
+  <script src="economy.js?v=17"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>
