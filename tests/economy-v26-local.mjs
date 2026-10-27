@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createDeckDatabase} from './deck-local-db.mjs';
+const db=await createDeckDatabase(),read=name=>readFile(new URL('../'+name,import.meta.url),'utf8');
+try{
+ await db.exec(await read('supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql'));
+ await db.exec(await read('supabase/operations/current_tcg_rules.sql'));
+ await db.exec("create or replace function public.tcg_push_notify(text,text,text,text) returns void language sql as $$ select; $$;");
+ const repair=await read('supabase/operations/audit_helper_push_repairs.sql');await db.exec(repair.slice(0,repair.indexOf('alter table public.tcg_push_sent')));
+ await db.exec(await read('supabase/operations/rebalance_economy_v26.sql'));
+ await db.exec(await read('supabase/operations/rebalance_economy_v26.sql'));
+ await db.exec("update public.tcg_economy_wallets set balance=120 where role='AG'");
+ const balance=async()=>(await db.query("select balance from public.tcg_economy_wallets where role='AG'")).rows[0].balance;
+ const action=(type,payload)=>db.query('select public.tcg_economy_action(\'AG\',$1,$2::jsonb)',[type,JSON.stringify(payload)]);
+ const cards=(await db.query("insert into public.tcg_cards(owner_role,template_id,finish,wear_seed,expires_at) select 'AG','energy-bisou','standard',n,now()+interval '7 days' from generate_series(1,6)n returning id")).rows.map(c=>c.id);
+ await assert.rejects(()=>action('sell_card',{card_id:cards[0]}),/recycle_incomplete_group/);
+ await assert.rejects(()=>action('sell_cards',{card_ids:cards.slice(0,2)}),/recycle_incomplete_group/);
+ assert.equal(await balance(),120);assert.equal((await db.query("select count(*)::int n from public.tcg_cards where id=any($1) and status='available'",[cards])).rows[0].n,6);
+ await action('sell_cards',{card_ids:cards.slice(0,3)});assert.equal(await balance(),121);
+ await assert.rejects(()=>action('sell_cards',{card_ids:cards.slice(0,3)}),/card_unavailable/);assert.equal(await balance(),121);
+ const rare=(await db.query("insert into public.tcg_cards(owner_role,template_id,finish,wear_seed,expires_at) values('AG','foil-autre-massage-complet','foil',1,now()+interval '7 days') returning id")).rows[0].id;
+ await action('sell_cards',{card_ids:[...cards.slice(3),rare]});assert.equal(await balance(),124,'three commons + one foil = 3 shards');
+ await action('buy_booster',{kind:'classic'});assert.equal(await balance(),104);
+ await action('buy_booster',{kind:'magician'});assert.equal(await balance(),79);
+ await action('buy_booster',{kind:'relax'});assert.equal(await balance(),54);
+ await assert.rejects(()=>action('buy_booster',{kind:'classic'}),/weekly_booster_used/);
+ const token='c'.repeat(48);await db.query("insert into public.tcg_player_devices(role,device_token_hash) values('AG',encode(extensions.digest(convert_to($1,'UTF8'),'sha256'),'hex'))",[token]);
+ const pack=(await db.query("select id from public.tcg_boosters where owner_role='AG' and booster_kind='classic' limit 1")).rows[0].id;
+ const result=(await db.query("select public.tcg_exchange('AG',$1,null,'open_booster',jsonb_build_object('booster_id',$2::text)) value",[token,pack])).rows[0].value;
+ const rewards=result.pending_openings.find(p=>p.booster_id===pack).cards;assert.equal(rewards.length,5);rewards.filter(c=>c.reward_type==='shards').forEach(c=>assert.equal(c.amount,1));
+ const source=(await db.query("select pg_get_functiondef('public.tcg_exchange(text,text,text,text,jsonb)'::regprocedure) s")).rows[0].s;assert(source.includes('v_reward_amount:=1;'));assert(!source.includes('v_reward_amount:=case'));
+ const defs=(await db.query("select pg_get_functiondef('public.tcg_helper_action(text,text,jsonb)'::regprocedure) s")).rows[0].s;assert(defs.includes("when p_kind='assassin' then 25 else 18"));
+ assert.equal((await db.query("select public.tcg_sale_price('standard',now()+interval '7 days') n")).rows[0].n,0);
+ await db.exec('set role anon');await assert.rejects(()=>db.query("select public.tcg_sale_price('foil',now())"),/permission denied/);await db.exec('reset role');
+ console.log('OK: exact groups of three, no loss on incomplete/replayed sale, mixed rarity credit, 20/25 prices, shared weekly cap, five rewards and one shard per shard drop, helper prices and private sale helper.');
+}finally{await db.close()}

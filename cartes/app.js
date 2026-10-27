@@ -110,6 +110,7 @@
     invalid_access_code: "Ce code d’appairage n’est pas le bon.",
     device_not_authorized: "Entre de nouveau ton code personnel pour connecter cet appareil.",
     booster_unavailable: "Ce booster n’est plus disponible.",
+    recycle_incomplete_group: 'Sélectionne les communes et Énergies par groupes de 3.',
     card_unavailable: "Cette carte n’est plus disponible.",
     joker_requires_target: "Choisis une carte active de l’autre joueur à annuler.",
     joker_unavailable: "Ce Joker ou sa cible n’est plus disponible.",
@@ -531,11 +532,11 @@
     $("#tradeArrow").hidden = !trading;
     const saleCard=mine.find(card=>card.id===$("#offeredCardSelect").value);
     $("#offeredCardLabel").textContent = trading ? "Je donne" : state.managementMode === "give" ? "À offrir" : "À recycler";
-    $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : `Recycler · +${saleCard?.sale_price ?? '—'} Éclat${saleCard?.sale_price>1?'s':''} →`;
+    $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : saleCard?.finish==='standard'?'Choisir un lot · 3 → 1 Éclat':`Recycler · +${saleCard?.sale_price ?? '—'} Éclat${saleCard?.sale_price>1?'s':''} →`;
     $("#proposeTradeButton").classList.toggle("danger-button", false);
     $("#proposeTradeButton").disabled = !$("#offeredCardSelect").value || !mine.length || (trading && (!$("#requestedCardSelect").value || !partner.length));
     $("#bulkRecycleButton").hidden = state.managementMode !== "recycle" || mine.length < 2;
-    $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : "Prix calculé selon la rareté et le temps restant. Découverte conservée.";
+    $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : "Communes et Énergies : 3 → 1 Éclat. Autres cartes : tarif selon rareté et durée restante.";
     $$("[data-management-mode]").forEach(button => { const selected = button.dataset.managementMode === state.managementMode; button.classList.toggle("selected", selected); button.setAttribute("aria-pressed", String(selected)); });
     attachFoilMotion($("#tradeView"));
   }
@@ -934,12 +935,16 @@
 
   function openRecycling(cards) {
     if (!cards.length || cards.some(card=>!isAvailable(card))) return toast(errorMessages.card_unavailable);
+    const commons=cards.filter(card=>card.finish==='standard').length;
+    if(commons%3)return toast('Sélectionne les communes et Énergies par groupes de 3.');
     recycle={cards,cuts:[],committing:false};
-    const price=cards.reduce((sum,card)=>sum+Number(card.sale_price||0),0);
+    const price=commons/3+cards.filter(card=>card.finish!=='standard').reduce((sum,card)=>sum+Number(card.sale_price||0),0);
+    $("#recycleDialog .eyebrow").textContent=cards.length>1?"LE LOT SÉLECTIONNÉ":"CET EXEMPLAIRE SEULEMENT";
+    $("#recycleDialog .recycle-hint").textContent=cards.length>1?"Trois gestes à travers les cartes. Dans tous les sens.":"Trois gestes à travers la carte. Dans tous les sens.";
     $("#recycleTitle").textContent=cards.length>1?`Recycler ${cards.length} cartes.`:'Recycler cette carte.';
-    $("#recyclePreview").innerHTML=cardMarkup(cards[0]);
+    $("#recyclePreview").innerHTML=cards.slice(0,3).map((card,i)=>`<div class="recycle-card-plane" style="--recycle-index:${i};--recycle-count:${Math.min(cards.length,3)}">${cardMarkup(card)}</div>`).join("");
     $("#recyclePreview").classList.remove('shredded');
-    $("#recycleStatus").textContent=`Trois découpes · +${price} Éclats · découverte conservée`;
+    $("#recycleStatus").textContent=`Trois découpes · +${price} Éclat${price>1?'s':''} · découvertes conservées`;
     $$('#recycleMeter i').forEach(dot=>dot.classList.remove('cut'));
     recycleDialog.showModal();
   }
@@ -957,10 +962,11 @@
         if (!window.CardTransport.matchesMutation(snapshot,ids.length>1?'sell_cards':'sell_card',ids.length>1?{card_ids:ids}:{card_id:ids[0]},state.role)) throw error;
       }
       const pieces=window.CardBoosterGesture.fragments(session.cuts);
-      $("#recyclePreview").insertAdjacentHTML('beforeend',`<div class="card-fragments" aria-hidden="true">${pieces.map((piece,i)=>{
+      $$('#recyclePreview .recycle-card-plane').forEach((plane,index)=>plane.insertAdjacentHTML('beforeend',`<div class="card-fragments" aria-hidden="true">${pieces.map((piece,i)=>{
         const x=piece.reduce((sum,p)=>sum+p.x,0)/piece.length;
-        return `<div class="card-fragment" style="clip-path:polygon(${piece.map(p=>`${p.x}% ${p.y}%`).join(',')});--piece-x:${(x-50)*3}px;--piece-y:${100+(i%3)*45}px;--piece-rotate:${(i%2?1:-1)*(15+i*4)}deg">${cardMarkup(session.cards[0])}</div>`;
-      }).join('')}</div>`);
+        return `<div class="card-fragment" style="clip-path:polygon(${piece.map(p=>`${p.x}% ${p.y}%`).join(',')});--piece-x:${(x-50)*3+(index-1)*80}px;--piece-y:${120+(i%3)*45}px;--piece-rotate:${(i%2?1:-1)*(20+i*5)}deg">${cardMarkup(session.cards[index])}</div>`;
+      }).join('')}</div>`));
+      $("#recyclePreview").insertAdjacentHTML('beforeend',`<span class="recycle-sparks" aria-hidden="true">${Array.from({length:16},(_,i)=>`<i style="--spark:${i}"></i>`).join('')}</span>`);
       $("#recyclePreview").classList.add('shredded');
       render();cardDialog.close();feedback('card');
       await new Promise(resolve=>setTimeout(resolve,reducedMotion.matches?0:650));

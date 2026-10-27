@@ -11,6 +11,7 @@ async function createPreviewDatabase(){
   await instance.exec("create or replace function public.tcg_push_notify(text,text,text,text) returns void language sql as $$ select; $$;");
   const repairs=await readFile(new URL('../supabase/operations/audit_helper_push_repairs.sql',import.meta.url),'utf8');
   await instance.exec(repairs.slice(0,repairs.indexOf('alter table public.tcg_push_sent')));
+  await instance.exec(await readFile(new URL('../supabase/operations/rebalance_economy_v26.sql',import.meta.url),'utf8'));
   await instance.exec("insert into public.tcg_player_devices(role,device_token_hash) values ('AG',encode(extensions.digest(convert_to(repeat('a',48),'UTF8'),'sha256'),'hex')),('CL',encode(extensions.digest(convert_to(repeat('b',48),'UTF8'),'sha256'),'hex'));");
   await instance.exec("update public.tcg_economy_wallets set balance=60,updated_at=now() where role in ('AG','CL');");
   for(const role of ['AG','CL']){
@@ -60,5 +61,6 @@ const server=http.createServer(async(req,res)=>{
     res.writeHead(200,{'Content-Type':mime[file.slice(file.lastIndexOf('.'))]||'application/octet-stream'});res.end(body);
   }catch(error){res.writeHead(400,{'Content-Type':'application/json'});res.end(JSON.stringify({message:error.message}));}
 });
-server.listen(8769,'127.0.0.1',()=>console.log('Isolated SQL/UI preview: http://127.0.0.1:8769/cartes/ (local PostgreSQL only)'));
+const previewPort=Number(process.env.TCG_PREVIEW_PORT||8769);
+server.listen(previewPort,'127.0.0.1',()=>console.log(`Isolated SQL/UI preview: http://127.0.0.1:${previewPort}/cartes/ (local PostgreSQL only)`));
 for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>server.close(async()=>{await db.close();process.exit(0);}));
