@@ -5,7 +5,7 @@ import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {createDeckDatabase} from './deck-local-db.mjs';
 const db=await createDeckDatabase();
-await db.exec(await readFile(new URL('../supabase/migrations/20261027102308_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
 await db.exec("insert into public.tcg_player_devices(role,device_token_hash) values ('AG',encode(extensions.digest(convert_to(repeat('a',48),'UTF8'),'sha256'),'hex')),('CL',encode(extensions.digest(convert_to(repeat('b',48),'UTF8'),'sha256'),'hex'));");
 const mime={'.js':'text/javascript','.css':'text/css','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.html':'text/html','.webmanifest':'application/manifest+json'};
 const server=http.createServer(async(req,res)=>{
