@@ -8,17 +8,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Les Cartes">
   <meta name="description" content="Une collection de challenges à vivre à deux.">
-  <meta name="tcg-version" content="18">
+  <meta name="tcg-version" content="19">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=18">
-  <link rel="stylesheet" href="daylight.css?v=18">
-  <link rel="stylesheet" href="halloween.css?v=18">
-  <link rel="stylesheet" href="booster-motion.css?v=18">
-  <link rel="stylesheet" href="experience.css?v=18">
-  <link rel="stylesheet" href="polish.css?v=18">
-  <link rel="stylesheet" href="depressive-deck.css?v=18">
-  <link rel="stylesheet" href="economy.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="daylight.css?v=19">
+  <link rel="stylesheet" href="halloween.css?v=19">
+  <link rel="stylesheet" href="booster-motion.css?v=19">
+  <link rel="stylesheet" href="experience.css?v=19">
+  <link rel="stylesheet" href="polish.css?v=19">
+  <link rel="stylesheet" href="depressive-deck.css?v=19">
+  <link rel="stylesheet" href="economy.css?v=19">
   <title>Les Cartes · Mamamouth & Papapouf</title>
 </head>
 <body>
@@ -69,10 +69,13 @@
         <span class="eyebrow">Notre collection privée</span>
         <h1>Les Cartes<span>à deux.</span></h1>
       </div>
-      <button class="profile-pill" id="profileMenu" type="button" aria-label="Changer de profil">
-        <span id="currentRole">Mamamouth</span>
-        <i id="presenceDot" aria-hidden="true"></i>
-      </button>
+      <div class="topbar-controls">
+        <button class="header-shard-button" id="headerShardButton" type="button" aria-label="Mes Éclats" hidden><span aria-hidden="true">✦</span> <b id="headerShardCount">0</b></button>
+        <button class="profile-pill" id="profileMenu" type="button" aria-label="Changer de profil">
+          <span id="currentRole">Mamamouth</span>
+          <i id="presenceDot" aria-hidden="true"></i>
+        </button>
+      </div>
     </header>
 
     <p id="connectionStatus" class="connection-status" role="status" hidden></p>
@@ -125,6 +128,7 @@
           <div class="trade-selection" id="tradeSelection"><div class="trade-pick"><span class="trade-label" id="offeredCardLabel">Je donne</span><button class="trade-pick-button" id="offeredCardPicker" type="button" data-pick-card="offered" aria-haspopup="dialog" aria-label="Choisir ma carte"><span class="trade-preview" id="offeredPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="offeredCardSelect" aria-label="Ma carte à gérer"><option value="">Choisir une carte</option></select></div><span class="trade-arrow" id="tradeArrow"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-exchange"/></svg></span><div class="trade-pick" id="requestedCardPick"><span class="trade-label">Je reçois</span><button class="trade-pick-button" id="requestedCardPicker" type="button" data-pick-card="requested" aria-haspopup="dialog" aria-label="Choisir une carte adverse"><span class="trade-preview" id="requestedPreview"></span></button><select hidden tabindex="-1" aria-hidden="true" id="requestedCardSelect" aria-label="Carte que je reçois"><option value="">Choisir une carte</option></select></div></div>
           <p class="trade-hint" id="tradeHint"></p>
           <button class="primary-button" id="proposeTradeButton" type="button">Proposer →</button>
+          <button class="text-button bulk-sell-link" id="bulkSellButton" type="button" hidden>Revendre plusieurs cartes →</button>
         </section>
 
         <section class="content-block">
@@ -199,11 +203,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="loading-veil" id="loadingVeil" hidden><i></i><span>Synchronisation…</span></div>
 
-  <script src="booster-gesture.js?v=18"></script>
-  <script src="season-banner.js?v=18"></script>
-  <script src="card-transport.js?v=18"></script>
-  <script src="depressive-deck.js?v=18"></script>
-  <script src="economy.js?v=18"></script>
-  <script src="app.js?v=18"></script>
+  <script src="booster-gesture.js?v=19"></script>
+  <script src="season-banner.js?v=19"></script>
+  <script src="card-transport.js?v=19"></script>
+  <script src="depressive-deck.js?v=19"></script>
+  <script src="economy.js?v=19"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>

@@ -809,6 +809,18 @@ begin
     update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id and status='activated';
     if v_price>0 then insert into public.tcg_card_events(card_id,actor_role,event_type) values(c.id,claim.owner_role,'complete_card'); end if;
     perform public.tcg_economy_apply(claim.owner_role,v_price,case when v_price>0 then 'ritual_approved' else 'ritual_rejected' end,c.id);
+  elsif p_action='sell_cards' then
+    if jsonb_typeof(p_payload->'card_ids')<>'array' then raise exception 'invalid_request'; end if;
+    begin select array_agg(value::uuid) into ids from jsonb_array_elements_text(p_payload->'card_ids') x(value);
+    exception when invalid_text_representation then raise exception 'invalid_request'; end;
+    n:=coalesce(cardinality(ids),0);
+    if n<2 or n>50 or n<>coalesce((select count(distinct x) from unnest(ids) x),0) then raise exception 'invalid_request'; end if;
+    if (select count(*) from public.tcg_cards where id=any(ids) and owner_role=p_role and status='available' and expires_at>now())<>n then raise exception 'card_unavailable'; end if;
+    for c in select * from public.tcg_cards where id=any(ids) and owner_role=p_role for update loop
+      v_price:=public.tcg_sale_price(c.finish,c.expires_at);
+      update public.tcg_cards set status='destroyed',consumed_at=now() where id=c.id;
+      perform public.tcg_economy_apply(p_role,v_price,'card_sold',c.id);
+    end loop;
   elsif p_action='sell_card' then
     begin select * into c from public.tcg_cards where id=(p_payload->>'card_id')::uuid and owner_role=p_role for update;
     exception when invalid_text_representation then raise exception 'card_unavailable'; end;
@@ -961,7 +973,7 @@ declare
 begin
   if v_role not in ('AG', 'CL')
      or coalesce(p_token, '') !~ '^[a-f0-9]{48}$'
-     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card', 'ritual_pass', 'ritual_review', 'sell_card', 'buy_booster', 'bank_exchange', 'opening_progress', 'finish_opening', 'use_spell', 'deck_start', 'deck_flip', 'deck_resolve', 'deck_continue', 'deck_dismiss')
+     or coalesce(p_action, '') not in ('login', 'sync', 'open_booster', 'activate_card', 'use_joker', 'trade_propose', 'trade_respond', 'trade_cancel', 'release_device', 'give_card', 'destroy_card', 'pin_card', 'complete_card', 'ritual_pass', 'ritual_review', 'sell_card', 'sell_cards', 'buy_booster', 'bank_exchange', 'opening_progress', 'finish_opening', 'use_spell', 'deck_start', 'deck_flip', 'deck_resolve', 'deck_continue', 'deck_dismiss')
      or jsonb_typeof(coalesce(p_payload, '{}'::jsonb)) <> 'object'
      or length(coalesce(p_payload, '{}'::jsonb)::text) > 12000 then
     raise exception 'invalid_request';
@@ -1059,7 +1071,7 @@ begin
   from public.tcg_birthday_booster_window(now()) w
   on conflict(owner_role,bonus_key) where bonus_key is not null do nothing;
 
-  if p_action in ('complete_card','ritual_pass','ritual_review','sell_card','buy_booster','bank_exchange') then
+  if p_action in ('complete_card','ritual_pass','ritual_review','sell_card','sell_cards','buy_booster','bank_exchange') then
     perform public.tcg_economy_action(v_role,p_action,p_payload);
   end if;
 

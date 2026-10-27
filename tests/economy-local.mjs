@@ -12,6 +12,7 @@ const api=async (role,action,payload={}) => {
 const expectError=async (fn,pattern) => assert.rejects(fn,pattern);
 try {
   await db.exec(await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261027110500_bulk_card_resale.sql',import.meta.url),'utf8'));
   await db.query(`insert into public.tcg_player_devices(role,device_token_hash)
     select role,encode(extensions.digest(convert_to($1,'UTF8'),'sha256'),'hex') from public.tcg_players`,[token]);
   const first=await api('AG','sync');
@@ -58,6 +59,23 @@ try {
   const sold=await api('AG','sell_card',{card_id:sale.rows[0].id});
   assert.equal(sold.economy.balance,beforeSale+4);
   await expectError(()=>api('AG','sell_card',{card_id:sale.rows[0].id}),/card_unavailable/);
+  const bulkRows=await db.query(`insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,expires_at)
+    select t.id,'AG',t.finish_tier,7,now()+interval '7 days' from public.tcg_card_templates t
+    where t.card_type='challenge' and t.active and not t.demo and t.finish_tier in ('standard','foil','full_art_foil')
+      and t.id in (select min(id) from public.tcg_card_templates where card_type='challenge' and active and not demo
+        and finish_tier in ('standard','foil','full_art_foil') group by finish_tier) returning id`,[]);
+  assert.equal(bulkRows.rows.length,3);
+  await db.query("insert into public.tcg_discoveries(role,template_id) select 'AG',template_id from public.tcg_cards where id=$1 on conflict(role,template_id) do nothing",[bulkRows.rows[0].id]);
+  const otherCard=(await db.query("insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,expires_at) values('energy-bisou','CL','standard',9,now()+interval '7 days') returning id")).rows[0].id;
+  await expectError(()=>api('AG','sell_cards',{card_ids:[bulkRows.rows[0].id,otherCard]}),/card_unavailable/);
+  assert.equal((await db.query('select status from public.tcg_cards where id=$1',[bulkRows.rows[0].id])).rows[0].status,'available');
+  await expectError(()=>api('AG','sell_cards',{card_ids:[bulkRows.rows[0].id,bulkRows.rows[0].id]}),/invalid_request/);
+  const bulkBefore=(await api('AG','sync')).economy.balance;
+  const bulkSold=await api('AG','sell_cards',{card_ids:bulkRows.rows.map(x=>x.id)});
+  assert.equal(bulkSold.economy.balance,bulkBefore+7);
+  assert(bulkRows.rows.every(x=>!bulkSold.my_cards.some(c=>c.id===x.id)));
+  assert.equal((await db.query("select count(*)::integer as n from public.tcg_cards where id=any($1::uuid[]) and status='destroyed'",[bulkRows.rows.map(x=>x.id)])).rows[0].n,3);
+  assert.equal((await db.query("select count(*)::integer as n from public.tcg_discoveries where role='AG' and template_id=(select template_id from public.tcg_cards where id=$1)",[bulkRows.rows[0].id])).rows[0].n,1);
   await db.query("select public.tcg_economy_apply('AG',20,'fixture')");
   const bought=await api('AG','buy_booster');
   assert(bought.boosters.some(x=>x.is_economy));
@@ -97,5 +115,5 @@ try {
   assert.equal((await db.query("select public.tcg_economy_apply('CL',-10,'fixture') as balance")).rows[0].balance,-12);
   const priv=await db.query("select has_table_privilege('anon','public.tcg_economy_wallets','SELECT') as wallet,has_function_privilege('anon','public.tcg_economy_action(text,text,jsonb)','EXECUTE') as action");
   assert.equal(priv.rows[0].wallet,false);assert.equal(priv.rows[0].action,false);
-  console.log('OK: five rewards, shards, resume bounds, partner validation, no duplicate reward, expiry, sale, weekly purchase, bank draw, private tables.');
+  console.log('OK: five rewards, shards, partner validation, atomic bulk resale, saved discoveries, six Bank recipes and private tables.');
 } finally {await db.close();}

@@ -1,8 +1,18 @@
 /* Éclats, Banque and the four-step introduction. All effects respect reduced motion. */
+.booster-pile { position:relative; flex:0 0 min(100%,280px); width:min(100%,280px); margin:0 auto; isolation:isolate; }
+.booster-pile>.booster-item { position:relative; z-index:3; width:100%; max-width:none; }
+.booster-pile>.pack-underlay { position:absolute; z-index:1; left:calc(50% - 74px + var(--pile-x)); top:calc(16px + var(--pile-y)); margin:0; transform:rotate(var(--pile-rotate)); animation:none; pointer-events:none; box-shadow:-10px 13px 20px #3f2a3280,4px 0 8px #5c40446b; }
+.booster-pile-count { position:absolute; z-index:4; top:22px; right:2px; display:grid; place-items:center; min-width:39px; height:39px; padding:0 6px; border:1px solid #dfcbb6; border-radius:50%; background:#fff8efec; color:#745440; font:22px/1 Georgia,serif; box-shadow:0 6px 16px #6146322a; pointer-events:none; }
 .management-modes { grid-template-columns:repeat(4,minmax(0,1fr)); }
-.profile-pill .header-shard-count { display:inline-flex; align-items:center; padding:4px 7px; margin-left:2px; border-radius:14px; background:#e7d9e4c0; color:#79567c; font:600 12px/1.1 system-ui,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.profile-pill .header-shard-count[hidden] { display:none; }
+.topbar-controls { display:flex; align-items:center; gap:7px; flex:none; }
+.header-shard-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:42px; padding:7px 10px; border:1px solid #cfb7ca; border-radius:24px; background:#f4eaf3ce; color:#79567c; font:600 13px/1 system-ui,sans-serif; font-variant-numeric:tabular-nums; box-shadow:0 3px 10px #77567912; }
+.header-shard-button>span { font:19px/1 Georgia,serif; }
+.header-shard-button[hidden] { display:none; }
+.header-shard-button:active { transform:scale(.96); }
+@media(max-width:390px) { .topbar-controls { gap:4px; } .header-shard-button { min-height:38px; padding:6px 7px; } .topbar-controls .profile-pill { padding:8px; } }
 .management-modes button { gap:4px; font-size:11px; }
+.bulk-sell-link { display:block; width:100%; margin:10px auto 0; text-align:center; color:#775a7b; font-size:13px; }
+.bulk-sell-link[hidden] { display:none; }
 .management-modes .ui-icon { width:17px; height:17px; flex:none; }
 .management-modes [data-management-mode="sell"].selected { color:#755388; background:#f3eafa; }
 .economy-panel { position:relative; overflow:hidden; margin-top:18px; padding:22px 18px 20px; border-radius:25px; border:1px solid #cdb7c881; background:radial-gradient(ellipse at 6% 4%,#dac1dd5e,transparent 56%),radial-gradient(ellipse at 95% 95%,#efd8b053,transparent 60%),#fff9f0c9; box-shadow:0 12px 35px #5a3d4a17; }
@@ -45,8 +55,8 @@
 .economy-history summary span { float:right; }
 .economy-history p { display:flex; justify-content:space-between; margin:0; padding:10px 2px; border-bottom:1px solid #ac93a125; font-size:12px; }
 .economy-history b { color:#76517a; font-variant-numeric:tabular-nums; }
-.bank-dialog,.sale-dialog,.economy-tour { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; padding:30px 18px 34px; overflow:auto; background:radial-gradient(ellipse at 14% 5%,#e8d6e8,transparent 55%),radial-gradient(ellipse at 85% 90%,#f2dfcf,transparent 60%),#f9f2e9; color:#604b5b; }
-.bank-dialog::backdrop,.sale-dialog::backdrop,.economy-tour::backdrop { background:#23151dd9; backdrop-filter:blur(7px); }
+.bank-dialog,.sale-dialog,.economy-tour,.shard-info-dialog,.bulk-sale-dialog { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; padding:30px 18px 34px; overflow:auto; background:radial-gradient(ellipse at 14% 5%,#e8d6e8,transparent 55%),radial-gradient(ellipse at 85% 90%,#f2dfcf,transparent 60%),#f9f2e9; color:#604b5b; }
+.bank-dialog::backdrop,.sale-dialog::backdrop,.economy-tour::backdrop,.shard-info-dialog::backdrop,.bulk-sale-dialog::backdrop { background:#23151dd9; backdrop-filter:blur(7px); }
 .bank-content,.sale-content,.tour-content { position:relative; z-index:1; max-width:520px; margin:40px auto 0; }
 .bank-close { position:fixed; right:15px; top:15px; z-index:5; display:grid; place-items:center; width:44px; height:44px; border:1px solid #ac8b9f66; border-radius:50%; background:#fff8f1d4; color:#604658; font:29px/1 Georgia,serif; }
 .bank-intro,.bank-result,.bank-error { text-align:center; }
@@ -126,6 +136,41 @@
 .tour-content h2 { margin-top:20px; }
 .tour-content p { max-width:330px; margin:8px auto 25px; color:#846e7e; font-size:15px; line-height:1.55; }
 .tour-content .bank-submit { max-width:350px; margin:0 auto; }
+.shard-info-content { position:relative; z-index:1; max-width:420px; margin:min(15dvh,110px) auto 0; text-align:center; }
+.shard-info-content>.eyebrow { color:#956e83; font-size:11px; }
+.shard-info-value { display:flex; align-items:baseline; justify-content:center; gap:8px; margin:24px auto 18px; color:#79567c; }
+.shard-info-value i { font:36px Georgia,serif; font-style:normal; }
+.shard-info-value strong { font:76px/1 Georgia,serif; letter-spacing:-.07em; }
+.shard-info-value span { font-size:14px; }
+.shard-info-content h2 { margin:0 0 10px; font:40px/1 Georgia,serif; }
+.shard-info-content p { color:#846e7e; font-size:14px; line-height:1.55; }
+.shard-info-uses { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:25px 0 12px; }
+.shard-info-uses span { display:flex; flex-direction:column; justify-content:center; min-height:85px; padding:13px; border:1px solid #cfb8c9; border-radius:17px; background:#fffaf3b8; }
+.shard-info-uses b { font:22px Georgia,serif; }
+.shard-info-uses small { margin-top:6px; color:#8c7886; font-size:11px; line-height:1.35; }
+.shard-info-content .shard-info-note { font-size:12px; }
+.bulk-sale-content { position:relative; z-index:1; width:min(100%,520px); margin:28px auto 0; }
+.bulk-sale-content>.eyebrow { color:#9a7788; font-size:11px; }
+.bulk-sale-content>h2,.bulk-sale-result h2 { margin:9px 0; font:40px/1 Georgia,serif; letter-spacing:-.045em; }
+.bulk-sale-content>p,.bulk-sale-result p { color:#8c7886; font-size:13px; line-height:1.5; }
+.bulk-sale-tools { display:flex; gap:9px; margin:19px 0 9px; }
+.bulk-sale-tools button { flex:1; padding:10px; border:1px solid #ccb1c4; border-radius:12px; background:#fffaf2ba; color:#795b76; font-size:12px; }
+.bulk-sale-list { display:grid; gap:7px; max-height:49dvh; overflow:auto; padding:3px; overscroll-behavior:contain; }
+.bulk-sale-row { display:flex; align-items:center; gap:10px; width:100%; min-height:61px; padding:8px 11px; border:1px solid #d7c4c8; border-radius:14px; background:#fffaf2c9; color:#604d5d; text-align:left; }
+.bulk-sale-row.selected { border-color:#927199; background:#eee1ed; box-shadow:inset 0 0 0 1px #92719955; }
+.bulk-sale-card-copy { flex:1; min-width:0; }
+.bulk-sale-card-copy strong,.bulk-sale-card-copy small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bulk-sale-card-copy strong { font-size:13px; }
+.bulk-sale-card-copy small { margin-top:3px; color:#947e8e; font-size:10px; }
+.bulk-sale-row>b { color:#805a80; font:19px Georgia,serif; white-space:nowrap; }
+.bulk-sale-row>i { display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:#eadce5; font-style:normal; }
+.bulk-sale-total { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding:13px 14px; border:1px solid #c8a6bb; border-radius:16px; background:#fff8f0bd; }
+.bulk-sale-total span { font-size:12px; }.bulk-sale-total strong { color:#825a80; font:24px Georgia,serif; }
+.bulk-sale-dialog.is-selling .bulk-sale-row { animation:bulk-card-sweep .7s ease-in both; animation-delay:calc(var(--row-index,0)*50ms); }
+.bulk-sale-result { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:76dvh; text-align:center; animation:bank-reward-enter .6s ease-out both; }
+.bulk-sale-result .shard-info-value { margin:30px auto; }
+.bulk-sale-error { color:#a04c53!important; }
+@keyframes bulk-card-sweep { to { transform:translate(50px,-20px) rotate(12deg) scale(.35); opacity:0; } }
 @keyframes bank-ring { 50% { transform:rotate(25deg) scale(1.1); opacity:.4; } }
 @keyframes bank-core { 50% { transform:scale(1.35); filter:brightness(1.25); } }
 @keyframes bank-ingest { to { transform:translate(0,0) rotate(180deg) scale(0); opacity:0; } }

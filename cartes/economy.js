@@ -14,7 +14,7 @@
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,friendlyError}) {
+  function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,onActions,friendlyError}) {
     const trade=document.querySelector('#tradeView');
     const panel=document.createElement('section');panel.className='economy-panel content-block';panel.id='economyPanel';
     trade.querySelector('.trade-maker').after(panel);
@@ -24,16 +24,20 @@
     const saleModal=document.createElement('dialog');saleModal.className='sale-dialog';saleModal.setAttribute('aria-label','Revendre une carte');
     saleModal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="sale-content"></div>';
     document.body.append(saleModal);
+    const bulkModal=document.createElement('dialog');bulkModal.className='bulk-sale-dialog';bulkModal.setAttribute('aria-label','Revendre plusieurs cartes');
+    bulkModal.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="bulk-sale-content"></div>';
+    document.body.append(bulkModal);
     const tour=document.createElement('dialog');tour.className='economy-tour';tour.setAttribute('aria-label','Nouveautés des Cartes à deux');
     tour.innerHTML='<div class="tour-content"></div>';document.body.append(tour);
-    const headerBalance=document.createElement('span');headerBalance.className='header-shard-count';headerBalance.setAttribute('aria-label','Solde d’Éclats');
-    document.querySelector('#profileMenu').insertBefore(headerBalance,document.querySelector('#presenceDot'));
+    const headerBalance=document.querySelector('#headerShardButton');
+    const shardInfo=document.createElement('dialog');shardInfo.className='shard-info-dialog';shardInfo.setAttribute('aria-label','Mes Éclats');
+    shardInfo.innerHTML='<button class="bank-close" type="button" aria-label="Fermer">×</button><div class="shard-info-content"></div>';document.body.append(shardInfo);
     const state=()=>getState()?.economy;
     const cards=()=>getState()?.my_cards?.filter(c=>c.status==='available'&&new Date(c.expires_at)>new Date(getState().server_now))||[];
     const kind=card=>card.card_type==='energy'?'energy':card.finish;
     const textNeeds=needs=>Object.entries(needs).map(([key,n])=>key==='energy'?`${n} Énergie${n>1?'s':''} Bisou${n>1?'s':''}`:`${n} ${labels[key]}${n>1?'s':''}`).join(' + ');
     const cardOf=id=>cards().find(card=>card.id===id);
-    let recipe=null,selected=new Set(),busy=false,saleCard=null,lastSignature='',tourIndex=0,tourRole=null;
+    let recipe=null,selected=new Set(),busy=false,saleCard=null,bulkSelected=new Set(),lastSignature='',tourIndex=0,tourRole=null;
     function countFor(r){const pool=cards();const counts={};for(const c of pool.filter(c=>c.card_type==='challenge'||c.card_type==='energy'))counts[kind(c)]=(counts[kind(c)]||0)+1;
       if(r.id==='reforge')return Math.min(counts.energy||0,3)===3&&pool.some(c=>c.card_type!=='energy');
       return Object.entries(r.needs).every(([k,n])=>(counts[k]||0)>=n);
@@ -49,9 +53,10 @@
     }
     function refresh(){
       const e=state(),role=getRole();
-      if(!e){panel.hidden=true;headerBalance.hidden=true;if(modal.open)modal.close();if(saleModal.open)saleModal.close();if(tour.open)tour.close();return;}
+      if(!e){panel.hidden=true;headerBalance.hidden=true;if(modal.open)modal.close();if(saleModal.open)saleModal.close();if(bulkModal.open)bulkModal.close();if(shardInfo.open)shardInfo.close();if(tour.open)tour.close();return;}
       panel.hidden=false;
-      headerBalance.hidden=false;headerBalance.textContent=`✦ ${e.balance}`;
+      headerBalance.hidden=false;document.querySelector('#headerShardCount').textContent=String(e.balance);
+      if(shardInfo.open)drawShardInfo();
       const signature=JSON.stringify([role,e.balance,e.bank_used_today,e.weekly_booster_used,e.events?.[0]?.id,cards().map(c=>[c.id,c.sale_price])]);
       if(signature!==lastSignature){panel.innerHTML=panelMarkup();lastSignature=signature;}
       if(tourRole!==role){tourRole=role;tourIndex=0;}
@@ -90,6 +95,27 @@
       finally{busy=false;}
     }
     function sell(id){const c=cardOf(id);if(!c||busy)return;saleCard=c;saleModal.className='sale-dialog';saleModal.querySelector('.sale-content').innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Revendre cet exemplaire ?</h2><div class="sale-card-stage">${renderCard(c)}</div><div class="sale-quote"><span>Prix du jour</span><strong>+${c.sale_price} Éclat${c.sale_price>1?'s':''}</strong></div><p>La carte quitte ta main. Sa découverte reste dans « Déjà vues ».</p><button type="button" class="bank-submit" data-sale-confirm>Revendre →</button>`;saleModal.showModal();}
+    function openBulk(){if(busy||cards().length<2)return;bulkSelected=new Set();bulkModal.className='bulk-sale-dialog';bulkModal.showModal();drawBulk();}
+    function drawBulk(){if(!bulkModal.open||busy)return;const scroll=bulkModal.querySelector('.bulk-sale-list')?.scrollTop||0;const pool=cards().sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at));
+      bulkSelected=new Set([...bulkSelected].filter(id=>pool.some(c=>c.id===id)));
+      const picked=pool.filter(c=>bulkSelected.has(c.id)),total=picked.reduce((sum,c)=>sum+c.sale_price,0);
+      bulkModal.querySelector('.bulk-sale-content').innerHTML=`<span class="eyebrow">COMPTOIR DES ÉCLATS</span><h2>Revendre en lot.</h2><p>Choisis les exemplaires à céder. Leur découverte reste dans « Déjà vues ».</p><div class="bulk-sale-tools"><button type="button" data-bulk-all>Tout sélectionner</button><button type="button" data-bulk-clear>Effacer</button></div><div class="bulk-sale-list">${pool.map((c,i)=>`<button type="button" class="bulk-sale-row ${bulkSelected.has(c.id)?'selected':''}" style="--row-index:${Math.min(i,8)}" data-bulk-card="${escape(c.id)}" aria-pressed="${bulkSelected.has(c.id)}"><span class="bank-card-sigil palette-${escape(c.palette)}" aria-hidden="true">${escape(c.symbol||'✧')}</span><span class="bulk-sale-card-copy"><strong>${escape(c.title)}</strong><small>${escape(finishLabels[c.finish]||c.finish)} · ${Math.max(1,Math.ceil((new Date(c.expires_at)-new Date(getState().server_now))/86400000))} j</small></span><b>+${c.sale_price}</b><i>${bulkSelected.has(c.id)?'✓':'+'}</i></button>`).join('')}</div><div class="bulk-sale-total"><span>${picked.length} carte${picked.length>1?'s':''} sélectionnée${picked.length>1?'s':''}</span><strong>+${total} Éclat${total>1?'s':''}</strong></div><button type="button" class="bank-submit" data-bulk-confirm ${picked.length<2?'disabled':''}>Revendre le lot →</button>`;
+      bulkModal.querySelector('.bulk-sale-list').scrollTop=scroll;
+    }
+    async function confirmBulk(){if(busy||bulkSelected.size<2)return;const ids=[...bulkSelected],before=state()?.balance||0;busy=true;
+      const button=bulkModal.querySelector('[data-bulk-confirm]');button.disabled=true;button.textContent='Revente en cours…';
+      try{
+        let result;
+        try{result=await exchange('sell_cards',{card_ids:ids});}
+        catch(error){const synced=await exchange('sync');if(ids.some(id=>synced.my_cards.some(c=>c.id===id)))throw error;result=synced;}
+        const amount=result.economy.balance-before;
+        bulkModal.classList.add('is-selling');await wait(reduced.matches?80:1050);
+        bulkModal.querySelector('.bulk-sale-content').innerHTML=`<div class="bulk-sale-result"><span class="eyebrow">REVENTE TERMINÉE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>+${amount}</strong></div><h2>${ids.length} cartes revendues.</h2><p>Leurs découvertes restent dans ta collection.</p><button type="button" class="bank-submit" data-bulk-finish>Retour aux Actions →</button></div>`;
+        onUpdate();
+      }catch(error){button.disabled=false;button.textContent='Revendre le lot →';bulkModal.querySelector('.bulk-sale-total').insertAdjacentHTML('beforebegin',`<p class="bulk-sale-error">${escape(friendlyError(error))}</p>`);}
+      finally{busy=false;}
+    }
+    function drawShardInfo(){const e=state();if(!e)return;shardInfo.querySelector('.shard-info-content').innerHTML=`<span class="eyebrow">MON SOLDE</span><div class="shard-info-value"><i aria-hidden="true">✦</i><strong>${e.balance>0?'+':''}${e.balance}</strong><span>Éclats</span></div><h2>Mes Éclats.</h2><p>Les défis validés rapportent de 1 à 10 Éclats selon leur rareté. Tu peux aussi revendre les cartes de ta main ou en trouver dans un booster.</p><div class="shard-info-uses"><span><b>12 Éclats</b><small>Un booster supplémentaire par semaine</small></span><span><b>La Banque</b><small>Échange des cartes et des Énergies Bisous</small></span></div><p class="shard-info-note">Un défi laissé passer peut réduire le solde, jusqu’à −12. Mise à nue reste sans malus.</p><button type="button" class="bank-submit" data-shard-actions>Voir les Actions →</button>`;}
     async function confirmSale(){if(busy||!saleCard)return;busy=true;const id=saleCard.id,price=saleCard.sale_price;
       const button=saleModal.querySelector('[data-sale-confirm]');button.disabled=true;button.textContent='Un instant…';
       try{await exchange('sell_card',{card_id:id});saleModal.classList.add('is-selling');saleModal.querySelector('.sale-quote strong').textContent=`+${price} Éclat${price>1?'s':''}`;await wait(reduced.matches?80:1050);if(saleModal.open)saleModal.close();onUpdate();}
@@ -114,13 +140,18 @@
       if(event.target.closest('[data-economy-buy]'))return void buy();
       const opener=event.target.closest('[data-bank-open]');if(opener)return openBank(opener.dataset.bankOpen);
     });
+    headerBalance.addEventListener('click',()=>{drawShardInfo();shardInfo.showModal();});
+    shardInfo.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return shardInfo.close();if(event.target.closest('[data-shard-actions]')){shardInfo.close();onActions();}});
     modal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return modal.close();if(event.target.closest('[data-bank-auto]'))return autoSelect();const pick=event.target.closest('[data-bank-card]');if(pick)return toggleCard(pick.dataset.bankCard);if(event.target.closest('[data-bank-submit]'))return void submit();if(event.target.closest('[data-bank-back]'))return drawSelection();if(event.target.closest('[data-bank-finish]')){modal.close();onCollection();}});
     saleModal.addEventListener('click',event=>{if(event.target.closest('.bank-close'))return saleModal.close();if(event.target.closest('[data-sale-confirm]'))return void confirmSale();});
+    bulkModal.addEventListener('click',event=>{if(event.target.closest('.bank-close')&&!busy)return bulkModal.close();const pick=event.target.closest('[data-bulk-card]');if(pick&&!busy){const id=pick.dataset.bulkCard;if(bulkSelected.has(id))bulkSelected.delete(id);else bulkSelected.add(id);return drawBulk();}if(event.target.closest('[data-bulk-all]')&&!busy){bulkSelected=new Set(cards().map(c=>c.id));return drawBulk();}if(event.target.closest('[data-bulk-clear]')&&!busy){bulkSelected.clear();return drawBulk();}if(event.target.closest('[data-bulk-confirm]'))return void confirmBulk();if(event.target.closest('[data-bulk-finish]'))bulkModal.close();});
+    bulkModal.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+    bulkModal.addEventListener('close',()=>bulkSelected.clear());
     tour.addEventListener('click',event=>{if(event.target.closest('[data-tour-skip]'))return closeTour();if(event.target.closest('[data-tour-next]')){if(tourIndex===slides.length-1)closeTour();else{tourIndex++;drawTour();}}});
     tour.addEventListener('cancel',event=>{event.preventDefault();closeTour();});
     modal.addEventListener('close',()=>{recipe=null;selected.clear();});
     saleModal.addEventListener('close',()=>{saleCard=null;});
-    return Object.freeze({refresh,sell,isOpen:()=>modal.open||saleModal.open||tour.open});
+    return Object.freeze({refresh,sell,openBulk,isOpen:()=>modal.open||saleModal.open||bulkModal.open||shardInfo.open||tour.open});
   }
   window.CardEconomy=Object.freeze({mount});
 })();

@@ -385,11 +385,14 @@
     $("#boosterCount").textContent = data.boosters.length;
     $("#activeCount").textContent = data.active_cards.length;
 
-    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("") + (data.boosters.length ? data.boosters.map(booster => `
+    const packMarkup=booster=>`
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
         <span class="mini-pack${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN" : "ÉDITION 01"} · 5 SURPRISES</small></span>
         <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">Payé en Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
-      </button>`).join("") : pending.length ? "" : `<button class="text-button" type="button" data-go-collection>Ma collection →</button>`));
+      </button>`;
+    const stacked=data.boosters.length>1;
+    const packList=stacked?`<div class="booster-pile" aria-label="${data.boosters.length} boosters disponibles. Celui qui expire en premier est devant.">${data.boosters.slice(1,3).reverse().map((booster,i)=>`<span class="mini-pack pack-underlay${isHalloween(booster)?' pack-halloween':''}" style="--pile-x:${(2-i)*12}px;--pile-y:${(2-i)*-8}px;--pile-rotate:${-7+(2-i)*5}deg" aria-hidden="true"><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster)?'HALLOWEEN':'ÉDITION 01'} · 5 SURPRISES</small></span>`).join('')}${packMarkup(data.boosters[0])}<span class="booster-pile-count" aria-hidden="true">×${data.boosters.length}</span></div>`:data.boosters.length?packMarkup(data.boosters[0]):pending.length?"":`<button class="text-button" type="button" data-go-collection>Ma collection →</button>`;
+    putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("")+packList);
 
     putMarkup("#activeCards", data.active_cards.length
       ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.ritual_claim_status==='pending' ? card.owner_role===state.role ? '<span class="ritual-pending">En attente de validation</span>' : `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>` : ""}</div>`).join("")
@@ -520,6 +523,7 @@
     $("#proposeTradeButton").textContent = trading ? "Proposer →" : state.managementMode === "give" ? `Donner à ${name(state.data.partner_role)} →` : state.managementMode === "sell" ? `Revendre · +${saleCard?.sale_price ?? '—'} Éclat${saleCard?.sale_price>1?'s':''} →` : "Détruire cet exemplaire";
     $("#proposeTradeButton").classList.toggle("danger-button", state.managementMode === "destroy");
     $("#proposeTradeButton").disabled = !$("#offeredCardSelect").value || !mine.length || (trading && (!$("#requestedCardSelect").value || !partner.length));
+    $("#bulkSellButton").hidden = state.managementMode !== "sell" || mine.length < 2;
     $("#tradeHint").textContent = !mine.length ? "Aucune carte disponible dans ta main." : trading ? !partner.length ? `Aucune carte échangeable de ${name(state.data.partner_role)} déjà découverte.` : "" : state.managementMode === "give" ? "Même carte, même compteur. Découverte conservée." : state.managementMode === "sell" ? "Prix calculé selon la rareté et le temps restant. Découverte conservée." : "Un exemplaire en moins. Toujours dans « Déjà vues ».";
     $$("[data-management-mode]").forEach(button => { const selected = button.dataset.managementMode === state.managementMode; button.classList.toggle("selected", selected); button.setAttribute("aria-pressed", String(selected)); });
     attachFoilMotion($("#tradeView"));
@@ -1402,6 +1406,7 @@
     } catch (error) { toast(friendlyError(error)); }
     finally { done(); }
   });
+  $("#bulkSellButton").addEventListener("click",()=>economy?.openBulk());
 
   $$('[data-close-dialog]').forEach(button => button.addEventListener("click", () => {
     const dialog = document.getElementById(button.dataset.closeDialog);
@@ -1471,7 +1476,8 @@
   depressiveDeck = window.DepressiveDeck?.mount({getState:()=>state.data?.depressive_deck,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   economy = window.CardEconomy?.mount({getState:()=>state.data,getRole:()=>state.role,
-    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
+    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),
+    onActions:()=>{setView("trade");document.querySelector('#economyPanel')?.scrollIntoView({behavior:'smooth',block:'start'});},friendlyError});
   const lastRole = storage.get("les-cartes-last-role");
   if (names[lastRole] && storage.get(tokenKey(lastRole))) selectRole(lastRole);
 })();
