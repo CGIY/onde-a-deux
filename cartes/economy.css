@@ -11,10 +11,10 @@
 .header-shard-button:active { transform:scale(.96); }
 @media(max-width:390px) { .topbar-controls { gap:4px; } .header-shard-button { min-height:38px; padding:6px 7px; } .topbar-controls .profile-pill { padding:8px; } }
 .management-modes button { gap:4px; font-size:11px; }
-.bulk-sell-link { display:block; width:100%; margin:10px auto 0; text-align:center; color:#775a7b; font-size:13px; }
-.bulk-sell-link[hidden] { display:none; }
+.bulk-recycle-link { display:block; width:100%; margin:10px auto 0; text-align:center; color:#775a7b; font-size:13px; }
+.bulk-recycle-link[hidden] { display:none; }
 .management-modes .ui-icon { width:17px; height:17px; flex:none; }
-.management-modes [data-management-mode="sell"].selected { color:#755388; background:#f3eafa; }
+.management-modes [data-management-mode="recycle"].selected { color:#755388; background:#f3eafa; }
 .economy-panel { position:relative; overflow:hidden; margin-top:18px; padding:22px 18px 20px; border-radius:25px; border:1px solid #cdb7c881; background:radial-gradient(ellipse at 6% 4%,#dac1dd5e,transparent 56%),radial-gradient(ellipse at 95% 95%,#efd8b053,transparent 60%),#fff9f0c9; box-shadow:0 12px 35px #5a3d4a17; }
 .action-hub-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:14px 0 0; padding:4px; border:1px solid #c9b4bd8c; border-radius:20px; background:#eaded7a3; }
 .action-hub-tabs button { min-height:44px; border:0; border-radius:16px; background:transparent; color:#876d78; font:600 13px system-ui,sans-serif; }
@@ -24,8 +24,8 @@
 .bottom-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
 .bottom-nav b { font-size:11px; }
 .trade-maker[hidden],.economy-panel[hidden],.economy-shop-section[hidden],.economy-bank-section[hidden] { display:none!important; }
-.economy-panel:before,.bank-dialog:before,.sale-dialog:before,.economy-tour:before { content:""; position:absolute; inset:0; background-image:var(--surface-grain); background-size:300px; mix-blend-mode:multiply; opacity:.13; pointer-events:none; }
-.economy-head,.economy-buy,.bank-offer,.bank-selected,.bank-card-choice,.sale-quote { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.economy-panel:before,.bank-dialog:before,.recycle-dialog:before,.economy-tour:before { content:""; position:absolute; inset:0; background-image:var(--surface-grain); background-size:300px; mix-blend-mode:multiply; opacity:.13; pointer-events:none; }
+.economy-head,.economy-buy,.bank-offer,.bank-selected,.bank-card-choice,.recycle-quote { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .economy-head { position:relative; margin-bottom:20px; }
 .economy-head h3,.bank-head h3 { margin:5px 0 0; font:36px/.98 Georgia,serif; letter-spacing:-.045em; color:#584154; }
 .economy-head .eyebrow,.bank-head .eyebrow { color:#956e83; font-size:10px; }
@@ -91,13 +91,13 @@
 .economy-history summary span { float:right; }
 .economy-history p { display:flex; justify-content:space-between; margin:0; padding:10px 2px; border-bottom:1px solid #ac93a125; font-size:12px; }
 .economy-history b { color:#76517a; font-variant-numeric:tabular-nums; }
-.bank-dialog,.sale-dialog,.economy-tour,.shard-info-dialog,.bulk-sale-dialog { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; padding:30px 18px 34px; overflow:auto; background:radial-gradient(ellipse at 14% 5%,#e8d6e8,transparent 55%),radial-gradient(ellipse at 85% 90%,#f2dfcf,transparent 60%),#f9f2e9; color:#604b5b; }
-.bank-dialog::backdrop,.sale-dialog::backdrop,.economy-tour::backdrop,.shard-info-dialog::backdrop,.bulk-sale-dialog::backdrop { background:#23151dd9; backdrop-filter:blur(7px); }
-.bank-content,.sale-content,.tour-content { position:relative; z-index:1; max-width:520px; margin:40px auto 0; }
+.bank-dialog,.recycle-dialog,.economy-tour,.shard-info-dialog,.bulk-recycle-dialog { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; padding:30px 18px 34px; overflow:auto; background:radial-gradient(ellipse at 14% 5%,#e8d6e8,transparent 55%),radial-gradient(ellipse at 85% 90%,#f2dfcf,transparent 60%),#f9f2e9; color:#604b5b; }
+.bank-dialog::backdrop,.recycle-dialog::backdrop,.economy-tour::backdrop,.shard-info-dialog::backdrop,.bulk-recycle-dialog::backdrop { background:#23151dd9; backdrop-filter:blur(7px); }
+.bank-content,.recycle-content,.tour-content { position:relative; z-index:1; max-width:520px; margin:40px auto 0; }
 .bank-close { position:fixed; right:15px; top:15px; z-index:5; display:grid; place-items:center; width:44px; height:44px; border:1px solid #ac8b9f66; border-radius:50%; background:#fff8f1d4; color:#604658; font:29px/1 Georgia,serif; }
 .bank-intro,.bank-result,.bank-error { text-align:center; }
 .bank-intro .eyebrow,.bank-result .eyebrow { color:#97718d; font-size:10px; letter-spacing:.17em; }
-.bank-intro h2,.bank-result h2,.sale-content h2,.bank-error h2,.tour-content h2 { margin:12px 0 7px; font:40px/1 Georgia,serif; letter-spacing:-.045em; color:#584256; }
+.bank-intro h2,.bank-result h2,.recycle-content h2,.bank-error h2,.tour-content h2 { margin:12px 0 7px; font:40px/1 Georgia,serif; letter-spacing:-.045em; color:#584256; }
 .bank-intro p { margin:0 0 23px; color:#90798a; font-size:13px; }
 .bank-recipe { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:13px 14px; border:1px solid #d2b8c7; border-radius:15px; background:#fffaf2a8; }
 .bank-recipe span { font-size:11px; color:#967c8d; }
@@ -167,18 +167,18 @@
 .bank-result { animation:bank-reward-enter .7s cubic-bezier(.2,.8,.2,1) both; }
 .bank-reward-card { width:min(70vw,280px); margin:20px auto; filter:drop-shadow(0 18px 20px #6d4f6944); }
 .bank-reward-card .game-card { width:100%; }
-.sale-content { text-align:center; }
-.sale-content>.eyebrow { color:#9a7788; }
-.sale-card-stage { position:relative; width:min(64vw,270px); margin:22px auto; perspective:900px; }
-.sale-card-stage>.game-card { width:100%; }
-.sale-quote { border:1px solid #c8a6bb; border-radius:16px; padding:12px 16px; background:#fff8f0bd; }
-.sale-quote span { font-size:12px; }
-.sale-quote strong { color:#825a80; font:24px Georgia,serif; }
-.sale-content p { color:#8c7886; font-size:12px; line-height:1.5; }
-.sale-dialog.is-selling .sale-card-stage { animation:sale-fold 1s cubic-bezier(.3,.1,.6,1) forwards; }
-.sale-dialog.is-selling .sale-card-stage:before,.sale-dialog.is-selling .sale-card-stage:after { content:""; position:absolute; inset:15%; background:linear-gradient(135deg,#f5d6ce,#a684b7); clip-path:polygon(50% 0,100% 55%,50% 100%,0 55%); animation:sale-fragment 1s ease-out forwards; }
-.sale-dialog.is-selling .sale-card-stage:after { animation-delay:.08s; transform:rotate(35deg); }
-.sale-dialog.is-selling .sale-quote strong { animation:shard-burst .9s ease-out both; }
+.recycle-content { text-align:center; }
+.recycle-content>.eyebrow { color:#9a7788; }
+.recycle-card-stage { position:relative; width:min(64vw,270px); margin:22px auto; perspective:900px; }
+.recycle-card-stage>.game-card { width:100%; }
+.recycle-quote { border:1px solid #c8a6bb; border-radius:16px; padding:12px 16px; background:#fff8f0bd; }
+.recycle-quote span { font-size:12px; }
+.recycle-quote strong { color:#825a80; font:24px Georgia,serif; }
+.recycle-content p { color:#8c7886; font-size:12px; line-height:1.5; }
+.recycle-dialog.is-recycling .recycle-card-stage { animation:sale-fold 1s cubic-bezier(.3,.1,.6,1) forwards; }
+.recycle-dialog.is-recycling .recycle-card-stage:before,.recycle-dialog.is-recycling .recycle-card-stage:after { content:""; position:absolute; inset:15%; background:linear-gradient(135deg,#f5d6ce,#a684b7); clip-path:polygon(50% 0,100% 55%,50% 100%,0 55%); animation:sale-fragment 1s ease-out forwards; }
+.recycle-dialog.is-recycling .recycle-card-stage:after { animation-delay:.08s; transform:rotate(35deg); }
+.recycle-dialog.is-recycling .recycle-quote strong { animation:shard-burst .9s ease-out both; }
 .shards-visible .reveal-front { position:absolute; inset:0; width:100%; height:100%; }
 .shard-reveal { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; aspect-ratio:5/7; min-height:0; overflow:hidden; border:2px solid #cfb6cc; border-radius:18px; background:radial-gradient(circle at 50% 45%,#fffaf1,#e4c7de 48%,#ac8cae); color:#63476b; box-shadow:0 17px 38px #6b486b42; }
 .shard-reveal .shard-halo { position:absolute; width:68%; aspect-ratio:1; border:2px solid #fff8e6a9; border-radius:50%; box-shadow:0 0 35px #ffe6f2; animation:shard-orbit 3s linear infinite; }
@@ -213,27 +213,27 @@
 .shard-info-uses b { font:22px Georgia,serif; }
 .shard-info-uses small { margin-top:6px; color:#8c7886; font-size:11px; line-height:1.35; }
 .shard-info-content .shard-info-note { font-size:12px; }
-.bulk-sale-content { position:relative; z-index:1; width:min(100%,520px); margin:28px auto 0; }
-.bulk-sale-content>.eyebrow { color:#9a7788; font-size:11px; }
-.bulk-sale-content>h2,.bulk-sale-result h2 { margin:9px 0; font:40px/1 Georgia,serif; letter-spacing:-.045em; }
-.bulk-sale-content>p,.bulk-sale-result p { color:#8c7886; font-size:13px; line-height:1.5; }
-.bulk-sale-tools { display:flex; gap:9px; margin:19px 0 9px; }
-.bulk-sale-tools button { flex:1; padding:10px; border:1px solid #ccb1c4; border-radius:12px; background:#fffaf2ba; color:#795b76; font-size:12px; }
-.bulk-sale-list { display:grid; gap:7px; max-height:49dvh; overflow:auto; padding:3px; overscroll-behavior:contain; }
-.bulk-sale-row { display:flex; align-items:center; gap:10px; width:100%; min-height:61px; padding:8px 11px; border:1px solid #d7c4c8; border-radius:14px; background:#fffaf2c9; color:#604d5d; text-align:left; }
-.bulk-sale-row.selected { border-color:#927199; background:#eee1ed; box-shadow:inset 0 0 0 1px #92719955; }
-.bulk-sale-card-copy { flex:1; min-width:0; }
-.bulk-sale-card-copy strong,.bulk-sale-card-copy small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.bulk-sale-card-copy strong { font-size:13px; }
-.bulk-sale-card-copy small { margin-top:3px; color:#947e8e; font-size:10px; }
-.bulk-sale-row>b { color:#805a80; font:19px Georgia,serif; white-space:nowrap; }
-.bulk-sale-row>i { display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:#eadce5; font-style:normal; }
-.bulk-sale-total { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding:13px 14px; border:1px solid #c8a6bb; border-radius:16px; background:#fff8f0bd; }
-.bulk-sale-total span { font-size:12px; }.bulk-sale-total strong { color:#825a80; font:24px Georgia,serif; }
-.bulk-sale-dialog.is-selling .bulk-sale-row { animation:bulk-card-sweep .7s ease-in both; animation-delay:calc(var(--row-index,0)*50ms); }
-.bulk-sale-result { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:76dvh; text-align:center; animation:bank-reward-enter .6s ease-out both; }
-.bulk-sale-result .shard-info-value { margin:30px auto; }
-.bulk-sale-error { color:#a04c53!important; }
+.bulk-recycle-content { position:relative; z-index:1; width:min(100%,520px); margin:28px auto 0; }
+.bulk-recycle-content>.eyebrow { color:#9a7788; font-size:11px; }
+.bulk-recycle-content>h2,.bulk-recycle-result h2 { margin:9px 0; font:40px/1 Georgia,serif; letter-spacing:-.045em; }
+.bulk-recycle-content>p,.bulk-recycle-result p { color:#8c7886; font-size:13px; line-height:1.5; }
+.bulk-recycle-tools { display:flex; gap:9px; margin:19px 0 9px; }
+.bulk-recycle-tools button { flex:1; padding:10px; border:1px solid #ccb1c4; border-radius:12px; background:#fffaf2ba; color:#795b76; font-size:12px; }
+.bulk-recycle-list { display:grid; gap:7px; max-height:49dvh; overflow:auto; padding:3px; overscroll-behavior:contain; }
+.bulk-recycle-row { display:flex; align-items:center; gap:10px; width:100%; min-height:61px; padding:8px 11px; border:1px solid #d7c4c8; border-radius:14px; background:#fffaf2c9; color:#604d5d; text-align:left; }
+.bulk-recycle-row.selected { border-color:#927199; background:#eee1ed; box-shadow:inset 0 0 0 1px #92719955; }
+.bulk-recycle-card-copy { flex:1; min-width:0; }
+.bulk-recycle-card-copy strong,.bulk-recycle-card-copy small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bulk-recycle-card-copy strong { font-size:13px; }
+.bulk-recycle-card-copy small { margin-top:3px; color:#947e8e; font-size:10px; }
+.bulk-recycle-row>b { color:#805a80; font:19px Georgia,serif; white-space:nowrap; }
+.bulk-recycle-row>i { display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:#eadce5; font-style:normal; }
+.bulk-recycle-total { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding:13px 14px; border:1px solid #c8a6bb; border-radius:16px; background:#fff8f0bd; }
+.bulk-recycle-total span { font-size:12px; }.bulk-recycle-total strong { color:#825a80; font:24px Georgia,serif; }
+.bulk-recycle-dialog.is-recycling .bulk-recycle-row { animation:bulk-card-sweep .7s ease-in both; animation-delay:calc(var(--row-index,0)*50ms); }
+.bulk-recycle-result { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:76dvh; text-align:center; animation:bank-reward-enter .6s ease-out both; }
+.bulk-recycle-result .shard-info-value { margin:30px auto; }
+.bulk-recycle-error { color:#a04c53!important; }
 @keyframes bulk-card-sweep { to { transform:translate(50px,-20px) rotate(12deg) scale(.35); opacity:0; } }
 @keyframes bank-ring { 50% { transform:rotate(25deg) scale(1.1); opacity:.4; } }
 @keyframes bank-core { 50% { transform:scale(1.35); filter:brightness(1.25); } }
@@ -254,4 +254,4 @@
 @keyframes tour-heart { 50% { transform:scale(1.12) rotate(4deg); } }
 @keyframes tour-orbit { 50% { opacity:.35; } }
 @media(max-width:380px) { .management-modes button { flex-direction:column; gap:2px; font-size:10px; } .bank-intro h2,.bank-result h2 { font-size:34px; } }
-@media(prefers-reduced-motion:reduce) { .economy-panel *, .bank-dialog *, .sale-dialog *, .economy-tour *, .shard-reveal * { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+@media(prefers-reduced-motion:reduce) { .economy-panel *, .bank-dialog *, .recycle-dialog *, .economy-tour *, .shard-reveal * { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
