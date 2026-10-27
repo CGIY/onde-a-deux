@@ -1305,9 +1305,9 @@ body {
 }
 .paper-noise {
   z-index:0;
-  opacity:.26;
+  opacity:.44;
   background-image:var(--surface-grain);
-  background-size:384px 384px;
+  background-size:640px 640px;
   filter:blur(.18px);
   mix-blend-mode:multiply
 }
@@ -1937,3 +1937,10 @@ body  {
 .season-face[aria-hidden="true"] .season-scene *,.season-banner.motion-paused .season-scene * { animation-play-state:paused!important; }
 @media(max-width:359px) { .birthday-copy>span { font-size:9px; } .season-face-birthday>strong { font-size:10.5px; } }
 @media(prefers-reduced-motion:reduce) { .season-scene { display:none; } .season-scene * { animation:none!important; } }
+
+/* Global announcement stays above the app header. */
+.app-shell > .season-banner {margin-top:0;margin-bottom:16px;}
+.booster-shop-drawer > summary {cursor:pointer;list-style:none;}
+.booster-shop-drawer > summary::-webkit-details-marker {display:none;}
+
+.app-shell > .season-banner.season-carousel {width:100vw;max-width:none;margin-left:calc(50% - 50vw);margin-right:0;}

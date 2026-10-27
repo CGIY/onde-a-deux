@@ -20,7 +20,7 @@
 .game-card.art-individual .card-art { transform:none!important; filter:saturate(.82) contrast(.94) brightness(1.04); }
 .game-card .card-art:before,.game-card .card-art:after { content:""; position:absolute; inset:0; pointer-events:none; }
 .game-card .card-art:before { background:#f5dfbf; opacity:.065; }
-.game-card .card-art:after { background-image:var(--surface-grain); background-size:180px 180px; opacity:.4; mix-blend-mode:soft-light; }
+.game-card .card-art:after { background-image:var(--surface-grain); background-size:260px 260px; opacity:.55; mix-blend-mode:soft-light; }
 .game-card.art-individual:is(.finish-foil,.finish-full_art_foil) .card-shine { background-image:repeating-linear-gradient(115deg,#ff83bdaa 0%,#ffe78daa 14%,#79e8cfaa 28%,#88b8ffaa 42%,#d89affaa 56%,#ff9bb9aa 70%,#ffe78daa 84%,#79e8cfaa 100%); mix-blend-mode:screen; filter:saturate(1.4); animation:foil-patina-breathe 7s ease-in-out infinite; }
 .game-card.art-individual:is(.finish-foil,.finish-full_art_foil):before { opacity:.18; }
 @keyframes foil-patina-breathe { 0%,100%{opacity:.42}50%{opacity:.62} }
