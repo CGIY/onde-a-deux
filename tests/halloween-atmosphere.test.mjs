@@ -8,6 +8,7 @@ const bat={classList:{contains:name=>name==="halloween-atmosphere__bat"}};
 const layer={hidden:true,children:[bat],classList:{},replaceChildren(...children){this.children=children;}};
 const document={hidden:false,addEventListener(){},querySelector:()=>layer,createElement:()=>({classList:{contains:()=>false},style:{},remove(){}})};
 const window={};
+runInNewContext(readFileSync(new URL("../cartes/season-dates.js",import.meta.url),"utf8"),{window});
 runInNewContext(readFileSync(new URL("../cartes/halloween-atmosphere.js",import.meta.url),"utf8"),{
   document,window,Date:Clock,Math,matchMedia:()=>({matches:false,addEventListener(){}}),
   setTimeout:()=>++timerId,clearTimeout(){},setInterval(){},

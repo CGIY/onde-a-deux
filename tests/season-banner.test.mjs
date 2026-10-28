@@ -8,10 +8,13 @@ const faces=['Halloween','Anniversaire de Mamamouth','Noël'].map((title,index)=
 const live={},style={};let offscreen=false;
 const region={...handlers(),hidden:false,classList:{contains:()=>offscreen},querySelectorAll:()=>faces,getClientRects:()=>[{}],contains:element=>faces.includes(element)};
 const prism={style:{setProperty:(key,value)=>style[key]=value}};
-const nodes={'#seasonBanner':region,'#seasonPrism':prism,'#seasonAnnouncement':live};doc.querySelector=key=>nodes[key];
+const halloweenCopy={textContent:''};
+const nodes={'#seasonBanner':region,'#seasonPrism':prism,'#seasonAnnouncement':live,'#seasonCopy':halloweenCopy};doc.querySelector=key=>nodes[key];
 const reduce={matches:false,...handlers()};let tick;
-const win={};runInNewContext(source,{document:doc,window:win,matchMedia:()=>reduce,Date:Clock,setInterval:fn=>{tick=fn;}});
+const win={};runInNewContext(readFileSync(new URL('../cartes/season-dates.js',import.meta.url),'utf8'),{window:win});
+runInNewContext(source,{document:doc,window:win,matchMedia:()=>reduce,Date:Clock,setInterval:fn=>{tick=fn;}});
 assert.equal(region.hidden,false);assert.equal(faces[0].inert,false);assert.equal(faces[1].inert,true);
+assert.equal(halloweenCopy.textContent,'27 oct.–1 nov. · 10 exclusives','The banner label comes from the shared season config');
 faces[0].events.click();assert.equal(style['--prism-turn'],'-120deg');assert.match(live.textContent,/Mamamouth/);
 faces[1].events.click();assert.equal(style['--prism-turn'],'-240deg');faces[2].events.click();assert.equal(style['--prism-turn'],'-360deg');
 tick();assert.equal(style['--prism-turn'],'-480deg');

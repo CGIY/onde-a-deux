@@ -6,9 +6,12 @@
   const prism = document.querySelector("#seasonPrism");
   const live = document.querySelector("#seasonAnnouncement");
   const faces = [...region.querySelectorAll("[data-season-event]")];
-  const starts = faces.map(face=>Date.parse(face.dataset?.announceFrom || "2026-10-01T00:00:00+02:00"));
+  const dates = window.SeasonDates;
+  const halloweenCopy=document.querySelector("#seasonCopy");
+  if(halloweenCopy)halloweenCopy.textContent=dates.halloween.label;
+  const starts = [dates.announcementStart, dates.birthday.start, dates.christmas.start];
   const pages = [...region.querySelectorAll(".season-pages i")];
-  const ends = ["2026-11-02T00:00:00+01:00", "2026-11-09T00:00:00+01:00", "2026-12-26T00:00:00+01:00"].map(Date.parse);
+  const ends = [dates.halloween, dates.birthday, dates.christmas].map(event=>event.end);
   const reduce = matchMedia("(prefers-reduced-motion: reduce)");
   let enabled = [0, 1, 2], index = 0, turn = 0, hovering = false, offset = 0;
 

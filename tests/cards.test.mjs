@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 
 // Exercise the real rendering functions without storing fake cards in the app.
 const source = readFileSync(new URL('../cartes/app.js', import.meta.url), 'utf8');
+const seasonalWindow={};
+runInNewContext(readFileSync(new URL('../cartes/season-dates.js', import.meta.url), 'utf8'),{window:seasonalWindow});
 const nodes = new Map();
 const $ = selector => {
   if (!nodes.has(selector)) nodes.set(selector, { value: 'all', textContent: '', innerHTML: '', classList:{toggle:()=>{}},setAttribute:()=>{} });
@@ -25,7 +27,7 @@ const state = { data, role:'AG', collectionTab:'known', category:'all' };
 let now = new Date('2026-10-26T22:59:59Z');
 const helpers=source.slice(source.indexOf('  const markupCache ='),source.indexOf('  const escapeHtml ='));
 const api = runInNewContext(helpers+source.slice(source.indexOf('  function isAvailable('),source.indexOf('  function expireLocalData('))+source.slice(source.indexOf('  function finishLabel'), source.indexOf('  function option(')) + '\n({cardMarkup,renderCollection,collectionCards,halloweenActive,groupCards,finishSymbol,putMarkup,expiryHint})', {
-  cardCountdown:()=>'', $, state, serverNow:()=>now, duration:()=>'', name:()=> 'Mamamouth', escapeHtml:v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'), document:{}
+  cardCountdown:()=>'', $, state, window:seasonalWindow, serverNow:()=>now, duration:()=>'', name:()=> 'Mamamouth', escapeHtml:v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'), document:{}
 });
 api.renderCollection();
 assert.equal($('#knownTabCount').textContent,'3/90');

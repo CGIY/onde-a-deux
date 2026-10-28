@@ -4,8 +4,7 @@
   const layer = document.querySelector("#halloweenAtmosphere");
   if (!layer) return;
 
-  const start = Date.parse("2026-10-27T00:00:00+02:00");
-  const end = Date.parse("2026-11-02T00:00:00+01:00");
+  const {start, end} = window.SeasonDates.halloween;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   let active = false;
   let timer = 0;

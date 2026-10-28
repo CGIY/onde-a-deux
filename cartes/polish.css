@@ -1992,8 +1992,8 @@ body  {
   width:var(--size);
   height:calc(var(--size)*.47);
   color:var(--shade);
-  opacity:.2;
-  filter:drop-shadow(0 2px 3px #53324122);
+  opacity:.29;
+  filter:drop-shadow(0 2px 4px #53324138);
   animation:halloween-atmosphere-flight var(--flight) linear var(--delay) infinite;
 }
 .halloween-atmosphere__bat:nth-child(even) { animation-direction:reverse; }
@@ -2025,7 +2025,7 @@ body  {
   100% { opacity:0;transform:translateY(105vh) scale(1.08) rotate(12deg); }
 }
 @media(prefers-reduced-motion:reduce) {
-  .halloween-atmosphere__bat { animation:none!important;opacity:.12; }
+  .halloween-atmosphere__bat { animation:none!important;opacity:.2; }
   .ambient-wing { animation:none!important; }
   .halloween-blood-drop { display:none!important; }
 }
