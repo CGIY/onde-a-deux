@@ -536,3 +536,85 @@ select:focus-visible, summary:focus-visible {
   .category-filters button, .segmented button, .management-modes button,
   .action-hub-tabs button { transition-duration:.01ms!important; }
 }
+
+/* Mineral palette and proportion pass. Keep glass translucent and the paper grain visible. */
+:root {
+  --mineral-chalk:#f4f2ed;
+  --mineral-limestone:#e7e3da;
+  --mineral-slate:#68716d;
+  --mineral-sage:#7b8a80;
+  --mineral-quartz:#8c8290;
+  --mineral-clay:#9a7867;
+  --surface-tint:linear-gradient(145deg,rgba(250,249,245,.72),rgba(229,231,225,.48));
+  --surface-line:rgba(255,255,255,.78);
+  --surface-lift:0 10px 28px rgba(49,54,50,.075),inset 0 1px rgba(255,255,255,.88);
+}
+.topbar {
+  margin-inline:0;
+  border-radius:var(--glass-radius);
+  border-top-color:rgba(255,255,255,.84);
+  background:linear-gradient(145deg,rgba(250,249,245,.78),rgba(231,230,223,.60));
+  box-shadow:0 8px 24px rgba(48,51,47,.075),inset 0 1px rgba(255,255,255,.9);
+}
+.season-face {
+  background:linear-gradient(108deg,#716254,#56565c);
+  border-color:rgba(255,255,255,.30);
+}
+.season-face-birthday { background:linear-gradient(108deg,#756d79,#5e5e69); }
+.season-face-christmas { background:linear-gradient(108deg,#68776c,#59696c); }
+.season-face>strong { text-shadow:0 1px 3px rgba(25,27,25,.28); }
+.season-face>.season-copy { color:#f2eee6; text-shadow:0 1px 3px rgba(25,27,25,.28); }
+.header-shard-button.wallet-bar {
+  width:max-content;
+  max-width:100%;
+  min-height:46px;
+  margin:12px 0 0;
+  padding:8px 14px;
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:999px;
+  background:linear-gradient(145deg,rgba(250,249,245,.82),rgba(225,227,221,.70));
+  color:#505852;
+  box-shadow:0 6px 18px rgba(49,54,50,.075),inset 0 1px rgba(255,255,255,.92);
+  -webkit-backdrop-filter:blur(18px) saturate(108%);
+  backdrop-filter:blur(18px) saturate(108%);
+}
+.wallet-bar #headerShardCount, .wallet-bar .wallet-label { color:#4e5651; }
+.wallet-bar .wallet-gem { color:#897d8d; font-size:20px; }
+.header-shard-button.wallet-bar .wallet-more { color:#687672; }
+.primary-button, .booster-copy>strong, .trade-actions .accept,
+.economy-buy button:not(:disabled), .bank-submit {
+  background:linear-gradient(145deg,#6f7b73,#59665e);
+  box-shadow:0 5px 14px rgba(43,54,47,.15),inset 0 1px rgba(255,255,255,.32);
+}
+.economy-buy-magician { background:linear-gradient(110deg,#e7e2ebc2,#f7f5f2b5); }
+.economy-buy-pleasure { background:linear-gradient(110deg,#eee2e4c2,#f8f4f1b5); }
+.economy-buy-relax { background:linear-gradient(110deg,#e0e9e2c2,#f5f6f1b5); }
+.economy-buy-assassin { background:linear-gradient(110deg,#e6e2dec2,#f5f3efb5); }
+.economy-buy-druide { background:linear-gradient(110deg,#e2e8ddc2,#f4f5efb5); }
+.economy-buy-voleur { background:linear-gradient(110deg,#e0e7eac2,#f3f5f5b5); }
+.bank-offer-legendary { background:linear-gradient(115deg,#eee8decf,#e8e3eacf,#e2e7e5cf); }
+.segmented .selected, .category-filters .selected,
+.management-modes button.selected, .action-hub-tabs button.selected,
+.bottom-nav .selected {
+  background:linear-gradient(145deg,#fbfaf6,#e6e8e2);
+  color:#48534c;
+}
+.bottom-nav {
+  background:linear-gradient(145deg,rgba(250,249,245,.86),rgba(230,230,223,.76));
+  box-shadow:0 12px 32px rgba(42,46,42,.14),inset 0 1px rgba(255,255,255,.94);
+}
+.bottom-nav button { color:#6d756f; }
+.bottom-nav .selected { color:#48534c; }
+.bank-dialog, .recycle-dialog, .economy-tour, .shard-info-dialog,
+.bulk-recycle-dialog {
+  background:
+    radial-gradient(ellipse at 14% 5%,#e7e5e0,transparent 55%),
+    radial-gradient(ellipse at 85% 90%,#e1e7e1,transparent 60%),
+    linear-gradient(145deg,#faf9f5ef,#eeefeaef);
+}
+@media (hover:hover) and (pointer:fine) {
+  .primary-button:not(:disabled):hover, .trade-actions .accept:hover,
+  .economy-buy button:not(:disabled):hover, .bank-submit:not(:disabled):hover {
+    background:linear-gradient(145deg,#7c8980,#647168);
+  }
+}
