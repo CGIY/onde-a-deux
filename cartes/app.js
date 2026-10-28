@@ -391,15 +391,24 @@
 
   function ritualStakes(card) {
     const finish=card.finish||card.finish_tier||"standard";
-    const value=({full_art:2,foil:3,full_art_foil:6,legendary:10})[finish]||1;
+    const valuesByFinish={
+      standard:{bonus:1,malus:1},
+      full_art:{bonus:2,malus:2},
+      foil:{bonus:3,malus:3},
+      full_art_foil:{bonus:6,malus:6},
+      legendary:{bonus:10,malus:10}
+    };
+    const {bonus,malus}=valuesByFinish[finish]||valuesByFinish.standard;
+    const shardUnit=value=>value===1?"Éclat":"Éclats";
     const shared=Boolean(card.joint_ritual);
     const noPenalty=!shared&&card.economy_eligible===false;
-    const loss=noPenalty?"Sans malus":`−${value}`;
-    const unit=shared?"Éclats pour chaque joueur":"Éclats";
+    const success=`+${bonus} ${shardUnit(bonus)}`;
+    const loss=noPenalty?"Sans malus":`−${malus} ${shardUnit(malus)}`;
+    const unit=shared?"pour chaque joueur":"";
     const successLabel=shared?"RÉUSSI · CHACUN":"RÉALISÉ";
     const failureLabel=shared?"NON RÉALISÉ · CHACUN":noPenalty?"SI NON FAIT":"NON FAIT";
-    const accessible=`Défi réalisé : +${value} ${unit}. ${noPenalty?"Défi non réalisé : aucun malus.":`Défi non réalisé : −${value} ${unit}.`}${shared?" Défi sans réponse : aucun changement d’Éclats.":""}`;
-    return `<div class="ritual-stakes${shared?" is-shared":""}${noPenalty?" no-penalty":""}" role="note" aria-label="${accessible}"><span class="ritual-stakes-mark">${icon("sparkle")}</span><span class="ritual-stakes-result"><small>${successLabel}</small><strong>+${value}</strong></span><span class="ritual-stakes-divider" aria-hidden="true"></span><span class="ritual-stakes-result ${noPenalty?"is-safe":"is-risk"}"><small>${failureLabel}</small><strong>${loss}</strong></span></div>`;
+    const accessible=`Défi réalisé : ${success} ${unit}. ${noPenalty?"Défi non réalisé : aucun malus.":`Défi non réalisé : ${loss} ${unit}.`}${shared?" Défi sans réponse : aucun changement d’Éclats.":""}`;
+    return `<div class="ritual-stakes${shared?" is-shared":""}${noPenalty?" no-penalty":""}" role="note" aria-label="${accessible}"><span class="ritual-stakes-mark">${icon("sparkle")}</span><span class="ritual-stakes-result"><small>${successLabel}</small><strong>${success}</strong></span><span class="ritual-stakes-divider" aria-hidden="true"></span><span class="ritual-stakes-result ${noPenalty?"is-safe":"is-risk"}"><small>${failureLabel}</small><strong>${loss}</strong></span></div>`;
   }
 
   function renderToday() {
