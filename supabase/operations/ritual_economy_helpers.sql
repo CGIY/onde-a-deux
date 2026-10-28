@@ -3,7 +3,7 @@ alter table public.tcg_cards add column if not exists economy_eligible boolean n
 
 create table if not exists public.tcg_economy_wallets (
   role text primary key references public.tcg_players(role),
-  balance integer not null default 0 check (balance >= -12),
+  balance integer not null default 0 check (balance >= -50),
   updated_at timestamptz not null default now()
 );
 insert into public.tcg_economy_wallets(role) values ('AG'),('CL') on conflict(role) do nothing;
@@ -72,18 +72,22 @@ language sql stable set search_path=public,pg_temp as $$
     * case when p_expires-p_at <= interval '24 hours' then 0.5 when p_expires-p_at <= interval '3 days' then 0.75 else 1 end)::integer);
 $$;
 create or replace function public.tcg_economy_apply(p_role text,p_amount integer,p_type text,p_card uuid default null,p_detail jsonb default '{}'::jsonb)
-returns integer language plpgsql set search_path=public,pg_temp as $$
-declare old_balance integer; new_balance integer;
+returns integer language plpgsql set search_path=public,pg_temp as $
+declare old_balance integer; new_balance integer; applied_amount integer;
 begin
   select balance into old_balance from public.tcg_economy_wallets where role=p_role for update;
   if old_balance is null then raise exception 'wallet_unavailable'; end if;
-  new_balance:=greatest(-12,old_balance+p_amount);
+  applied_amount:=case
+    when p_amount < 0 and p_type in ('ritual_passed','ritual_rejected','ritual_expired') then p_amount*5
+    else p_amount
+  end;
+  new_balance:=greatest(-50,old_balance+applied_amount);
   update public.tcg_economy_wallets set balance=new_balance,updated_at=now() where role=p_role;
   insert into public.tcg_economy_events(role,event_type,card_id,amount,balance_after,detail)
     values(p_role,p_type,p_card,new_balance-old_balance,new_balance,p_detail);
   return new_balance;
 end;
-$$;
+$;
 create or replace function public.tcg_economy_tick() returns void
 language plpgsql set search_path=public,pg_temp as $$
 declare c record; claim record;
@@ -96,7 +100,7 @@ begin
     insert into public.tcg_ritual_claims(card_id,owner_role,status,claimed_at,resolved_at)
       values(c.id,c.owner_role,'expired',now(),now()) on conflict(card_id) do nothing;
     if found then
-      perform public.tcg_economy_apply(c.owner_role,case when c.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_expired',c.id);
+      perform public.tcg_economy_apply(c.owner_role,-public.tcg_ritual_value(c.finish),'ritual_expired',c.id);
     end if;
   end loop;
   for claim in select card_id,owner_role from public.tcg_ritual_claims
@@ -131,7 +135,7 @@ begin
     else
       insert into public.tcg_ritual_claims(card_id,owner_role,status,resolved_at) values(c.id,p_role,'passed',now());
       update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id;
-      perform public.tcg_economy_apply(p_role,case when not c.economy_eligible or t.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_passed',c.id);
+      perform public.tcg_economy_apply(p_role,case when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end,'ritual_passed',c.id);
     end if;
   elsif p_action='ritual_review' then
     begin select * into claim from public.tcg_ritual_claims where card_id=(p_payload->>'card_id')::uuid for update;
@@ -141,7 +145,7 @@ begin
     select * into c from public.tcg_cards where id=claim.card_id for update;
     select * into t from public.tcg_card_templates where id=c.template_id;
     v_price:=case when p_payload->>'decision'='approve' then public.tcg_ritual_value(c.finish)
-      when not c.economy_eligible or t.category='MISE À NUE' then 0 else -public.tcg_ritual_value(c.finish) end;
+      when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end;
     update public.tcg_ritual_claims set status=case when v_price>0 then 'approved' else 'rejected' end,
       resolved_at=now(),amount=v_price where card_id=c.id;
     update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id and status='activated';
