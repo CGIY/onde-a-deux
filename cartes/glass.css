@@ -692,3 +692,13 @@ select:focus-visible, summary:focus-visible {
     background:linear-gradient(145deg,#7c8980,#647168);
   }
 }
+
+
+/* Calm editorial header: keep the masthead clear of the floating glass surfaces. */
+.topbar {
+  position:relative; top:auto; z-index:auto; margin:0;
+  padding:20px 0 18px; border:0;
+  border-bottom:1px solid color-mix(in srgb,#6b5c4d 16%,transparent);
+  border-radius:0; background:transparent; box-shadow:none;
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
