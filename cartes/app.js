@@ -137,6 +137,7 @@
     bank_used_today: "La Banque a déjà réalisé un échange aujourd’hui.",
     bank_invalid_ingredients: "Ces cartes ne correspondent pas à la recette.",
     bank_no_offer: "Aucune carte éligible n’est disponible pour ce tirage.",
+    invalid_joint_choice: "Choisis un défi commun compatible dans la liste.",
     invalid_request: "La demande n’a pas pu être comprise.",
     network_error: "Connexion interrompue. Vérifie ton réseau puis réessaie.",
     profile_changed: "Le profil a changé. Réessaie depuis ce profil.",
@@ -243,11 +244,12 @@
   }
 
   const CARD_ART_BASE = "assets/cards-v3/";
-  const CARD_ART = {"autre-cadeau-ville":"autre-cadeau-ville","autre-cadeau-vinted":"autre-cadeau-vinted","autre-massage-cuisses":"autre-massage-cuisses","autre-massage-dos":"autre-massage-dos","autre-massage-epaules":"autre-massage-epaules","autre-massage-tete":"autre-massage-tete","autre-massage-visage":"autre-massage-visage","autre-mot-doux":"autre-mot-doux","couple-aquarelle":"couple-aquarelle","couple-balade-rapide":"couple-balade","couple-dessin":"couple-dessin","couple-film":"couple-film","couple-gateau":"couple-gateau","couple-jeu-societe":"couple-jeu","couple-serie":"couple-serie","couple-tour-ville":"couple-tour-ville","energy-bisou":"energy-bisou","fa-autre-cadeau-20":"autre-cadeau-20","fa-autre-cadeau-25":"autre-cadeau-25","fa-couple-choix-activite":"couple-choix-activite","fa-couple-repas-complet":"couple-repas-complet","fa-foodies-repas-choix-paye":"foodies-repas-choix-paye","fa-foodies-repas-choix-prepare":"foodies-repas-choix-prepare","fa-nue-anal":"nue-anal","fa-nue-fessees-filmees":"nue-fessees","fa-nue-reddit-boobs":"nue-reddit-boobs","fa-nue-reproduction-porno":"nue-porno-1-1","fa-nue-webcam-boobs":"nue-webcam-boobs","fa-todo-impose-tache":"todo-impose-tache","faf-autre-cadeau-100":"autre-cadeau-100","faf-couple-super-sortie":"couple-super-sortie","faf-couple-weekend":"couple-weekend","faf-nue-achat-scandale":"nue-achat-scandale","faf-nue-golden-shower":"nue-golden-shower","faf-nue-gros-sextoy":"nue-gros-sextoy","faf-nue-reddit-faciale":"nue-reddit-faciale","faf-nue-roleplay-violent":"nue-roleplay","faf-nue-webcam-faciale":"nue-webcam-faciale","foil-autre-cadeau-50":"autre-cadeau-50","foil-autre-massage-complet":"autre-massage-complet","foil-couple-marathon":"couple-marathon","foil-couple-soiree-theme":"couple-soiree-theme","foil-couple-sortie-choisie":"couple-sortie-choisie","foil-foodies-dessert-luxe":"foodies-dessert-luxe","foil-foodies-plat-luxe":"foodies-plat-luxe","foil-foodies-restaurant":"foodies-restaurant","foil-nue-blowjob-eglise":"nue-blowjob-eglise","foil-nue-petit-sextoy":"nue-petit-sextoy","foil-nue-porno-hardcore":"nue-porno-hardcore","foil-nue-reddit-pussy":"nue-reddit-pussy","foil-nue-site-echangiste":"nue-site-echangiste","foil-nue-soumission":"nue-soumission","foil-nue-webcam-pussy":"nue-webcam-pussy","foil-todo-refaire-piece":"todo-refaire-piece","foodies-apero":"foodies-apero","foodies-cafe-ville":"foodies-cafe","foodies-fast-food":"foodies-fast-food","foodies-gateau":"foodies-gateau","hw-autre-cadeau-666":"autre-cadeau-666","hw-couple-film-horreur":"couple-film-horreur","hw-couple-urbex":"couple-urbex","hw-energy-griffure":"energy-griffure","hw-energy-morsure":"energy-morsure","hw-fa-foodies-repas":"foodies-repas-effrayant","hw-foil-autre-cadeau-66":"autre-cadeau-66","hw-foil-nue-faciale-eglise":"nue-faciale-eglise","hw-foodies-gateau":"foodies-gateau-halloween","hw-nue-photo-horreur":"nue-photo-horreur","joker-annulation":"joker","legend-couple":"couple-legendaire","legend-foodies":"foodies-legendaire","legend-nude":"nue-legendaire","legend-other":"autre-legendaire","legend-todo":"todo-legendaire","nue-assise-visage":"nue-assise-visage","nue-avaler":"nue-avaler","nue-faciale":"nue-faciale","nue-grosse-levrette":"nue-grosse-levrette","nue-leche-partenaire":"nue-leche","nue-massage-nuru":"nue-massage-nuru","nue-photo-apres-sport":"nue-photo-sport","nue-photo-berlin":"nue-photo-berlin","nue-photo-cuisine":"nue-photo-cuisine","nue-photo-douche-vapeur":"nue-photo-douche","nue-photo-linge":"nue-photo-linge","nue-photo-neon":"nue-photo-neon","nue-photo-pluie":"nue-photo-pluie","nue-photo-star-wars":"nue-photo-starwars","nue-suce-partenaire":"nue-suce","spell-adagio":"spell-adagio","spell-augmento":"spell-augmento","spell-destructo":"spell-destructo","spell-presto":"spell-presto","spell-reducto":"spell-reducto","todo-linge":"todo-linge","todo-machine":"todo-machine","todo-piece":"todo-piece","todo-placard":"todo-placard","todo-poubelles":"todo-poubelles","todo-vaisselle":"todo-vaisselle"};
+  const CARD_ART = {"autre-cadeau-ville":"autre-cadeau-ville","autre-cadeau-vinted":"autre-cadeau-vinted","autre-massage-cuisses":"autre-massage-cuisses","autre-massage-dos":"autre-massage-dos","autre-massage-epaules":"autre-massage-epaules","autre-massage-tete":"autre-massage-tete","autre-massage-visage":"autre-massage-visage","autre-mot-doux":"autre-mot-doux","couple-aquarelle":"couple-aquarelle","couple-balade-rapide":"couple-balade","couple-dessin":"couple-dessin","couple-film":"couple-film","couple-gateau":"couple-gateau","couple-jeu-societe":"couple-jeu","couple-serie":"couple-serie","couple-tour-ville":"couple-tour-ville","energy-bisou":"energy-bisou","fa-autre-cadeau-20":"autre-cadeau-20","fa-autre-cadeau-25":"autre-cadeau-25","fa-couple-choix-activite":"couple-choix-activite","fa-couple-repas-complet":"couple-repas-complet","fa-foodies-repas-choix-paye":"foodies-repas-choix-paye","fa-foodies-repas-choix-prepare":"foodies-repas-choix-prepare","fa-nue-anal":"nue-anal","fa-nue-fessees-filmees":"nue-fessees","fa-nue-reddit-boobs":"nue-reddit-boobs","fa-nue-reproduction-porno":"nue-porno-1-1","fa-nue-webcam-boobs":"nue-webcam-boobs","fa-todo-impose-tache":"todo-impose-tache","faf-autre-cadeau-100":"autre-cadeau-100","faf-couple-super-sortie":"couple-super-sortie","faf-couple-weekend":"couple-weekend","faf-nue-achat-scandale":"nue-achat-scandale","faf-nue-golden-shower":"nue-golden-shower","faf-nue-gros-sextoy":"nue-gros-sextoy","faf-nue-reddit-faciale":"nue-reddit-faciale","faf-nue-roleplay-violent":"nue-roleplay","faf-nue-webcam-faciale":"nue-webcam-faciale","foil-autre-cadeau-50":"autre-cadeau-50","foil-autre-massage-complet":"autre-massage-complet","foil-couple-marathon":"couple-marathon","foil-couple-soiree-theme":"couple-soiree-theme","foil-couple-sortie-choisie":"couple-sortie-choisie","foil-foodies-dessert-luxe":"foodies-dessert-luxe","foil-foodies-plat-luxe":"foodies-plat-luxe","foil-foodies-restaurant":"foodies-restaurant","foil-nue-blowjob-eglise":"nue-blowjob-eglise","foil-nue-petit-sextoy":"nue-petit-sextoy","foil-nue-porno-hardcore":"nue-porno-hardcore","foil-nue-reddit-pussy":"nue-reddit-pussy","foil-nue-site-echangiste":"nue-site-echangiste","foil-nue-soumission":"nue-soumission","foil-nue-webcam-pussy":"nue-webcam-pussy","foil-todo-refaire-piece":"todo-refaire-piece","foodies-apero":"foodies-apero","foodies-cafe-ville":"foodies-cafe","foodies-fast-food":"foodies-fast-food","foodies-gateau":"foodies-gateau","hw-autre-cadeau-666":"autre-cadeau-666","hw-couple-film-horreur":"couple-film-horreur","hw-couple-urbex":"couple-urbex","hw-energy-griffure":"energy-griffure","hw-energy-morsure":"energy-morsure","hw-fa-foodies-repas":"foodies-repas-effrayant","hw-foil-autre-cadeau-66":"autre-cadeau-66","hw-foil-nue-faciale-eglise":"nue-faciale-eglise","hw-foodies-gateau":"foodies-gateau-halloween","hw-nue-photo-horreur":"nue-photo-horreur","joker-annulation":"joker","legend-couple":"couple-legendaire","legend-foodies":"foodies-legendaire","legend-nude":"nue-legendaire","legend-other":"autre-legendaire","legend-todo":"todo-legendaire","nue-assise-visage":"nue-assise-visage","nue-avaler":"nue-avaler","nue-faciale":"nue-faciale","nue-grosse-levrette":"nue-grosse-levrette","nue-leche-partenaire":"nue-leche","nue-massage-nuru":"nue-massage-nuru","nue-photo-apres-sport":"nue-photo-sport","nue-photo-berlin":"nue-photo-berlin","nue-photo-cuisine":"nue-photo-cuisine","nue-photo-douche-vapeur":"nue-photo-douche","nue-photo-linge":"nue-photo-linge","nue-photo-neon":"nue-photo-neon","nue-photo-pluie":"nue-photo-pluie","nue-photo-star-wars":"nue-photo-starwars","nue-suce-partenaire":"nue-suce","spell-adagio":"spell-adagio","spell-augmento":"spell-augmento","spell-destructo":"spell-destructo","spell-presto":"spell-presto","spell-reducto":"spell-reducto","todo-linge":"todo-linge","todo-machine":"todo-machine","todo-piece":"todo-piece","todo-placard":"todo-placard","todo-poubelles":"todo-poubelles","todo-vaisselle":"todo-vaisselle","autre-mission-dehors":"autre-mission-dehors","autre-vetement-impose":"autre-vetement-impose","couple-objet-absurde":"couple-objet-absurde","autre-aliment-interdit":"autre-aliment-interdit","fa-autre-objet-cache":"fa-autre-objet-cache","fa-couple-photo-reproduite":"fa-couple-photo-reproduite","fa-couple-capsule-temporelle":"fa-couple-capsule-temporelle","fa-couple-defi-simultane":"fa-couple-defi-simultane","couple-argile":"couple-argile","todo-decoration-theme":"todo-decoration-theme","fa-nue-photo-foret":"fa-nue-photo-foret","nue-photo-bdsm":"nue-photo-bdsm","nue-photo-ahegao":"nue-photo-ahegao","fa-nue-photo-anal-play":"fa-nue-photo-anal-play","faf-nue-journee-envies":"faf-nue-journee-envies","couple-portrait-aveugle":"couple-portrait-aveugle","couple-playlist-secrete":"couple-playlist-secrete","couple-interview-improbable":"couple-interview-improbable","autre-origami-messager":"autre-origami-messager","todo-objet-detourne":"todo-objet-detourne","foodies-cocktail-mystere":"foodies-cocktail-mystere","couple-mot-interdit":"couple-mot-interdit","couple-carte-postale":"couple-carte-postale","fa-couple-minute-cinema":"fa-couple-minute-cinema","fa-couple-mini-escape":"fa-couple-mini-escape","nue-trois-baisers":"nue-trois-baisers","nue-bougie-massage":"nue-bougie-massage","iris-cadeau-5":"iris-cadeau-5","iris-cadeau-10":"iris-cadeau-10","iris-livre-10":"iris-livre-10","iris-vetement-10":"iris-vetement-10","iris-depense-30":"iris-depense-30"};
   function cardArtStyle(card) {
     const slug = CARD_ART[card.template_id || card.id];
     if (!slug) return "";
-    return ` style="background-image:url('${CARD_ART_BASE}${slug}.webp'),url('assets/card-atlas.webp');background-size:cover,400% 200%;background-position:center,var(--art-x) var(--art-y)"`;
+    // Do not reveal the legacy atlas while the individual illustration loads.
+    return ` style="background-image:url('${CARD_ART_BASE}${slug}.webp');background-size:cover;background-position:center"`;
   }
 
   function cardMarkup(card, options = {}) {
@@ -378,6 +380,14 @@
     attachFoilMotion(stackDialog);
   }
 
+  function ritualActions(card) {
+    const shared=card.joint_ritual;
+    const ask=`<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>`;
+    const review=`<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>`;
+    if(shared) return `<span class="ritual-pending">Défi simultané · ${shared.my_status==='approved'?'Ta participation est validée':shared.my_status==='pending'?'Ta participation attend validation':'À réaliser tous les deux'}</span>${shared.can_complete?ask:''}${shared.can_review?review:''}`;
+    return card.ritual_claim_status==='pending' ? card.owner_role!==state.role ? '<span class="ritual-pending">En attente de validation</span>' : review : card.owner_role!==state.role ? ask : '';
+  }
+
   function renderToday() {
     const data = state.data;
     const pending = data.pending_openings || [];
@@ -400,14 +410,14 @@
     const packMarkup=booster=>`
       <button class="booster-item" type="button" data-booster-id="${escapeHtml(booster.id)}">
         <span class="mini-pack pack-${packKind(booster)}${isHalloween(booster) ? " pack-halloween" : ""}" aria-hidden="true"><i>${({classic:'',magician:'☾',pleasure:'♡',relax:'❧'})[packKind(booster)]}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster) ? "HALLOWEEN · " : ""}${packName(booster)} · 5 SURPRISES</small></span>
-        <span class="booster-copy"><span class="pack-owner">${booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">${packName(booster)} · Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
+        <span class="booster-copy"><span class="pack-owner">${booster.is_halloween_morning ? `<b class="gift-badge">Matin Halloween · chances boostées</b>` : booster.is_birthday ? `<b class="gift-badge">Anniversaire · offert</b>` : booster.is_test ? `<b class="gift-badge">Offert</b>` : booster.is_economy ? `<b class="gift-badge">${packName(booster)} · Éclats</b>` : `Pour ${escapeHtml(name(state.role))}`}</span><strong>Ouvrir mon booster ${icon("arrow")}</strong><small>5 surprises · expire dans <b data-until="${escapeHtml(booster.expires_at)}">${duration(booster.expires_at)}</b></small></span>
       </button>`;
     const stacked=data.boosters.length>1;
     const packList=stacked?`<div class="booster-pile" aria-label="${data.boosters.length} boosters disponibles. Celui qui expire en premier est devant.">${data.boosters.slice(1,3).reverse().map((booster,i)=>`<span class="mini-pack pack-underlay pack-${packKind(booster)}${isHalloween(booster)?' pack-halloween':''}" style="--pile-x:${(2-i)*12}px;--pile-y:${(2-i)*-8}px;--pile-rotate:${-7+(2-i)*5}deg" aria-hidden="true"><i>${({classic:'',magician:'☾',pleasure:'♡',relax:'❧'})[packKind(booster)]}</i><strong>Les Cartes</strong><em>à deux.</em><small>${isHalloween(booster)?'HALLOWEEN · ':''}${packName(booster)} · 5 SURPRISES</small></span>`).join('')}${packMarkup(data.boosters[0])}<span class="booster-pile-count" aria-hidden="true">×${data.boosters.length}</span></div>`:data.boosters.length?packMarkup(data.boosters[0]):pending.length?"":`<button class="text-button" type="button" data-go-collection>Ma collection →</button>`;
     putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("")+packList);
 
     putMarkup("#activeCards", data.active_cards.length
-      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.ritual_claim_status==='pending' ? card.owner_role!==state.role ? '<span class="ritual-pending">En attente de validation</span>' : `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : card.owner_role !== state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>` : ""}</div>`).join("")
+      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${ritualActions(card)}</div>`).join("")
       : `<div class="table-empty"><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 
@@ -741,9 +751,10 @@
     state.viewerCardId = card.id || null;
     state.viewerTemplateId = card.template_id;
     const active = card.active_until && new Date(card.active_until) > serverNow();
-    const canComplete = active && card.owner_role === state.data.partner_role && !card.ritual_claim_status && state.data.active_cards.some(item=>item.id===card.id);
-    const canReview = card.owner_role === state.role && card.ritual_claim_status==='pending' && state.data.active_cards.some(item=>item.id===card.id);
-    const ownership = active || card.ritual_claim_status==='pending' ? `À réaliser par ${card.owner_role===state.role?name(state.data.partner_role):"toi"}` : isMine ? card.status === "trading" ? "Réservée pour un échange" : "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
+    const joint = card.joint_ritual;
+    const canComplete = joint ? joint.can_complete : active && card.owner_role === state.data.partner_role && !card.ritual_claim_status && state.data.active_cards.some(item=>item.id===card.id);
+    const canReview = joint ? joint.can_review : card.owner_role === state.role && card.ritual_claim_status==='pending' && state.data.active_cards.some(item=>item.id===card.id);
+    const ownership = joint ? "Défi simultané · pour vous deux" : active || card.ritual_claim_status==='pending' ? `À réaliser par ${card.owner_role===state.role?name(state.data.partner_role):"toi"}` : isMine ? card.status === "trading" ? "Réservée pour un échange" : "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
     const jokerTargets = isJoker && isMine
       ? state.data.active_cards.filter(target => target.owner_role === state.data.partner_role && new Date(target.active_until)>serverNow())
       : [];
@@ -753,6 +764,7 @@
         : `<p>Aucune carte active de ${escapeHtml(name(state.data.partner_role))} ne peut être annulée pour l’instant.</p>`
       : "";
     const legendaryAction = isLegendary && canActivate ? `<label class="joker-target">Ton défi au choix<select id="legendaryChoiceSelect">${legendaryChoices.map(choice=>`<option value="${escapeHtml(choice.id)}">${escapeHtml(choice.title)}</option>`).join("")}</select></label>` : "";
+    const jointChoice = canActivate && card.template_id==='fa-couple-defi-simultane' ? `<label class="joker-target">Défi commun<select id="jointChoiceSelect" aria-label="Défi commun">${(state.data.joint_options||[]).map(choice=>`<option value="${escapeHtml(choice.id)}">${escapeHtml(choice.title)}</option>`).join('')}</select></label><p class="joint-rule">Deux participations à valider. Si l’un abandonne, les deux perdent des Éclats.</p>` : '';
     const targets = isSpell && isMine ? spellTargets(card) : [];
     const spellAction = isSpell && isMine && isAvailable(card)
       ? targets.length ? `<label class="joker-target">${card.spell_code === "destructo" ? "Carte connue dans la main adverse" : "Rituel adverse à cibler"}<select id="spellTargetSelect">${targets.map(target=>`<option value="${escapeHtml(target.id)}">${escapeHtml(target.title)} · ${duration(target.active_until || target.expires_at)}</option>`).join("")}</select></label><button class="primary-button" type="button" data-use-spell="${escapeHtml(card.id)}">Lancer ${escapeHtml(card.title)}</button>`
@@ -761,8 +773,9 @@
     $("#cardDialogContent").innerHTML = `<div class="viewer-card" id="viewerCard">${cardMarkup(card, { timer: card.active_until || (isAvailable(card) ? card.expires_at : null), muted: !card.id })}</div>
       <div class="viewer-nav"><button class="round-button" data-viewer-prev aria-label="Carte précédente" ${state.viewerIndex === 0 ? "disabled" : ""}>${icon("back")}</button><span>${state.viewerIndex + 1} / ${state.viewerCards.length}<small>Glisse pour feuilleter</small></span><button class="round-button" data-viewer-next aria-label="Carte suivante" ${state.viewerIndex >= state.viewerCards.length - 1 ? "disabled" : ""}>${icon("arrow")}</button></div>
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p class="detail-challenge">${escapeHtml(card.challenge)}</p>
-      ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
+      ${jokerAction}${spellAction}${legendaryAction}${jointChoice}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
       ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi</button>` : ""}
+      ${joint ? `<p class="ritual-pending">${escapeHtml(joint.choice_title)} · ${joint.my_status==='approved'?'Ta participation est validée':joint.my_status==='pending'?'Ta participation attend validation':'Ta participation reste à réaliser'}</p>` : ''}
       ${card.ritual_claim_status==='pending' && card.owner_role!==state.role ? '<p class="ritual-pending">En attente de l’autre joueur.</p>' : ''}
       ${canReview ? `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider le défi ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : ''}
       ${isMine && isAvailable(card) ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" data-recycle-card="${escapeHtml(card.id)}">${icon("scissors")}Recycler</button></div>` : ""}</div>`;
@@ -773,6 +786,12 @@
       const picker=document.createElement("button");picker.type="button";picker.className="target-picker";picker.dataset.targetPicker=kind;picker.dataset.targetCard=card.id;
       const update=()=>{const option=select.selectedOptions[0];picker.innerHTML=`<span>${escapeHtml(option?.textContent || "Choisir")}</span>${icon("cards")}`;updateSpellPreview(card,select.value);};
       select.after(picker);select.addEventListener("change",update);update();
+    }
+    const jointSelect=$("#jointChoiceSelect");
+    if(jointSelect){
+      const saved=state.jointChoices?.[card.id];
+      if(saved && [...jointSelect.options].some(option=>option.value===saved))jointSelect.value=saved;
+      jointSelect.addEventListener('change',()=>{state.jointChoices||={};state.jointChoices[card.id]=jointSelect.value;});
     }
     attachFoilMotion(cardDialog);
     const choiceSelect = $("#legendaryChoiceSelect");
@@ -1278,7 +1297,8 @@
     }
     const complete = event.target.closest("[data-complete-card]");
     if (complete) {
-      if (!await confirmAction("Défi réalisé ?", "L’autre joueur recevra une demande de validation. Tu recevras les Éclats après sa confirmation.")) return;
+      const shared=Boolean(state.data.active_cards.find(card=>card.id===complete.dataset.completeCard)?.joint_ritual);
+      if (!await confirmAction(shared?"Ta participation est réalisée ?":"Défi réalisé ?", shared?"L’autre joueur validera ta participation. Les bonus arriveront après la réussite des deux joueurs.":"L’autre joueur recevra une demande de validation. Tu recevras les Éclats après sa confirmation.")) return;
       const done = contextualBusy(complete,"Demande…");
       try {
         await exchange("complete_card", {card_id:complete.dataset.completeCard});
@@ -1291,15 +1311,17 @@
     const review=event.target.closest('[data-ritual-review]');
     if(review){
       const decision=review.dataset.ritualReview;
-      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés à l’autre joueur.':'Le malus s’appliquera à l’autre joueur.'))return;
+      const shared=Boolean(state.data.active_cards.find(card=>card.id===review.dataset.cardId)?.joint_ritual);
+      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',shared?(decision==='approve'?'Tu valides sa participation. Les bonus seront versés quand les deux auront réussi.':'Le malus sera appliqué aux deux joueurs.'):(decision==='approve'?'Les Éclats seront accordés à l’autre joueur.':'Le malus s’appliquera à l’autre joueur.')))return;
       const done=contextualBusy(review,'Un instant…');
-      try {await exchange('ritual_review',{card_id:review.dataset.cardId,decision});if(cardDialog.open)cardDialog.close();render();feedback(decision==='approve'?'rare':'card');toast(decision==='approve'?'Défi validé · Éclats accordés.':'Défi non validé.');}
+      try {await exchange('ritual_review',{card_id:review.dataset.cardId,decision});if(cardDialog.open)cardDialog.close();render();feedback(decision==='approve'?'rare':'card');toast(shared?(decision==='approve'?'Participation validée.':'Défi partagé non réalisé.'):decision==='approve'?'Défi validé · Éclats accordés.':'Défi non validé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
       return;
     }
     const pass=event.target.closest('[data-ritual-pass]');
     if(pass){
-      if(!await confirmAction('Laisser passer ce défi ?', 'La carte quittera la table et le malus s’appliquera selon sa rareté.'))return;
+      const shared=Boolean(state.data.active_cards.find(card=>card.id===pass.dataset.ritualPass)?.joint_ritual);
+      if(!await confirmAction('Laisser passer ce défi ?', shared?'Le défi partagé se termine : le malus s’appliquera aux deux joueurs.':'La carte quittera la table et le malus s’appliquera selon sa rareté.'))return;
       const done=contextualBusy(pass,'Un instant…');
       try {await exchange('ritual_pass',{card_id:pass.dataset.ritualPass});if(cardDialog.open)cardDialog.close();render();toast('Rituel terminé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
@@ -1375,11 +1397,11 @@
     }
     const activate = event.target.closest("[data-activate-card]");
     if (activate) {
-      if (!await confirmAction("On la joue ?", "Cette carte rejoint votre table pour 24 heures.")) return;
+      if (!await confirmAction("On la joue ?", $("#jointChoiceSelect") ? "Défi partagé : deux participations, deux validations. Un abandon pénalise les deux joueurs." : "Cette carte rejoint votre table pour 24 heures.")) return;
       const ghost = captureCardGhost();
       const done = contextualBusy(activate,"Activation…");
       try {
-        await exchange("activate_card", { card_id: activate.dataset.activateCard, ...($("#legendaryChoiceSelect") ? {choice_template_id:$("#legendaryChoiceSelect").value} : {}) });
+        await exchange("activate_card", { card_id: activate.dataset.activateCard, ...(($("#jointChoiceSelect") || $("#legendaryChoiceSelect")) ? {choice_template_id:($("#jointChoiceSelect") || $("#legendaryChoiceSelect")).value} : {}) });
         cardDialog.close(); render();
         setView("today");
         flyToTable(ghost, activate.dataset.activateCard);

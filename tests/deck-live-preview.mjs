@@ -8,11 +8,14 @@ async function createPreviewDatabase(){
   const instance=await createDeckDatabase();
   await instance.exec(await readFile(new URL('../supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql',import.meta.url),'utf8'));
   await instance.exec(await readFile(new URL('../supabase/operations/current_tcg_rules.sql',import.meta.url),'utf8'));
+  await instance.exec(await readFile(new URL('../supabase/operations/halloween_launch_2026.sql',import.meta.url),'utf8'));
   await instance.exec("create or replace function public.tcg_push_notify(text,text,text,text) returns void language sql as $$ select; $$;");
   const repairs=await readFile(new URL('../supabase/operations/audit_helper_push_repairs.sql',import.meta.url),'utf8');
   await instance.exec(repairs.slice(0,repairs.indexOf('alter table public.tcg_push_sent')));
   await instance.exec(await readFile(new URL('../supabase/operations/rebalance_economy_v26.sql',import.meta.url),'utf8'));
   await instance.exec(await readFile(new URL('../supabase/operations/ritual_performer_v27.sql',import.meta.url),'utf8'));
+  await instance.exec(await readFile(new URL('../supabase/operations/new_cards_and_joint_v28.sql',import.meta.url),'utf8'));
+  await instance.exec(await readFile(new URL('../supabase/operations/halloween_morning_v28.sql',import.meta.url),'utf8'));
   await instance.exec("insert into public.tcg_player_devices(role,device_token_hash) values ('AG',encode(extensions.digest(convert_to(repeat('a',48),'UTF8'),'sha256'),'hex')),('CL',encode(extensions.digest(convert_to(repeat('b',48),'UTF8'),'sha256'),'hex'));");
   await instance.exec("update public.tcg_economy_wallets set balance=60,updated_at=now() where role in ('AG','CL');");
   for(const role of ['AG','CL']){
@@ -29,6 +32,13 @@ async function createPreviewDatabase(){
       select id,$1,'standard',91,'activated',now()-interval '2 hours',now()+interval '22 hours',now()+interval '7 days',true
       from public.tcg_card_templates where category='EN COUPLE' and card_type='challenge' and finish_tier='standard' and active and not demo
       order by id limit 1`,[role]);
+  }
+  if(process.env.TCG_PREVIEW_CATALOGUE==='1'){
+    const extra=JSON.parse(await readFile(new URL('../docs/new-cards-v28.json',import.meta.url),'utf8'));
+    for(const entry of extra){
+      await instance.query("insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,expires_at) values($1,'AG',$2,100,now()+interval '7 days')",[entry.id,entry.finish_tier]);
+      await instance.query("insert into public.tcg_discoveries(role,template_id) values('AG',$1) on conflict do nothing",[entry.id]);
+    }
   }
   return instance;
 }

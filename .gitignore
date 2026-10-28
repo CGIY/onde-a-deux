@@ -1,2 +1,5 @@
 output/card-art-v3/*.png
 output/card-art-v3/exports-jpg/
+
+output/card-art-v4/*.png
+output/card-art-v4/generated-paths.json

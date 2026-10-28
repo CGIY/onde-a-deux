@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createDeckDatabase} from './deck-local-db.mjs';
+const db=await createDeckDatabase(),read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
+try{
+ await db.exec(await read('supabase/migrations/20261027104826_ritual_economy_bank_five_rewards.sql'));
+ await db.exec(await read('supabase/operations/current_tcg_rules.sql'));
+ await db.exec("create or replace function public.tcg_push_notify(text,text,text,text) returns void language sql as $$ select; $$;");
+ await db.exec(await read('supabase/operations/ritual_performer_v27.sql'));
+ await db.exec(await read('supabase/operations/new_cards_and_joint_v28.sql'));
+ await db.exec(await read('supabase/operations/new_cards_and_joint_v28.sql'));
+ const tokens={AG:'a'.repeat(48),CL:'b'.repeat(48)};
+ for(const role of ['AG','CL'])await db.query("insert into public.tcg_player_devices(role,device_token_hash) values($1,encode(extensions.digest(convert_to($2,'UTF8'),'sha256'),'hex'))",[role,tokens[role]]);
+ const api=async(role,action,payload={})=>(await db.query('select public.tcg_exchange($1,$2,null,$3,$4::jsonb) value',[role,tokens[role],action,JSON.stringify(payload)])).rows[0].value;
+ const balance=async()=>Object.fromEntries((await db.query('select role,balance from public.tcg_economy_wallets')).rows.map(x=>[x.role,x.balance]));
+ const fresh=async(owner='AG')=>(await db.query("insert into public.tcg_cards(owner_role,template_id,finish,wear_seed,expires_at) values($1,'fa-couple-defi-simultane','full_art',1,now()+interval '7 days') returning id",[owner])).rows[0].id;
+ const start=async(owner='AG')=>{const id=await fresh(owner);await api(owner,'activate_card',{card_id:id,choice_template_id:'couple-dessin'});return id;};
+ assert.equal((await db.query("select count(*)::int n from public.tcg_card_templates where category='IRIS' and finish_tier='standard'")).rows[0].n,5);
+ const bad=await fresh();await assert.rejects(()=>api('AG','activate_card',{card_id:bad,choice_template_id:'nue-trois-baisers'}),/invalid_joint_choice/);
+ assert.equal((await db.query('select status from public.tcg_cards where id=$1',[bad])).rows[0].status,'available');
+ await db.exec('update public.tcg_economy_wallets set balance=0');
+ const first=await start();
+ let sync=await api('CL','sync');let shared=sync.active_cards.find(x=>x.id===first);assert(shared.joint_ritual.can_complete);assert.equal(shared.title,'DESSIN');
+ await assert.rejects(()=>api('AG','ritual_review',{card_id:first,decision:'approve'}),/ritual_unavailable/);
+ await api('CL','complete_card',{card_id:first});await api('AG','ritual_review',{card_id:first,decision:'approve'});assert.deepEqual(await balance(),{AG:0,CL:0});
+ await api('AG','complete_card',{card_id:first});await api('CL','ritual_review',{card_id:first,decision:'approve'});assert.deepEqual(await balance(),{AG:2,CL:2});
+ await assert.rejects(()=>api('CL','ritual_review',{card_id:first,decision:'approve'}),/ritual_unavailable/);assert.deepEqual(await balance(),{AG:2,CL:2});
+ const abandoned=await start('CL');await api('AG','ritual_pass',{card_id:abandoned});assert.deepEqual(await balance(),{AG:0,CL:0});
+ const rejected=await start();await api('CL','complete_card',{card_id:rejected});await api('AG','ritual_review',{card_id:rejected,decision:'reject'});assert.deepEqual(await balance(),{AG:-2,CL:-2});
+ const expired=await start();await db.query("update public.tcg_cards set activated_at=now()-interval '25 hours',active_until=now()-interval '1 hour' where id=$1",[expired]);await api('AG','sync');assert.deepEqual(await balance(),{AG:-4,CL:-4});await api('CL','sync');assert.deepEqual(await balance(),{AG:-4,CL:-4});
+ const unanswered=await start();await api('AG','complete_card',{card_id:unanswered});await api('CL','complete_card',{card_id:unanswered});await db.query("update public.tcg_cards set activated_at=now()-interval '25 hours',active_until=now()-interval '1 hour' where id=$1",[unanswered]);sync=await api('CL','sync');assert(sync.active_cards.some(c=>c.id===unanswered));await db.query("update public.tcg_joint_players set requested_at=now()-interval '25 hours' where card_id=$1",[unanswered]);await api('CL','sync');assert.deepEqual(await balance(),{AG:-4,CL:-4});
+ const cancelled=await start();await db.query("update public.tcg_cards set status='used' where id=$1",[cancelled]);await api('AG','sync');assert.deepEqual(await balance(),{AG:-4,CL:-4});
+ const ordinary=(await db.query("insert into public.tcg_cards(template_id,owner_role,finish,wear_seed,expires_at) values('couple-film','AG','standard',1,now()+interval '7 days') returning id")).rows[0].id;
+ await api('AG','activate_card',{card_id:ordinary});await api('CL','complete_card',{card_id:ordinary});await api('AG','ritual_review',{card_id:ordinary,decision:'approve'});assert.deepEqual(await balance(),{AG:-4,CL:-3});
+ await db.exec('update public.tcg_economy_wallets set balance=-11');const floor=await start();await api('AG','ritual_pass',{card_id:floor});assert.deepEqual(await balance(),{AG:-12,CL:-12});
+ await db.exec('set role anon');await assert.rejects(()=>db.query('select * from public.tcg_joint_sessions'),/permission denied/);await assert.rejects(()=>db.query('select public.tcg_joint_options()'),/permission denied/);await db.exec('reset role');
+ console.log('OK: 32 templates, 5 common Iris, safe selector, two requests/reviews, delayed shared credit, shared abandon/refusal/expiry malus once, neutral unanswered/cancelled, pending timer, private tables and helpers.');
+}finally{await db.close()}
