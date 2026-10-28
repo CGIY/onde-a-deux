@@ -21,7 +21,7 @@
 
     let role=null,status=null,statusPromise=null,selected=new Set(),screen="selection",busy=false,notice="",autoOpenQueued=false;
     const appState=()=>getState();
-    const serverNow=()=>new Date(appState()?.server_now||Date.now());
+    const serverNow=()=>new Date(Date.now()+(window.CardTransport?.getState()?.serverOffset||0));
     const launchKey=target=>`les-cartes-reroll-en-ville-seen:v1:${target}`;
     const seen=()=>{try{return localStorage.getItem(launchKey(role))==="1"}catch{return false}};
     const markSeen=()=>{try{if(role)localStorage.setItem(launchKey(role),"1")}catch{}};
@@ -68,7 +68,7 @@
     }
     function renderClosed(){dialog.querySelector("#rerollEventContent").innerHTML=`<header class="reroll-event-heading"><span class="reroll-event-kicker">ÉVÉNEMENT TERMINÉ</span><h1 id="rerollEventTitle">Le tirage est fermé.</h1><p>REROLL EN VILLE est terminé. Les cartes obtenues pendant l’événement restent valables jusqu’au dimanche 1er novembre à 23 h 59.</p></header><footer class="reroll-event-footer reroll-event-footer-single"><button type="button" class="reroll-event-primary" data-event-action="close">Fermer</button></footer>`;}
     function renderStatusLoading(){dialog.querySelector("#rerollEventContent").innerHTML=`<div class="reroll-event-opening" role="status"><span class="reroll-event-kicker">REROLL EN VILLE</span><h1 id="rerollEventTitle">Vérification de l’événement.</h1><p>Un instant…</p></div>`;}
-    function render(){if(!dialog.open)return;if(!status){renderStatusLoading();return}if(screen==="reveal"&&status.used){renderReveal(status);return}if(status.used){screen="used";renderUsed();return}if(!status.active){screen="closed";renderClosed();return}if(screen==="review"){renderReview();return}if(screen==="loading"){renderLoading();return}if(screen==="reveal"){renderReveal(status);return}renderSelection();}
+    function render(){if(!dialog.open)return;if(busy&&screen==="loading"){renderLoading();return}if(!status){renderStatusLoading();return}if(screen==="reveal"&&status.used){renderReveal(status);return}if(status.used){screen="used";renderUsed();return}if(!status.active){screen="closed";renderClosed();return}if(screen==="review"){renderReview();return}if(screen==="loading"){renderLoading();return}if(screen==="reveal"){renderReveal(status);return}renderSelection();}
 
     function maybeAutoOpen(){
       if(autoOpenQueued||!status?.active||seen())return;
@@ -95,7 +95,8 @@
     function refresh(){
       const next=getRole();
       if(!next||!appState()){launcher.hidden=true;if(dialog.open)dialog.close();return}
-      if(next!==role){role=next;status=null;statusPromise=null;selected.clear();notice="";launcher.hidden=serverNow().getTime()>=DEADLINE;if(launcher.hidden)return;loadStatus(role)}
+      if(next!==role){autoOpenQueued=false;role=next;status=null;statusPromise=null;selected.clear();notice="";launcher.hidden=serverNow().getTime()>=DEADLINE;if(launcher.hidden)return;loadStatus(role)}
+      if(appState()?.reroll_en_ville&&!busy)status=appState().reroll_en_ville;
       launcher.hidden=status?!status.active:serverNow().getTime()>=DEADLINE;
       if(dialog.open)render();
     }
@@ -108,7 +109,7 @@
         let result;
         try{result=await exchange("reroll_en_ville",{mode:"claim",card_ids:ids})}
         catch(error){const recovered=await exchange("reroll_en_ville",{mode:"status"}).catch(()=>null);if(recovered?.used&&JSON.stringify(recovered.input_card_ids)===JSON.stringify(ids))result=recovered;else throw error}
-        status=result;await exchange("sync");screen="reveal";onUpdate();render();
+        status=result;screen="reveal";onUpdate();render();
       }catch(error){
         const message=String(error?.message||error);
         notice=message.includes("reroll_en_ville_used")?"Cette participation a déjà été utilisée pour ce profil.":message.includes("reroll_en_ville_closed")?"L’événement est terminé.":message.includes("reroll_en_ville_no_match")?"Aucun tirage de même catégorie et rareté n’est disponible pour une des cartes choisies.":friendlyError?.(error)||"Le tirage n’a pas abouti. Réessaie.";
@@ -120,7 +121,7 @@
     dialog.addEventListener("click",event=>{
       const control=event.target.closest("[data-event-action]");if(!control||control.disabled)return;
       const action=control.dataset.eventAction;
-      if(action==="close"){dialog.close();return}
+      if(action==="close"){if(!busy)dialog.close();return}
       if(action==="noop")return;
       if(action==="toggle"){const id=control.dataset.cardId;if(selected.has(id))selected.delete(id);else if(selected.size<MAX_CARDS)selected.add(id);notice="";renderSelection()}
       else if(action==="review"){if(selected.size){screen="review";notice="";render()}}
@@ -129,7 +130,7 @@
       else if(action==="collection"){dialog.close();onCollection?.()}
     });
     dialog.addEventListener("close",markSeen);
-    dialog.addEventListener("cancel",event=>{event.preventDefault();dialog.close()});
+    dialog.addEventListener("cancel",event=>{event.preventDefault();if(!busy)dialog.close()});
     return {refresh,isOpen:()=>dialog.open};
   }
   window.RerollEnVille={mount};
