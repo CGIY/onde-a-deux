@@ -578,6 +578,32 @@ select:focus-visible, summary:focus-visible {
   .action-hub-tabs button { transition-duration:.01ms!important; }
 }
 
+/* Native-style crossfade between the four main views, isolated from the fixed chrome. */
+@supports (view-transition-name: none) {
+  .main-content { view-transition-name: cartes-main-content; }
+  .view:not([hidden]) { animation:none; }
+  ::view-transition-group(cartes-main-content) { animation-duration:520ms; }
+  ::view-transition-old(cartes-main-content) {
+    animation:cartes-glass-exit 300ms cubic-bezier(.4,0,.8,.2) both;
+  }
+  ::view-transition-new(cartes-main-content) {
+    animation:cartes-glass-enter 520ms cubic-bezier(.18,.72,.2,1) both;
+  }
+}
+@keyframes cartes-glass-exit {
+  to { opacity:0; filter:blur(9px); transform:translateY(-4px) scale(.992); }
+}
+@keyframes cartes-glass-enter {
+  from { opacity:0; filter:blur(11px); transform:translateY(10px) scale(.986); }
+  64% { opacity:1; filter:blur(1px); transform:translateY(0) scale(1); }
+  to { opacity:1; filter:blur(0); transform:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  ::view-transition-group(cartes-main-content),
+  ::view-transition-old(cartes-main-content),
+  ::view-transition-new(cartes-main-content) { animation:none!important; }
+}
+
 /* Mineral palette and proportion pass. Keep glass translucent and the paper grain visible. */
 :root {
   --mineral-chalk:#f4f2ed;

@@ -132,7 +132,7 @@
     ritual_unavailable: "Ce rituel n’attend plus de validation.",
     ritual_already_claimed: "Ce rituel attend déjà une réponse.",
     not_enough_shards: "Pas assez d’Éclats pour cette opération.",
-    nothing_to_steal: "Le solde adverse est déjà à −12. Aucun Éclat à voler.",
+    nothing_to_steal: "Le solde adverse a atteint la limite de −50. Aucun Éclat à voler.",
     weekly_booster_used: "Tu as déjà acheté 3 boosters cette semaine.",
     bank_used_today: "La Banque a déjà réalisé un échange aujourd’hui.",
     bank_invalid_ingredients: "Ces cartes ne correspondent pas à la recette.",
@@ -719,25 +719,33 @@
   }
 
   function setView(view) {
-    state.scrollPositions ||= {};
-    state.scrollPositions[state.view] = window.scrollY;
-    state.view = view;
-    if(view === 'trade') economy?.enterActions();
-    if(view === 'shop') economy?.enterShop();
-    $$(".view").forEach(section => {
-      const active = section.dataset.view === view;
-      section.hidden = !active;
-      section.classList.toggle("active", active);
-    });
-    $$('[data-nav]').forEach(button => {
-      button.classList.toggle("selected", button.dataset.nav === view);
-      if (button.dataset.nav === view) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
-    });
-    window.scrollTo({ top: state.scrollPositions?.[view] || 0, behavior: "instant" });
-    if (view === "today") renderToday();
-    else if (view === "collection") renderCollection();
-    else if(view === 'trade' || view === 'shop') renderTrades();
-    attachFoilMotion();
+    const updateView = () => {
+      state.scrollPositions ||= {};
+      state.scrollPositions[state.view] = window.scrollY;
+      state.view = view;
+      if(view === 'trade') economy?.enterActions();
+      if(view === 'shop') economy?.enterShop();
+      $$(".view").forEach(section => {
+        const active = section.dataset.view === view;
+        section.hidden = !active;
+        section.classList.toggle("active", active);
+      });
+      $$('[data-nav]').forEach(button => {
+        button.classList.toggle("selected", button.dataset.nav === view);
+        if (button.dataset.nav === view) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
+      });
+      window.scrollTo({ top: state.scrollPositions?.[view] || 0, behavior: "instant" });
+      if (view === "today") renderToday();
+      else if (view === "collection") renderCollection();
+      else if(view === 'trade' || view === 'shop') renderTrades();
+      attachFoilMotion();
+    };
+
+    if (state.view !== view && !reducedMotion.matches && typeof document.startViewTransition === "function") {
+      document.startViewTransition(updateView);
+    } else {
+      updateView();
+    }
   }
 
   function findCard(element) {
