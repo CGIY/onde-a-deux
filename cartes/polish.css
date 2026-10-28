@@ -2036,3 +2036,33 @@ body  {
 .booster-shop-drawer > summary::-webkit-details-marker {display:none;}
 
 .app-shell > .season-banner.season-carousel {width:100vw;max-width:none;margin-left:calc(50% - 50vw);margin-right:0;}
+
+/* iPhone-friendly glass is limited to the floating navigation controls. */
+.bottom-nav {
+  background:#fffcf5eb;
+  border-color:#baa082aa;
+  box-shadow:0 9px 30px #65472526,inset 0 1px #ffffffb8;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none
+}
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))) {
+  .bottom-nav {
+    background:#fffcf5c9;
+    -webkit-backdrop-filter:blur(18px) saturate(1.3);
+    backdrop-filter:blur(18px) saturate(1.3)
+  }
+}
+.bottom-nav button {
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),
+    background-color .28s cubic-bezier(.2,.8,.2,1),
+    color .2s ease,box-shadow .28s ease;
+  -webkit-tap-highlight-color:transparent
+}
+.bottom-nav .selected {
+  background:#e5d4bcdf;
+  box-shadow:inset 0 1px #ffffffcc,0 2px 8px #62412b18
+}
+.bottom-nav button:active {transform:scale(.96);}
+@media(prefers-reduced-motion:reduce) {
+  .bottom-nav button {transition:none!important;}
+}
