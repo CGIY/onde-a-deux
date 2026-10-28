@@ -206,7 +206,7 @@
     let changed = false;
     for (const [key, field] of [["my_cards","expires_at"],["partner_cards","expires_at"],["active_cards","active_until"],["boosters","expires_at"]]) {
       const previous = state.data[key] || [];
-      const next = previous.filter(card => !card[field] || new Date(card[field]) > now);
+      const next = previous.filter(card => (key==="active_cards" && card.ritual_claim_status==="pending") || !card[field] || new Date(card[field]) > now);
       if (next.length !== previous.length) { state.data[key] = next; changed = true; }
     }
     if (changed) state.data.known_cards = state.data.known_cards.map(card=>({...card,owned_count:state.data.my_cards.filter(copy=>copy.template_id===card.template_id).length}));
@@ -407,7 +407,7 @@
     putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("")+packList);
 
     putMarkup("#activeCards", data.active_cards.length
-      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.ritual_claim_status==='pending' ? card.owner_role===state.role ? '<span class="ritual-pending">En attente de validation</span>' : `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : card.owner_role === state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>` : ""}</div>`).join("")
+      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${card.ritual_claim_status==='pending' ? card.owner_role!==state.role ? '<span class="ritual-pending">En attente de validation</span>' : `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : card.owner_role !== state.role ? `<button class="complete-quick" type="button" data-complete-card="${escapeHtml(card.id)}" aria-label="Demander validation : ${escapeHtml(card.title)}" title="Demander validation">${icon("handshake")}</button>` : ""}</div>`).join("")
       : `<div class="table-empty"><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 
@@ -741,9 +741,9 @@
     state.viewerCardId = card.id || null;
     state.viewerTemplateId = card.template_id;
     const active = card.active_until && new Date(card.active_until) > serverNow();
-    const canComplete = active && card.owner_role === state.role && !card.ritual_claim_status && state.data.active_cards.some(item=>item.id===card.id);
-    const canReview = active && card.owner_role === state.data.partner_role && card.ritual_claim_status==='pending';
-    const ownership = isMine ? card.status === "trading" ? "Réservée pour un échange" : "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
+    const canComplete = active && card.owner_role === state.data.partner_role && !card.ritual_claim_status && state.data.active_cards.some(item=>item.id===card.id);
+    const canReview = card.owner_role === state.role && card.ritual_claim_status==='pending' && state.data.active_cards.some(item=>item.id===card.id);
+    const ownership = active || card.ritual_claim_status==='pending' ? `À réaliser par ${card.owner_role===state.role?name(state.data.partner_role):"toi"}` : isMine ? card.status === "trading" ? "Réservée pour un échange" : "Dans ta main" : card.owner_role ? `Carte de ${name(card.owner_role)}` : Number(card.owned_count) ? "Dans ta collection" : "Déjà découverte";
     const jokerTargets = isJoker && isMine
       ? state.data.active_cards.filter(target => target.owner_role === state.data.partner_role && new Date(target.active_until)>serverNow())
       : [];
@@ -763,7 +763,7 @@
       <div class="card-dialog-copy"><span class="eyebrow">${escapeHtml(ownership)} · ${escapeHtml(finishLabel(card.finish || card.finish_tier || "standard"))}</span><h2>${escapeHtml(card.title)}</h2><p class="detail-challenge">${escapeHtml(card.challenge)}</p>
       ${jokerAction}${spellAction}${legendaryAction}${canActivate ? `<button class="primary-button" type="button" data-activate-card="${escapeHtml(card.id)}">Activer cette carte · 24 h</button>` : active ? `<p>Se termine dans ${duration(card.active_until)}.</p>` : ""}
       ${canComplete ? `<button class="primary-button complete-button" type="button" data-complete-card="${escapeHtml(card.id)}">${icon("handshake")} Demander la validation</button><button class="text-button ritual-pass-button" type="button" data-ritual-pass="${escapeHtml(card.id)}">Laisser passer ce défi</button>` : ""}
-      ${card.ritual_claim_status==='pending' && card.owner_role===state.role ? '<p class="ritual-pending">En attente de l’autre joueur.</p>' : ''}
+      ${card.ritual_claim_status==='pending' && card.owner_role!==state.role ? '<p class="ritual-pending">En attente de l’autre joueur.</p>' : ''}
       ${canReview ? `<div class="ritual-review-actions"><button type="button" data-ritual-review="approve" data-card-id="${escapeHtml(card.id)}">Valider le défi ✓</button><button type="button" data-ritual-review="reject" data-card-id="${escapeHtml(card.id)}">Non réalisé</button></div>` : ''}
       ${isMine && isAvailable(card) ? `<div class="card-options" aria-label="Gérer cet exemplaire"><button type="button" data-exchange-card="${escapeHtml(card.id)}">${icon("exchange")}Échanger</button><button type="button" data-give-card="${escapeHtml(card.id)}">${icon("gift")}Donner</button><button type="button" data-recycle-card="${escapeHtml(card.id)}">${icon("scissors")}Recycler</button></div>` : ""}</div>`;
     if (!cardDialog.open) cardDialog.showModal();
@@ -1278,7 +1278,7 @@
     }
     const complete = event.target.closest("[data-complete-card]");
     if (complete) {
-      if (!await confirmAction("Défi réalisé ?", "L’autre joueur recevra une demande de validation. La récompense arrive après sa réponse.")) return;
+      if (!await confirmAction("Défi réalisé ?", "L’autre joueur recevra une demande de validation. Tu recevras les Éclats après sa confirmation.")) return;
       const done = contextualBusy(complete,"Demande…");
       try {
         await exchange("complete_card", {card_id:complete.dataset.completeCard});
@@ -1291,7 +1291,7 @@
     const review=event.target.closest('[data-ritual-review]');
     if(review){
       const decision=review.dataset.ritualReview;
-      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés selon la rareté.':'Le malus s’appliquera selon la rareté.'))return;
+      if(!await confirmAction(decision==='approve'?'Valider ce défi ?':'Défi non réalisé ?',decision==='approve'?'Les Éclats seront accordés à l’autre joueur.':'Le malus s’appliquera à l’autre joueur.'))return;
       const done=contextualBusy(review,'Un instant…');
       try {await exchange('ritual_review',{card_id:review.dataset.cardId,decision});if(cardDialog.open)cardDialog.close();render();feedback(decision==='approve'?'rare':'card');toast(decision==='approve'?'Défi validé · Éclats accordés.':'Défi non validé.');}
       catch(error){toast(friendlyError(error));}finally{done();}
