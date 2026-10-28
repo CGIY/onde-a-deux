@@ -12,17 +12,18 @@
   const labels={standard:'commune',full_art:'full art',foil:'foil',any:'autre carte'};
   const finishLabels={standard:'Commune',full_art:'Full art',foil:'Foil',full_art_foil:'Full art + foil',legendary:'Légendaire'};
   const shopOffers=[
-    {kind:'classic',title:'Classique',price:20,promise:'Le tirage habituel',mark:'✦'},
-    {kind:'magician',title:'Magicien',price:25,promise:'1 sortilège garanti',mark:'☾'},
-    {kind:'pleasure',title:'Plaisir',price:25,promise:'1 défi Mise à nue garanti',mark:'♡'},
-    {kind:'relax',title:'Détente',price:25,promise:'1 massage ou soin garanti',mark:'◌'}
+    {kind:'classic',title:'Classique',price:20,promise:'Le tirage habituel',mark:'sparkle'},
+    {kind:'magician',title:'Magicien',price:25,promise:'1 sortilège garanti',mark:'moon'},
+    {kind:'pleasure',title:'Plaisir',price:25,promise:'1 défi Mise à nue garanti',mark:'heart'},
+    {kind:'relax',title:'Détente',price:25,promise:'1 massage ou soin garanti',mark:'flower'}
   ];
   const helperOffers=[
-    {kind:'assassin',title:'Assassin',price:25,promise:'Détruit une carte au hasard de la main adverse',mark:'☠'},
-    {kind:'druide',title:'Druide',price:18,promise:'Rend 7 jours de vie à une carte de ta main',mark:'☘'},
-    {kind:'voleur',title:'Voleur',price:8,promise:'Vole 1 à 10 Éclats à l’autre joueur',mark:'⇄'}
+    {kind:'assassin',title:'Assassin',price:25,promise:'Détruit une carte au hasard de la main adverse',mark:'skull'},
+    {kind:'druide',title:'Druide',price:18,promise:'Rend 7 jours de vie à une carte de ta main',mark:'clover'},
+    {kind:'voleur',title:'Voleur',price:8,promise:'Vole 1 à 10 Éclats à l’autre joueur',mark:'exchange'}
   ];
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const icon=name=>`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ui-${name}"/></svg>`;
   const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,onShop,onRecycleMode,onActionMode,onRecycle,friendlyError}) {
@@ -74,7 +75,7 @@
       const balance=e.balance||0,bought=Math.min(3,Number(e.weekly_boosters_bought||0));
       return `<div class="economy-shop-section">
         <details class="booster-shop-drawer" ${boosterShopOpen?'open':''}><summary class="economy-shop-head"><span><b>Choisis ton booster.</b><small>Jusqu’à 3 achats par semaine · ${bought}/3</small></span><i aria-hidden="true">${3-bought} restant${3-bought>1?'s':''} ⌄</i></summary>
-        <div class="economy-shop">${shopOffers.map(offer=>`<div class="economy-buy economy-buy-${offer.kind}"><span class="shop-mark" aria-hidden="true">${offer.mark}</span><span class="shop-copy"><b>${offer.title}</b><small>${offer.promise}</small></span><button type="button" data-economy-buy="${offer.kind}" ${bought>=3||balance<offer.price?'disabled':''}>${bought>=3?'Épuisé':balance<offer.price?`Encore ${offer.price-balance}`:`${offer.price} Éclats →`}</button></div>`).join('')}</div></details><details class="helper-drawer"><summary>Les Complices <small>3 aides</small><span aria-hidden="true">⌄</span></summary><div class="economy-shop economy-helpers">${helperOffers.map(offer=>`<div class="economy-buy economy-buy-${offer.kind}"><span class="shop-mark" aria-hidden="true">${offer.mark}</span><span class="shop-copy"><b>${offer.title}</b><small>${offer.promise}</small></span><button type="button" data-helper-buy="${offer.kind}" ${balance<offer.price?'disabled':''}>${balance<offer.price?`Encore ${offer.price-balance}`:`${offer.price} Éclats →`}</button></div>`).join('')}</div></details></div>
+        <div class="economy-shop">${shopOffers.map(offer=>`<div class="economy-buy economy-buy-${offer.kind}"><span class="shop-mark" aria-hidden="true">${icon(offer.mark)}</span><span class="shop-copy"><b>${offer.title}</b><small>${offer.promise}</small></span><button type="button" data-economy-buy="${offer.kind}" ${bought>=3||balance<offer.price?'disabled':''}>${bought>=3?'Épuisé':balance<offer.price?`Encore ${offer.price-balance}`:`${offer.price} Éclats →`}</button></div>`).join('')}</div></details><details class="helper-drawer"><summary>Les Complices <small>3 aides</small><span aria-hidden="true">⌄</span></summary><div class="economy-shop economy-helpers">${helperOffers.map(offer=>`<div class="economy-buy economy-buy-${offer.kind}"><span class="shop-mark" aria-hidden="true">${icon(offer.mark)}</span><span class="shop-copy"><b>${offer.title}</b><small>${offer.promise}</small></span><button type="button" data-helper-buy="${offer.kind}" ${balance<offer.price?'disabled':''}>${balance<offer.price?`Encore ${offer.price-balance}`:`${offer.price} Éclats →`}</button></div>`).join('')}</div></details></div>
         <div class="economy-bank-section"><div class="bank-head"><span class="eyebrow">LA BANQUE DES CARTES</span><h3>Changer le destin.</h3><p>Un échange par jour.</p></div>
         <div class="bank-offers">${recipes.map((r,i)=>`<button type="button" class="bank-offer bank-offer-${r.motion}" data-bank-open="${r.id}" ${e.bank_used_today||!countFor(r)?'disabled':''}><span class="bank-offer-mark" aria-hidden="true">${['░','↻','Ⅰ','Ⅱ','Ⅲ','✵'][i]}</span><span><strong>${r.title}</strong><small>${textNeeds(r.needs)} → ${r.result}</small></span><b aria-hidden="true">→</b></button>`).join('')}</div>
         ${e.bank_used_today?'<p class="bank-rest">La Banque rouvre demain à 5 h.</p>':''}
@@ -197,13 +198,13 @@
       if(confirm)useHelper(kind);
     }
     const slides=[
-      {icon:'✦',title:'Cinq surprises.',copy:'Chaque booster contient au moins trois cartes. Les deux autres places peuvent révéler des Éclats.'},
-      {icon:'♡',title:'Un défi à deux.',copy:'Après un rituel, demande sa validation. L’autre confirme et les Éclats suivent la rareté. Une carte non réalisée peut coûter des Éclats, jusqu’à −12.'},
-      {icon:'◌',title:'Revendre une carte.',copy:'Dans Boutique, échange un exemplaire contre des Éclats. Le prix dépend de sa rareté et du temps qu’il lui reste.'},
-      {icon:'✵',title:'La Banque des cartes.',copy:'Dépose des cartes et des Énergies Bisous pour tenter un nouveau tirage, une Refrappe ou une transmutation. Une fois par jour.'},
-      {icon:'☠',title:'Les Complices.',copy:'Assassin, Druide ou Voleur : une intervention directe dans la partie de l’autre — ou la tienne — contre des Éclats.'}
+      {icon:'sparkle',title:'Cinq surprises.',copy:'Chaque booster contient au moins trois cartes. Les deux autres places peuvent révéler des Éclats.'},
+      {icon:'heart',title:'Un défi à deux.',copy:'Après un rituel, demande sa validation. L’autre confirme et les Éclats suivent la rareté. Une carte non réalisée peut coûter des Éclats, jusqu’à −12.'},
+      {icon:'cards',title:'Revendre une carte.',copy:'Dans Boutique, échange un exemplaire contre des Éclats. Le prix dépend de sa rareté et du temps qu’il lui reste.'},
+      {icon:'wand',title:'La Banque des cartes.',copy:'Dépose des cartes et des Énergies Bisous pour tenter un nouveau tirage, une Refrappe ou une transmutation. Une fois par jour.'},
+      {icon:'skull',title:'Les Complices.',copy:'Assassin, Druide ou Voleur : une intervention directe dans la partie de l’autre — ou la tienne — contre des Éclats.'}
     ];
-    function drawTour(){const s=slides[tourIndex];tour.querySelector('.tour-content').innerHTML=`<button type="button" class="tour-skip" data-tour-skip>Passer</button><div class="tour-visual tour-visual-${tourIndex}" aria-hidden="true"><i>${s.icon}</i>${Array.from({length:5},(_,i)=>`<b style="--i:${i}"></b>`).join('')}</div><div class="tour-pages" aria-label="Étape ${tourIndex+1} sur ${slides.length}">${slides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('')}</div><h2>${escape(s.title)}</h2><p>${escape(s.copy)}</p><button type="button" class="bank-submit" data-tour-next>${tourIndex===slides.length-1?'C’est parti':'Suivant →'}</button>`;}
+    function drawTour(){const s=slides[tourIndex];tour.querySelector('.tour-content').innerHTML=`<button type="button" class="tour-skip" data-tour-skip>Passer</button><div class="tour-visual tour-visual-${tourIndex}" aria-hidden="true">${icon(s.icon)}${Array.from({length:5},(_,i)=>`<b style="--i:${i}"></b>`).join('')}</div><div class="tour-pages" aria-label="Étape ${tourIndex+1} sur ${slides.length}">${slides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('')}</div><h2>${escape(s.title)}</h2><p>${escape(s.copy)}</p><button type="button" class="bank-submit" data-tour-next>${tourIndex===slides.length-1?'C’est parti':'Suivant →'}</button>`;}
     function closeTour(){localStorage.setItem(`les-cartes-economy-tour:v22:${getRole()}`,'1');tour.close();}
     document.addEventListener('click',event=>{
       const purchase=event.target.closest('[data-economy-buy]');if(purchase)return void buy(purchase.dataset.economyBuy);
