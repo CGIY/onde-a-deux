@@ -5,8 +5,8 @@ const catalogue=JSON.parse(readFileSync(new URL('../docs/card-art-catalogue.json
 const mapping=JSON.parse(readFileSync(new URL('../docs/card-art-b64/art-mapping.json',import.meta.url)));
 const byId=new Map(Object.entries(mapping).map(([slug,value])=>[value.template_id,slug]));
 const folder=new URL('../cartes/assets/cards-v3/',import.meta.url),hashes=new Set();
-assert.equal(catalogue.length,100);assert.equal(byId.size,100);
-assert.equal(readdirSync(folder).filter(name=>name.endsWith('.webp')).length,100);
+assert.equal(catalogue.length,132);assert.equal(byId.size,132);
+assert.equal(readdirSync(folder).filter(name=>name.endsWith('.webp')).length,132);
 for(const card of catalogue){
   const slug=byId.get(card.id);assert(slug,`Missing mapping for ${card.id}`);
   const bytes=readFileSync(new URL(slug+'.webp',folder));assert(bytes.length>20000,`Empty or undersized artwork: ${slug}`);
@@ -17,4 +17,4 @@ for(const card of catalogue){
   assert(Math.abs(dimensions.width/dimensions.height-2/3)<.02,`Wrong portrait ratio: ${slug}`);
   const hash=createHash('sha256').update(bytes).digest('hex');assert(!hashes.has(hash),`Duplicated image: ${slug}`);hashes.add(hash);
 }
-console.log('OK: 100 catalogue entries, 100 distinct portrait WebP images, complete ID mapping, sufficient dimensions and no empty files.');
+console.log('OK: 132 catalogue entries, 132 distinct portrait WebP images, complete ID mapping, sufficient dimensions and no empty files.');

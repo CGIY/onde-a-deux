@@ -798,5 +798,261 @@
   "cols": 2,
   "rows": 3,
   "template_id": "spell-reducto"
+ },
+ "autre-mission-dehors": {
+  "atlas": "cards-v3/autre-mission-dehors.webp",
+  "atlas_cat": "other",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "autre-mission-dehors"
+ },
+ "autre-vetement-impose": {
+  "atlas": "cards-v3/autre-vetement-impose.webp",
+  "atlas_cat": "other",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "autre-vetement-impose"
+ },
+ "couple-objet-absurde": {
+  "atlas": "cards-v3/couple-objet-absurde.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-objet-absurde"
+ },
+ "autre-aliment-interdit": {
+  "atlas": "cards-v3/autre-aliment-interdit.webp",
+  "atlas_cat": "other",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "autre-aliment-interdit"
+ },
+ "fa-autre-objet-cache": {
+  "atlas": "cards-v3/fa-autre-objet-cache.webp",
+  "atlas_cat": "other",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-autre-objet-cache"
+ },
+ "fa-couple-photo-reproduite": {
+  "atlas": "cards-v3/fa-couple-photo-reproduite.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-couple-photo-reproduite"
+ },
+ "fa-couple-capsule-temporelle": {
+  "atlas": "cards-v3/fa-couple-capsule-temporelle.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-couple-capsule-temporelle"
+ },
+ "fa-couple-defi-simultane": {
+  "atlas": "cards-v3/fa-couple-defi-simultane.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-couple-defi-simultane"
+ },
+ "couple-argile": {
+  "atlas": "cards-v3/couple-argile.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-argile"
+ },
+ "todo-decoration-theme": {
+  "atlas": "cards-v3/todo-decoration-theme.webp",
+  "atlas_cat": "todo",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "todo-decoration-theme"
+ },
+ "fa-nue-photo-foret": {
+  "atlas": "cards-v3/fa-nue-photo-foret.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-nue-photo-foret"
+ },
+ "nue-photo-bdsm": {
+  "atlas": "cards-v3/nue-photo-bdsm.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "nue-photo-bdsm"
+ },
+ "nue-photo-ahegao": {
+  "atlas": "cards-v3/nue-photo-ahegao.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "nue-photo-ahegao"
+ },
+ "fa-nue-photo-anal-play": {
+  "atlas": "cards-v3/fa-nue-photo-anal-play.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-nue-photo-anal-play"
+ },
+ "faf-nue-journee-envies": {
+  "atlas": "cards-v3/faf-nue-journee-envies.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "faf-nue-journee-envies"
+ },
+ "couple-portrait-aveugle": {
+  "atlas": "cards-v3/couple-portrait-aveugle.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-portrait-aveugle"
+ },
+ "couple-playlist-secrete": {
+  "atlas": "cards-v3/couple-playlist-secrete.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-playlist-secrete"
+ },
+ "couple-interview-improbable": {
+  "atlas": "cards-v3/couple-interview-improbable.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-interview-improbable"
+ },
+ "autre-origami-messager": {
+  "atlas": "cards-v3/autre-origami-messager.webp",
+  "atlas_cat": "other",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "autre-origami-messager"
+ },
+ "todo-objet-detourne": {
+  "atlas": "cards-v3/todo-objet-detourne.webp",
+  "atlas_cat": "todo",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "todo-objet-detourne"
+ },
+ "foodies-cocktail-mystere": {
+  "atlas": "cards-v3/foodies-cocktail-mystere.webp",
+  "atlas_cat": "foodies",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "foodies-cocktail-mystere"
+ },
+ "couple-mot-interdit": {
+  "atlas": "cards-v3/couple-mot-interdit.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-mot-interdit"
+ },
+ "couple-carte-postale": {
+  "atlas": "cards-v3/couple-carte-postale.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "couple-carte-postale"
+ },
+ "fa-couple-minute-cinema": {
+  "atlas": "cards-v3/fa-couple-minute-cinema.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-couple-minute-cinema"
+ },
+ "fa-couple-mini-escape": {
+  "atlas": "cards-v3/fa-couple-mini-escape.webp",
+  "atlas_cat": "couple",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "fa-couple-mini-escape"
+ },
+ "nue-trois-baisers": {
+  "atlas": "cards-v3/nue-trois-baisers.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "nue-trois-baisers"
+ },
+ "nue-bougie-massage": {
+  "atlas": "cards-v3/nue-bougie-massage.webp",
+  "atlas_cat": "nude",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "nue-bougie-massage"
+ },
+ "iris-cadeau-5": {
+  "atlas": "cards-v3/iris-cadeau-5.webp",
+  "atlas_cat": "iris",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "iris-cadeau-5"
+ },
+ "iris-cadeau-10": {
+  "atlas": "cards-v3/iris-cadeau-10.webp",
+  "atlas_cat": "iris",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "iris-cadeau-10"
+ },
+ "iris-livre-10": {
+  "atlas": "cards-v3/iris-livre-10.webp",
+  "atlas_cat": "iris",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "iris-livre-10"
+ },
+ "iris-vetement-10": {
+  "atlas": "cards-v3/iris-vetement-10.webp",
+  "atlas_cat": "iris",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "iris-vetement-10"
+ },
+ "iris-depense-30": {
+  "atlas": "cards-v3/iris-depense-30.webp",
+  "atlas_cat": "iris",
+  "slot": 0,
+  "cols": 1,
+  "rows": 1,
+  "template_id": "iris-depense-30"
  }
 }

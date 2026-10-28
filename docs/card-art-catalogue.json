@@ -798,5 +798,325 @@
     "palette": "todo",
     "finish_tier": "standard",
     "card_type": "challenge"
+  },
+  {
+    "id": "autre-mission-dehors",
+    "title": "MISSION DEHORS",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Réalise dehors une petite mission demandée par l’autre.",
+    "art_subject": "a miniature brass compass beside a sealed mission envelope and two copper walking shoes"
+  },
+  {
+    "id": "autre-vetement-impose",
+    "title": "VÊTEMENT IMPOSÉ",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Porte le vêtement choisi par l’autre pour votre sortie.",
+    "art_subject": "an antique coat hanger carrying a folded embroidered scarf and a small brass clothing pin"
+  },
+  {
+    "id": "couple-objet-absurde",
+    "title": "OBJET ABSURDE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Fixez le même budget, puis achetez chacun un objet absurde pour l’autre.",
+    "art_subject": "two tiny wrapped parcels, a whimsical teapot shaped like a boot, and a small coin purse"
+  },
+  {
+    "id": "autre-aliment-interdit",
+    "title": "ALIMENT INTERDIT",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Engage-toi pendant une journée à ne pas manger un aliment ou condiment choisi ensemble.",
+    "art_subject": "an ornate spice jar sealed with a ribbon beside a small hourglass"
+  },
+  {
+    "id": "fa-autre-objet-cache",
+    "title": "OBJET CACHÉ",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "L’autre cache un objet dans la maison. Tu as 24 heures pour le trouver, avec des indices.",
+    "art_subject": "a mysterious antique keyhole, a hidden jewel box between books, scattered clue envelopes"
+  },
+  {
+    "id": "fa-couple-photo-reproduite",
+    "title": "LA MÊME PHOTO",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Reprenez une vieille photo de votre couple et reproduisez-la à l’identique.",
+    "art_subject": "two vintage matching photographic frames, a camera and a ribbon of golden memories"
+  },
+  {
+    "id": "fa-couple-capsule-temporelle",
+    "title": "CAPSULE TEMPORELLE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Enterrez ou cachez ensemble un objet et une note. Choisissez une date pour les retrouver.",
+    "art_subject": "a small weathered time capsule with a sealed letter beneath delicate roots and copper leaves"
+  },
+  {
+    "id": "fa-couple-defi-simultane",
+    "title": "DÉFI SIMULTANÉ",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Choisissez un défi commun à réaliser tous les deux. Si l’un abandonne, vous perdez tous les deux des Éclats.",
+    "art_subject": "two linked hourglasses standing on a shared pedestal, paired copper ribbons and mirrored stars"
+  },
+  {
+    "id": "couple-argile",
+    "title": "SESSION ARGILE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Faites une session argile ensemble.",
+    "art_subject": "two handmade clay bowls, sculpting tools and a small spiral of terracotta clay"
+  },
+  {
+    "id": "todo-decoration-theme",
+    "title": "DÉCORATION À THÈME",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Faites ensemble une session décoration sur un thème choisi.",
+    "art_subject": "a miniature decorated room, fabric swatches, hanging stars and a small paint brush"
+  },
+  {
+    "id": "fa-nue-photo-foret",
+    "title": "SÉANCE PHOTO · EN FORÊT",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Séance photo : en forêt.",
+    "art_subject": "a vintage camera nestled among ferns, copper leaves and draped burgundy velvet, no people"
+  },
+  {
+    "id": "nue-photo-bdsm",
+    "title": "SÉANCE PHOTO · BDSM",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Séance photo : BDSM.",
+    "art_subject": "an elegant black masquerade mask, burgundy satin ribbons and a vintage camera, no people"
+  },
+  {
+    "id": "nue-photo-ahegao",
+    "title": "SÉANCE PHOTO · AHEGAO",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Séance photo : ahegao.",
+    "art_subject": "an antique camera and three theatrical porcelain masks with expressive faces arranged on velvet, no people"
+  },
+  {
+    "id": "fa-nue-photo-anal-play",
+    "title": "SÉANCE PHOTO · ANAL PLAY",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Séance photo : anal play.",
+    "art_subject": "an antique camera, a closed plum velvet jewel case, a single polished plum fruit and elegant silk folds, no people"
+  },
+  {
+    "id": "faf-nue-journee-envies",
+    "title": "JOURNÉE DES ENVIES",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "full_art_foil",
+    "card_type": "challenge",
+    "challenge": "Trois propositions choisies dans une liste acceptée ensemble, pour une journée à deux.",
+    "art_subject": "three sealed pearl envelopes orbiting a copper sun and moon on deep plum silk, opalescent foil edges"
+  },
+  {
+    "id": "couple-portrait-aveugle",
+    "title": "PORTRAIT À L’AVEUGLE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Dessine l’autre sans regarder ta feuille.",
+    "art_subject": "a charcoal pencil drawing a whimsical unfinished portrait beside a folded blindfold ribbon"
+  },
+  {
+    "id": "couple-playlist-secrete",
+    "title": "PLAYLIST SECRÈTE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Choisis cinq morceaux qui te font penser à l’autre, à écouter ensuite.",
+    "art_subject": "a tiny vintage music player and five copper musical notes emerging from an envelope"
+  },
+  {
+    "id": "couple-interview-improbable",
+    "title": "INTERVIEW IMPROBABLE",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Pose une question que tu ne lui as jamais posée. NSFW autorisé.",
+    "art_subject": "a vintage brass microphone with a question mark shaped ribbon and two tiny speech clouds"
+  },
+  {
+    "id": "autre-origami-messager",
+    "title": "ORIGAMI MESSAGER",
+    "category": "POUR L'AUTRE",
+    "palette": "other",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Plie un petit objet contenant un message. Cache-le.",
+    "art_subject": "a folded paper crane carrying a tiny sealed letter among copper branches"
+  },
+  {
+    "id": "todo-objet-detourne",
+    "title": "OBJET DÉTOURNÉ",
+    "category": "TO DO",
+    "palette": "todo",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Invente une nouvelle utilisation pour un objet choisi par l’autre. Tu dois le faire toute la journée.",
+    "art_subject": "an antique cup transformed into a miniature flower planter beside a whimsical brass spoon"
+  },
+  {
+    "id": "foodies-cocktail-mystere",
+    "title": "COCKTAIL MYSTÈRE",
+    "category": "LES FOODIES",
+    "palette": "foodies",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Fais goûter à l’autre un cocktail improbable, les yeux fermés.",
+    "art_subject": "an ornate cocktail glass containing fruit slices, a tiny umbrella and an unexpected rosemary branch"
+  },
+  {
+    "id": "couple-mot-interdit",
+    "title": "LE MOT INTERDIT",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "L’autre choisit pour toi un mot courant à éviter pendant une heure.",
+    "art_subject": "a small sealed dictionary, a copper padlock and a one-hour sand timer"
+  },
+  {
+    "id": "couple-carte-postale",
+    "title": "CARTE POSTALE DU QUARTIER",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Envoie une carte postale à une adresse trouvée sur Internet ou imposée. Au hasard.",
+    "art_subject": "a vintage postcard showing a miniature town, postage stamps and a brass mailbox"
+  },
+  {
+    "id": "fa-couple-minute-cinema",
+    "title": "MINUTE DE CINÉMA",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Tournez une scène d’une minute dans un genre tiré au sort.",
+    "art_subject": "an antique cinema camera, a blank film clapper and a flowing reel on burgundy stage curtains"
+  },
+  {
+    "id": "fa-couple-mini-escape",
+    "title": "MINI ESCAPE MAISON",
+    "category": "EN COUPLE",
+    "palette": "couple",
+    "finish_tier": "full_art",
+    "card_type": "challenge",
+    "challenge": "Prépare trois énigmes menant à une petite surprise pour l’autre.",
+    "art_subject": "three antique locks, a winding trail of clue envelopes and a glowing closed treasure chest"
+  },
+  {
+    "id": "nue-trois-baisers",
+    "title": "TROIS BAISERS",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Choisis trois endroits où recevoir un baiser. NSFW.",
+    "art_subject": "three copper lip-shaped wax seals on plum velvet, no people"
+  },
+  {
+    "id": "nue-bougie-massage",
+    "title": "RENDEZ-VOUS PARFUMÉ",
+    "category": "MISE À NUE",
+    "palette": "nude",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "Bougie de massage sur le corps.",
+    "art_subject": "a low-temperature massage candle in a ceramic pouring vessel beside a folded towel and flower petals, no people"
+  },
+  {
+    "id": "iris-cadeau-5",
+    "title": "CADEAU POUR IRIS · 5 €",
+    "category": "IRIS",
+    "palette": "iris",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "L’autre achète un cadeau à Iris de 5 euros.",
+    "art_subject": "a tiny ivory gift box with a lilac bow and one brass coin"
+  },
+  {
+    "id": "iris-cadeau-10",
+    "title": "CADEAU POUR IRIS · 10 €",
+    "category": "IRIS",
+    "palette": "iris",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "L’autre achète un cadeau à Iris de 10 euros.",
+    "art_subject": "a round vintage gift box with a lavender ribbon and two brass coins"
+  },
+  {
+    "id": "iris-livre-10",
+    "title": "LIVRE POUR IRIS · 10 €",
+    "category": "IRIS",
+    "palette": "iris",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "L’autre achète un livre à Iris de 10 euros.",
+    "art_subject": "an illustrated closed storybook embossed with an iris flower and a brass bookmark"
+  },
+  {
+    "id": "iris-vetement-10",
+    "title": "VÊTEMENT POUR IRIS · 10 €",
+    "category": "IRIS",
+    "palette": "iris",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "L’autre achète un vêtement à Iris de 10 euros.",
+    "art_subject": "a neatly folded ivory knitted garment with a lilac ribbon and a brass button"
+  },
+  {
+    "id": "iris-depense-30",
+    "title": "POUR IRIS · 30 €",
+    "category": "IRIS",
+    "palette": "iris",
+    "finish_tier": "standard",
+    "card_type": "challenge",
+    "challenge": "L’autre dépense 30 euros pour Iris.",
+    "art_subject": "a small wicker gift basket with an iris flower, a wrapped parcel and three copper coins"
   }
 ]

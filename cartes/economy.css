@@ -316,3 +316,8 @@
 .recycle-sparks i {position:absolute;left:50%;top:50%;width:5px;height:9px;border-radius:2px;background:#d4a35e;box-shadow:0 0 8px #efd699;transform:rotate(calc(var(--spark)*22.5deg));animation:recycle-spark .65s ease-out both;}
 @keyframes recycle-spark {to{transform:rotate(calc(var(--spark)*22.5deg)) translateY(-180px) rotate(120deg);opacity:0;}}
 @media(prefers-reduced-motion:reduce){.recycle-sparks{display:none;}.recycle-card-plane .card-fragment{animation:none;opacity:0;}}
+
+.palette-iris {--card-light:#e8dce8;--art-x:33.333333%;--art-y:0%;}
+.palette-iris .card-copy {background:#e8d8dfed;color:#4c3545;}
+.palette-iris .card-top {color:#e8d8ea;}
+.joint-rule {font-size:13px;color:var(--ink-soft);line-height:1.5;}
