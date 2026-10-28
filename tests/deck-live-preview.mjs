@@ -12,6 +12,7 @@ async function createPreviewDatabase(){
   const repairs=await readFile(new URL('../supabase/operations/audit_helper_push_repairs.sql',import.meta.url),'utf8');
   await instance.exec(repairs.slice(0,repairs.indexOf('alter table public.tcg_push_sent')));
   await instance.exec(await readFile(new URL('../supabase/operations/rebalance_economy_v26.sql',import.meta.url),'utf8'));
+  await instance.exec(await readFile(new URL('../supabase/operations/ritual_performer_v27.sql',import.meta.url),'utf8'));
   await instance.exec("insert into public.tcg_player_devices(role,device_token_hash) values ('AG',encode(extensions.digest(convert_to(repeat('a',48),'UTF8'),'sha256'),'hex')),('CL',encode(extensions.digest(convert_to(repeat('b',48),'UTF8'),'sha256'),'hex'));");
   await instance.exec("update public.tcg_economy_wallets set balance=60,updated_at=now() where role in ('AG','CL');");
   for(const role of ['AG','CL']){

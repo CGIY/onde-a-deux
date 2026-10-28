@@ -33,16 +33,16 @@ begin
       and not exists(select 1 from public.tcg_ritual_claims r where r.card_id=x.id)
   loop
     insert into public.tcg_ritual_claims(card_id,owner_role,status,claimed_at,resolved_at)
-      values(c.id,c.owner_role,'expired',now(),now()) on conflict(card_id) do nothing;
+      values(c.id,case when c.owner_role='AG' then 'CL' else 'AG' end,'expired',now(),now()) on conflict(card_id) do nothing;
     if found then
-      perform public.tcg_economy_apply(c.owner_role,-public.tcg_ritual_value(c.finish),'ritual_expired',c.id);
+      perform public.tcg_economy_apply(case when c.owner_role='AG' then 'CL' else 'AG' end,-public.tcg_ritual_value(c.finish),'ritual_expired',c.id);
     end if;
   end loop;
-  for claim in select card_id,owner_role from public.tcg_ritual_claims
-    where status='pending' and claimed_at+interval '24 hours'<=now()
+  for claim in select r.card_id,case when owned.owner_role='AG' then 'CL' else 'AG' end as performer_role from public.tcg_ritual_claims r join public.tcg_cards owned on owned.id=r.card_id
+    where r.status='pending' and r.claimed_at+interval '24 hours'<=now()
   loop
     update public.tcg_ritual_claims set status='unanswered',resolved_at=now() where card_id=claim.card_id and status='pending';
-    if found then perform public.tcg_economy_apply(claim.owner_role,0,'ritual_unanswered',claim.card_id); end if;
+    if found then perform public.tcg_economy_apply(claim.performer_role,0,'ritual_unanswered',claim.card_id); end if;
   end loop;
 end;
 $function$;
@@ -64,7 +64,7 @@ declare
   v_kind text; v_cost integer;
 begin
   if p_action in ('complete_card','ritual_pass') then
-    begin select * into c from public.tcg_cards where id=(p_payload->>'card_id')::uuid and owner_role=p_role for update;
+    begin select * into c from public.tcg_cards where id=(p_payload->>'card_id')::uuid and owner_role=other_role for update;
     exception when invalid_text_representation then raise exception 'card_unavailable'; end;
     if c.id is null or c.status<>'activated' or c.active_until<=now() then raise exception 'card_unavailable'; end if;
     if exists(select 1 from public.tcg_ritual_claims where card_id=c.id) then raise exception 'ritual_already_claimed'; end if;
@@ -79,17 +79,17 @@ begin
   elsif p_action='ritual_review' then
     begin select * into claim from public.tcg_ritual_claims where card_id=(p_payload->>'card_id')::uuid for update;
     exception when invalid_text_representation then raise exception 'ritual_unavailable'; end;
-    if claim.card_id is null or claim.owner_role<>other_role or claim.status<>'pending' or claim.claimed_at+interval '24 hours'<=now() then raise exception 'ritual_unavailable'; end if;
-    if coalesce(p_payload->>'decision','') not in ('approve','reject') then raise exception 'invalid_request'; end if;
     select * into c from public.tcg_cards where id=claim.card_id for update;
+    if claim.card_id is null or c.owner_role<>p_role or claim.status<>'pending' or claim.claimed_at+interval '24 hours'<=now() then raise exception 'ritual_unavailable'; end if;
+    if coalesce(p_payload->>'decision','') not in ('approve','reject') then raise exception 'invalid_request'; end if;
     select * into t from public.tcg_card_templates where id=c.template_id;
     v_price:=case when p_payload->>'decision'='approve' then public.tcg_ritual_value(c.finish)
       when not c.economy_eligible then 0 else -public.tcg_ritual_value(c.finish) end;
     update public.tcg_ritual_claims set status=case when v_price>0 then 'approved' else 'rejected' end,
       resolved_at=now(),amount=v_price where card_id=c.id;
     update public.tcg_cards set status='used',consumed_at=now(),active_until=now() where id=c.id and status='activated';
-    if v_price>0 then insert into public.tcg_card_events(card_id,actor_role,event_type) values(c.id,claim.owner_role,'complete_card'); end if;
-    perform public.tcg_economy_apply(claim.owner_role,v_price,case when v_price>0 then 'ritual_approved' else 'ritual_rejected' end,c.id);
+    if v_price>0 then insert into public.tcg_card_events(card_id,actor_role,event_type) values(c.id,other_role,'complete_card'); end if;
+    perform public.tcg_economy_apply(other_role,v_price,case when v_price>0 then 'ritual_approved' else 'ritual_rejected' end,c.id);
   elsif p_action='sell_cards' then
     if jsonb_typeof(p_payload->'card_ids')<>'array' then raise exception 'invalid_request'; end if;
     begin select array_agg(value::uuid) into ids from jsonb_array_elements_text(p_payload->'card_ids') x(value);
@@ -201,7 +201,7 @@ AS $function$
     'last_bank_trade',(select jsonb_build_object('id',b.id,'recipe',b.recipe,'reward_card_id',b.reward_card_id)
       from public.tcg_bank_trades b where b.owner_role=p_role order by b.created_at desc limit 1),
     'pending_reviews',(select coalesce(jsonb_agg(jsonb_build_object('card_id',r.card_id,'title',coalesce(chosen.title,t.title),
-      'owner_role',r.owner_role,'finish',c.finish,'category',t.category,'claimed_at',r.claimed_at)
+      'owner_role',case when c.owner_role='AG' then 'CL' else 'AG' end,'reviewer_role',c.owner_role,'finish',c.finish,'category',t.category,'claimed_at',r.claimed_at)
       order by r.claimed_at),'[]'::jsonb)
       from public.tcg_ritual_claims r join public.tcg_cards c on c.id=r.card_id
       join public.tcg_card_templates t on t.id=c.template_id
@@ -315,7 +315,7 @@ begin
   -- Timed transitions are server-authoritative.
   update public.tcg_cards
   set status = 'used', consumed_at = coalesce(consumed_at, active_until)
-  where status = 'activated' and active_until <= now();
+  where status = 'activated' and active_until <= now() and not exists(select 1 from public.tcg_ritual_claims r where r.card_id=tcg_cards.id and r.status='pending' and r.claimed_at+interval '24 hours'>now());
 
   for trade_row in
     select t.*
@@ -707,7 +707,7 @@ begin
   into v_active_cards
   from public.tcg_cards c join public.tcg_card_templates t on t.id = c.template_id
   left join public.tcg_card_templates selected on selected.id=c.selected_template_id
-  where c.status = 'activated' and c.active_until > now();
+  where c.status = 'activated' and (c.active_until > now() or exists(select 1 from public.tcg_ritual_claims r where r.card_id=c.id and r.status='pending' and r.claimed_at+interval '24 hours'>now()));
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'template_id', t.id, 'category', t.category, 'title', t.title,
