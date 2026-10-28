@@ -393,10 +393,10 @@
     const finish=card.finish||card.finish_tier||"standard";
     const valuesByFinish={
       standard:{bonus:1,malus:5},
-      full_art:{bonus:2,malus:50},
+      full_art:{bonus:2,malus:10},
       foil:{bonus:3,malus:15},
       full_art_foil:{bonus:6,malus:30},
-      legendary:{bonus:10,malus:10}
+      legendary:{bonus:10,malus:50}
     };
     const {bonus,malus}=valuesByFinish[finish]||valuesByFinish.standard;
     const shardUnit=value=>value===1?"Éclat":"Éclats";
