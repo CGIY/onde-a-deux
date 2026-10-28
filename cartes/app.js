@@ -389,6 +389,17 @@
     return card.ritual_claim_status==='pending' ? card.owner_role!==state.role ? '<span class="ritual-pending">En attente de validation</span>' : review : card.owner_role!==state.role ? ask : '';
   }
 
+  function ritualStakes(card) {
+    const finish=card.finish||card.finish_tier||"standard";
+    const value=({full_art:2,foil:3,full_art_foil:6,legendary:10})[finish]||1;
+    const shared=Boolean(card.joint_ritual);
+    const noPenalty=card.category==="MISE À NUE"||card.economy_eligible===false;
+    const loss=noPenalty?"Sans malus":`−${value}`;
+    const unit=shared?"Éclats pour chaque joueur":"Éclats";
+    const accessible=`Défi réalisé : +${value} ${unit}. ${noPenalty?"Défi passé : aucun malus.":`Défi passé : −${value} ${unit}.`}`;
+    return `<div class="ritual-stakes${shared?" is-shared":""}${noPenalty?" no-penalty":""}" role="note" aria-label="${accessible}"><span class="ritual-stakes-mark">${icon("sparkle")}</span><span class="ritual-stakes-result"><small>${shared?"RÉUSSI · CHACUN":"RÉALISÉ"}</small><strong>+${value}</strong></span><span class="ritual-stakes-divider" aria-hidden="true"></span><span class="ritual-stakes-result ${noPenalty?"is-safe":"is-risk"}"><small>${shared?"PASSÉ · CHACUN":noPenalty?"SINON":"PASSÉ"}</small><strong>${loss}</strong></span></div>`;
+  }
+
   function renderToday() {
     const data = state.data;
     const pending = data.pending_openings || [];
@@ -418,7 +429,7 @@
     putMarkup("#boosterList", pending.map(receipt=>`<button class="resume-opening" type="button" data-resume-opening="${escapeHtml(receipt.booster_id)}"><span aria-hidden="true">${icon("cards")}</span><strong>Reprendre<small>Récompense ${Number(receipt.index)+1} / ${receipt.cards.length}</small></strong><b>→</b></button>`).join("")+packList);
 
     putMarkup("#activeCards", data.active_cards.length
-      ? data.active_cards.map(card => `<div class="active-tile">${buttonCard(card, { timer: card.active_until, activated: true })}${ritualActions(card)}</div>`).join("")
+      ? data.active_cards.map(card => `<div class="active-tile">${ritualStakes(card)}${buttonCard(card, { timer: card.active_until, activated: true })}${ritualActions(card)}</div>`).join("")
       : `<div class="table-empty"><p>Une carte à vivre ?</p><button class="text-button" type="button" data-go-collection>Choisir dans ma collection →</button></div>`);
   }
 

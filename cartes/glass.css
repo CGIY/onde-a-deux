@@ -530,6 +530,47 @@ select:focus-visible, summary:focus-visible {
     box-shadow:0 6px 16px rgba(57,49,41,.11),inset 0 1px #fff;
   }
 }
+
+/* A short, restrained glass arrival when navigating between views. */
+.view:not([hidden]) {
+  animation:glass-view-arrive .38s cubic-bezier(.2,.75,.2,1) both;
+  transform-origin:center top;
+}
+@keyframes glass-view-arrive {
+  0% { opacity:0; filter:blur(8px); transform:translateY(8px) scale(.995); }
+  58% { opacity:.88; filter:blur(1.5px); }
+  100% { opacity:1; filter:blur(0); transform:none; }
+}
+
+/* Ritual stakes sit above the artwork so the reward is clear before opening a card. */
+.ritual-stakes {
+  display:grid;
+  grid-template-columns:18px minmax(0,1fr) 1px minmax(0,1fr);
+  align-items:center;
+  gap:6px;
+  min-height:43px;
+  margin:0 0 8px;
+  padding:5px 8px;
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(250,249,245,.9),rgba(228,232,225,.76));
+  box-shadow:0 4px 12px rgba(43,54,47,.08),inset 0 1px rgba(255,255,255,.92);
+  color:#4c554f;
+}
+.ritual-stakes-mark { display:grid; place-items:center; color:#858078; }
+.ritual-stakes-mark .ui-icon { width:16px; height:16px; }
+.ritual-stakes-result { display:flex; min-width:0; flex-direction:column; gap:1px; text-align:center; line-height:1.1; }
+.ritual-stakes-result small { overflow:hidden; color:#6d756e; font-size:7px; font-weight:700; letter-spacing:.08em; text-overflow:ellipsis; white-space:nowrap; }
+.ritual-stakes-result strong { color:#607a69; font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.ritual-stakes-result.is-risk strong { color:#96786d; }
+.ritual-stakes-result.is-safe strong { color:#687d70; font-size:9px; }
+.ritual-stakes-divider { width:1px; height:23px; background:rgba(103,111,103,.2); }
+.ritual-stakes.is-shared .ritual-stakes-mark { color:#77867f; }
+.active-tile .ritual-stakes + .card-button { display:block; }
+
+@media (prefers-reduced-motion:reduce) {
+  .view:not([hidden]) { animation:none!important; filter:none; transform:none; }
+}
 @media (prefers-reduced-motion:reduce) {
   .primary-button, .booster-copy>strong, .trade-actions .accept,
   .economy-buy button, .bank-submit, .round-button, .dialog-close,
@@ -564,6 +605,13 @@ select:focus-visible, summary:focus-visible {
 .season-face-christmas { background:linear-gradient(108deg,#68776c,#59696c); }
 .season-face>strong { text-shadow:0 1px 3px rgba(25,27,25,.28); }
 .season-face>.season-copy { color:#f2eee6; text-shadow:0 1px 3px rgba(25,27,25,.28); }
+#appShell > .season-banner {
+  width:100vw;
+  max-width:none;
+  margin-left:calc(50% - 50vw);
+  margin-right:0;
+  border-radius:0;
+}
 .header-shard-button.wallet-bar {
   width:max-content;
   max-width:100%;
