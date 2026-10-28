@@ -1560,10 +1560,10 @@
     document.addEventListener("visibilitychange",activate);for(const dialog of document.querySelectorAll("dialog"))dialog.addEventListener("close",activate);activate();
   }).catch(()=>{});
   depressiveDeck = window.DepressiveDeck?.mount({getState:()=>state.data?.depressive_deck,getRole:()=>state.role,
-    exchange:async(action,payload)=>{const data=await exchange(action,payload);return action==="reroll_en_ville"?data.reroll_en_ville:data;},renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
+    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   window.rerollEnVille = window.RerollEnVille?.mount({
     getState:()=>state.data,getRole:()=>state.role,
-    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
+    exchange:async(action,payload)=>{const data=await exchange(action,payload);return action==="reroll_en_ville"?data.reroll_en_ville:data;},renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   economy = window.CardEconomy?.mount({getState:()=>state.data,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),
     onShop:()=>setView('shop'),
