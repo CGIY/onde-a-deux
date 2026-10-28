@@ -1,7 +1,6 @@
 /* REROLL EN VILLE · rarity-preserving random replacements. */
 (() => {
   "use strict";
-  const EVENT_ID = "reroll-en-ville-2026-10-28";
   const DEADLINE = Date.parse("2026-11-02T00:00:00+01:00");
   const MAX_CARDS = 10;
   const labels = {standard:"Commune",full_art:"Full art",foil:"Foil",full_art_foil:"Full art + foil",legendary:"Légendaire"};
@@ -69,7 +68,7 @@
     }
     function renderClosed(){dialog.querySelector("#rerollEventContent").innerHTML=`<header class="reroll-event-heading"><span class="reroll-event-kicker">ÉVÉNEMENT TERMINÉ</span><h1 id="rerollEventTitle">Le tirage est fermé.</h1><p>REROLL EN VILLE est terminé. Les cartes obtenues pendant l’événement restent valables jusqu’au dimanche 1er novembre à 23 h 59.</p></header><footer class="reroll-event-footer reroll-event-footer-single"><button type="button" class="reroll-event-primary" data-event-action="close">Fermer</button></footer>`;}
     function renderStatusLoading(){dialog.querySelector("#rerollEventContent").innerHTML=`<div class="reroll-event-opening" role="status"><span class="reroll-event-kicker">REROLL EN VILLE</span><h1 id="rerollEventTitle">Vérification de l’événement.</h1><p>Un instant…</p></div>`;}
-    function render(){if(!dialog.open)return;if(!status){renderStatusLoading();return}if(status.used){screen="used";renderUsed();return}if(!status.active){screen="closed";renderClosed();return}if(screen==="review"){renderReview();return}if(screen==="loading"){renderLoading();return}if(screen==="reveal"){renderReveal(status);return}renderSelection();}
+    function render(){if(!dialog.open)return;if(!status){renderStatusLoading();return}if(screen==="reveal"&&status.used){renderReveal(status);return}if(status.used){screen="used";renderUsed();return}if(!status.active){screen="closed";renderClosed();return}if(screen==="review"){renderReview();return}if(screen==="loading"){renderLoading();return}if(screen==="reveal"){renderReveal(status);return}renderSelection();}
 
     function maybeAutoOpen(){
       if(autoOpenQueued||!status?.active||seen())return;
@@ -109,7 +108,7 @@
         let result;
         try{result=await exchange("reroll_en_ville",{mode:"claim",card_ids:ids})}
         catch(error){const recovered=await exchange("reroll_en_ville",{mode:"status"}).catch(()=>null);if(recovered?.used&&JSON.stringify(recovered.input_card_ids)===JSON.stringify(ids))result=recovered;else throw error}
-        status=result;await exchange("sync");onUpdate();screen="reveal";render();
+        status=result;await exchange("sync");screen="reveal";onUpdate();render();
       }catch(error){
         const message=String(error?.message||error);
         notice=message.includes("reroll_en_ville_used")?"Cette participation a déjà été utilisée pour ce profil.":message.includes("reroll_en_ville_closed")?"L’événement est terminé.":message.includes("reroll_en_ville_no_match")?"Aucun tirage de même catégorie et rareté n’est disponible pour une des cartes choisies.":friendlyError?.(error)||"Le tirage n’a pas abouti. Réessaie.";
