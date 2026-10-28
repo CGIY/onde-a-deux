@@ -392,10 +392,10 @@
   function ritualStakes(card) {
     const finish=card.finish||card.finish_tier||"standard";
     const valuesByFinish={
-      standard:{bonus:1,malus:1},
-      full_art:{bonus:2,malus:2},
-      foil:{bonus:3,malus:3},
-      full_art_foil:{bonus:6,malus:6},
+      standard:{bonus:1,malus:5},
+      full_art:{bonus:2,malus:50},
+      foil:{bonus:3,malus:15},
+      full_art_foil:{bonus:6,malus:30},
       legendary:{bonus:10,malus:10}
     };
     const {bonus,malus}=valuesByFinish[finish]||valuesByFinish.standard;
