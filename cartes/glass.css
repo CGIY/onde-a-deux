@@ -4,17 +4,24 @@
   --glass-fill-strong: rgba(255, 250, 243, .78);
   --glass-edge: rgba(255, 255, 255, .82);
   --glass-shadow: 0 18px 44px rgba(72, 49, 34, .13), inset 0 1px 0 rgba(255,255,255,.82);
-  --glass-radius: 24px;
-  --glass-blur: 24px;
+  --glass-radius: 22px;
+  --surface-radius: 22px;
+  --nested-radius: 17px;
+  --control-radius: 14px;
+  --glass-blur: 18px;
+  --surface-blur: blur(16px) saturate(145%);
+  --surface-line: rgba(255,255,255,.78);
+  --surface-tint: linear-gradient(145deg, rgba(255,252,246,.64), rgba(246,237,224,.44));
+  --surface-lift: 0 14px 34px rgba(79,57,39,.09), inset 0 1px rgba(255,255,255,.86);
   --glass-motion: cubic-bezier(.2,.8,.2,1);
 }
 
 body {
   background:
     radial-gradient(ellipse at 8% 0%, #fff9ed, transparent 48%),
-    radial-gradient(ellipse at 100% 64%, #dce8e2, transparent 48%),
-    radial-gradient(ellipse at 55% 100%, #f1dfce, transparent 48%),
-    #f1eee8;
+    radial-gradient(ellipse at 100% 64%, #e2eae4, transparent 48%),
+    radial-gradient(ellipse at 55% 100%, #f2e4d7, transparent 48%),
+    #f4f0e9;
 }
 .app-shell { isolation: isolate; }
 .topbar {
@@ -25,7 +32,7 @@ body {
   padding: 12px 12px 13px;
   border: 1px solid #ffffffa8;
   border-top-color: #ffffffd9;
-  border-radius: 0 0 24px 24px;
+  border-radius: 0 0 var(--glass-radius) var(--glass-radius);
   background: linear-gradient(145deg, #fffaf0b8, #f4ede38f);
   box-shadow: 0 10px 30px #634a3512, inset 0 1px #fff;
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(155%);
@@ -35,30 +42,30 @@ body {
   border: 1px solid #ffffffbd;
   background: linear-gradient(145deg, #fffdf8b8, #f8f0e57d);
   box-shadow: 0 8px 22px #70563d12, inset 0 1px #fff;
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(145%);
 }
 .daily-hero {
   border: 1px solid #ffffffc4;
-  border-radius: 28px;
+  border-radius: 26px;
   background:
     linear-gradient(145deg, #fff9ed99, #ecded080),
     radial-gradient(ellipse at 50% 55%, #e6bb8b35, transparent 65%);
   box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(24px) saturate(145%);
-  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(145%);
 }
 .season-banner {
   border: 1px solid #ffffff77;
   border-top-color: #ffffffb8;
-  border-radius: 22px;
+  border-radius: var(--glass-radius);
   background:
     linear-gradient(145deg, #ffffff18, transparent 42%),
     radial-gradient(ellipse at 0 100%, #c65b2428, transparent 65%),
     linear-gradient(115deg, #49372dc4, #342a34cc);
   box-shadow: 0 12px 30px #3e2d2a1c, inset 0 1px #ffffff30;
-  -webkit-backdrop-filter: blur(20px) saturate(135%);
-  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(135%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(135%);
 }
 .hero-bottom { border-color: #aa886633; }
 .booster-copy>strong, .primary-button {
@@ -75,16 +82,16 @@ body {
 .resume-opening, .empty-state, .stack-dialog, .selection-dialog,
 .info-dialog, .confirm-dialog {
   border: 1px solid #ffffffa8;
-  border-radius: 20px;
+  border-radius: var(--surface-radius);
   background: linear-gradient(145deg, #fffaf09e, #f6ede17d);
   box-shadow: 0 12px 30px #694c3210, inset 0 1px #ffffffc2;
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
-  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 .segmented { padding: 5px; background-color: #e9dfd2a8; }
 .segmented .selected, .category-filters .selected {
   border-color: #ffffffdc;
-  border-radius: 15px;
+  border-radius: var(--control-radius);
   background: linear-gradient(145deg, #fffdf8f0, #eee4d8db);
   box-shadow: 0 5px 14px #60483118, inset 0 1px #fff;
 }
@@ -95,30 +102,30 @@ body {
   gap: 4px;
   border: 1px solid #ffffffb8;
   border-top-color: #ffffffe8;
-  border-radius: 25px;
+  border-radius: var(--glass-radius);
   background: linear-gradient(145deg, #fffaf0a6, #f3e9d890);
   box-shadow: 0 18px 44px #30251b2c, inset 0 1px #fff;
-  -webkit-backdrop-filter: blur(30px) saturate(165%);
-  backdrop-filter: blur(30px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
 }
-.bottom-nav button { min-height: 58px; border-radius: 19px; color: #876e58; }
+.bottom-nav button { min-height: 58px; border-radius: calc(var(--control-radius) + 4px); color: #876e58; }
 .bottom-nav .selected {
   border: 1px solid #ffffffd9;
-  border-radius: 19px;
+  border-radius: calc(var(--control-radius) + 4px);
   background: linear-gradient(145deg, #ffffffef, #eee2d2d9);
   color: #634630;
   box-shadow: 0 5px 16px #6c50331a, inset 0 1px #fff;
 }
 .economy-panel, .helper-drawer {
   border-color: #ffffffb8;
-  border-radius: 25px;
+  border-radius: var(--surface-radius);
   box-shadow: 0 16px 38px #5c413019, inset 0 1px #fff;
 }
 .header-shard-button, .wallet-bar {
   border-color: #ffffffc9 !important;
   box-shadow: 0 8px 22px #61463216, inset 0 1px #fff !important;
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 .bank-offer, .bulk-recycle-row, .bulk-recycle-total, .shard-info-uses span,
 .ritual-review-actions button, .trade-item, .trade-maker, .profile-choice {
@@ -126,8 +133,8 @@ body {
   border-radius: 18px;
   background: linear-gradient(145deg, #fffdf795, #f4e9e278);
   box-shadow: 0 9px 24px #694c3210, inset 0 1px #ffffffcf;
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 .bank-offer-legendary {
   border-color: #ffffffd1;
@@ -153,8 +160,8 @@ body {
     radial-gradient(ellipse at 85% 90%, #f2dfcf, transparent 60%),
     linear-gradient(145deg, #faf5eeeF, #f1e9e0ef);
   color: #604b5b;
-  -webkit-backdrop-filter: blur(26px) saturate(145%);
-  backdrop-filter: blur(26px) saturate(145%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 .bulk-recycle-row.selected, .profile-choice:focus-visible {
   border-color: #9c789b;
@@ -162,7 +169,7 @@ body {
 }
 .selection-search input, .collection-tools input, .collection-tools select {
   border: 1px solid #ffffffc2;
-  border-radius: 15px;
+  border-radius: var(--control-radius);
   background: linear-gradient(145deg, #fffdf7d9, #f4ece1b5);
   box-shadow: inset 0 1px #fff;
 }
@@ -171,12 +178,12 @@ body {
 dialog {
   border: 1px solid #fff9;
   border-top-color: #ffffffeb;
-  border-radius: 28px;
+  border-radius: calc(var(--glass-radius) + 4px);
   background: linear-gradient(145deg, #fffaf0f0, #f1e7d9ed);
   color: #503b2d;
   box-shadow: 0 30px 100px #241a1580, inset 0 1px #fff;
-  -webkit-backdrop-filter: blur(28px) saturate(150%);
-  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
 }
 dialog::backdrop { background: #241a1559; -webkit-backdrop-filter: blur(18px) saturate(120%); backdrop-filter: blur(18px) saturate(120%); }
 .bank-dialog::backdrop, .recycle-dialog::backdrop, .economy-tour::backdrop,
@@ -201,8 +208,8 @@ dialog::backdrop { background: #241a1559; -webkit-backdrop-filter: blur(18px) sa
   background: linear-gradient(145deg, #fff7e7e8, #e9d3b9e8);
   color: #49352a;
   box-shadow: 0 14px 36px #2c1d1830, inset 0 1px #fff;
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
 }
 .loading-veil { background: #f5e9d177; -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
 .game-card, .mini-pack, .sealed-pack, .reveal-front, .viewer-card { -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -215,7 +222,6 @@ button, a, input, select, summary { touch-action: manipulation; }
   transition: transform .28s var(--glass-motion), box-shadow .28s ease,
     background-color .28s ease, border-color .28s ease, filter .28s ease;
 }
-.primary-button:not(:disabled):hover, .round-button:hover, .dialog-close:hover { transform: translateY(-2px); }
 .primary-button:not(:disabled):active, .round-button:active, .dialog-close:active,
 .bottom-nav button:active, .category-filters button:active,
 .segmented button:active, .trade-actions button:active { transform: scale(.97); }
@@ -234,15 +240,7 @@ button, a, input, select, summary { touch-action: manipulation; }
   .collection-tools select, .category-filters button { background-color: #f7efe4f2; }
 }
 
-/* One material and radius rhythm across the full app; card faces stay untouched. */
-:root {
-  --surface-radius: 22px;
-  --control-radius: 15px;
-  --surface-line: rgba(255,255,255,.78);
-  --surface-tint: linear-gradient(145deg, rgba(255,252,246,.64), rgba(246,237,224,.44));
-  --surface-lift: 0 14px 34px rgba(79,57,39,.09), inset 0 1px rgba(255,255,255,.86);
-  --surface-blur: blur(20px) saturate(145%);
-}
+/* One surface rhythm across the app; card faces keep their own proportions. */
 .content-block {
   margin: 14px 0 0;
   padding: 19px 17px;
@@ -259,24 +257,24 @@ button, a, input, select, summary { touch-action: manipulation; }
 .view-heading h2, .section-title h3, .login-brand h1, .pairing-panel h2,
 .economy-head h3, .bank-head h3, .bulk-recycle-content>h2,
 .bulk-recycle-result h2, .shard-info-content h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--display-font, Georgia, "Times New Roman", serif);
   font-weight: 400;
-  letter-spacing: -.045em;
+  letter-spacing: -.035em;
 }
 .profile-choice, .trade-item, .bank-offer, .bulk-recycle-row,
 .bulk-recycle-total, .shard-info-uses span, .bank-selected,
 .bank-card-choice, .recycle-quote, .economy-buy {
   border-color: var(--surface-line);
-  border-radius: 17px;
+  border-radius: var(--nested-radius);
   box-shadow: 0 9px 24px rgba(78,57,40,.08), inset 0 1px rgba(255,255,255,.84);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 .profile-choice { min-height: 72px; border-radius: 20px; }
 .pairing-panel {
   padding: 22px 20px;
   border: 1px solid var(--surface-line);
-  border-radius: 24px;
+  border-radius: calc(var(--glass-radius) + 2px);
   background: var(--surface-tint);
   box-shadow: var(--surface-lift);
   -webkit-backdrop-filter: var(--surface-blur);
@@ -284,11 +282,11 @@ button, a, input, select, summary { touch-action: manipulation; }
 }
 .filter-drawer {
   border: 1px solid var(--surface-line);
-  border-radius: 20px;
+  border-radius: var(--surface-radius);
   background: linear-gradient(145deg, rgba(255,252,246,.60), rgba(247,239,229,.40));
   box-shadow: 0 9px 24px rgba(78,57,40,.06), inset 0 1px rgba(255,255,255,.84);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 .filter-drawer>summary {
   min-height: 50px;
@@ -300,7 +298,7 @@ button, a, input, select, summary { touch-action: manipulation; }
 .filter-drawer .category-filters { padding-inline: 14px; }
 .filter-drawer #resetFilters { margin: 0 14px 12px; }
 .collection-note { max-width: 48ch; font-size: 11px; line-height: 1.55; }
-.trade-maker { border-radius: 23px; }
+.trade-maker { border-radius: var(--surface-radius); }
 .trade-item { padding: 15px; }
 .trade-actions button { min-height: 44px; border-radius: 14px; }
 .trade-actions .accept, .economy-buy button:not(:disabled), .bank-submit {
@@ -325,11 +323,11 @@ button, a, input, select, summary { touch-action: manipulation; }
 }
 .trade-pick-button {
   border: 1px solid rgba(255,255,255,.78);
-  border-radius: 20px;
+  border-radius: var(--surface-radius);
   background: linear-gradient(145deg, rgba(255,252,246,.62), rgba(242,231,216,.42));
   box-shadow: 0 10px 25px rgba(78,57,40,.09), inset 0 1px #fff;
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: var(--surface-blur);
+  backdrop-filter: var(--surface-blur);
 }
 .economy-panel { padding: 20px 17px; }
 .economy-buy { padding: 13px 12px; }
@@ -348,9 +346,14 @@ button, a, input, select, summary { touch-action: manipulation; }
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   backdrop-filter: blur(18px) saturate(150%);
 }
-.view-heading .round-button:hover {
-  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(247,237,224,.74));
-  box-shadow: 0 10px 25px rgba(91,67,43,.14), inset 0 1px #fff;
+@media (hover: hover) and (pointer: fine) {
+  .primary-button:not(:disabled):hover, .round-button:hover, .dialog-close:hover {
+    transform: translateY(-2px);
+  }
+  .view-heading .round-button:hover {
+    background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(247,237,224,.74));
+    box-shadow: 0 10px 25px rgba(91,67,43,.14), inset 0 1px #fff;
+  }
 }
 .round-button:active, .dialog-close:active { transform: scale(.95); }
 button:focus-visible, a:focus-visible, input:focus-visible,
@@ -365,6 +368,18 @@ select:focus-visible, summary:focus-visible {
 .booster-empty { padding: 25px 15px 12px; }
 .booster-empty p { max-width: 34ch; margin-inline: auto; line-height: 1.55; }
 .toast { font-size: 13px; }
+
+@media (max-width: 600px) {
+  /* Keep the legendary aura dramatic while limiting animated layers on phones. */
+  .legend-motes i:nth-child(n + 9) { display: none; }
+  .bottom-nav { -webkit-backdrop-filter: blur(18px) saturate(155%); backdrop-filter: blur(18px) saturate(155%); }
+}
+@media (hover: none) {
+  .primary-button:not(:disabled):hover, .round-button:hover, .dialog-close:hover,
+  .profile-choice:hover, .bank-offer:enabled:hover { transform: none; }
+  .profile-choice:hover { border-color: var(--surface-line); }
+  .bank-offer:enabled:hover { box-shadow: 0 9px 24px rgba(78,57,40,.08), inset 0 1px rgba(255,255,255,.84); }
+}
 
 @media (max-width: 600px) {
   .content-block { padding: 17px 14px; }
