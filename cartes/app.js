@@ -240,7 +240,7 @@
   }
   function halloweenActive() {
     const now = serverNow().getTime();
-    return now >= Date.parse("2026-10-27T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
+    return now >= Date.parse("2026-10-27T00:00:00+02:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
   }
 
   const CARD_ART_BASE = "assets/cards-v3/";
@@ -269,7 +269,7 @@
     return `<article class="game-card${CARD_ART[card.template_id || card.id]?' art-individual':''} palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"${cardArtStyle(card)}></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       ${isHalloween(card) ? `<span class="halloween-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--mote:${i}"></i>`).join("")}</span>` : ""}<div class="card-top"><span>${escapeHtml(card.category)}</span></div>
-      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
+      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
       <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}${number}</span></div>
     </article>`;
   }
@@ -980,15 +980,22 @@
         const snapshot=await exchange('sync');
         if (!window.CardTransport.matchesMutation(snapshot,ids.length>1?'sell_cards':'sell_card',ids.length>1?{card_ids:ids}:{card_id:ids[0]},state.role)) throw error;
       }
-      const pieces=window.CardBoosterGesture.fragments(session.cuts);
-      $$('#recyclePreview .recycle-card-plane').forEach((plane,index)=>plane.insertAdjacentHTML('beforeend',`<div class="card-fragments" aria-hidden="true">${pieces.map((piece,i)=>{
+      $$('#recyclePreview .recycle-card-plane').forEach((plane,index)=>{
+        const rect=plane.getBoundingClientRect();
+        const localCuts=session.cuts.map(([a,b])=>[
+          {x:(a.x-rect.left)/rect.width*100,y:(a.y-rect.top)/rect.height*100},
+          {x:(b.x-rect.left)/rect.width*100,y:(b.y-rect.top)/rect.height*100}
+        ]);
+        const pieces=window.CardBoosterGesture.fragments(localCuts);
+        plane.insertAdjacentHTML('beforeend',`<div class="card-fragments" aria-hidden="true">${pieces.map((piece,i)=>{
         const x=piece.reduce((sum,p)=>sum+p.x,0)/piece.length;
         return `<div class="card-fragment" style="clip-path:polygon(${piece.map(p=>`${p.x}% ${p.y}%`).join(',')});--piece-x:${(x-50)*3+(index-1)*80}px;--piece-y:${120+(i%3)*45}px;--piece-rotate:${(i%2?1:-1)*(20+i*5)}deg">${cardMarkup(session.cards[index])}</div>`;
-      }).join('')}</div>`));
-      $("#recyclePreview").insertAdjacentHTML('beforeend',`<span class="recycle-sparks" aria-hidden="true">${Array.from({length:16},(_,i)=>`<i style="--spark:${i}"></i>`).join('')}</span>`);
+        }).join('')}</div>`);
+      });
+      $("#recyclePreview").insertAdjacentHTML('beforeend',`<span class="recycle-shard" aria-hidden="true">✦</span><span class="recycle-sparks" aria-hidden="true">${Array.from({length:20},(_,i)=>`<i style="--spark:${i}"></i>`).join('')}</span>`);
       $("#recyclePreview").classList.add('shredded');
       render();cardDialog.close();feedback('card');
-      await new Promise(resolve=>setTimeout(resolve,reducedMotion.matches?0:650));
+      await new Promise(resolve=>setTimeout(resolve,reducedMotion.matches?0:1100));
       if(recycle===session)recycleDialog.close();
       toast(`${ids.length>1?ids.length+' cartes recyclées':'Carte recyclée'} · Éclats versés.`);
     } catch(error) {
@@ -1486,17 +1493,27 @@
   setupBoosterGesture();
   recycleGesture=window.CardBoosterGesture.slice(recycleDialog,{
     isLocked:()=>!recycleDialog.open||!recycle||recycle.committing,
-    getCardRect:()=>$("#recyclePreview").getBoundingClientRect(),
+    getCardRect:()=>{
+      const rects=$$('#recyclePreview .recycle-card-plane').map(plane=>plane.getBoundingClientRect());
+      if(!rects.length)return $("#recyclePreview").getBoundingClientRect();
+      const left=Math.min(...rects.map(rect=>rect.left)),top=Math.min(...rects.map(rect=>rect.top));
+      const right=Math.max(...rects.map(rect=>rect.right)),bottom=Math.max(...rects.map(rect=>rect.bottom));
+      return {left,top,right,bottom,width:right-left,height:bottom-top};
+    },
     onTrace:(a,b)=>{
       if(reducedMotion.matches)return;
-      const trail=document.createElement('i');trail.className='blade-trail';trail.setAttribute('aria-hidden','true');
+      const trail=document.createElement('i');trail.className='recycle-trail';trail.setAttribute('aria-hidden','true');
       Object.assign(trail.style,{left:`${a.x}px`,top:`${a.y}px`,width:`${Math.hypot(b.x-a.x,b.y-a.y)}px`,transform:`rotate(${Math.atan2(b.y-a.y,b.x-a.x)}rad)`});
       recycleDialog.append(trail);setTimeout(()=>trail.remove(),300);
     },
-    onCut:(a,b,rect)=>{
-      const point=p=>({x:(p.x-rect.left)/rect.width*100,y:(p.y-rect.top)/rect.height*100});
-      const first=point(a),last=point(b);recycle.cuts.push([first,last]);
-      $("#recyclePreview").insertAdjacentHTML('beforeend',`<svg class="cut-scar" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="${first.x}" y1="${first.y}" x2="${last.x}" y2="${last.y}"/></svg>`);
+    onCut:(a,b)=>{
+      recycle.cuts.push([a,b]);
+      $$('#recyclePreview .recycle-card-plane').forEach(plane=>{
+        const cardRect=plane.getBoundingClientRect();
+        const point=p=>({x:(p.x-cardRect.left)/cardRect.width*100,y:(p.y-cardRect.top)/cardRect.height*100});
+        const first=point(a),last=point(b);
+        plane.insertAdjacentHTML('beforeend',`<svg class="cut-scar" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="${first.x}" y1="${first.y}" x2="${last.x}" y2="${last.y}"/></svg>`);
+      });
       $$('#recycleMeter i').forEach((dot,i)=>dot.classList.toggle('cut',i<recycle.cuts.length));
       $("#recycleStatus").textContent=`${recycle.cuts.length} / 3 · Découverte conservée`;
       feedback('card');if(recycle.cuts.length>=3)commitRecycling();
