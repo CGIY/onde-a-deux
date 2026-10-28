@@ -1973,6 +1973,63 @@ body  {
 @media(max-width:359px) { .birthday-copy>span { font-size:9px; } .season-face-birthday>strong { font-size:10.5px; } }
 @media(prefers-reduced-motion:reduce) { .season-scene { display:none; } .season-scene * { animation:none!important; } }
 
+/* Temporary Halloween atmosphere: subtle silhouettes behind the paper UI. */
+.halloween-atmosphere {
+  position:fixed;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  pointer-events:none;
+  contain:strict;
+  color:#563541;
+}
+.halloween-atmosphere[hidden] { display:none!important; }
+.app-shell,.login-screen { z-index:2; }
+.halloween-atmosphere__bat {
+  position:absolute;
+  top:var(--lane);
+  left:-100px;
+  width:var(--size);
+  height:calc(var(--size)*.47);
+  color:var(--shade);
+  opacity:.2;
+  filter:drop-shadow(0 2px 3px #53324122);
+  animation:halloween-atmosphere-flight var(--flight) linear var(--delay) infinite;
+}
+.halloween-atmosphere__bat:nth-child(even) { animation-direction:reverse; }
+.halloween-atmosphere__bat svg { display:block;width:100%;height:100%;overflow:visible;fill:currentColor; }
+.ambient-wing { transform-box:fill-box;transform-origin:50% 90%;animation:halloween-wing-flap .32s ease-in-out infinite alternate; }
+.ambient-wing-right { animation-delay:-.16s; }
+.halloween-blood-drop {
+  position:absolute;
+  top:-25px;
+  width:5px;
+  height:23px;
+  border-radius:70% 30% 65% 45%;
+  background:linear-gradient(180deg,#8d273244 0%,#8d2732c9 55%,#541b2cba 100%);
+  box-shadow:0 0 7px #7b243844;
+  opacity:0;
+  transform:rotate(7deg);
+  animation:halloween-blood-fall 1.65s cubic-bezier(.48,.02,.85,.42) forwards;
+}
+@keyframes halloween-atmosphere-flight {
+  0% { transform:translate3d(-12vw,0,0) rotate(-5deg); }
+  48% { transform:translate3d(48vw,18px,0) rotate(3deg); }
+  100% { transform:translate3d(116vw,-8px,0) rotate(-2deg); }
+}
+@keyframes halloween-wing-flap { from { transform:scaleY(.58); } to { transform:scaleY(1); } }
+@keyframes halloween-blood-fall {
+  0% { opacity:0;transform:translateY(0) scale(.72) rotate(7deg); }
+  12% { opacity:.76; }
+  78% { opacity:.64; }
+  100% { opacity:0;transform:translateY(105vh) scale(1.08) rotate(12deg); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .halloween-atmosphere__bat { animation:none!important;opacity:.12; }
+  .ambient-wing { animation:none!important; }
+  .halloween-blood-drop { display:none!important; }
+}
+
 /* Global announcement stays above the app header. */
 .app-shell > .season-banner {margin-top:0;margin-bottom:16px;}
 .booster-shop-drawer > summary {cursor:pointer;list-style:none;}

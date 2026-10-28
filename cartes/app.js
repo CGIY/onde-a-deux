@@ -240,7 +240,7 @@
   }
   function halloweenActive() {
     const now = serverNow().getTime();
-    return now >= Date.parse("2026-10-27T00:00:00+01:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
+    return now >= Date.parse("2026-10-27T00:00:00+02:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
   }
 
   const CARD_ART_BASE = "assets/cards-v3/";
@@ -269,7 +269,7 @@
     return `<article class="game-card${CARD_ART[card.template_id || card.id]?' art-individual':''} palette-${escapeHtml(card.palette || "couple")} finish-${escapeHtml(finish)}${isHalloween(card) ? " edition-halloween" : ""}${options.compact ? " compact" : ""}${options.muted ? " muted" : ""}" data-wear="${wear}">
       <div class="card-art" aria-hidden="true"${cardArtStyle(card)}></div><div class="card-engraving" aria-hidden="true"></div><div class="card-shine" aria-hidden="true"></div>
       ${isHalloween(card) ? `<span class="halloween-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--mote:${i}"></i>`).join("")}</span>` : ""}<div class="card-top"><span>${escapeHtml(card.category)}</span></div>
-      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
+      ${finish === "legendary" ? `<div class="legend-orbit" aria-hidden="true"></div><div class="legend-motes" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i style="--i:${i}"></i>`).join("")}</div>` : ""}${timer}${modifier ? `<div class="ritual-effect ${escapeHtml(card.effect_modifier)}">${modifier}</div>` : ""}${timeModifier ? `<div class="ritual-time">${timeModifier}</div>` : ""}<div class="card-copy${title.length > 34 ? " long-title" : ""}"><h4${cycle}>${escapeHtml(title)}</h4><p>${escapeHtml(challenge || "Carte déjà découverte.")}</p></div>
       <div class="card-footer"><span>${escapeHtml(finishLabel(finish))}</span><i title="${escapeHtml(finishLabel(finish))}" aria-label="${escapeHtml(finishLabel(finish))}">${finishSymbol(finish)}</i><span>${isHalloween(card) ? "Halloween" : "Éd. 01"}${number}</span></div>
     </article>`;
   }
@@ -992,10 +992,10 @@
         return `<div class="card-fragment" style="clip-path:polygon(${piece.map(p=>`${p.x}% ${p.y}%`).join(',')});--piece-x:${(x-50)*3+(index-1)*80}px;--piece-y:${120+(i%3)*45}px;--piece-rotate:${(i%2?1:-1)*(20+i*5)}deg">${cardMarkup(session.cards[index])}</div>`;
         }).join('')}</div>`);
       });
-      $("#recyclePreview").insertAdjacentHTML('beforeend',`<span class="recycle-sparks" aria-hidden="true">${Array.from({length:16},(_,i)=>`<i style="--spark:${i}"></i>`).join('')}</span>`);
+      $("#recyclePreview").insertAdjacentHTML('beforeend',`<span class="recycle-shard" aria-hidden="true">✦</span><span class="recycle-sparks" aria-hidden="true">${Array.from({length:20},(_,i)=>`<i style="--spark:${i}"></i>`).join('')}</span>`);
       $("#recyclePreview").classList.add('shredded');
       render();cardDialog.close();feedback('card');
-      await new Promise(resolve=>setTimeout(resolve,reducedMotion.matches?0:650));
+      await new Promise(resolve=>setTimeout(resolve,reducedMotion.matches?0:1100));
       if(recycle===session)recycleDialog.close();
       toast(`${ids.length>1?ids.length+' cartes recyclées':'Carte recyclée'} · Éclats versés.`);
     } catch(error) {
