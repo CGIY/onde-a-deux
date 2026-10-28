@@ -623,6 +623,7 @@
     attachFoilMotion();
     refreshOpenCard();
     updateTimers();
+    window.rerollEnVille?.refresh();
     depressiveDeck?.refresh();
     economy?.refresh();
   }
@@ -1554,11 +1555,14 @@
   window.CardBoosterGesture.preventDoubleTapZoom(document);
 
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("service-worker.js").then(registration=>{
-    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !recycleDialog.open && !depressiveDeck?.isOpen() && !economy?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
+    const activate = () => {if (registration.waiting && !state.opening && !state.busy && !boosterDialog.open && !recycleDialog.open && !depressiveDeck?.isOpen() && !economy?.isOpen() && !window.rerollEnVille?.isOpen()) registration.waiting.postMessage({type:"ACTIVATE"});};
     registration.addEventListener("updatefound",()=>registration.installing?.addEventListener("statechange",activate));
     document.addEventListener("visibilitychange",activate);for(const dialog of document.querySelectorAll("dialog"))dialog.addEventListener("close",activate);activate();
   }).catch(()=>{});
   depressiveDeck = window.DepressiveDeck?.mount({getState:()=>state.data?.depressive_deck,getRole:()=>state.role,
+    exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
+  window.rerollEnVille = window.RerollEnVille?.mount({
+    getState:()=>state.data,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),friendlyError});
   economy = window.CardEconomy?.mount({getState:()=>state.data,getRole:()=>state.role,
     exchange,renderCard:cardMarkup,onUpdate:render,onCollection:()=>setView("collection"),
