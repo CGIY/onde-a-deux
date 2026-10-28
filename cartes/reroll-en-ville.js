@@ -5,7 +5,7 @@
   const MAX_CARDS = 10;
   const labels = {standard:"Commune",full_art:"Full art",foil:"Foil",full_art_foil:"Full art + foil",legendary:"Légendaire"};
   const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-  const icon = path => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${path}</svg>`;
+  const icon = path => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${path}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
   function mount({getState,getRole,exchange,renderCard,onUpdate,onCollection,friendlyError}) {
     const launcher=document.createElement("button");
