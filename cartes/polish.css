@@ -2048,8 +2048,8 @@ body  {
 @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))) {
   .bottom-nav {
     background:#fffcf5c9;
-    -webkit-backdrop-filter:blur(18px) saturate(1.3);
-    backdrop-filter:blur(18px) saturate(1.3)
+    -webkit-backdrop-filter:blur(18px) saturate(1.08);
+    backdrop-filter:blur(18px) saturate(1.08)
   }
 }
 .bottom-nav button {
@@ -2088,13 +2088,13 @@ body  {
 @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))) {
   #appShell .view-heading .heading-actions .round-button:not(:disabled) {
     background:#fffaf2b8;
-    -webkit-backdrop-filter:blur(14px) saturate(1.25);
-    backdrop-filter:blur(14px) saturate(1.25)
+    -webkit-backdrop-filter:blur(14px) saturate(1.08);
+    backdrop-filter:blur(14px) saturate(1.08)
   }
   .card-dialog > .dialog-close,.card-dialog .viewer-nav .round-button:not(:disabled) {
     background:#fff5e52e;
-    -webkit-backdrop-filter:blur(16px) saturate(1.35);
-    backdrop-filter:blur(16px) saturate(1.35)
+    -webkit-backdrop-filter:blur(16px) saturate(1.08);
+    backdrop-filter:blur(16px) saturate(1.08)
   }
 }
 #appShell .view-heading .heading-actions .round-button:not(:disabled):active,
