@@ -592,7 +592,6 @@
     window.SeasonAnnouncements?.refresh(serverNow());
     $("#seasonHeading").textContent = halloweenActive() ? "Halloween" : "Halloween bientôt";
     $("#seasonCopy").textContent = window.SeasonDates.halloween.label;
-    $("#seasonCopy").textContent = "27 oct.–1 nov. · 10 exclusives";
 
     renderToday();
     renderCollection();
