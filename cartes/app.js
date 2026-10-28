@@ -240,7 +240,8 @@
   }
   function halloweenActive() {
     const now = serverNow().getTime();
-    return now >= Date.parse("2026-10-27T00:00:00+02:00") && now < Date.parse("2026-11-02T00:00:00+01:00");
+    const {start, end} = window.SeasonDates.halloween;
+    return now >= start && now < end;
   }
 
   const CARD_ART_BASE = "assets/cards-v3/";
@@ -590,7 +591,7 @@
     $("#profileMenu").title = `${name(state.data.partner_role)} ${state.data.partner_online ? "est en ligne" : "est hors ligne"}`;
     window.SeasonAnnouncements?.refresh(serverNow());
     $("#seasonHeading").textContent = halloweenActive() ? "Halloween" : "Halloween bientôt";
-    $("#seasonCopy").textContent = "27 oct.–1 nov. · 10 exclusives";
+    $("#seasonCopy").textContent = window.SeasonDates.halloween.label;
 
     renderToday();
     renderCollection();
