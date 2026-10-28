@@ -393,11 +393,13 @@
     const finish=card.finish||card.finish_tier||"standard";
     const value=({full_art:2,foil:3,full_art_foil:6,legendary:10})[finish]||1;
     const shared=Boolean(card.joint_ritual);
-    const noPenalty=card.category==="MISE À NUE"||card.economy_eligible===false;
+    const noPenalty=!shared&&card.economy_eligible===false;
     const loss=noPenalty?"Sans malus":`−${value}`;
     const unit=shared?"Éclats pour chaque joueur":"Éclats";
-    const accessible=`Défi réalisé : +${value} ${unit}. ${noPenalty?"Défi passé : aucun malus.":`Défi passé : −${value} ${unit}.`}`;
-    return `<div class="ritual-stakes${shared?" is-shared":""}${noPenalty?" no-penalty":""}" role="note" aria-label="${accessible}"><span class="ritual-stakes-mark">${icon("sparkle")}</span><span class="ritual-stakes-result"><small>${shared?"RÉUSSI · CHACUN":"RÉALISÉ"}</small><strong>+${value}</strong></span><span class="ritual-stakes-divider" aria-hidden="true"></span><span class="ritual-stakes-result ${noPenalty?"is-safe":"is-risk"}"><small>${shared?"PASSÉ · CHACUN":noPenalty?"SINON":"PASSÉ"}</small><strong>${loss}</strong></span></div>`;
+    const successLabel=shared?"RÉUSSI · CHACUN":"RÉALISÉ";
+    const failureLabel=shared?"NON RÉALISÉ · CHACUN":noPenalty?"SI NON FAIT":"NON FAIT";
+    const accessible=`Défi réalisé : +${value} ${unit}. ${noPenalty?"Défi non réalisé : aucun malus.":`Défi non réalisé : −${value} ${unit}.`}${shared?" Défi sans réponse : aucun changement d’Éclats.":""}`;
+    return `<div class="ritual-stakes${shared?" is-shared":""}${noPenalty?" no-penalty":""}" role="note" aria-label="${accessible}"><span class="ritual-stakes-mark">${icon("sparkle")}</span><span class="ritual-stakes-result"><small>${successLabel}</small><strong>+${value}</strong></span><span class="ritual-stakes-divider" aria-hidden="true"></span><span class="ritual-stakes-result ${noPenalty?"is-safe":"is-risk"}"><small>${failureLabel}</small><strong>${loss}</strong></span></div>`;
   }
 
   function renderToday() {
