@@ -1,19 +1,23 @@
 /* V11: a readable paper interface and a single, centred icon system. */
 :root {
+  /* Shared paper UI tokens: keeps the grain and artwork expressive while
+     giving controls, panels and typography one calm visual rhythm. */
+  --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --display-font: Georgia, "Times New Roman", serif;
+  --radius-control: 12px;
+  --radius-panel: 18px;
+  --focus-ring: #875032;
   --ink:#422f28;
   --muted:#725e50;
   --warm:#955234;
   --sage:#466654;
   --line:#b99d7b55;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:var(--ui-font);
   font-size:15px;
   color:var(--ink)
 }
 body {
   background:radial-gradient(ellipse at 0 0,#edddcf66,transparent 52%),radial-gradient(ellipse at 100% 70%,#dce4d355,transparent 50%),#f7f2e9
-}
-.paper-noise {
-  opacity:.0455
 }
 .icon-sprite {
   position:absolute;
@@ -50,7 +54,7 @@ button {
   line-height:1.25
 }
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible {
-  outline:2px solid #875032;
+  outline:2px solid var(--focus-ring);
   outline-offset:4px
 }
 button:disabled {
@@ -135,6 +139,7 @@ button:disabled {
   align-items:center
 }
 .view-heading h2 {
+  font-family:var(--display-font);
   font-size:34px;
   line-height:1.12;
   letter-spacing:-.045em;
@@ -165,13 +170,26 @@ button:disabled {
   justify-content:center;
   gap:9px;
   line-height:1.3;
-  border-radius:10px;
+  border-radius:var(--radius-control);
   padding:13px 18px;
   background:linear-gradient(110deg,#a86442,#8b4d32);
   color:#fffaf1;
   border-color:#905235;
   box-shadow:0 5px 12px #784a2a1c
 }
+.primary-button:not(:disabled),.text-button,.round-button,.dialog-close,
+.profile-choice,.category-filters button,.segmented button,.bottom-nav button,
+.card-button,.bank-offer {
+  transition:transform .24s cubic-bezier(.2,.75,.2,1),
+    box-shadow .24s ease,background-color .24s ease,color .24s ease,
+    border-color .24s ease,filter .24s ease;
+}
+.primary-button:not(:disabled):active,.round-button:not(:disabled):active,
+.dialog-close:active,.profile-choice:active,.category-filters button:active,
+.segmented button:active,.bottom-nav button:active {
+  transform:scale(.97);
+}
+.primary-button:not(:disabled):hover { transform:translateY(-1px); }
 .text-button {
   font-size:14px;
   min-height:44px;
@@ -189,6 +207,23 @@ button:disabled {
   background:#67452f;
   color:#fff9ed;
   line-height:1.4
+}
+/* Shared reveal rhythm for content changes; card art keeps its own choreography. */
+.view:not([hidden]) {
+  animation:paper-arrive .36s cubic-bezier(.2,.75,.2,1) both;
+}
+.daily-hero,.trade-maker,.economy-panel {
+  border-radius:var(--radius-panel);
+}
+@keyframes paper-arrive {
+  from { opacity:0; transform:translateY(7px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .view:not([hidden]) { animation:none; }
+  .primary-button,.text-button,.round-button,.dialog-close,.profile-choice,
+  .category-filters button,.segmented button,.bottom-nav button,.card-button,
+  .bank-offer { transition:none; }
 }
 /* Keep the packet tall, with the next release beside the opening action. */
 .daily-hero {
