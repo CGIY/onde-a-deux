@@ -8,6 +8,8 @@
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
  const persona=root.querySelector('.oa-persona'),navigation=root.querySelector('.oa-nav');
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
+ const welcomeKey='desir-welcome-v1';
+ let welcomeDismissed=false;try{welcomeDismissed=localStorage.getItem(welcomeKey)==='1';}catch(_){}
  let localPrefs={sound:false};try{const saved=JSON.parse(localStorage.getItem('desir-preferences-v1')||'{}');if(typeof saved.sound==='boolean')localPrefs.sound=saved.sound;}catch(_){}
 
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -127,14 +129,18 @@
  }
  function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+cardFact(c)+'</article>';}
 
+ function renderWelcome(){
+  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la ou tente de l’écarter au D20.</p><p>Deux coches dans les 6 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
+ }
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
   return heading('Votre<br><em>espace.</em>',null,null)+'<form class="oa-login" data-login-form><label class="oa-field">Identifiant<input id="oa-username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="80" value="'+h(loginUsername)+'"></label><label class="oa-field">Mot de passe<input id="oa-password" name="password" type="password" autocomplete="current-password" required maxlength="256"></label><p class="oa-form-error" data-login-error role="alert" '+(!loginError?'hidden':'')+'>'+h(loginError)+'</p><div class="oa-actions"><button type="submit" class="oa-button cursor-interaction" '+(!remote?.enabled?'disabled':'')+'>Se connecter <span class="oa-arrow">↗</span></button></div></form>';
  }
  function renderPersona(){
-  persona.hidden=remoteMode&&!remoteReady;navigation.hidden=remoteMode&&!remoteReady;const help=root.querySelector('[data-action="rules"]');if(help)help.hidden=remoteMode&&!remoteReady;
+  const hidden=!welcomeDismissed||remoteMode&&!remoteReady;
+  persona.hidden=hidden;navigation.hidden=hidden;const help=root.querySelector('[data-action="rules"]');if(help)help.hidden=hidden;
   if(!remoteMode)return;
-  if(!remoteReady){persona.innerHTML='';return;}
+  if(hidden){persona.innerHTML='';return;}
   persona.innerHTML='<div class="oa-identities" role="group" aria-label="Votre duo">'+['a','b'].map(id=>'<span class="oa-person-name '+(id===viewPlayer?'is-me':'')+'" '+(id===viewPlayer?'aria-current="true"':'')+'>'+h(name(id))+(awaitingPlayer(id)?'<i class="oa-unread" aria-label="Invitation en attente"></i>':'')+'</span>').join('')+'</div>';
  }
  function d6Action(){
@@ -206,14 +212,16 @@
  }
  function render(){
   if(!remoteMode){const fresh=G.reduce(state,{type:'EXPIRE_TASKS',at:now()});if(fresh!==state){state=fresh;save();}}
+  // Connection updates may restore the game behind this screen, never replace it.
+  if(!welcomeDismissed&&renderKey==='welcome'){renderPersona();scheduleExpiry();return;}
   const focused=document.activeElement,focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const previousKey=renderKey;
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
   renderPersona();
-  const key=[remoteMode&&!remoteReady?'login':tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer].join('|');
+  const key=!welcomeDismissed?'welcome':[remoteMode&&!remoteReady?'login':tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer].join('|');
   const animate=key!==renderKey;renderKey=key;
-  root.style.setProperty('--oa-accent',(G.canSeeRound(state)?category():null)?.color||G.categories[1].color);
-  main.innerHTML=remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
+  root.style.setProperty('--oa-accent',(welcomeDismissed&&G.canSeeRound(state)?category():null)?.color||G.categories[1].color);
+  main.innerHTML=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
@@ -256,7 +264,7 @@
   root.classList.toggle('is-busy',value);root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"],[data-action="send"],[data-action="challenge"],[data-action="challenge-draft"],[data-action="new"]').forEach(el=>{el.disabled=value;});
  }
  async function roll(){
-  if(busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
+  if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
   let sides,action,faceValue,next,resultLabel;
@@ -295,7 +303,7 @@
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{
-  if(!event.target.matches('[data-login-form]'))return;event.preventDefault();if(authBusy||!remote?.enabled)return;
+  if(!event.target.matches('[data-login-form]'))return;event.preventDefault();if(!welcomeDismissed||authBusy||!remote?.enabled)return;
   const username=root.querySelector('#oa-username'),field=root.querySelector('#oa-password');loginUsername=username.value.trim();const password=field.value;field.value='';authBusy=true;loginError='';render();
   try{const value=await remote.login(loginUsername,password);flushRemote(value,false);tab='play';}
   catch(error){loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';}
@@ -303,6 +311,10 @@
  });
  root.addEventListener('click',async event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
+  if(action==='welcome-start'){
+   if(welcomeDismissed)return;welcomeDismissed=true;try{localStorage.setItem(welcomeKey,'1');}catch(_){}render();return;
+  }
+  if(!welcomeDismissed)return;
   if((busy||operationBusy)&&action!=='close')return;
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
@@ -322,6 +334,7 @@
  });
  if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
  root.addEventListener('change',async event=>{
+  if(!welcomeDismissed)return;
   const el=event.target;
   if(el.dataset.taskCheck){
    const id=el.dataset.taskCheck;if(pendingChecks.has(id)||operationBusy){render();return;}

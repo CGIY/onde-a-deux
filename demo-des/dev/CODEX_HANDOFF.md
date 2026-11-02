@@ -11,6 +11,7 @@ Cette section remplace les consignes historiques qui suivent lorsqu’elles dive
 - Une seule manche active ; les rôles alternent. Les tâches validées restent six heures et les deux coches valent exactement un point commun. Le service tranche les expirations. Passer/Plus tard/Adapter et le catalogue ne sont pas affichés.
 - Notifications activées volontairement dans **Nous**, jamais au chargement. Sur iOS/iPadOS 16.4+, ajout à l’écran d’accueil requis. Le service worker ne cache que les ressources publiques ; les notifications ne révèlent aucun titre de carte.
 - L’intégration distante se trouve dans `src/onde-app-remote.js`, avant l’interface. Les animations de dé attendent la face confirmée par le serveur ; les mises à jour concurrentes sont différées pendant leur déroulement. Une coche attend la confirmation serveur avant la vague.
+- Accueil initial demandé ensuite : trois phrases et un bouton « C’est parti », affiché une fois par appareil avec la clé locale `desir-welcome-v1`. La restauration de session ne doit pas le remplacer avant fermeture. Les icônes iPhone/PWA sont intégrées et leurs fichiers publiés ont été contrôlés.
 
 Construction depuis la racine :
 
@@ -33,7 +34,7 @@ node demo-des/dev/tests/onde-visibility-check.cjs
 Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 2, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
 
 - 48 vérifications HTTP sur le service hébergé : deux connexions, tirages privés, résultats serveur, rejeu idempotent, deux coches et point unique, quotas et contrôle des accès.
-- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 82 transport, 78 UI, 133 backend et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
+- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 82 transport, 116 UI, 133 backend et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
 - Navigateur publié : connexion des deux comptes (identifiant accentué compris), D6/D4, envoi, invitation différée, acceptation, tâche de six heures et coche personnelle après confirmation serveur. Aucune erreur de console observée. L'aide ne montre ni quota ni probabilités ; Nous ne contient plus le titre ou le lien de règles redondants.
 - Révocation/reconnexion : les actualisations automatiques s'arrêtent après un accès refusé ; la saisie reste stable, les erreurs se mettent à jour en place et un autre compte peut reprendre avec sa propre perspective.
 - Cron actif chaque minute, appels hébergés 202 et exécutions réussies. Les clés VAPID et le secret cron sont en base privée. Les conseillers de sécurité n'indiquent que l'information attendue « RLS sans politique » : toutes les lectures directes sont volontairement refusées aux rôles publics.
