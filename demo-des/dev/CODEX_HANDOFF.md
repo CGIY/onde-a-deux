@@ -1,4 +1,4 @@
-# ONDE — passage de relais à Codex
+# Dés·ir — passage de relais à Codex
 
 ## État courant — essai web connecté, 2 novembre 2026
 
@@ -12,8 +12,11 @@ Cette section remplace les consignes historiques qui suivent lorsqu’elles dive
 - Notifications activées volontairement dans **Nous**, jamais au chargement. Sur iOS/iPadOS 16.4+, ajout à l’écran d’accueil requis. Le service worker ne cache que les ressources publiques ; les notifications ne révèlent aucun titre de carte.
 - L’intégration distante se trouve dans `src/onde-app-remote.js`, avant l’interface. Les animations de dé attendent la face confirmée par le serveur ; les mises à jour concurrentes sont différées pendant leur déroulement. Une coche attend la confirmation serveur avant la vague.
 - Accueil initial demandé ensuite : trois phrases et un bouton « C’est parti », affiché une fois par appareil avec la clé locale `desir-welcome-v1`. La restauration de session ne doit pas le remplacer avant fermeture. Les icônes iPhone/PWA sont intégrées et leurs fichiers publiés ont été contrôlés.
-- Finition visuelle suivante : score corail grisé, accents corail désaturés et grain statique renforcé sur les panneaux ; chiffre résultat blanc ivoire avec reflet à l’arrêt sur les trois dés et le rendu de secours. Géométrie, ombres et règles inchangées. Relance D4 contre renoncement au D20 seulement proposée, pas implémentée.
-- Badges ajoutés sous le score commun dans Nous : 5 points « Couple complice », 10 « Couple stable », 15 « Super couple », 30 « Couple légendaire ». Déblocage et progression dérivés de `stats.totalCompleted`, partagé et cumulé ; aucune nouvelle récompense ni mutation des points. Les états Acquis/Prochain complètent la couleur et les mises à jour de session ne relancent pas une animation de montage.
+- Finition visuelle suivante : score corail grisé, accents corail désaturés et grain statique renforcé sur les panneaux ; chiffre résultat blanc ivoire avec reflet à l’arrêt sur les trois dés et le rendu de secours. Géométrie et ombres inchangées. La relance D4 a ensuite été acceptée et activée : une seule fois avant l’envoi et avant le D20 initiateur, autre carte garantie, D20 initiateur supprimé pour cette carte, D20 destinataire conservé, aucun point retiré ni ticket supplémentaire.
+- Grades dans Nous : un seul grade atteint visible, remplacé au palier suivant. Paliers 5/8/10/12/15/20/25/30/35/40/45/50 ; noms dans `gradeLevels`. Avant 5 : aucun badge obtenu, seulement une progression discrète. Aucun nom futur dans le DOM. Déblocage depuis `stats.totalCompleted`, partagé et cumulé ; transition une fois au franchissement, jamais au poll ou à la restauration. Aucun stockage de grade supplémentaire. Le grade utilise un bleu ardoise désaturé, distinct du score commun corail.
+- Charge visuelle : maximum atteint après **1 200 ms**, **deux à cinq tours** et animation bornée entre **1 650 et 2 500 ms**. Appui court ou maintien, Espace au clavier, Entrée pour le clic natif ; scroll, annulation et perte de focus ne lancent rien. La puissance ne rejoint jamais l’API et ne modifie aucune règle. Le D6 initial est incliné et montre trois faces.
+- Audit et corrections UI : [AUDIT_UI_DA.md](AUDIT_UI_DA.md), avec mesures avant/après, matrice des états et séparation des défauts objectifs et des préférences. Les textes de carte reposent sur une surface plus sombre, les champs ont un bord lisible, les actions montrent leur attente, les toasts restent dans le viewport et les sources ont une cible de 44 px. La structure de l’application et son cadre sont conservés.
+- Relance : `round.cardRerolled` booléen, `G.canRerollCard`, action `REROLL_CARD` côté moteur/transport/serveur. Tirage uniforme parmi trois autres faces ; même reçu en cas de reprise réseau. Le D4 reste affiché jusqu’à la fin de l’animation, avant la révélation. Migration des anciens rounds/historiques par normalisation, aucune réinitialisation de partie.
 
 Construction depuis la racine :
 
@@ -25,6 +28,8 @@ python3 demo-des/dev/tests/onde-build-check.py
 node demo-des/dev/tests/onde-remote-check.cjs
 node demo-des/dev/tests/onde-remote-ui-check.cjs
 node demo-des/dev/tests/onde-visibility-check.cjs
+node demo-des/dev/tests/onde-reroll-check.cjs
+node demo-des/server/tests/backend-check.mjs
 ```
 
 `config.js` ne contient que `endpoint` et `publishableKey`, incorporés au HTML connecté. S’il est absent ou invalide, le build connecté échoue avant d’écrire les livrables. Le build copie le moteur canonique vers `server/functions/desir-game/core.js`. Configuration du service, contrôles de concurrence et notifications : voir `../server/README.md`.
@@ -33,10 +38,10 @@ node demo-des/dev/tests/onde-visibility-check.cjs
 
 ### Publication et vérification du service
 
-Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 2, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
+Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 3, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
 
 - 48 vérifications HTTP sur le service hébergé : deux connexions, tirages privés, résultats serveur, rejeu idempotent, deux coches et point unique, quotas et contrôle des accès.
-- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 82 transport, 143 UI, 133 backend et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
+- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 102 transport, 234 UI, 790 backend, 1 003 relance D4 et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
 - Navigateur publié : connexion des deux comptes (identifiant accentué compris), D6/D4, envoi, invitation différée, acceptation, tâche de six heures et coche personnelle après confirmation serveur. Aucune erreur de console observée. L'aide ne montre ni quota ni probabilités ; Nous ne contient plus le titre ou le lien de règles redondants.
 - Révocation/reconnexion : les actualisations automatiques s'arrêtent après un accès refusé ; la saisie reste stable, les erreurs se mettent à jour en place et un autre compte peut reprendre avec sa propre perspective.
 - Cron actif chaque minute, appels hébergés 202 et exécutions réussies. Les clés VAPID et le secret cron sont en base privée. Les conseillers de sécurité n'indiquent que l'information attendue « RLS sans politique » : toutes les lectures directes sont volontairement refusées aux rôles publics.

@@ -8,10 +8,10 @@ const tokenA=Buffer.alloc(32,1).toString('base64url'),tokenB=Buffer.alloc(32,2).
 let checks=0;const equal=(a,b,msg)=>{checks++;assert.deepEqual(a,b,msg);};const ok=(v,msg)=>{checks++;assert.ok(v,msg);};
 const uuid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
 function act(s,type,props={}){const next=G.reduce(s,{type,at,...props});assert.ok(G.validateState(next));return next;}
-function draft(from='a'){
+function draft(from='a',cardRoll=1){
  let s=G.createState();if(from==='b')s=act(s,'SWITCH_PLAYER',{player:'b'});
  const hand=G.cards.filter(c=>c.categoryId==='detente').slice(-4).map(c=>c.id);
- s=act(s,'ROLL_CATEGORY',{value:2,hand});return act(s,'ROLL_CARD',{value:1});
+ s=act(s,'ROLL_CATEGORY',{value:2,hand});return act(s,'ROLL_CARD',{value:cardRoll});
 }
 for(const from of ['a','b']){
  const to=G.otherPlayer(from),s=draft(from),p=projectState(G,s,to);
@@ -31,9 +31,32 @@ for(const from of ['a','b']){
 equal(normalizeUsername(' ÉLÈVE '),'eleve','accented account alias');equal(normalizeUsername('A\u0301LPHA'),'alpha','decomposed accent alias');
 equal(validDeviceToken(tokenA),true);equal(validDeviceToken('short'),false);equal(validDeviceToken('a'.repeat(43)),false,'noncanonical base64 discarded');
 equal((await sha256('device:'+tokenA)).length,64);ok(!(await privateBucket('test-secret','192.0.2.1')).includes('192.0.2.1'));
-for(const forbidden of ['actor','value','hand','at','token','player','__proto__']){
- const action=JSON.parse(JSON.stringify({type:'ROLL_CATEGORY',roundId:'onde-1'}));Object.defineProperty(action,forbidden,{value:1,enumerable:true});
- checks++;assert.throws(()=>parseAction(action),HttpError,'reject client '+forbidden);
+for(const type of ['ROLL_CATEGORY','REROLL_CARD'])for(const forbidden of ['actor','value','hand','at','token','player','__proto__']){
+ const action=JSON.parse(JSON.stringify({type,roundId:'onde-1'}));Object.defineProperty(action,forbidden,{value:1,enumerable:true});
+ checks++;assert.throws(()=>parseAction(action),HttpError,'reject client '+type+' '+forbidden);
+}
+equal(parseAction({type:'REROLL_CARD',roundId:'onde-1'}),{type:'REROLL_CARD',roundId:'onde-1'});
+for(const from of ['a','b'])for(const oldFace of [1,2,3,4]){
+ const source=draft(from,oldFace),before=clone(source),to=G.otherPlayer(from),faces=[];
+ for(const rank of [1,2,3]){
+  const randomCalls=[],result=applyAction(G,source,from,{type:'REROLL_CARD',roundId:source.round.id},uuid(100+oldFace*3+rank),at,sides=>{randomCalls.push(sides);return rank;});
+  equal(randomCalls,[3],'reroll uses one uniform choice among three indices');faces.push(result.roll.value);
+  equal(result.roll,{kind:4,value:[1,2,3,4].filter(face=>face!==oldFace)[rank-1]});ok(result.state.round.cardId!==source.round.cardId,'reroll always changes the card');
+  equal(result.state.round.cardRerolled,true);equal(result.consumeTicket,false);equal(result.notification,null);equal(result.state.stats,source.stats,'reroll grants no points');equal(source,before,'server action does not mutate its source');
+  equal(G.canRerollCard(result.state),false);equal(G.canChallengeDraft(result.state),false,'reroll removes the initiator D20');ok(!Object.hasOwn(result.state.round,'previousCardId'),'old card is not stored as previousCardId');
+  const hidden=projectState(G,result.state,to);equal(hidden.round.cardId,null);equal(hidden.round.hand,[]);equal(hidden.round.cardRerolled,false,'recipient learns nothing about private reroll');equal(hidden.seen,{});
+  const sent=applyAction(G,result.state,from,{type:'SEND',roundId:source.round.id},uuid(200+rank),at).state;
+  const challenge=applyAction(G,sent,to,{type:'CHALLENGE',roundId:source.round.id},uuid(210+rank),at);
+  equal(challenge.state.phase,'challenge','recipient still has a D20 challenge');
+  const defense=applyAction(G,challenge.state,to,{type:'ROLL_DEFENSE',roundId:source.round.id},uuid(220+rank),at,()=>1);
+  equal(defense.state.round.rolls,[1]);equal(defense.consumeTicket,false);
+  for(const blocked of [result.state,act(source,'CHALLENGE_DRAFT'),act(source,'SEND')]){
+   let called=false;checks++;assert.throws(()=>applyAction(G,blocked,from,{type:'REROLL_CARD',roundId:blocked.round.id},uuid(230+rank),at,()=>{called=true;return 1;}),error=>error instanceof HttpError&&error.status===409);
+   equal(called,false,'invalid reroll is rejected before RNG');
+  }
+ }
+ equal(faces,[1,2,3,4].filter(face=>face!==oldFace),'all three alternative faces have one uniform mapping');
+ let wrongRoleRng=false;checks++;assert.throws(()=>applyAction(G,source,to,{type:'REROLL_CARD',roundId:source.round.id},uuid(250),at,()=>{wrongRoleRng=true;return 1;}),error=>error instanceof HttpError&&error.status===409);equal(wrongRoleRng,false);
 }
 class MemoryStore{
  constructor(){this.state=G.createState();this.revision=0;this.members=new Map();this.receipts=new Map();this.used=new Set();this.calls=[];this.outbox=[];this.forceRace=false;this.blockRates=false;this.loginChecks=0;}
@@ -72,8 +95,26 @@ class MemoryStore{
   throw Error('Unexpected RPC '+name);
  }
 }
+// Both simultaneous deliveries must observe the one committed replacement face.
+{
+ const concurrent=new MemoryStore();concurrent.state=draft('a',2);concurrent.used.add('a');
+ const hash=await sha256('device:'+tokenA);concurrent.members.set(hash,{token_hash:hash,room_id:roomId,actor:'a'});
+ let randomCalls=0;const concurrentHandler=createHandler({G:{...G,randomInt:sides=>{equal(sides,3);return ++randomCalls===1?1:3;}},store:concurrent,rateSecret:'fixture',clock:()=>new Date(at)});
+ const deliver=async()=>{const result=await concurrentHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:JSON.stringify({op:'action',requestId:uuid(300),action:{type:'REROLL_CARD',roundId:'onde-1'}})}));return {status:result.status,body:await result.json()};};
+ const [first,second]=await Promise.all([deliver(),deliver()]);equal(first.status,200);equal(second.status,200);equal(first.body,second.body,'concurrent retry returns the committed receipt, never a losing RNG result');equal(concurrent.receipts.size,1);equal(concurrent.revision,1);equal(concurrent.state.round.cardRoll,first.body.roll.value);equal(concurrent.used.size,1);equal(concurrent.outbox,[]);
+}
+// Existing persisted rounds/history lacking the new flag are migrated before strict projection.
+{
+ const legacy=new MemoryStore();legacy.state=act(act(act(draft(),'CHALLENGE_DRAFT'),'ROLL_DRAFT_DEFENSE',{value:20,token:'old1'}),'ROLL_DRAFT_DEFENSE',{value:20,token:'old2'});
+ const oldCard=legacy.state.round.cardId;delete legacy.state.round.cardRerolled;for(const past of legacy.state.history)delete past.cardRerolled;
+ const hash=await sha256('device:'+tokenB);legacy.members.set(hash,{token_hash:hash,room_id:roomId,actor:'b'});
+ const legacyHandler=createHandler({G,store:legacy,rateSecret:'fixture',clock:()=>new Date(at)});
+ const result=await legacyHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenB,'Content-Type':'application/json'},body:'{"op":"state"}'})),body=await result.json();
+ equal(result.status,200);equal(legacy.state.round.cardRerolled,false);ok(legacy.state.history.every(past=>past.cardRerolled===false));equal(legacy.revision,1,'normalization is persisted through CAS');ok(G.validateState(body.state));equal(body.state.history,[]);equal(body.state.round.cardId,null);ok(!JSON.stringify(body).includes(oldCard),'old private history remains hidden after migration');
+}
 const store=new MemoryStore();let now=at;
-const handler=createHandler({G,store,rateSecret:'test-rate-secret',clock:()=>new Date(now),push:{ensurePushConfig:async()=>({publicKey:'test-vapid-public'}),saveSubscription:async()=>({subscribed:true}),flushPushOutbox:async()=>({})}});
+const rngCalls=[];
+const handler=createHandler({G:{...G,randomInt:sides=>{rngCalls.push(sides);return G.randomInt(sides);}},store,rateSecret:'test-rate-secret',clock:()=>new Date(now),push:{ensurePushConfig:async()=>({publicKey:'test-vapid-public'}),saveSubscription:async()=>({subscribed:true}),flushPushOutbox:async()=>({})}});
 async function request(body,token=tokenA,extra={}){
  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify(body)}));
  return {status:response.status,body:await response.json(),headers:response.headers};
@@ -96,11 +137,22 @@ now='2026-11-02T15:00:10.000Z';response=await request({op:'action',requestId:uui
 response=await request({op:'action',requestId:uuid(3),action:{type:'ROLL_CARD',roundId:'onde-1'}});equal(response.status,409,'request ID cannot be reused for a different operation');
 response=await request({op:'state'},tokenB);equal(response.status,200);equal(response.body.state.phase,'category');equal(response.body.state.round.hand,[]);equal(response.body.state.round.categoryId,null);equal(response.body.state.seen,{});
 response=await request({op:'action',requestId:uuid(4),action:{type:'ROLL_CARD',roundId:'onde-1'}},tokenB);equal(response.status,409);equal(response.body.state.round.cardId,null,'rejected wrong actor never receives private state');
-response=await request({op:'action',requestId:uuid(5),action:{type:'ROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body.roll.kind,4);const secretCard=store.state.round.cardId;
+response=await request({op:'action',requestId:uuid(5),action:{type:'ROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body.roll.kind,4);let secretCard=store.state.round.cardId;
 response=await request({op:'state'},tokenB);ok(!JSON.stringify(response.body).includes(secretCard));
+const preReroll=clone(store.state),beforeRerollRevision=store.revision,beforeRerollRng=rngCalls.length;
+response=await request({op:'action',requestId:uuid(50),action:{type:'REROLL_CARD',roundId:'onde-1'}},tokenB);equal(response.status,409);equal(store.revision,beforeRerollRevision);equal(rngCalls.length,beforeRerollRng);equal(response.body.state.round.cardId,null);
+response=await request({op:'action',requestId:uuid(51),action:{type:'REROLL_CARD',roundId:'onde-1',value:4}});equal(response.status,400,'caller cannot choose the replacement D4');
+response=await request({op:'action',requestId:uuid(52),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body.roll.kind,4);equal(rngCalls.at(-1),3);ok(response.body.roll.value!==preReroll.round.cardRoll);ok(store.state.round.cardId!==secretCard);equal(store.state.round.cardRerolled,true);equal(store.used.size,1);equal(response.body.quota.remaining,0,'reroll remains available after its D6 quota was consumed');equal(store.state.stats,preReroll.stats);equal(store.outbox.length,0);equal(store.calls.filter(call=>call.name==='desir_commit').at(-1).args.p_consume_ticket,false);secretCard=store.state.round.cardId;
+const rerollResponse=clone(response.body),rerollRevision=store.revision,rerollRng=rngCalls.length;
+response=await request({op:'action',requestId:uuid(52),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body,rerollResponse,'same request replays the exact replacement card and D4');equal(store.revision,rerollRevision);equal(rngCalls.length,rerollRng,'replay never draws another random face');equal(store.used.size,1);
+response=await request({op:'action',requestId:uuid(53),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,409,'a fresh request cannot obtain a second reroll');equal(store.revision,rerollRevision);equal(rngCalls.length,rerollRng);
+response=await request({op:'action',requestId:uuid(54),action:{type:'CHALLENGE_DRAFT',roundId:'onde-1'}});equal(response.status,409,'initiator cannot recover D20 after reroll');
+response=await request({op:'state'},tokenB);equal(response.body.state.round.cardId,null);equal(response.body.state.round.cardRerolled,false);ok(!JSON.stringify(response.body).includes(secretCard));ok(!JSON.stringify(response.body).includes(preReroll.round.cardId));
 response=await request({op:'action',requestId:uuid(6),action:{type:'SEND',roundId:'onde-1'}});equal(response.status,200);equal(store.outbox.length,1);equal(store.outbox[0],{actor:'b',kind:'invitation'});
 response=await request({op:'action',requestId:uuid(6),action:{type:'SEND',roundId:'onde-1'}});equal(response.status,200);equal(store.outbox.length,1,'no duplicate outbox event');
 response=await request({op:'state'},tokenB);equal(response.body.state.round.cardId,secretCard);ok(G.validateState(response.body.state));
+response=await request({op:'action',requestId:uuid(55),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,409,'sent invitation cannot be rerolled');
+response=await request({op:'action',requestId:uuid(56),action:{type:'CHALLENGE',roundId:'onde-1'}},tokenB);equal(response.status,200);equal(response.body.state.phase,'challenge','recipient D20 remains available through HTTP');
 response=await request({op:'action',requestId:uuid(7),action:{type:'ACCEPT',roundId:'onde-1'}},tokenB);equal(response.status,200);equal(response.body.state.tasks.length,1);equal(response.body.state.tasks[0].createdAt,at);equal(response.body.state.tasks[0].expiresAt,'2026-11-02T21:00:00.000Z');equal(store.outbox.length,1,'no unsolicited ready notification');
 now='2026-11-02T21:00:00.000Z';response=await request({op:'state'});equal(response.status,200);equal(response.body.state.tasks.length,0);equal(response.body.state.round.status,'expired');equal(response.body.state.stats.totalCompleted,0);
 response=await request({op:'action',requestId:uuid(8),action:{type:'TOGGLE_TASK_CHECK',roundId:'onde-1',taskId:'onde-1',checked:true}},tokenB);equal(response.status,409);equal(response.body.state.stats.totalCompleted,0,'expiry cannot be bypassed by a late checkbox');

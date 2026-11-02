@@ -2,7 +2,7 @@ export class HttpError extends Error {
   constructor(status,code,message,snapshot){super(message);this.status=status;this.code=code;this.snapshot=snapshot;}
 }
 const copy=value=>JSON.parse(JSON.stringify(value));
-const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const validRequestId=id=>typeof id==='string'&&uuidPattern.test(id);
 export function validDeviceToken(token){
@@ -54,6 +54,12 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   let roll;
   if(action.type==='ROLL_CATEGORY'){const value=randomInt(6);action.value=value;action.hand=G.drawHand(state,value);roll={kind:6,value};}
   else if(action.type==='ROLL_CARD'){const value=randomInt(4);action.value=value;roll={kind:4,value};}
+  else if(action.type==='REROLL_CARD'){
+    if(!G.canRerollCard(state))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const alternatives=[1,2,3,4].filter(value=>value!==state.round.cardRoll),index=randomInt(3);
+    if(!Number.isInteger(index)||index<1||index>3)throw new Error('Invalid authoritative random outcome');
+    const value=alternatives[index-1];action.value=value;roll={kind:4,value};
+  }
   else if(action.type==='ROLL_DRAFT_DEFENSE'||action.type==='ROLL_DEFENSE'){const value=randomInt(20);action.value=value;action.token='request:'+requestId;roll={kind:20,value};}
   const next=G.reduce(state,{...action,actor,at});
   if(next===state)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');

@@ -16,6 +16,7 @@ function response(body,status=200){return new Response(JSON.stringify(body),{sta
 function payload(options){return JSON.parse(options.body);}
 function loginReply(options,actor='a',revision=1,game=state(actor)){return reply(actor,revision,game,{connection:{token:options.headers.Authorization.slice(7),actor,roomId}});}
 function drawn(){let value=G.reduce(state(),{type:'ROLL_CATEGORY',value:2,hand:G.cards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id)});return value;}
+function drafted(){return G.reduce(drawn(),{type:'ROLL_CARD',value:1});}
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 (async()=>{
  // Disabled configuration cannot accidentally contact any service.
@@ -63,6 +64,19 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
   const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:6,value:2}));check(()=>assert.equal(result.state.round.categoryId,'detente'));check(()=>assert.equal(r.snapshot.roll,undefined));
   await assert.rejects(r.action({type:'RESET',roundId:'onde-1'}),{code:'not_allowed'});
  }
+ // A reroll carries only its intent; the server owns the new D4 face and state.
+ {
+  const draft=drafted(),rerolled=G.reduce(draft,{type:'REROLL_CARD',value:2});let sent;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,draft));sent=p;return response(reply('a',2,rerolled,{roll:{kind:4,value:2},quota:{remaining:0,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'}}));}));await r.login('fixture-user','fixture-password');
+  const result=await r.action({type:'REROLL_CARD',roundId:'onde-1',value:4,actor:'b',previousCardId:'forged',cardRerolled:false,hand:['spoiler'],hp:0});
+  check(()=>assert.deepEqual(sent.action,{type:'REROLL_CARD',roundId:'onde-1'}));check(()=>assert.deepEqual(result.roll,{kind:4,value:2}));check(()=>assert.notEqual(result.state.round.cardId,draft.round.cardId));check(()=>assert.equal(result.state.round.cardRerolled,true));check(()=>assert.equal(result.quota.remaining,0));check(()=>assert.equal(r.snapshot.roll,undefined));
+ }
+ // A reroll already taken on another device integrates the new state without a connection failure.
+ {
+  const draft=drafted(),rerolled=G.reduce(draft,{type:'REROLL_CARD',value:3}),storage=memory();let calls=0;
+  const r=create(config,env(async(url,options)=>{if(payload(options).op==='login')return response(loginReply(options,'a',1,draft));calls++;return response({...reply('a',2,rerolled),error:{code:'invalid_phase'}},409);},storage));await r.login('fixture-user','fixture-password');
+  await assert.rejects(r.action({type:'REROLL_CARD',roundId:'onde-1'}),{code:'invalid_phase'});check(()=>assert.equal(calls,1));check(()=>assert.equal(r.status.phase,'connected'));check(()=>assert.equal(r.snapshot.state.round.cardRerolled,true));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));
+ }
  // Delayed refresh cannot overwrite a more recent action response.
  {
   let release;const delayed=new Promise(resolve=>release=resolve);const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='state'){await delayed;return response(reply('a',1));}return response(reply('a',2,drawn(),{roll:{kind:6,value:2}}));}));await r.login('fixture-user','fixture-password');const old=r.refresh();await tick();await r.action({type:'ROLL_CATEGORY',roundId:'onde-1'});release();const current=await old;check(()=>assert.equal(current.revision,2));check(()=>assert.equal(r.snapshot.state.phase,'card'));
@@ -101,6 +115,17 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
   const storage=memory(),ids=[],receipts=new Map();let fail=true,commits=0;
   const fetcher=async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='action'){ids.push(p.requestId);if(!receipts.has(p.requestId)){commits++;receipts.set(p.requestId,reply('a',2,drawn(),{roll:{kind:6,value:2}}));}if(fail)throw Error('lost');return response(receipts.get(p.requestId));}return response(reply('a',2,drawn()));};
   const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{code:'offline'});check(()=>assert.ok(storage.getItem('desir-connection-v1-action')));fail=false;const next=create(config,env(fetcher,storage));await next.restore();check(()=>assert.equal(commits,1));check(()=>assert.equal(new Set(ids).size,1));check(()=>assert.equal(next.snapshot.state.phase,'card'));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));
+ }
+ // Losing a committed reroll response never requests a different replacement card after reload.
+ {
+  const storage=memory(),ids=[],receipts=new Map();let fail=true,commits=0,authoritative=drafted();
+  const fetcher=async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,authoritative));if(p.op==='action'){
+   ids.push(p.requestId);check(()=>assert.deepEqual(p.action,{type:'REROLL_CARD',roundId:'onde-1'}));
+   if(!receipts.has(p.requestId)){commits++;authoritative=G.reduce(authoritative,{type:'REROLL_CARD',value:3});receipts.set(p.requestId,reply('a',2,authoritative,{roll:{kind:4,value:3},quota:{remaining:0,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'}}));}
+   if(fail)throw Error('lost reroll response');return response(receipts.get(p.requestId));
+  }return response(reply('a',2,authoritative));};
+  const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');await assert.rejects(r.action({type:'REROLL_CARD',roundId:'onde-1',value:4}),{code:'offline'});check(()=>assert.equal(commits,1));check(()=>assert.ok(storage.getItem('desir-connection-v1-action')));
+  fail=false;const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>assert.equal(commits,1));check(()=>assert.equal(new Set(ids).size,1));check(()=>assert.equal(recovered.snapshot.state.round.cardRoll,3));check(()=>assert.equal(recovered.snapshot.state.round.cardRerolled,true));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));
  }
  // Permission request is initiated by the click before asynchronous notification preparation.
  {

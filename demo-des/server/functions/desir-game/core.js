@@ -208,7 +208,7 @@
 
   function blankRound(sequence, from, at) {
     return { id:'onde-'+sequence, from, to:otherPlayer(from), awaiting:null,
-      categoryId:null, categoryRoll:null, hand:[], cardId:null, cardRoll:null,
+      categoryId:null, categoryRoll:null, hand:[], cardId:null, cardRoll:null, cardRerolled:false,
       hp:null, rolls:[], rollTokens:[], challengeUsed:false, status:'drawing',
       draftRolls:[], draftRollTokens:[], draftChallengeUsed:false, autoProposed:false,
       fromConfirmed:false, toConfirmed:false,
@@ -240,6 +240,11 @@
       tokens.every(token=>typeof token==='string' && token.length>0 && token.length<=150);
   }
 
+  function validCardReroll(round) {
+    return typeof round.cardRerolled==='boolean' && (!round.cardRerolled ||
+      round.draftChallengeUsed===false && Array.isArray(round.draftRolls) && round.draftRolls.length===0);
+  }
+
   function validTasks(s) {
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'].sort().join(',');
@@ -264,19 +269,20 @@
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
     if (Object.entries(s.seen).some(([key,list]) => !getCategory(key) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
-    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20))) return false;
+    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item))) return false;
     const r=s.round;
     if (r.id !== 'onde-'+s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
+    if (!validCardReroll(r)) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
     const beforeCard=r.rolls.length===0 && r.draftRolls.length===0 && !r.challengeUsed && !r.draftChallengeUsed && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
-    if (s.phase === 'category') return r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (s.phase === 'category') return r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
     const cat=getCategory(r.categoryId);
     if (!cat || r.categoryRoll !== cat.number || r.hand.length !== 4 || new Set(r.hand).size !== 4 || r.hand.some(id => !getCard(id) || getCard(id).categoryId !== cat.id)) return false;
-    if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
     // PV belong to the round that was drawn. A later catalogue update must not
     // rewrite an in-progress challenge or invalidate an already won one.
@@ -332,6 +338,7 @@
     }
     function extendRound(round, phase) {
       const missing=key=>!Object.prototype.hasOwnProperty.call(round,key);
+      if(missing('cardRerolled')) round.cardRerolled=false;
       if(missing('draftRolls')) round.draftRolls=[];
       if(missing('draftRollTokens')) round.draftRollTokens=[];
       if(missing('draftChallengeUsed')) round.draftChallengeUsed=false;
@@ -415,7 +422,8 @@
     return Array.isArray(round.rolls) && round.rolls.length>0;
   }
 
-  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && Number.isFinite(getCard(s.round.cardId)?.hp);
+  const canRerollCard=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
+  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && !s.round.cardRerolled && Number.isFinite(getCard(s.round.cardId)?.hp);
   const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
   function recordHistory(s, round) {
@@ -433,7 +441,7 @@
 
   function finishTask(s, task, status, at) {
     const current=s.round.id===task.id&&s.phase==='accepted';
-    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
+    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
     const ended={...base,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
@@ -521,11 +529,16 @@
         return s;
       }
       case 'ROLL_CARD':
-        if(s.phase!=='card' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>4) return state;
+      case 'REROLL_CARD': {
+        const reroll=kind==='REROLL_CARD';
+        if(reroll?!canRerollCard(s):s.phase!=='card' || actor!==r.from) return state;
+        if(!Number.isInteger(action.value) || action.value<1 || action.value>4 || reroll&&action.value===r.cardRoll) return state;
         r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp; r.status='draft';
+        if(reroll) r.cardRerolled=true;
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
         s.phase='draft';
         return s;
+      }
       case 'SEND':
         if(!['draft','draft_challenge'].includes(s.phase) || actor!==r.from) return state;
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
@@ -602,7 +615,7 @@
     }
   }
 
-  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canChallengeDraft,canRollDraftDefense};
+  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

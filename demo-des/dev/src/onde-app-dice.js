@@ -129,6 +129,8 @@ void main(){
   const MATERIALS={4:'ardoise',6:'sauge',20:'sable'};
   function validKind(kind){kind=Number(kind);if(![4,6,20].includes(kind))throw new RangeError('ONDE supports D4, D6 and D20.');return kind;}
   function validValue(value,kind){value=Number(value);if(!Number.isInteger(value)||value<1||value>kind)throw new RangeError('Dice result must be an integer from 1 to '+kind+'.');return value;}
+  function clampPower(value){value=Number(value);return Number.isNaN(value)?0:Math.max(0,Math.min(1,value));}
+  function rollDuration(base,power){return Math.max(1650,Math.min(2500,(Number(base)||1650)+850*power));}
   function targetRotation(type,value,yaw=.48) {
     if(type===4) {
       const faces=POLYS[4].faces,base=fromTo(faces[value%4].n,[0,-1,0]),p=transform(matrix(base),faces[value-1].n),cam=[4.3,0,6.4];
@@ -138,15 +140,17 @@ void main(){
     if(type===20||type===6) {const face=type===6?CUBE_FACES[value-1]:POLYS[20].faces[value-1],b=transform(matrix(base),face.b);yaw=Math.atan2(-4.3,-6.4)-Math.atan2(b[0],b[2])+(type===6?(yaw-.48)*.18:0);}
     return qmul(axisQ([0,1,0],yaw),base);
   }
+  // The unthrown D6 shows three faces; settled results retain their physical pose.
+  function initialRotation(type,value){const q=targetRotation(type,value);return type===6?qmul(axisQ([0,1,0],.42),q):q;}
   function support(type,m) {
     if(type===6)return Math.pow(Math.pow(Math.abs(m[1]),4/3)+Math.pow(Math.abs(m[4]),4/3)+Math.pow(Math.abs(m[7]),4/3),3/4);
     let min=1e6;for(const p of POLYS[type].samples)min=Math.min(min,m[1]*p[0]+m[4]*p[1]+m[7]*p[2]);return -min;
   }
   function create(canvas,options={}) {
     if(!canvas||typeof canvas.getContext!=='function')throw new TypeError('A canvas is required.');
-    let type=validKind(options.kind??6),result=validValue(options.value??1,type),rotation=targetRotation(type,result);
-    let alive=true,raf=0,busy=false,pressed=false,pressAt=0,pressScale=1,rollAt=0,startQ=rotation,goalQ=rotation;
-    let duration=Math.max(250,Number(options.duration)||1600),activeDuration=duration,settleAt=0,settleScale=1;
+    let type=validKind(options.kind??6),result=validValue(options.value??1,type),rotation=initialRotation(type,result);
+    let alive=true,raf=0,busy=false,pressed=false,pressAt=0,pressScale=1,rollAt=0,startQ=rotation,goalQ=rotation,pointerId=null,charge=0;
+    let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,pressPoint=null;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
     let resultLight=1;
@@ -271,12 +275,12 @@ void main(){
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);
     }
     function resolvePending() { const resolve=resolveRoll;resolveRoll=null;pending=null;if(resolve)resolve(result); }
-    function finish() { cancelFrame();busy=false;pressed=false;rotation=goalQ||rotation;pressScale=1;resultLight=1;draw();updateLabel();resolvePending(); }
+    function finish() { cancelFrame();busy=false;pressed=false;pointerId=null;charge=0;rotation=goalQ||rotation;pressScale=1;resultLight=1;draw();updateLabel();resolvePending(); }
     function animate(now) {
       raf=0;if(!alive||!busy)return;
       const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0;
       if(ms<160){const t=ms/160;sy=pressScale-(pressScale-.82)*smooth(t);}
-      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*4*(1-e)),slerp(startQ,goalQ,e));lift=.45*4*t*(1-t);x=.21*wave;z=-.15*wave;sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;}
+      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*2*spinTurns*(1-e)),slerp(startQ,goalQ,e));lift=(.45+.12*activePower)*4*t*(1-t);x=(.21+.06*activePower)*wave;z=-(.15+.05*activePower)*wave;sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;}
       else if(ms<1600){const t=(ms-1160)/440;if(t<.36){sy=1-.19*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,wave=Math.pow(Math.sin(Math.PI*b),2);lift=.14*wave;sy=1+.035*Math.sin(2*Math.PI*b)*wave;}q=qmul(axisQ([.5,0,.8],.12*Math.sin(t*3*Math.PI)*Math.pow(Math.sin(Math.PI*t),2)*Math.exp(-t*3)),goalQ);}
       else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.035*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.035*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);}
       else{finish();return;}
@@ -285,8 +289,8 @@ void main(){
     }
     function animatePress(now) {
       raf=0;if(!alive||!pressed||busy)return;
-      const elapsed=now-pressAt;pressScale=1-.18*(1-Math.exp(-elapsed/100));draw(rotation,pressScale);
-      if(elapsed<500)raf=requestAnimationFrame(animatePress);
+      const elapsed=now-pressAt;charge=clampPower(elapsed/1200);pressScale=reduced?1:1-.18*smooth(charge);draw(rotation,pressScale);
+      if(elapsed<1200&&!reduced)raf=requestAnimationFrame(animatePress);
     }
     function animateRelease(now) {
       raf=0;if(!alive||pressed||busy)return;
@@ -294,39 +298,51 @@ void main(){
       if(t<1)raf=requestAnimationFrame(animateRelease);else{pressScale=1;draw();}
     }
     function press(event) {
-      if(!alive||busy||event.button>0||options.interactive===false)return;
-      pressed=true;pressAt=performance.now();cancelFrame();
+      if(!alive||busy||pressed||event.button>0||options.interactive===false)return;
+      pressed=true;pointerId=event.pointerId;pressPoint=[Number(event.clientX)||0,Number(event.clientY)||0];charge=0;pressAt=performance.now();cancelFrame();
       try{canvas.setPointerCapture(event.pointerId);}catch(_){}
-      if(reduced){pressScale=.94;draw(rotation,pressScale);}else raf=requestAnimationFrame(animatePress);
+      if(reduced){pressScale=1;draw();}else raf=requestAnimationFrame(animatePress);
       if(typeof options.onPress==='function')options.onPress(event);
     }
+    function move(event) {
+      if(pressed&&event.pointerId===pointerId&&pressPoint&&Math.hypot((Number(event.clientX)||0)-pressPoint[0],(Number(event.clientY)||0)-pressPoint[1])>10)cancelPress();
+    }
     function release(event) {
-      if(!pressed||!alive)return;pressed=false;cancelFrame();
-      if(typeof options.onRelease==='function')options.onRelease(event);
+      if(!pressed||!alive||event.pointerId!==pointerId)return;
+      const power=clampPower((performance.now()-pressAt)/1200);pressed=false;pointerId=null;charge=0;cancelFrame();
+      if(typeof options.onRelease==='function')options.onRelease(power,event);
       if(busy)return;
       if(reduced){pressScale=1;draw();}else{settleAt=performance.now();settleScale=pressScale;raf=requestAnimationFrame(animateRelease);}
     }
-    function cancelPress() {if(!pressed)return;pressed=false;cancelFrame();pressScale=1;draw();}
-    function setReducedMotion(value){reduced=!!value;manualReduced=true;if(reduced&&busy)finish();else if(reduced&&pressed){cancelFrame();pressScale=.94;draw(rotation,pressScale);}}
-    function motionChanged(event){if(!manualReduced){reduced=event.matches;if(reduced&&busy)finish();}}
+    function cancelPress() {if(!pressed&&!charge)return;pressed=false;pointerId=null;charge=0;cancelFrame();pressScale=1;draw();}
+    function setCharge(value) {
+      if(!alive||busy)return;
+      const next=clampPower(value);cancelFrame();pressed=false;pointerId=null;charge=next;
+      if(reduced){pressScale=1;draw();}
+      else if(next>0){pressScale=1-.18*smooth(next);draw(rotation,pressScale);}
+      else if(pressScale!==1){settleAt=performance.now();settleScale=pressScale;raf=requestAnimationFrame(animateRelease);}
+      else draw();
+    }
+    function setReducedMotion(value){reduced=!!value;manualReduced=true;if(reduced&&busy)finish();else if(reduced&&(pressed||charge||pressScale!==1)){cancelFrame();pressScale=1;draw();}}
+    function motionChanged(event){if(!manualReduced){reduced=event.matches;if(reduced&&busy)finish();else if(reduced&&(pressed||charge||pressScale!==1)){cancelFrame();pressScale=1;draw();}}}
     function visibilityChanged(){if(document.hidden&&busy)finish();else if(document.hidden)cancelPress();}
-    function contextLost(event){event.preventDefault();mode='fallback';renderError='WebGL context lost.';rendererStatus();if(busy)finish();else draw();}
+    function contextLost(event){event.preventDefault();mode='fallback';renderError='WebGL context lost.';rendererStatus();if(busy)finish();else{cancelPress();draw();}}
     initialize();
-    canvas.addEventListener('pointerdown',press);canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',cancelPress);canvas.addEventListener('lostpointercapture',cancelPress);canvas.addEventListener('webglcontextlost',contextLost);
+    canvas.addEventListener('pointerdown',press);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',cancelPress);canvas.addEventListener('lostpointercapture',cancelPress);canvas.addEventListener('webglcontextlost',contextLost);
     document.addEventListener('visibilitychange',visibilityChanged);query?.addEventListener?.('change',motionChanged);
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(resize):null;observer?.observe(canvas);if(!observer)global.addEventListener('resize',resize);
     resize();updateLabel();
     return {
       get mode(){return mode;},get error(){return renderError;},get busy(){return busy;},get value(){return result;},get kind(){return type;},
-      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),same=nextKind===type&&nextValue===result;cancelFrame();pressed=false;busy=false;resultLight=1;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
+      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),changedKind=nextKind!==type,same=!changedKind&&nextValue===result;cancelFrame();pressed=false;pointerId=null;charge=0;busy=false;resultLight=1;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=changedKind?initialRotation(type,result):targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;busy=true;resultLight=0;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activeDuration=Math.max(250,Number(rollOptions.duration)||duration);updateLabel(true);
+        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activePower=clampPower(rollOptions.power);spinTurns=2+Math.round(activePower*3);activeDuration=rollDuration(rollOptions.duration??duration,activePower);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
-      setReducedMotion,
-      destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();if(!observer)global.removeEventListener('resize',resize);query?.removeEventListener?.('change',motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
+      setReducedMotion,setCharge,
+      destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();if(!observer)global.removeEventListener('resize',resize);query?.removeEventListener?.('change',motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
     };
   }
   global.OndeDice=Object.freeze({create});
