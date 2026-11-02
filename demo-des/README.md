@@ -1,4 +1,4 @@
-# ONDE — démo jouable 0.1.0
+# ONDE — démo jouable 0.2.0
 
 [Jouer dans le navigateur](https://cgiy.github.io/onde-a-deux/demo-des/) · [Télécharger le projet Xcode](https://cgiy.github.io/onde-a-deux/demo-des/ONDE-Xcode.zip)
 
@@ -6,9 +6,17 @@
 
 Lancer le **D6** pour choisir une catégorie, puis le **D4** pour tirer une carte. Proposer la carte au second profil, puis changer de profil en haut de l’écran pour accepter, adapter, proposer un autre moment ou passer. Le défi facultatif permet de cumuler au maximum deux jets de D20 contre les PV de la carte. Passer reste toujours possible ; un échec ne vaut jamais accord.
 
-Les 36 cartes de démonstration, les favoris, les variantes et l’historique sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
+Les 57 cartes de démonstration, les favoris, les variantes et le score commun sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
 
 Les deux profils sont **simulés sur un seul appareil**. Les notifications sont des aperçus. Cette démo n’a ni synchronisation entre téléphones ni service distant de collecte. Les données de test restent dans le stockage local de la page ou de l’app.
+
+## Score commun et catalogue STCK
+
+Dans **Nous**, une carte marquée **partagée** ajoute **1 point au duo**, avec une répartition par catégorie. Accepter, passer ou écarter une carte au D20 n’ajoute aucun point. Le total cumulé reste conservé indépendamment de la limite technique de l’ancien historique. Les anciens tours partagés encore disponibles sont repris lors de la mise à jour ; les tours déjà évincés ne peuvent pas être reconstitués.
+
+La section chronologique « Les derniers moments » et le réglage manuel « Mouvements réduits » ont été retirés. Les animations respectent automatiquement la préférence d’accessibilité du système.
+
+Le catalogue reprend **21 nouvelles cartes** des collections Amour, Massage, Soin, Fast Food, Pâtissier et Canapé de [STCK](https://github.com/CGIY/stck/blob/98119ed48b8af6e868582eeeed0912214e007e9c/src/catalog.json). Trois propositions déjà présentes (massage de la tête, câlin et petit mot caché) sont reliées à leur équivalent sans créer de doublon. Les titres proviennent de STCK ; les consignes, variantes, durées estimées et PV provisoires sont adaptés pour ONDE. La traçabilité complète est dans `stck-adaptations.json`.
 
 ## Faire un retour
 
@@ -26,4 +34,4 @@ Les sources iOS ne nécessitent ni générateur de projet ni installation de paq
 
 Après une modification dans `xcode/OndeDemo/Web/index.html`, lancer `python3 sync-demo.py` depuis ce dossier pour recopier le jeu vers `index.html` et reconstruire le ZIP. Aucune commande n’est nécessaire pour exécuter le projet dans Xcode.
 
-La version et le rapport de retour portent le numéro **0.1.0**. Les profils sont génériques ; cette page et son code sont publics.
+La version et le rapport de retour portent le numéro **0.2.0**. Les profils sont génériques ; cette page et son code sont publics.

@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
-<meta name="onde-version" content="0.1.0">
+<meta name="onde-version" content="0.2.0">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#181d1c">
 <meta name="color-scheme" content="dark">
 <title>ONDE — Le hasard, à deux</title>
-<meta name="description" content="Démo interactive ONDE 0.1.0 : D6 catégorie, D4 carte et défi D20. Deux profils simulés, sans connexion à un serveur.">
+<meta name="description" content="Démo interactive ONDE 0.2.0 : D6 catégorie, D4 carte et défi D20. Deux profils simulés, sans connexion à un serveur.">
 <style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
 </head><body>
 <div id="onde-app-v1" class="viz-dotted-background" lang="fr">
@@ -166,11 +166,19 @@
 #onde-app-v1 .oa-filter-row button[aria-pressed=true]{background:#b7c3a3;color:#273120;border-color:#b7c3a3}
 #onde-app-v1 .oa-empty{padding:31px 15px;text-align:center;border-radius:18px;background:#242d26;margin-top:18px}
 #onde-app-v1 .oa-empty p{font-size:13px;color:#b7c3ad;line-height:1.6}
-#onde-app-v1 .oa-history-row{padding:13px 0;border-bottom:1px solid var(--oa-line)}
-#onde-app-v1 .oa-history-row:last-child{border-bottom:0}
-#onde-app-v1 .oa-history-row h3{font-size:13px;font-weight:450;line-height:1.4}
-#onde-app-v1 .oa-history-row p{margin-top:5px;font-size:11px;color:#a6b09f;line-height:1.4}
-#onde-app-v1 .oa-history-badge{font:10px ui-monospace,monospace;color:#c2d1b3;float:right;margin-left:10px;padding-top:2px}
+#onde-app-v1 .oa-shared-score{margin-top:25px;padding:25px;border:1px solid #59664c;border-radius:26px;background:radial-gradient(ellipse at 12% 0,#62725455,transparent 70%),linear-gradient(145deg,#35402f,#242d25);box-shadow:inset 0 1px 1px #ffffff14,inset 0 -3px 10px #0e160b44,0 9px 22px #0002;position:relative;overflow:hidden}
+#onde-app-v1 .oa-shared-score .oa-eyebrow{color:#c3cfb2;letter-spacing:.13em}
+#onde-app-v1 .oa-score-number{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:13px 0 7px}
+#onde-app-v1 .oa-score-number strong{font-size:clamp(52px,16vw,78px);line-height:1;font-weight:350;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:#e5ead9;overflow-wrap:anywhere;min-width:0}
+#onde-app-v1 .oa-score-number span{font:italic 22px Georgia,serif;color:#c5d0b5}
+#onde-app-v1 .oa-score-caption{font-size:12px;color:#b9c4ad;line-height:1.6;margin-top:10px}
+#onde-app-v1 .oa-score-rule{display:flex;align-items:center;gap:8px;border-top:1px solid #87957233;padding-top:15px;margin-top:20px;font-size:11px;color:#c4cdb9}
+#onde-app-v1 .oa-score-rule span{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#afbf9850;color:#dbe7c9}
+#onde-app-v1 .oa-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#onde-app-v1 .oa-score-category{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:13px 12px;border:1px solid var(--oa-line);border-radius:14px;background:#242d27}
+#onde-app-v1 .oa-score-label{display:flex;align-items:center;gap:7px;font-size:11px;color:#bfc8b8;min-width:0}
+#onde-app-v1 .oa-score-label i{width:6px;height:17px;border-radius:4px;background:var(--category);flex:none}
+#onde-app-v1 .oa-score-category strong{font-size:18px;font-weight:450;font-variant-numeric:tabular-nums;color:#e0e6d8;overflow-wrap:anywhere;min-width:0}
 #onde-app-v1 .oa-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 0;border-bottom:1px solid var(--oa-line)}
 #onde-app-v1 .oa-setting:last-child{border:0}
 #onde-app-v1 .oa-setting span{display:block;font-size:13px;line-height:1.4}
@@ -275,6 +283,12 @@
     { id:'int-6', categoryId:'intimite', title:'Notre rythme du moment', description:'Prenez quelques minutes pour dire ce qui vous tente aujourd’hui, ce qui attendra et ce que vous préférez laisser de côté.', duration:5, hp:15, variant:'Chacun nomme simplement ce qui lui ferait plaisir aujourd’hui.', variantDuration:2 }
   ];
 
+  // STCK titles adapted for ONDE; durations and HP are prototype values.
+  const stckCards=[{"id":"stck-5-01","categoryId":"intimite","title":"Bisou avec la langue","description":"Propose ce baiser et prenez un instant pour choisir ensemble le moment qui vous convient.","duration":2,"hp":18,"variant":"Proposez-vous un baiser bref, à votre rythme.","variantDuration":1,"sourceId":"5-01","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-01","title":"Bisou avec la langue","collectionId":"11","collectionTitle":"Amour","activeInSource":true}},{"id":"stck-5-03","categoryId":"complicite","title":"Message d’amour sincère","description":"Écris à l’autre quelques phrases sincères sur ce que tu apprécies dans votre relation, puis partage ton message.","duration":5,"hp":21,"variant":"Dis ou écris une seule phrase qui te tient à cœur.","variantDuration":1,"sourceId":"5-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-03","title":"Message d’amour sincère","collectionId":"11","collectionTitle":"Amour","activeInSource":true}},{"id":"stck-1-03","categoryId":"detente","title":"Massage des épaules","description":"Propose un massage des épaules pendant dix minutes. La personne qui le reçoit indique les gestes et la pression qui lui conviennent.","duration":10,"hp":25,"variant":"Masse les épaules pendant trois minutes, avec la pression choisie ensemble.","variantDuration":3,"sourceId":"1-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-03","title":"Massage des épaules","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-1-04","categoryId":"detente","title":"Massage des cuisses","description":"Propose un massage des cuisses. Choisissez une installation confortable et ajustez les gestes et la pression aux préférences de la personne qui reçoit.","duration":8,"hp":25,"variant":"Propose un massage de trois minutes sur une zone choisie ensemble.","variantDuration":3,"sourceId":"1-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-04","title":"Massage des cuisses","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-1-07","categoryId":"detente","title":"Massage total","description":"Propose vingt minutes de massage en passant entre les zones choisies ensemble. La personne qui reçoit guide la pression et peut demander une pause.","duration":20,"hp":35,"variant":"Choisissez une seule zone confortable pour cinq minutes de massage.","variantDuration":5,"sourceId":"1-07","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-07","title":"Massage total","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-9-01","categoryId":"attention","title":"Pose de vernis","description":"Propose de poser du vernis à l’autre. Choisissez une couleur parmi celles disponibles et installez-vous confortablement pour prendre votre temps.","duration":20,"hp":25,"variant":"Choisissez ensemble une couleur pour une prochaine pose.","variantDuration":3,"sourceId":"9-01","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-01","title":"Pose de vernis","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-9-02","categoryId":"detente","title":"Masque (soin)","description":"Prévoyez une pause avec un masque de soin que vous utilisez déjà. Installez-vous ensemble et suivez le temps indiqué sur le produit.","duration":15,"hp":21,"variant":"Prenez cinq minutes pour un soin habituel, sans ajouter de produit nouveau.","variantDuration":5,"sourceId":"9-02","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-02","title":"Masque (soin)","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-1-06","categoryId":"attention","title":"Soin complet du visage","description":"Prépare un moment de soin du visage avec les produits habituels de l’autre. Laisse la personne choisir les étapes et propose ton aide.","duration":20,"hp":30,"variant":"Propose ton aide pour une seule étape de son soin habituel.","variantDuration":5,"sourceId":"1-06","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-06","title":"Soin complet du visage","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-1-08","categoryId":"tendresse","title":"Soirée complète de soin","description":"Prévoyez une soirée de soin à deux avec ce que vous avez déjà : visage, mains ou vernis. Choisissez vos soins et prenez soin l’un de l’autre.","duration":45,"hp":35,"variant":"Choisissez un seul soin à partager pendant dix minutes.","variantDuration":10,"sourceId":"1-08","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-08","title":"Soirée complète de soin","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-2-02","categoryId":"complicite","title":"Burger","description":"Prévoyez un repas burger à deux. Choisissez ensemble les garnitures et le moment, puis partagez le repas tranquillement.","duration":30,"hp":25,"variant":"Choisissez les garnitures et une date pour ce repas.","variantDuration":3,"sourceId":"2-02","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-02","title":"Burger","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-09","categoryId":"complicite","title":"Pizza","description":"Prévoyez un repas pizza à deux. Choisissez une garniture commune ou chacun la sienne, puis installez-vous pour partager ce moment.","duration":30,"hp":25,"variant":"Choisissez ensemble la garniture de votre prochaine pizza.","variantDuration":3,"sourceId":"2-09","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-09","title":"Pizza","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-10","categoryId":"decouverte","title":"Sushi","description":"Prévoyez un repas sushi à deux. Choisissez ensemble ce que vous aimeriez goûter et prenez le temps de découvrir vos préférences.","duration":30,"hp":25,"variant":"Choisissez chacun une saveur pour un prochain repas sushi.","variantDuration":3,"sourceId":"2-10","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-10","title":"Sushi","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-11","categoryId":"complicite","title":"Kébab","description":"Prévoyez une pause kébab à deux. Choisissez ensemble le moment et profitez du repas pour vous retrouver.","duration":25,"hp":21,"variant":"Choisissez un moment pour votre prochaine pause kébab.","variantDuration":2,"sourceId":"2-11","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-11","title":"Kébab","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-03","categoryId":"decouverte","title":"Faire un cake","description":"Préparez un cake ensemble avec une recette choisie à deux. Répartissez les étapes et gardez un moment pour le goûter une fois prêt.","duration":60,"hp":30,"variant":"Choisissez une recette de cake et répartissez les étapes pour une autre fois.","variantDuration":5,"sourceId":"2-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-03","title":"Faire un cake","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-12","categoryId":"decouverte","title":"Faire des cookies","description":"Préparez une petite fournée de cookies ensemble. Choisissez les ajouts, partagez les étapes et goûtez votre préparation une fois prête.","duration":30,"hp":25,"variant":"Choisissez une recette et les ajouts de votre prochaine fournée.","variantDuration":3,"sourceId":"2-12","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-12","title":"Faire des cookies","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-13","categoryId":"decouverte","title":"Faire des crêpes","description":"Préparez des crêpes à deux. Alternez les étapes et choisissez chacun une garniture à faire découvrir à l’autre.","duration":30,"hp":25,"variant":"Choisissez chacun une garniture pour une prochaine tournée de crêpes.","variantDuration":3,"sourceId":"2-13","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-13","title":"Faire des crêpes","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-9-03","categoryId":"decouverte","title":"Faire une tarte","description":"Préparez une tarte ensemble avec les ingrédients disponibles. Choisissez la recette et répartissez la préparation.","duration":50,"hp":30,"variant":"Choisissez la recette de votre prochaine tarte et notez les ingrédients nécessaires.","variantDuration":5,"sourceId":"9-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-03","title":"Faire une tarte","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-05","categoryId":"attention","title":"Petit-déjeuner sur canapé","description":"Prépare un petit-déjeuner à partager sur le canapé, avec ce que vous aimez et ce que vous avez déjà. Convenez du matin qui vous convient.","duration":20,"hp":21,"variant":"Apporte une boisson et partagez cinq minutes sur le canapé.","variantDuration":5,"sourceId":"2-05","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-05","title":"Petit-déjeuner sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-9-04","categoryId":"attention","title":"Petit goûter sur canapé","description":"Prépare un petit goûter à partager sur le canapé. Choisissez une collation disponible et faites une pause ensemble.","duration":15,"hp":18,"variant":"Partagez une petite collation pendant cinq minutes.","variantDuration":5,"sourceId":"9-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-04","title":"Petit goûter sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-2-04","categoryId":"tendresse","title":"Chocolat du soir et canapé","description":"Préparez votre chocolat du soir et installez-vous ensemble sur le canapé pour une pause tranquille.","duration":15,"hp":18,"variant":"Partagez cinq minutes sur le canapé avec votre boisson du soir.","variantDuration":5,"sourceId":"2-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-04","title":"Chocolat du soir et canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-2-06","categoryId":"complicite","title":"Apéro sur canapé","description":"Prévoyez un apéro sur le canapé avec une boisson de votre choix et de quoi grignoter. Prenez le temps de vous retrouver.","duration":20,"hp":21,"variant":"Partagez une boisson et une courte pause sur le canapé.","variantDuration":5,"sourceId":"2-06","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-06","title":"Apéro sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}}];
+  cards.push(...stckCards);
+  const stckExistingLinks={"det-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-02","title":"Massage de la tête","collectionId":"12","collectionTitle":"Massage","activeInSource":true},"tend-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-02","title":"Câlin (accolade)","collectionId":"11","collectionTitle":"Amour","activeInSource":true},"att-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-05","title":"Mot doux à cacher","collectionId":"11","collectionTitle":"Amour","activeInSource":true}};
+  for(const [id,source] of Object.entries(stckExistingLinks)) { const card=cards.find(card=>card.id===id); if(card)card.source=source; }
+
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
   const cardMap = Object.fromEntries(cards.map(card => [card.id, card]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
@@ -303,14 +317,27 @@
       sentAt:null, acceptedAt:null, endedAt:null, closedBy:null };
   }
 
+  function emptyStats() {
+    return { totalCompleted:0, byCategory:Object.fromEntries(categories.map(category=>[category.id,0])) };
+  }
+
+  function validStats(stats) {
+    if(!stats || typeof stats!=='object' || Array.isArray(stats) || !Number.isSafeInteger(stats.totalCompleted) || stats.totalCompleted<0) return false;
+    const byCategory=stats.byCategory;
+    if(!byCategory || typeof byCategory!=='object' || Array.isArray(byCategory) || Object.keys(byCategory).length!==categories.length) return false;
+    if(categories.some(category=>!Object.prototype.hasOwnProperty.call(byCategory,category.id) || !Number.isSafeInteger(byCategory[category.id]) || byCategory[category.id]<0)) return false;
+    return categories.reduce((total,category)=>total+byCategory[category.id],0)===stats.totalCompleted;
+  }
+
   function createState() {
     return { version:1, activePlayer:'a', phase:'category', sequence:1,
       players:players.map(p => ({...p})), round:blankRound(1,'a'), history:[], favorites:[],
-      prefs:{reducedMotion:false,sound:false,discreet:true,reminder:true}, seen:{} };
+      prefs:{reducedMotion:false,sound:false,discreet:true,reminder:true}, seen:{}, stats:emptyStats() };
   }
 
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
+    if (!validStats(s.stats)) return false;
     if (!Number.isInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
     if (!Array.isArray(s.favorites) || s.favorites.some(id => !getCard(id)) || !s.prefs || prefKeys.some(k => typeof s.prefs[k] !== 'boolean')) return false;
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
@@ -342,6 +369,24 @@
     if (s.phase === 'challenge_failed' && (!r.challengeUsed || r.rolls.length!==2 || total>=r.hp || r.awaiting!==r.to)) return false;
     if (s.phase === 'resolved' && (!['passed','defended','completed'].includes(r.status) || r.awaiting!==null)) return false;
     return true;
+  }
+
+  // Older v1 saves have no cumulative counters. Recover only completed rounds
+  // still present in their bounded history; earlier, discarded rounds are unknown.
+  // Keep the round, favorites, names and preferences unchanged during migration.
+  function normalizeState(state) {
+    if(!state || typeof state!=='object' || Array.isArray(state)) return null;
+    if(Object.prototype.hasOwnProperty.call(state,'stats')) return validateState(state) ? state : null;
+    const migrated={...state,stats:emptyStats()};
+    if(!validateState(migrated)) return null;
+    const counted=new Set();
+    for(const round of migrated.history) {
+      if(round.status!=='completed' || counted.has(round.id)) continue;
+      counted.add(round.id);
+      migrated.stats.totalCompleted++;
+      migrated.stats.byCategory[getCard(round.cardId).categoryId]++;
+    }
+    return migrated;
   }
 
   function drawHand(state, categoryId) {
@@ -462,6 +507,14 @@
         return s;
       case 'COMPLETE':
         if(s.phase!=='accepted') return state;
+        // A resolved round cannot be completed again. Also tolerate a legacy
+        // saved history that already contains this completed round without
+        // crediting it a second time. Future rounds may reuse the same card.
+        if(!s.history.some(item=>item.id===r.id && item.status==='completed')) {
+          if(s.stats.totalCompleted===Number.MAX_SAFE_INTEGER) return state;
+          s.stats.totalCompleted++;
+          s.stats.byCategory[r.categoryId]++;
+        }
         closeRound(s,'completed',action);
         return s;
       default:
@@ -469,7 +522,7 @@
     }
   }
 
-  const api={categories,cards,players,createState,validateState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond};
+  const api={categories,cards,players,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -806,10 +859,10 @@ void main(){
  let state=G.createState(), tab='play', catalog='detente', favoritesOnly=false, busy=false, toastTimer, lastFocus=null, animationSerial=0;
  let persisted=false, lastError='';
  let feedbackNote='', feedbackContext='';
- try{const raw=localStorage.getItem(storageKey);if(raw){const saved=JSON.parse(raw);if(G.validateState(saved))state=saved;}localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}
+ try{const raw=localStorage.getItem(storageKey);if(raw){const saved=G.normalizeState(JSON.parse(raw));if(saved)state=saved;}localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
- const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:1.35,reducedMotion:!!(state.prefs.reducedMotion||systemReduce),onRelease:()=>{if(tab==='play'&&!busy)roll();}});
+ const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:1.35,reducedMotion:!!systemReduce,onRelease:()=>{if(tab==='play'&&!busy)roll();}});
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
@@ -835,13 +888,13 @@ void main(){
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function favoriteButton(c){const selected=state.favorites.includes(c.id);return '<button type="button" class="oa-favorite cursor-interaction" data-action="favorite" data-card="'+c.id+'" aria-pressed="'+selected+'" aria-label="'+(selected?'Retirer des favoris':'Ajouter aux favoris')+'">'+(selected?'♥':'♡')+'</button>';}
  function source(c){if(c.categoryId!=='tendresse')return '';return '<details class="oa-source"><summary class="cursor-interaction">Un regard sur les gestes d’affection</summary><p>Dans une enquête américaine auprès de 2 021 adultes, les gestes romantiques et affectueux figuraient parmi les propositions les plus appréciées.</p><p>Enquête de 2015, publiée en 2017. Il s’agit d’intérêt déclaré, pas d’une fréquence à atteindre.</p><p><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198" target="_blank" rel="noopener noreferrer">Herbenick et al. · PLOS ONE ↗</a></p></details>';}
- function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+' · '+(adapted?'VARIANTE':'À PARTAGER')+'</span>'+favoriteButton(c)+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2><p class="oa-card-description">'+h(adapted?r.proposal:c.description)+'</p><div class="oa-card-meta"><span>'+(adapted&&r.proposal!==c.variant?'Durée à convenir':'<b>'+(adapted?c.variantDuration:c.duration)+' min</b> à deux')+'</span><span><b>'+c.hp+' PV</b> de résistance</span></div><div class="oa-card-foot"><span>ONDE / '+h(c.id.toUpperCase())+'</span><span>le temps de nous.</span></div></article>';}
+ function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+' · '+(adapted?'VARIANTE':'À PARTAGER')+'</span>'+favoriteButton(c)+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2><p class="oa-card-description">'+h(adapted?r.proposal:c.description)+'</p><div class="oa-card-meta"><span>'+(adapted&&r.proposal!==c.variant?'Durée à convenir':'<b>'+(adapted?c.variantDuration:c.duration)+' min</b> à deux')+'</span><span><b>'+c.hp+' PV</b> de résistance</span></div><div class="oa-card-foot"><span>'+(c.source?'STCK · '+h(c.source.collectionTitle):'ONDE / '+h(c.id.toUpperCase()))+'</span><span>le temps de nous.</span></div></article>';}
  function hpTrack(){const hp=state.round.hp,rem=remaining(),fraction=rem/hp;let mark='',used=0;const weights=[2.3,1,1,1.65,2.3,1,1.65,1,2.3,1.65],weightTotal=weights.reduce((a,b)=>a+b,0);for(let i=0;i<10;i++){const fill=Math.max(0,Math.min(1,(fraction*weightTotal-used)/weights[i]));used+=weights[i];mark+='<i><span style="transform:scaleX('+fill+');'+(rem===0?'background:#a8c08c':'')+'"></span></i>';}
  return '<div class="oa-hp"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+rem+' <span>/ '+hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+hp+'" aria-valuenow="'+rem+'">'+mark+'</div><div class="oa-roll-history"><span class="oa-roll-token">JET 1 <b>'+(state.round.rolls[0]||'—')+'</b></span><span class="oa-roll-token">JET 2 <b>'+(state.round.rolls[1]||'—')+'</b></span></div></div>';}
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
  function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+((!r.challengeUsed&&r.status==='pending')?btn('Défier la carte <span class="oa-arrow">D20</span>','challenge','oa-secondary'):'')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
  function renderPlay(){const r=state.round,c=card();
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>36 cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>','La catégorie a été tirée. La prochaine étape est la carte.','UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
    return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',h(category().description),'LE D6 A DONNÉ '+r.categoryRoll)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
@@ -861,22 +914,24 @@ void main(){
   if(state.phase==='accepted')return heading('Un moment<br><em>pour vous.</em>','Vous avez tous les deux accepté cette proposition.','ACCORD À DEUX')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip(r.schedule?'Moment prévu : <strong>'+h(r.schedule)+'</strong>':'À vivre au moment qui vous convient.')+'<div class="oa-actions">'+btn('Marquer comme partagé','complete')+(state.prefs.reminder?textBtn('Aperçu du rappel','reminder'):'')+textBtn('Finalement, passer','pass')+'</div><p class="oa-note oa-center">Votre accord reste modifiable à tout moment.</p>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed';
-   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Bien joué.<br><em>Carte écartée.</em>':'Une autre<br><em>fois, peut-être.</em>',completed?'Vous pouvez garder cette carte parmi vos favoris.':defended?'Le hasard a tranché ce petit défi.':'Cette proposition a été passée. Le prochain tour vous attend.',completed?'MOMENT PARTAGÉ':defended?'DÉFI RÉUSSI':'CARTE PASSÉE')+(defended?hpTrack():'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':' · '+c.duration+' min')+'</p></div>'+favoriteButton(c)+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir nos moments','tab','data-tab="us"')+'</div>';
+   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Bien joué.<br><em>Carte écartée.</em>':'Une autre<br><em>fois, peut-être.</em>',completed?'Un point de plus pour votre duo. Vous pouvez aussi garder cette carte parmi vos favoris.':defended?'Le hasard a tranché ce petit défi.':'Cette proposition a été passée. Le prochain tour vous attend.',completed?'MOMENT PARTAGÉ':defended?'DÉFI RÉUSSI':'CARTE PASSÉE')+(defended?hpTrack():'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':' · '+c.duration+' min')+'</p></div>'+favoriteButton(c)+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
   }
   return '';
  }
  function renderCatalog(){const cat=G.getCategory(catalog);const list=favoritesOnly?G.cards.filter(c=>state.favorites.includes(c.id)):G.cards.filter(c=>c.categoryId===catalog);return heading('Des petits<br><em>possibles.</em>','Six catégories, quatre cartes renouvelées à chaque tirage.','VOTRE JEU')+categoriesGrid(true)+'<div class="oa-filter-row" role="group" aria-label="Afficher les cartes"><button type="button" class="cursor-interaction" data-action="filter" data-favorites="false" aria-pressed="'+!favoritesOnly+'">'+h(cat.label)+'</button><button type="button" class="cursor-interaction" data-action="filter" data-favorites="true" aria-pressed="'+favoritesOnly+'">Favoris · '+state.favorites.length+'</button></div>'+(list.length?'<div class="oa-list">'+list.map(c=>'<article class="oa-list-card" style="--category:'+G.getCategory(c.categoryId).color+'"><span class="oa-list-color"></span><div class="oa-list-copy"><button type="button" class="oa-list-open cursor-interaction" data-action="card-detail" data-card="'+c.id+'"><h3>'+h(c.title)+'</h3><p>'+c.duration+' min · '+c.hp+' PV · détails ↗</p></button></div>'+favoriteButton(c)+'</article>').join('')+'</div>':'<div class="oa-empty"><p>Les cartes que vous aimez<br>se retrouveront ici.</p></div>');}
- function historyLabel(r){return r.status==='completed'?'PARTAGÉ':r.status==='defended'?'ÉCARTÉ AU DÉ':'PASSÉ';}
- function historyDate(r){const d=r.endedAt&&new Date(r.endedAt);return d&&!isNaN(d)?d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Cette session';}
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
- function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments, vos favoris, vos préférences.','VOTRE DUO')+'<div class="oa-section-head"><h2>Les derniers moments</h2><span>'+state.history.length+' tour'+(state.history.length>1?'s':'')+'</span></div>'+(state.history.length?'<div>'+state.history.slice(0,6).map(r=>{const c=G.getCard(r.cardId);return '<article class="oa-history-row"><span class="oa-history-badge">'+historyLabel(r)+'</span><h3>'+h(c?c.title:'Une proposition')+'</h3><p>'+h(name(r.from))+' → '+h(name(r.to))+' · '+historyDate(r)+'</p></article>';}).join('')+'</div>':'<div class="oa-empty"><p>Votre histoire commence<br>avec une première invitation.</p></div>')+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('reducedMotion','Mouvements réduits','Des lancers plus courts et sans rebonds.')+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie est conservée dans ce navigateur.':'La partie reste disponible tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Donner mon avis','feedback')+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+ function sharedScore(){
+  const stats=state.stats,total=stats.totalCompleted;
+  return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div><p class="oa-note">Le score augmente quand une carte est marquée « partagée ». Il reste commun à votre duo.</p>';
+ }
+ function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Donner mon avis','feedback')+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
  function render(){
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
   main.innerHTML=tab==='play'?renderPlay():tab==='cards'?renderCatalog():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!(state.phase==='pending'&&state.round.awaiting===el.dataset.player&&state.activePlayer!==el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(!!(state.prefs.reducedMotion||systemReduce));}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(!!systemReduce);}
   root.classList.toggle('is-busy',busy);
  }
  let audioContext;
@@ -895,7 +950,7 @@ void main(){
   root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="feedback"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
   const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le hasard fait son chemin…';
   state=next;save();softSound();
-  try{await die.roll(action.value,{duration:state.prefs.reducedMotion||systemReduce?0:1650});}catch(error){lastError=String(error);}
+  try{await die.roll(action.value,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
   if(serial!==animationSerial)return;
   busy=false;
   root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="feedback"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
@@ -912,7 +967,7 @@ void main(){
  function feedbackReport(){return feedbackContext+'\n\nMon retour :\n'+(feedbackNote.trim()||'À compléter.');}
  function showFeedback(){
   const round=state.round;
-  feedbackContext=['ONDE — Retour de test','Version : 0.1.0','Écran : '+({play:'Jouer',cards:'Les cartes',us:'Nous'}[tab]||tab),'Étape : '+state.phase,'Catégorie : '+(round.categoryId||'—'),'Carte (cardId) : '+(round.cardId||'—'),'PV : '+(round.hp==null?'—':round.hp),'D6 : '+(round.categoryRoll||'—')+' · D4 : '+(round.cardRoll||'—')+' · D20 : '+(round.rolls.length?round.rolls.join(' + '):'—'),'Fenêtre : '+window.innerWidth+' × '+window.innerHeight+' px','Rendu : '+(die.mode||canvas.dataset.renderer||'inconnu')].join('\n');
+  feedbackContext=['ONDE — Retour de test','Version : 0.2.0','Écran : '+({play:'Jouer',cards:'Les cartes',us:'Nous'}[tab]||tab),'Étape : '+state.phase,'Catégorie : '+(round.categoryId||'—'),'Carte (cardId) : '+(round.cardId||'—'),'PV : '+(round.hp==null?'—':round.hp),'D6 : '+(round.categoryRoll||'—')+' · D4 : '+(round.cardRoll||'—')+' · D20 : '+(round.rolls.length?round.rolls.join(' + '):'—'),'Fenêtre : '+window.innerWidth+' × '+window.innerHeight+' px','Rendu : '+(die.mode||canvas.dataset.renderer||'inconnu')].join('\n');
   openSheet('Donner mon avis','<p>Qu’est-ce qui te plaît, te gêne ou te manque ? Copie ce retour pour le partager dans notre conversation.</p><label class="oa-field">Ton avis<textarea id="oa-feedback-note" rows="3" maxlength="2000" placeholder="Par exemple : le dé rebondit trop vite…">'+h(feedbackNote)+'</textarea></label><label class="oa-field">Le rapport à copier<textarea id="oa-feedback-report" rows="5" readonly aria-describedby="oa-feedback-status" spellcheck="false">'+h(feedbackReport())+'</textarea></label><div class="oa-actions">'+btn('Copier mon retour','copy-feedback')+'</div><p id="oa-feedback-status" role="status">Aucun envoi automatique. Ton avis reste dans cette page jusqu’à sa fermeture.</p>','oa-feedback-sheet');
  }
  async function copyFeedback(){
@@ -945,7 +1000,7 @@ void main(){
   if(action==='confirm-adapt'){const field=root.querySelector('#oa-adapt-text');if(!field.value.trim()){field.focus();return;}const text=field.value.trim();closeSheet();dispatch({type:'ADAPT',text});return;}
   if(action==='later'){showLater();return;}
   if(action==='confirm-later'){const schedule=root.querySelector('#oa-schedule').value;closeSheet();dispatch({type:'LATER',schedule});return;}
-  if(action==='complete'){dispatch({type:'COMPLETE'});announce('Moment partagé, ajouté à votre historique.');return;}
+  if(action==='complete'){if(dispatch({type:'COMPLETE'})){announce('Moment partagé. Un point ajouté au score de votre duo.');toast('+1 point pour votre duo.');}return;}
   if(action==='new'){dispatch({type:'NEW_ROUND'});tab='play';render();return;}
   if(action==='favorite'){dispatch({type:'TOGGLE_FAVORITE',cardId:el.dataset.card});if(!sheet.hidden){const pressed=state.favorites.includes(el.dataset.card);sheet.querySelectorAll('[data-action="favorite"]').forEach(b=>{b.setAttribute('aria-pressed',String(pressed));b.textContent=pressed?'♥':'♡';});}return;}
   if(action==='catalog'){catalog=el.dataset.category;favoritesOnly=false;render();return;}
@@ -956,11 +1011,11 @@ void main(){
   if(action==='copy-feedback'){copyFeedback();return;}
   if(action==='close'){closeSheet();return;}
   if(action==='reminder'){openSheet('Aperçu du rappel','<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · RAPPEL</small><p>'+h(state.prefs.discreet?'Votre moment à deux vous attend.':card().title)+'</p></div></div><p>Ceci est un aperçu dans la démo. Aucun rappel système n’est programmé.</p><div class="oa-actions">'+btn('Fermer l’aperçu','close')+'</div>');return;}
-  if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>Les tours, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
+  if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
   if(action==='reset'){closeSheet();dispatch({type:'RESET'});tab='play';catalog='detente';favoritesOnly=false;render();toast('La démonstration repart de zéro.');return;}
  });
  root.addEventListener('input',event=>{if(event.target.id==='oa-feedback-note'){feedbackNote=event.target.value;const report=sheet.querySelector('#oa-feedback-report');if(report)report.value=feedbackReport();}});
- root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!(state.prefs.reducedMotion||systemReduce));if(el.dataset.pref==='sound'&&el.checked)softSound();}});
+ root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
  render();

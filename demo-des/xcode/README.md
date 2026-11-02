@@ -1,6 +1,6 @@
 # ONDE — démo iPhone pour Xcode
 
-Une application de test locale : **D6 pour la catégorie, D4 pour la carte, D20 pour le défi facultatif**. Le prototype est embarqué dans une vue WebKit, avec les dés, les 36 cartes de démonstration et deux profils simulés. Le jeu fonctionne sans serveur.
+Une application de test locale : **D6 pour la catégorie, D4 pour la carte, D20 pour le défi facultatif**. Le prototype est embarqué dans une vue WebKit, avec les dés, les 57 cartes de démonstration et le score commun et deux profils simulés. Le jeu fonctionne sans serveur.
 
 ## Démarrer en quatre étapes
 
@@ -28,6 +28,12 @@ Les fichiers Swift se trouvent dans **`OndeDemo/Sources/`** :
 - `OndeDemoApp.swift` : point d’entrée de l’app.
 - `ContentView.swift` : fond et espace d’affichage respectant les zones de sécurité.
 - `GameWebView.swift` : chargement du jeu local et ouverture des liens de sources dans le navigateur système.
+
+## Version 0.2.0
+
+L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 point**, puis le détail par catégorie. Les cartes passées, acceptées sans réalisation ou écartées au dé ne donnent pas de point. L’ancien état local est repris à l’ouverture ; le score ne dépend plus du nombre d’entrées d’historique conservées.
+
+Le catalogue ajoute 21 propositions adaptées des titres de STCK ; les durées et PV sont des valeurs de prototype. Les rubriques « Les derniers moments » et « Mouvements réduits » ont été retirées. La préférence d’accessibilité de mouvement du système continue d’être respectée automatiquement.
 
 ## Ce qui est simulé
 
