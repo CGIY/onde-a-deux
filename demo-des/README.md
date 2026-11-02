@@ -1,4 +1,4 @@
-# Dés·ir — démo jouable 0.3.0, build 6
+# Dés·ir — démo jouable 0.3.0, build 7
 
 [Jouer](https://cgiy.github.io/onde-a-deux/demo-des/) · [Projet Xcode et ZIP](https://cgiy.github.io/onde-a-deux/demo-des/ONDE-Xcode.zip)
 
@@ -28,4 +28,4 @@ Décompresser le ZIP, ouvrir `OndeDemo.xcodeproj`, choisir le schéma **OndeDemo
 
 Les sources de référence sont dans `dev/src/`. Générer un aperçu avec `python3 demo-des/dev/build.py`, puis les ressources publiques, embarquées et le ZIP avec `python3 demo-des/dev/build.py --release`. Le générateur vérifie la couverture du catalogue et l’absence de doublons de résultats avant de construire.
 
-Le build 6 a été compilé pour simulateur. Les parcours ont été contrôlés dans le navigateur ; les performances sur iPhone physique restent à observer.
+Le build 7 a été compilé pour simulateur. Les parcours ont été contrôlés dans le navigateur ; les performances sur iPhone physique restent à observer.

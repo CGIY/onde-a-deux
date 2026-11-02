@@ -132,3 +132,8 @@ Le deuxième onglet est désormais **À faire** : validation à deux → tâche 
 Moteur : `tasks`, `TOGGLE_TASK_CHECK`, `EXPIRE_TASKS`, `rules.taskLifetimeMs`. `COMPLETE` est neutralisé pour empêcher un ancien bouton de contourner les deux coches. Les anciennes APIs de report/variante/passage restent uniquement compatibles avec les sauvegardes ; aucun bouton n’est affiché.
 
 567 assertions moteur passent (374 défi, 43 score, 61 règles, 89 tâches), plus contrôle de la couverture des 88 statistiques et QA des dés. L’expiration est contrôlée avant les coches et planifiée à son échéance dans l’UI ; elle ne coupe jamais une animation de dé. Les deux cases d’une tâche sont verrouillées pendant le bref remplissage animé.
+
+
+## Build 7 — cartes masquées
+
+Le monogramme ON avant le D4 est remplacé par une composition miniature floutée de la carte : formes rubber, pigments et lignes abstraites. Aucun titre réel ni donnée de carte n’est placé dans le DOM de l’aperçu ; les quatre numéros restent nets et accessibles. Le flou reste actif avec la réduction du mouvement. Les ressources publiques, Xcode et ZIP sont régénérées.

@@ -1,6 +1,6 @@
 # Dés·ir — démo iPhone pour Xcode
 
-Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le D20 permet de tenter d’écarter une carte selon les PV attribués à son action. Le prototype est embarqué dans une vue WebKit, avec les dés, 88 cartes en six catégories, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 6**.
+Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le D20 permet de tenter d’écarter une carte selon les PV attribués à son action. Le prototype est embarqué dans une vue WebKit, avec les dés, 88 cartes en six catégories, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 7**.
 
 ## Démarrer en quatre étapes
 
@@ -45,7 +45,7 @@ Le stockage local du jeu utilise le magasin de données persistant de WebKit. Ce
 
 ## Vérification et limites
 
-Le build 6 avec 88 cartes et 88 résultats distincts a été compilé pour le simulateur iOS. Les parcours D6/D4/D20 et les écrans ont été contrôlés dans le navigateur au format téléphone. Les animations sur un iPhone physique restent à observer.
+Le build 7 avec 88 cartes et 88 résultats distincts a été compilé pour le simulateur iOS. Les parcours D6/D4/D20 et les écrans ont été contrôlés dans le navigateur au format téléphone. Les animations sur un iPhone physique restent à observer.
 
 Les tests automatisés ne remplacent pas une vérification manuelle de chaque parcours dans l’interface. Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
 
