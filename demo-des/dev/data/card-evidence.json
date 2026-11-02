@@ -12,7 +12,12 @@
       "scope": "Enquête nationale probabiliste auprès de 2 021 adultes américains. Réponses individuelles, pondérées ; effectifs valides variables selon la question.",
       "measure": "Somme des pourcentages « très attirant » et « assez attirant » du tableau 5, colonne Total. Les calculs utilisent les valeurs publiées arrondies à une décimale.",
       "limitations": "Intérêt déclaré, pas fréquence de pratique ni bénéfice démontré. Pas un échantillon de couples français. Ne pas retirer le contexte intime d’une question.",
-      "refs": ["turn46search0", "turn47view0", "turn48view0", "turn51view0"]
+      "refs": [
+        "turn46search0",
+        "turn47view0",
+        "turn48view0",
+        "turn51view0"
+      ]
     },
     "dunbar2017": {
       "sourceTitle": "Dunbar — Breaking Bread: the Functions of Social Eating",
@@ -22,7 +27,11 @@
       "doi": "https://doi.org/10.1007/s40750-017-0061-4",
       "scope": "Enquête britannique stratifiée auprès de 2 000 adultes, avril 2016.",
       "limitations": "Déclarations et associations observées. L’étude ne permet pas d’attribuer un effet causal à une carte ONDE ; les repas incluent des liens familiaux et amicaux.",
-      "refs": ["turn45view1", "turn45view2", "turn46search1"]
+      "refs": [
+        "turn45view1",
+        "turn45view2",
+        "turn46search1"
+      ]
     },
     "chang2022": {
       "sourceTitle": "Chang et al. — Implementation intentions to express gratitude increase daily time co-present with an intimate partner, and moderate effects of variation in CD38",
@@ -31,7 +40,47 @@
       "doi": "https://doi.org/10.1038/s41598-022-15650-4",
       "scope": "Expérience de cinq semaines : 125 couples ayant terminé le protocole, 63 dans le groupe gratitude et 62 témoins ; 7 162 relevés quotidiens.",
       "limitations": "Présence dans la même pièce autodéclarée, sommeil et activités séparées compris. Intervention répétée durant trois semaines ; résultat moyen, pas promesse liée à un seul merci.",
-      "refs": ["turn54search0", "turn54view0", "turn55view0", "turn55view1"]
+      "refs": [
+        "turn54search0",
+        "turn54view0",
+        "turn55view0",
+        "turn55view1"
+      ]
+    },
+    "aron2000": {
+      "sourceTitle": "Aron et al. — Couples’ shared participation in novel and arousing activities and experienced relationship quality",
+      "year": 2000,
+      "url": "https://pubmed.ncbi.nlm.nih.gov/10707334/",
+      "scope": "Enquête, étude de terrain et trois expériences de laboratoire auprès de couples. Les tâches expérimentales nouvelles et stimulantes duraient 7 minutes.",
+      "limitations": "Le résultat porte sur des activités nouvelles et stimulantes. Il ne mesure pas chacune des cartes ONDE."
+    },
+    "bouhout2023": {
+      "sourceTitle": "Bouhout et al. — Physiological benefits associated with facial skincare: Well-being from emotional perception to neuromodulation",
+      "year": 2023,
+      "url": "https://doi.org/10.1111/ics.12855",
+      "scope": "63 femmes en bonne santé de 25 à 47 ans ; 32 ont reçu un soin du visage d’une heure, 31 se sont reposées.",
+      "limitations": "Étude courte, petit échantillon féminin et soin professionnel. Elle ne mesure pas un masque seul ni un soin fait à deux."
+    },
+    "coupleMassage2021": {
+      "sourceTitle": "Effects of couples positive massage programme on wellbeing, perceived stress and coping, and relation satisfaction",
+      "year": 2021,
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/",
+      "scope": "Étude préliminaire auprès de 38 participants ; programme de massage réciproque de trois semaines.",
+      "limitations": "Le bien-être mental et la gestion du stress se sont améliorés ; la satisfaction relationnelle n’a pas changé significativement. Le protocole ne mesure pas une zone précise."
+    },
+    "spending2024": {
+      "sourceTitle": "How spending decisions shape happiness in everyday life",
+      "year": 2024,
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11659422/",
+      "scope": "Échantillon multinational de 200 adultes dans 7 pays, ayant reçu une somme à dépenser ; suivis à 3 et 6 mois.",
+      "limitations": "Résultats autodéclarés d’une étude sur les dépenses avec dotation. Aucun budget précis ni achat ONDE n’est évalué."
+    },
+    "sexualCommunication2019": {
+      "sourceTitle": "Méta-analyse — Couples’ sexual communication and dimensions of sexual function",
+      "year": 2019,
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/",
+      "scope": "Méta-analyse de 48 études, majoritairement auprès de personnes en couple.",
+      "limitations": "Association statistique, pas preuve de causalité. La mesure concerne communication et fonctionnement sexuel, pas le plaisir d’un acte précis."
     }
   },
   "facts": [
@@ -46,8 +95,18 @@
       "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
       "limitations": "Intérêt déclaré, pas pratique.",
-      "topics": ["câlins", "se blottir", "proximité tendre"],
-      "calculation": {"veryAppealing": 52.8, "somewhatAppealing": 35.0, "sum": 87.8, "menN": 945, "womenN": 1021},
+      "topics": [
+        "câlins",
+        "se blottir",
+        "proximité tendre"
+      ],
+      "calculation": {
+        "veryAppealing": 52.8,
+        "somewhatAppealing": 35.0,
+        "sum": 87.8,
+        "menN": 945,
+        "womenN": 1021
+      },
       "sourceLocation": "Tableau 5, PDF page 16, ligne Cuddling more often"
     },
     {
@@ -61,8 +120,16 @@
       "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
       "limitations": "Pas de résultat spécifique au massage de la tête ou à dix minutes.",
-      "topics": ["massage"],
-      "calculation": {"veryAppealing": 40.1, "somewhatAppealing": 39.2, "sum": 79.3, "menN": 942, "womenN": 1021},
+      "topics": [
+        "massage"
+      ],
+      "calculation": {
+        "veryAppealing": 40.1,
+        "somewhatAppealing": 39.2,
+        "sum": 79.3,
+        "menN": 942,
+        "womenN": 1021
+      },
       "sourceLocation": "Tableau 5, PDF page 16, ligne Give or receive a massage before sex"
     },
     {
@@ -76,8 +143,16 @@
       "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
       "limitations": "Contexte intime ; aucune technique de baiser mesurée.",
-      "topics": ["baiser"],
-      "calculation": {"veryAppealing": 46.1, "somewhatAppealing": 40.3, "sum": 86.4, "menN": 943, "womenN": 1016},
+      "topics": [
+        "baiser"
+      ],
+      "calculation": {
+        "veryAppealing": 46.1,
+        "somewhatAppealing": 40.3,
+        "sum": 86.4,
+        "menN": 943,
+        "womenN": 1016
+      },
       "sourceLocation": "Tableau 5, PDF page 15, ligne Kissing more often during sex"
     },
     {
@@ -91,8 +166,16 @@
       "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
       "limitations": "Ne mesure pas les compliments ordinaires ni la communication des limites.",
-      "topics": ["mots doux dans l’intimité"],
-      "calculation": {"veryAppealing": 39.9, "somewhatAppealing": 41.0, "sum": 80.9, "menN": 947, "womenN": 1022},
+      "topics": [
+        "mots doux dans l’intimité"
+      ],
+      "calculation": {
+        "veryAppealing": 39.9,
+        "somewhatAppealing": 41.0,
+        "sum": 80.9,
+        "menN": 947,
+        "womenN": 1022
+      },
       "sourceLocation": "Tableau 5, PDF page 15, ligne Saying sweet, romantic things during sex"
     },
     {
@@ -106,8 +189,18 @@
       "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
       "limitations": "Enquête sur l’intimité ; intérêt déclaré.",
-      "topics": ["ambiance", "lumière", "pièce romantique"],
-      "calculation": {"veryAppealing": 33.2, "somewhatAppealing": 43.9, "sum": 77.1, "menN": 943, "womenN": 1021},
+      "topics": [
+        "ambiance",
+        "lumière",
+        "pièce romantique"
+      ],
+      "calculation": {
+        "veryAppealing": 33.2,
+        "somewhatAppealing": 43.9,
+        "sum": 77.1,
+        "menN": 943,
+        "womenN": 1021
+      },
       "sourceLocation": "Tableau 5, PDF page 15, ligne Making the room feel more romantic"
     },
     {
@@ -121,8 +214,18 @@
       "sourceTitle": "Dunbar, Breaking Bread",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
       "limitations": "Opinion déclarée ; pas une amélioration mesurée ni un résultat propre aux couples.",
-      "topics": ["repas à deux", "cuisiner pour partager", "petit-déjeuner", "goûter"],
-      "denominator": {"sampleN": 2000, "unit": "répondants à l’enquête", "itemN": null, "note": "Le texte indique 76,4 % sans isoler l’effectif valide de cette question."},
+      "topics": [
+        "repas à deux",
+        "cuisiner pour partager",
+        "petit-déjeuner",
+        "goûter"
+      ],
+      "denominator": {
+        "sampleN": 2000,
+        "unit": "répondants à l’enquête",
+        "itemN": null,
+        "note": "Le texte indique 76,4 % sans isoler l’effectif valide de cette question."
+      },
       "sourceLocation": "Results, paragraphe commençant par Asked if sharing a meal"
     },
     {
@@ -136,8 +239,16 @@
       "sourceTitle": "Dunbar, Breaking Bread, tableau 2",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
       "limitations": "Association ; 67,9 % décrit la présence de rires, pas un taux de bénéfice.",
-      "topics": ["rire ensemble", "conversation légère pendant un repas"],
-      "denominator": {"sampleN": 2000, "unit": "derniers dîners rapportés avec une personne extérieure au foyer", "itemN": null, "note": "Tableau 2 : pourcentage des dîners où le comportement était présent ; effectif de la fréquence non isolé."},
+      "topics": [
+        "rire ensemble",
+        "conversation légère pendant un repas"
+      ],
+      "denominator": {
+        "sampleN": 2000,
+        "unit": "derniers dîners rapportés avec une personne extérieure au foyer",
+        "itemN": null,
+        "note": "Tableau 2 : pourcentage des dîners où le comportement était présent ; effectif de la fréquence non isolé."
+      },
       "sourceLocation": "Tableau 2, ligne Laughter ; méthodes et résultats autour du tableau"
     },
     {
@@ -151,8 +262,17 @@
       "sourceTitle": "Dunbar, Breaking Bread, tableau 2",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
       "limitations": "Association observée pendant des repas, pas effet démontré d’une photo ou d’une carte.",
-      "topics": ["souvenirs partagés", "photos souvenirs", "anecdotes"],
-      "denominator": {"sampleN": 2000, "unit": "derniers dîners rapportés avec une personne extérieure au foyer", "itemN": null, "note": "Tableau 2 : pourcentage des dîners où le comportement était présent ; effectif de la fréquence non isolé."},
+      "topics": [
+        "souvenirs partagés",
+        "photos souvenirs",
+        "anecdotes"
+      ],
+      "denominator": {
+        "sampleN": 2000,
+        "unit": "derniers dîners rapportés avec une personne extérieure au foyer",
+        "itemN": null,
+        "note": "Tableau 2 : pourcentage des dîners où le comportement était présent ; effectif de la fréquence non isolé."
+      },
       "sourceLocation": "Tableau 2, ligne Reminiscences ; méthodes et résultats autour du tableau"
     },
     {
@@ -166,32 +286,204 @@
       "sourceTitle": "Chang et al., Scientific Reports, tableau 1",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/",
       "limitations": "Présence dans la même pièce, sommeil compris. Moyenne expérimentale, pas gain garanti après cette carte.",
-      "topics": ["gratitude", "remercier une attention", "apprécier les gestes quotidiens"],
-      "calculation": {"GETBeforeAfterMinutes": 67.87, "GET95CI": [35.44, 100.30], "controlBeforeAfterMinutes": -3.87, "conditionByPhaseP": 0.002},
+      "topics": [
+        "gratitude",
+        "remercier une attention",
+        "apprécier les gestes quotidiens"
+      ],
+      "calculation": {
+        "GETBeforeAfterMinutes": 67.87,
+        "GET95CI": [
+          35.44,
+          100.3
+        ],
+        "controlBeforeAfterMinutes": -3.87,
+        "conditionByPhaseP": 0.002
+      },
       "sourceLocation": "Tableau 1, lignes Overall time in proximity / GET ; Nightly measures ; Procedural compliance",
       "technicalNote": "Le chiffre 67,87 est le changement estimé avant/après dans GET, pas la différence brute entre GET et témoin. Les auteurs résument ≈68 minutes en comparant les conditions. Garder la formulation avant/après proposée ici. Mesure totale comprenant sommeil et activités distinctes dans la même pièce."
+    },
+    {
+      "id": "shared-novel-activity",
+      "sourceId": "aron2000",
+      "metric": "3 expériences en laboratoire",
+      "headline": "La nouveauté partagée",
+      "detail": "Dans trois expériences, les couples qui faisaient ensemble une activité nouvelle et stimulante ont rapporté une hausse plus forte de la qualité relationnelle que ceux qui faisaient une tâche ordinaire.",
+      "scope": "Enquête, étude de terrain et trois expériences de laboratoire auprès de couples. Les tâches expérimentales nouvelles et stimulantes duraient 7 minutes.",
+      "year": 2000,
+      "sourceTitle": "Aron et al. — Couples’ shared participation in novel and arousing activities and experienced relationship quality",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/10707334/",
+      "limitations": "Le résultat porte sur des activités nouvelles et stimulantes. Il ne mesure pas chacune des cartes ONDE.",
+      "topics": [
+        "activités partagées nouvelles",
+        "sorties",
+        "projets",
+        "loisirs à deux"
+      ],
+      "sourceLocation": "Résumé PubMed ; expériences de laboratoire 1 à 3"
+    },
+    {
+      "id": "facial-skincare-relaxation",
+      "sourceId": "bouhout2023",
+      "metric": "32 participantes · soin d’une heure",
+      "headline": "Le soin du visage et la détente",
+      "detail": "Dans le groupe ayant reçu un soin du visage, les mesures physiologiques et les réponses émotionnelles indiquaient un état de détente associé au soin.",
+      "scope": "63 femmes en bonne santé de 25 à 47 ans ; 32 ont reçu un soin du visage d’une heure, 31 se sont reposées.",
+      "year": 2023,
+      "sourceTitle": "Bouhout et al. — Physiological benefits associated with facial skincare: Well-being from emotional perception to neuromodulation",
+      "url": "https://doi.org/10.1111/ics.12855",
+      "limitations": "Étude courte, petit échantillon féminin et soin professionnel. Elle ne mesure pas un masque seul ni un soin fait à deux.",
+      "topics": [
+        "masque visage",
+        "soin du visage"
+      ],
+      "sourceLocation": "Méthodes : participantes et sessions ; résultats et conclusion"
+    },
+    {
+      "id": "couples-mutual-massage",
+      "sourceId": "coupleMassage2021",
+      "metric": "38 participants · 3 semaines",
+      "headline": "Le massage à deux",
+      "detail": "Après le programme de massage réciproque, le bien-être mental et la gestion du stress s’étaient améliorés par rapport au début du programme.",
+      "scope": "Étude préliminaire auprès de 38 participants ; programme de massage réciproque de trois semaines.",
+      "year": 2021,
+      "sourceTitle": "Effects of couples positive massage programme on wellbeing, perceived stress and coping, and relation satisfaction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/",
+      "limitations": "Le bien-être mental et la gestion du stress se sont améliorés ; la satisfaction relationnelle n’a pas changé significativement. Le protocole ne mesure pas une zone précise.",
+      "topics": [
+        "massages à deux"
+      ],
+      "sourceLocation": "Résumé, méthode et résultats"
+    },
+    {
+      "id": "gift-and-experience-spending",
+      "sourceId": "spending2024",
+      "metric": "200 personnes · 7 pays",
+      "headline": "Les cadeaux parmi les dépenses heureuses",
+      "detail": "Les cadeaux et les expériences figuraient parmi les catégories associées aux niveaux de bonheur déclarés les plus élevés.",
+      "scope": "Échantillon multinational de 200 adultes dans 7 pays, ayant reçu une somme à dépenser ; suivis à 3 et 6 mois.",
+      "year": 2024,
+      "sourceTitle": "How spending decisions shape happiness in everyday life",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11659422/",
+      "limitations": "Résultats autodéclarés d’une étude sur les dépenses avec dotation. Aucun budget précis ni achat ONDE n’est évalué.",
+      "topics": [
+        "achats et cadeaux"
+      ],
+      "sourceLocation": "Résumé ; analyse des catégories de dépenses"
+    },
+    {
+      "id": "sexual-communication-function",
+      "sourceId": "sexualCommunication2019",
+      "metric": "r = 0,35 · 48 études",
+      "headline": "Parler de ses envies compte",
+      "detail": "La méta-analyse observe une association positive entre la communication sexuelle des partenaires et le fonctionnement sexuel global.",
+      "scope": "Méta-analyse de 48 études, majoritairement auprès de personnes en couple.",
+      "year": 2019,
+      "sourceTitle": "Méta-analyse — Couples’ sexual communication and dimensions of sexual function",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/",
+      "limitations": "Association statistique, pas preuve de causalité. La mesure concerne communication et fonctionnement sexuel, pas le plaisir d’un acte précis.",
+      "topics": [
+        "communication sexuelle",
+        "préférences et limites"
+      ],
+      "sourceLocation": "Résumé et résultats, association avec le fonctionnement sexuel global"
     }
   ],
   "suggestedMappings": {
     "directTheme": {
-      "cuddling-appeal": ["tend-1", "tend-4"],
-      "romantic-room-appeal": ["det-6", "int-3"],
-      "gratitude-presence": ["att-3"],
-      "shared-meal-opinion": ["att-5", "stck-2-02", "stck-2-09", "stck-2-10", "stck-2-11", "stck-2-03", "stck-2-12", "stck-2-13", "stck-9-03", "stck-2-05", "stck-9-04", "stck-2-04", "stck-2-06"]
+      "cuddling-appeal": [
+        "tend-1",
+        "tend-4"
+      ],
+      "romantic-room-appeal": [
+        "det-6",
+        "int-3"
+      ],
+      "gratitude-presence": [
+        "att-3"
+      ],
+      "shared-meal-opinion": [
+        "att-5",
+        "stck-2-02",
+        "stck-2-09",
+        "stck-2-10",
+        "stck-2-11",
+        "stck-2-03",
+        "stck-2-12",
+        "stck-2-13",
+        "stck-9-03",
+        "stck-2-05",
+        "stck-9-04",
+        "stck-2-04",
+        "stck-2-06"
+      ]
     },
     "relatedThemeRequireScope": {
-      "massage-appeal": ["det-1", "det-2", "stck-1-03", "stck-1-04", "stck-1-07"],
-      "kissing-appeal": ["int-2", "stck-5-01"],
-      "dinner-memories": ["comp-2", "comp-4"],
-      "gratitude-presence": ["comp-6"]
+      "massage-appeal": [
+        "det-1",
+        "det-2",
+        "stck-1-03",
+        "stck-1-04",
+        "stck-1-07"
+      ],
+      "kissing-appeal": [
+        "int-2",
+        "stck-5-01"
+      ],
+      "dinner-memories": [
+        "comp-2",
+        "comp-4"
+      ],
+      "gratitude-presence": [
+        "comp-6"
+      ]
     },
     "avoidAutomaticCategoryFallback": true,
     "reason": "Une catégorie générale ne suffit pas pour qu’un chiffre concerne la carte. Un fait peut être contextuel si le contexte réel est affiché, mais jamais reformulé comme la mesure exacte de ce défi."
   },
   "honestFallbacks": [
-    {"id": "conversation", "metric": null, "headline": "Votre façon de vous retrouver", "detail": "Une occasion de parler et d’écouter, avec vos propres mots.", "scope": "Suggestion ONDE — pas une statistique.", "topics": ["questions", "journée", "communication des envies", "limites"]},
-    {"id": "music-discovery", "metric": null, "headline": "À votre image", "detail": "Choisissez ce qui vous ressemble, ou faites découvrir un goût à l’autre.", "scope": "Suggestion ONDE — pas une statistique.", "topics": ["musique", "playlist", "promenade", "dessin", "création d’une carte"]},
-    {"id": "attention", "metric": null, "headline": "Une attention choisie", "detail": "Le geste et le moment peuvent se décider à deux.", "scope": "Suggestion ONDE — pas une statistique.", "topics": ["soin du visage", "vernis", "boisson", "mot caché", "main dans la main", "pause sans écran"]}
+    {
+      "id": "conversation",
+      "metric": null,
+      "headline": "Votre façon de vous retrouver",
+      "detail": "Une occasion de parler et d’écouter, avec vos propres mots.",
+      "scope": "Suggestion ONDE — pas une statistique.",
+      "topics": [
+        "questions",
+        "journée",
+        "communication des envies",
+        "limites"
+      ]
+    },
+    {
+      "id": "music-discovery",
+      "metric": null,
+      "headline": "À votre image",
+      "detail": "Choisissez ce qui vous ressemble, ou faites découvrir un goût à l’autre.",
+      "scope": "Suggestion ONDE — pas une statistique.",
+      "topics": [
+        "musique",
+        "playlist",
+        "promenade",
+        "dessin",
+        "création d’une carte"
+      ]
+    },
+    {
+      "id": "attention",
+      "metric": null,
+      "headline": "Une attention choisie",
+      "detail": "Le geste et le moment peuvent se décider à deux.",
+      "scope": "Suggestion ONDE — pas une statistique.",
+      "topics": [
+        "soin du visage",
+        "vernis",
+        "boisson",
+        "mot caché",
+        "main dans la main",
+        "pause sans écran"
+      ]
+    }
   ],
   "mappingNotes": [
     "Afficher les pourcentages comme un résultat d’enquête contextualisé. Ne jamais écrire « X % des couples font ce défi » à partir de ces résultats.",
@@ -201,6 +493,192 @@
     "Aucun chiffre vérifié ici pour les bénéfices spécifiques d’une playlist, d’un soin cosmétique, d’une promenade nouvelle, du fait de se tenir la main, de la communication des limites ou d’un massage de la tête de dix minutes. Utiliser le repère non numérique approprié.",
     "Ne pas utiliser l’effectif d’une étude comme s’il s’agissait d’un résultat encourageant.",
     "Ne pas sélectionner un chiffre uniquement parce qu’il est élevé ; le rattachement au sujet et son libellé exact priment.",
-    "Les formulations proposées sont des synthèses françaises. Sources primaires ouvertes et contre-vérifiées avec le moteur system1 le 2 novembre 2026."
+    "Les formulations proposées sont des synthèses françaises. Sources primaires ouvertes et contre-vérifiées avec le moteur system1 le 2 novembre 2026.",
+    "Les six catégories disposent maintenant d’un repère positif et sourcé pour chaque carte active. Pour les cartes sans mesure spécifique, le texte nomme explicitement le thème voisin étudié et sa limite ; il ne prétend pas mesurer le résultat de l’action."
+  ],
+  "activeCatalogMappings": {
+    "new-complicite-01": "shared-novel-activity",
+    "new-complicite-02": "kissing-appeal",
+    "new-complicite-03": "cuddling-appeal",
+    "new-complicite-04": "shared-novel-activity",
+    "new-complicite-05": "shared-novel-activity",
+    "new-complicite-06": "cuddling-appeal",
+    "new-complicite-07": "shared-novel-activity",
+    "new-complicite-08": "shared-novel-activity",
+    "new-complicite-09": "shared-novel-activity",
+    "new-complicite-10": "shared-novel-activity",
+    "new-complicite-11": "shared-novel-activity",
+    "new-detente-01": "couples-mutual-massage",
+    "new-detente-02": "couples-mutual-massage",
+    "new-detente-03": "couples-mutual-massage",
+    "new-detente-04": "couples-mutual-massage",
+    "new-detente-05": "couples-mutual-massage",
+    "new-detente-06": "couples-mutual-massage",
+    "new-detente-07": "couples-mutual-massage",
+    "new-detente-08": "couples-mutual-massage",
+    "new-detente-09": "facial-skincare-relaxation",
+    "new-detente-10": "facial-skincare-relaxation",
+    "new-projets-01": "shared-novel-activity",
+    "new-projets-02": "shared-novel-activity",
+    "new-projets-03": "shared-novel-activity",
+    "new-projets-04": "shared-novel-activity",
+    "new-projets-05": "shared-novel-activity",
+    "new-projets-06": "shared-novel-activity",
+    "new-projets-07": "shared-novel-activity",
+    "new-projets-08": "shared-novel-activity",
+    "new-projets-09": "shared-novel-activity",
+    "new-projets-10": "shared-novel-activity",
+    "new-projets-11": "shared-novel-activity",
+    "new-projets-12": "shared-novel-activity",
+    "new-projets-13": "shared-novel-activity",
+    "new-projets-14": "shared-novel-activity",
+    "new-projets-15": "shared-novel-activity",
+    "new-projets-16": "shared-novel-activity",
+    "new-projets-17": "shared-novel-activity",
+    "new-projets-18": "shared-novel-activity",
+    "new-attention-01": "gift-and-experience-spending",
+    "new-attention-02": "gift-and-experience-spending",
+    "new-attention-03": "gift-and-experience-spending",
+    "new-attention-04": "gift-and-experience-spending",
+    "new-attention-05": "gift-and-experience-spending",
+    "new-attention-06": "gift-and-experience-spending",
+    "new-attention-07": "gift-and-experience-spending",
+    "new-attention-08": "gift-and-experience-spending",
+    "new-attention-09": "gift-and-experience-spending",
+    "new-attention-10": "gift-and-experience-spending",
+    "new-attention-11": "gift-and-experience-spending",
+    "new-attention-12": "gift-and-experience-spending",
+    "new-attention-13": "gift-and-experience-spending",
+    "new-attention-14": "gift-and-experience-spending",
+    "new-attention-15": "gift-and-experience-spending",
+    "new-bouffe-01": "shared-meal-opinion",
+    "new-bouffe-02": "shared-meal-opinion",
+    "new-bouffe-03": "shared-meal-opinion",
+    "new-bouffe-04": "shared-meal-opinion",
+    "new-bouffe-05": "shared-meal-opinion",
+    "new-bouffe-06": "shared-meal-opinion",
+    "new-bouffe-07": "shared-meal-opinion",
+    "new-bouffe-08": "shared-meal-opinion",
+    "new-bouffe-09": "shared-meal-opinion",
+    "new-bouffe-10": "shared-meal-opinion",
+    "new-bouffe-11": "shared-meal-opinion",
+    "new-bouffe-12": "shared-meal-opinion",
+    "new-intimite-01": "sexual-communication-function",
+    "new-intimite-02": "sexual-communication-function",
+    "new-intimite-03": "massage-appeal",
+    "new-intimite-04": "sexual-communication-function",
+    "new-intimite-05": "sexual-communication-function",
+    "new-intimite-06": "sexual-communication-function",
+    "new-intimite-07": "sexual-communication-function",
+    "new-intimite-08": "sexual-communication-function",
+    "new-intimite-09": "sexual-communication-function",
+    "new-intimite-10": "sexual-communication-function",
+    "new-intimite-11": "sexual-communication-function",
+    "new-intimite-12": "sexual-communication-function",
+    "new-intimite-13": "sexual-communication-function",
+    "new-intimite-14": "sexual-communication-function",
+    "new-intimite-15": "sexual-communication-function",
+    "new-intimite-16": "sexual-communication-function",
+    "new-intimite-17": "sexual-communication-function",
+    "new-intimite-18": "sexual-communication-function",
+    "new-intimite-19": "sexual-communication-function",
+    "new-intimite-20": "sexual-communication-function",
+    "new-intimite-21": "sexual-communication-function",
+    "new-intimite-22": "sexual-communication-function"
+  },
+  "discardResistanceEstimates": {
+    "new-complicite-01": 35,
+    "new-complicite-02": 35,
+    "new-complicite-03": 35,
+    "new-complicite-04": 35,
+    "new-complicite-05": 35,
+    "new-complicite-06": 35,
+    "new-complicite-07": 30,
+    "new-complicite-08": 30,
+    "new-complicite-09": 35,
+    "new-complicite-10": 35,
+    "new-complicite-11": 20,
+    "new-detente-01": 35,
+    "new-detente-02": 35,
+    "new-detente-03": 35,
+    "new-detente-04": 30,
+    "new-detente-05": 35,
+    "new-detente-06": 35,
+    "new-detente-07": 30,
+    "new-detente-08": 25,
+    "new-detente-09": 35,
+    "new-detente-10": 30,
+    "new-projets-01": 35,
+    "new-projets-02": 30,
+    "new-projets-03": 25,
+    "new-projets-04": 30,
+    "new-projets-05": 20,
+    "new-projets-06": 30,
+    "new-projets-07": 35,
+    "new-projets-08": 25,
+    "new-projets-09": 25,
+    "new-projets-10": 25,
+    "new-projets-11": 20,
+    "new-projets-12": 20,
+    "new-projets-13": 25,
+    "new-projets-14": 30,
+    "new-projets-15": 20,
+    "new-projets-16": 10,
+    "new-projets-17": 30,
+    "new-projets-18": 35,
+    "new-attention-01": 35,
+    "new-attention-02": 15,
+    "new-attention-03": 35,
+    "new-attention-04": 35,
+    "new-attention-05": 25,
+    "new-attention-06": 30,
+    "new-attention-07": 35,
+    "new-attention-08": 25,
+    "new-attention-09": 15,
+    "new-attention-10": 35,
+    "new-attention-11": 15,
+    "new-attention-12": 30,
+    "new-attention-13": 30,
+    "new-attention-14": 20,
+    "new-attention-15": 20,
+    "new-bouffe-01": 35,
+    "new-bouffe-02": 35,
+    "new-bouffe-03": 30,
+    "new-bouffe-04": 35,
+    "new-bouffe-05": 30,
+    "new-bouffe-06": 30,
+    "new-bouffe-07": 30,
+    "new-bouffe-08": 35,
+    "new-bouffe-09": 35,
+    "new-bouffe-10": 30,
+    "new-bouffe-11": 35,
+    "new-bouffe-12": 35,
+    "new-intimite-01": 35,
+    "new-intimite-02": 20,
+    "new-intimite-03": 25,
+    "new-intimite-04": 30,
+    "new-intimite-05": 35,
+    "new-intimite-06": 25,
+    "new-intimite-07": 20,
+    "new-intimite-08": 20,
+    "new-intimite-09": 15,
+    "new-intimite-10": 15,
+    "new-intimite-11": 10,
+    "new-intimite-12": 10,
+    "new-intimite-13": 15,
+    "new-intimite-14": 15,
+    "new-intimite-15": 10,
+    "new-intimite-16": 15,
+    "new-intimite-17": 15,
+    "new-intimite-18": 10,
+    "new-intimite-19": 10,
+    "new-intimite-20": 15,
+    "new-intimite-21": 20,
+    "new-intimite-22": 35
+  },
+  "resistanceEstimateNotes": [
+    "Première estimation demandée par l’utilisateur. PV élevé = seuil plus difficile à atteindre pour écarter la carte.",
+    "Actions simples, explicitement simples sexuellement ou à coût inférieur à 20 € : seuil élevé. Actions plus engageantes, complexes ou coûteuses : seuil plus bas.",
+    "Un résultat de dé ne vaut jamais consentement ; les personnes conservent la possibilité d’accepter, adapter, reporter, passer ou arrêter."
   ]
 }

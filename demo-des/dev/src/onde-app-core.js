@@ -5,9 +5,10 @@
   const categories = [
     { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
     { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
-    { id: 'attention', number: 3, label: 'Attentions', color: '#e3bd8b', icon: 'gift', description: 'Choisir une attention.' },
-    { id: 'bouffe', number: 4, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
-    { id: 'intimite', number: 5, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
+    { id: 'projets', number: 3, label: 'Projets', color: '#d0a6c1', icon: 'map', description: 'Imaginer et faire ensemble.' },
+    { id: 'attention', number: 4, label: 'Attentions', color: '#e3bd8b', icon: 'gift', description: 'Choisir une attention.' },
+    { id: 'bouffe', number: 5, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
+    { id: 'intimite', number: 6, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
   ];
 
   const legacyCards = [
@@ -61,7 +62,7 @@
   for(const [id,source] of Object.entries(stckExistingLinks)) { const card=legacyCards.find(card=>card.id===id); if(card)card.source=source; }
 
   // The former catalogue stays available only to validate existing saves and history.
-  const legacyCategory = id => id==='tendresse'?'complicite':id==='decouverte'?'bouffe':id;
+  const legacyCategory = id => id==='tendresse'?'complicite':id==='decouverte'?'projets':id;
   const hiddenLegacyCards = legacyCards.map(card=>Object.assign({},card,{categoryId:legacyCategory(card.categoryId)}));
   const oldCardById = Object.fromEntries(hiddenLegacyCards.map(card=>[card.id,card]));
   const catalogRows = [
@@ -72,6 +73,7 @@
     {id:'new-complicite-05',categoryId:'complicite',title:'Pose de vernis',legacyId:'stck-9-01'},
     {id:'new-complicite-06',categoryId:'complicite',title:'Caresse sous le plaid devant une série'},
     {id:'new-complicite-07',categoryId:'complicite',title:'Une heure sans téléphone'},
+    {id:'new-complicite-11',categoryId:'complicite',title:'Cinq heures sans téléphone'},
     {id:'new-complicite-08',categoryId:'complicite',title:'Un jeu de société'},
     {id:'new-complicite-09',categoryId:'complicite',title:'Regarder un film'},
     {id:'new-complicite-10',categoryId:'complicite',title:'Regarder une série'},
@@ -85,6 +87,24 @@
     {id:'new-detente-08',categoryId:'detente',title:'Massage total',legacyId:'stck-1-07'},
     {id:'new-detente-09',categoryId:'detente',title:'Masque visage',legacyId:'stck-9-02'},
     {id:'new-detente-10',categoryId:'detente',title:'Soin complet du visage',legacyId:'stck-1-06'},
+    {id:'new-projets-01',categoryId:'projets',title:'Balade en ville'},
+    {id:'new-projets-02',categoryId:'projets',title:'Balade en forêt'},
+    {id:'new-projets-03',categoryId:'projets',title:'Musée ou visite'},
+    {id:'new-projets-04',categoryId:'projets',title:'Aquarelle'},
+    {id:'new-projets-05',categoryId:'projets',title:'Poterie'},
+    {id:'new-projets-06',categoryId:'projets',title:'Faire des photos dehors'},
+    {id:'new-projets-07',categoryId:'projets',title:'Pique-nique'},
+    {id:'new-projets-08',categoryId:'projets',title:'Promenade sous la pluie'},
+    {id:'new-projets-09',categoryId:'projets',title:'Promenade de nuit'},
+    {id:'new-projets-10',categoryId:'projets',title:'Préparer un futur week-end'},
+    {id:'new-projets-11',categoryId:'projets',title:'Préparer de futures vacances'},
+    {id:'new-projets-12',categoryId:'projets',title:'Réaménager un coin de la maison'},
+    {id:'new-projets-13',categoryId:'projets',title:'Jeter 3 choses inutiles'},
+    {id:'new-projets-14',categoryId:'projets',title:'Jeter 1 chose inutile'},
+    {id:'new-projets-15',categoryId:'projets',title:'Faire une mini rénovation'},
+    {id:'new-projets-16',categoryId:'projets',title:'Faire une grosse rénovation'},
+    {id:'new-projets-17',categoryId:'projets',title:'Créer ou agrémenter une bucket list'},
+    {id:'new-projets-18',categoryId:'projets',title:'Faire une tier list'},
     {id:'new-attention-01',categoryId:'attention',title:'Achat Vinted à petit budget'},
     {id:'new-attention-02',categoryId:'attention',title:'Achat Vinted à gros budget'},
     {id:'new-attention-03',categoryId:'attention',title:'Un café à Columbus'},
@@ -139,14 +159,25 @@
   const categoryPrompts = {
     complicite:'Choisissez le moment et la façon qui vous plaisent à tous les deux.',
     detente:'La personne qui reçoit choisit la zone, les gestes et la pression. Vous pouvez arrêter à tout moment.',
+    projets:'Choisissez ensemble l’ampleur du projet, le moment et la façon de participer.',
     attention:'Décidez ensemble de l’achat et respectez le budget indiqué dans la proposition.',
     bouffe:'Choisissez ensemble ce qui vous fait envie et le budget qui vous convient.',
     intimite:'À réserver à des adultes consentants. Définissez ensemble les limites, le cadre et les conditions de sécurité ; chacun peut dire non ou arrêter à tout moment.'
   };
+  // First-pass discard resistance estimates selected with Clément. Higher PV
+  // makes an action harder to discard; these values are independent of consent.
+  const resistanceByCard = Object.freeze({
+    'new-complicite-01':35,'new-complicite-02':35,'new-complicite-03':35,'new-complicite-04':35,'new-complicite-05':35,'new-complicite-06':35,'new-complicite-07':30,'new-complicite-08':30,'new-complicite-09':35,'new-complicite-10':35,'new-complicite-11':20,
+    'new-detente-01':35,'new-detente-02':35,'new-detente-03':35,'new-detente-04':30,'new-detente-05':35,'new-detente-06':35,'new-detente-07':30,'new-detente-08':25,'new-detente-09':35,'new-detente-10':30,
+    'new-projets-01':35,'new-projets-02':30,'new-projets-03':25,'new-projets-04':30,'new-projets-05':20,'new-projets-06':30,'new-projets-07':35,'new-projets-08':25,'new-projets-09':25,'new-projets-10':25,'new-projets-11':20,'new-projets-12':20,'new-projets-13':25,'new-projets-14':30,'new-projets-15':20,'new-projets-16':10,'new-projets-17':30,'new-projets-18':35,
+    'new-attention-01':35,'new-attention-02':15,'new-attention-03':35,'new-attention-04':35,'new-attention-05':25,'new-attention-06':30,'new-attention-07':35,'new-attention-08':25,'new-attention-09':15,'new-attention-10':35,'new-attention-11':15,'new-attention-12':30,'new-attention-13':30,'new-attention-14':20,'new-attention-15':20,
+    'new-bouffe-01':35,'new-bouffe-02':35,'new-bouffe-03':30,'new-bouffe-04':35,'new-bouffe-05':30,'new-bouffe-06':30,'new-bouffe-07':30,'new-bouffe-08':35,'new-bouffe-09':35,'new-bouffe-10':30,'new-bouffe-11':35,'new-bouffe-12':35,
+    'new-intimite-01':35,'new-intimite-02':20,'new-intimite-03':25,'new-intimite-04':30,'new-intimite-05':35,'new-intimite-06':25,'new-intimite-07':20,'new-intimite-08':20,'new-intimite-09':15,'new-intimite-10':15,'new-intimite-11':10,'new-intimite-12':10,'new-intimite-13':15,'new-intimite-14':15,'new-intimite-15':10,'new-intimite-16':15,'new-intimite-17':15,'new-intimite-18':10,'new-intimite-19':10,'new-intimite-20':15,'new-intimite-21':20,'new-intimite-22':35
+  });
   const cards = catalogRows.map((row,index)=>{
     const old=(row.legacyId&&oldCardById[row.legacyId])||sourceIdByTitle[row.title]||null;
     const prompts=categoryPrompts[row.categoryId];
-    return {id:row.id,categoryId:row.categoryId,title:row.title,description:prompts,duration:null,hp:null,variant:'Choisissez ensemble une version plus simple ou un autre moment.',variantDuration:null,...(old&&old.source?{source:old.source}:{})};
+    return {id:row.id,categoryId:row.categoryId,title:row.title,description:prompts,duration:null,hp:resistanceByCard[row.id],variant:'Choisissez ensemble une version plus simple ou un autre moment.',variantDuration:null,...(old&&old.source?{source:old.source}:{})};
   });
 
   const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
@@ -261,11 +292,12 @@
     let migrated;
     try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
     if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
-    if(migrated.stats&&migrated.stats.byCategory&&('decouverte' in migrated.stats.byCategory || 'tendresse' in migrated.stats.byCategory)){
+    if(migrated.stats&&migrated.stats.byCategory&&Object.keys(migrated.stats.byCategory).length!==categories.length){
       const old=migrated.stats.byCategory;
-      migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,attention:old.attention||0,bouffe:old.decouverte||0,intimite:old.intimite||0};
+      migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,projets:(old.projets||0)+(old.decouverte||0),attention:old.attention||0,bouffe:old.bouffe||0,intimite:old.intimite||0};
     }
     if(migrated.round.categoryId){migrated.round.categoryId=legacyCategory(migrated.round.categoryId);const mapped=getCategory(migrated.round.categoryId);if(mapped)migrated.round.categoryRoll=mapped.number;}
+    if(migrated.round.cardId){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
     migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>legacyFavoriteMap[id]||id))):migrated.favorites;
     if(migrated.seen&&typeof migrated.seen==='object'){
       const seen={};for(const [id,list] of Object.entries(migrated.seen)){const key=legacyCategory(id);seen[key]=[...(seen[key]||[]),...(Array.isArray(list)?list:[])].slice(0,8);}migrated.seen=seen;
@@ -375,7 +407,7 @@
         s.round=blankRound(s.sequence,actor,action.at);
         return s;
       case 'ROLL_CATEGORY': {
-        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>5) return state;
+        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>6) return state;
         const cat=categories.find(c=>c.number===action.value);
         if(!cat || !Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();

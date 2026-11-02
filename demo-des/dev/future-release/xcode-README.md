@@ -1,6 +1,6 @@
 # ONDE — démo iPhone pour Xcode
 
-Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le défi D20 est temporairement masqué, le temps de définir les scores de résistance. Le prototype est embarqué dans une vue WebKit, avec les dés, 69 cartes, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 3**.
+Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le D20 permet de tenter d’écarter une carte selon les PV attribués à son action. Le prototype est embarqué dans une vue WebKit, avec les dés, 88 cartes en six catégories, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 4**.
 
 ## Démarrer en quatre étapes
 
@@ -31,9 +31,9 @@ Les fichiers Swift se trouvent dans **`OndeDemo/Sources/`** :
 
 ## Version 0.3.0
 
-Le D6 choisit parmi cinq catégories, puis le D4 tire une carte parmi quatre. Un résultat 6 relance le D6 pour conserver une chance égale entre les cinq catégories. La personne qui tire peut proposer directement. L’autre peut accepter, adapter, proposer un autre moment ou passer, sans pénalité. Les seuils pour écarter une carte restent à définir ; le défi D20 est temporairement masqué.
+Le D6 choisit parmi six catégories, puis le D4 tire une carte parmi quatre. La personne qui tire peut proposer directement ou tenter d’écarter la carte en deux jets de D20 maximum. Le total doit atteindre les PV indiqués sur la carte. En cas d’échec, elle est proposée automatiquement à l’autre profil, qui peut accepter, adapter, reporter ou passer, sans pénalité. Un dé ne vaut pas consentement.
 
-Les 69 cartes appartiennent aux catégories Complicité, Détente, Attentions, Bouffe et Intimité. Aucune durée ni valeur de résistance n’est attribuée au nouveau catalogue. Les repères factuels affichent leur mesure, leur contexte et leur source lorsqu’ils s’appliquent au sujet de la carte.
+Les 88 cartes appartiennent aux catégories Complicité, Détente, Projets, Attentions, Bouffe et Intimité. Leurs PV sont des estimations initiales : plus le seuil est élevé, plus la carte est difficile à écarter. Les actions simples, à moins de 20 € ou sexuellement simples ont des seuils élevés ; les actions plus coûteuses ou engageantes ont des seuils plus bas. Chaque carte affiche un repère positif et sourcé, avec ses limites de pertinence. Aucune durée n’est imposée aux nouvelles cartes.
 
 L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 point**, avec le détail par catégorie. Le stockage local reprend les données déjà compatibles ; les tours passés et le score restent séparés du catalogue affiché.
 
@@ -41,13 +41,13 @@ L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 p
 
 Les deux profils s’utilisent sur le même appareil. Les invitations, accords et notifications sont des interactions de démonstration ; aucun message ni rappel système n’est envoyé. La synchronisation entre deux téléphones n’est pas implémentée.
 
-Les nouvelles cartes se proposent directement. Il n’y a pour le moment ni défi d’écartement ni score de résistance. Les décisions restent libres et le dé de catégorie ou de tirage ne remplace jamais un accord.
+Le D20 peut servir à écarter une action, jamais à l’imposer. Après une proposition automatique, l’autre profil peut passer ; toute personne peut arrêter à tout moment. Les décisions restent libres.
 
 Le stockage local du jeu utilise le magasin de données persistant de WebKit. Cette mise à jour conserve la clé de stockage pour reprendre les profils, la partie et le score. Une désinstallation ou une remise à zéro peut supprimer les données de test. **Nous → Effacer la partie de démonstration** permet de recommencer volontairement.
 
 ## Vérification et limites
 
-Le projet simplifié avec le catalogue de 69 cartes a été compilé avec Xcode 27.2 pour le simulateur iOS. L’application n’a pas été relancée sur simulateur après ce changement ; les animations sur un iPhone physique restent à observer.
+Le projet simplifié avec le catalogue de 88 cartes a été compilé avec Xcode 27.2 pour le simulateur iOS. L’application n’a pas été relancée sur simulateur après ce changement ; les animations sur un iPhone physique restent à observer.
 
 Les tests automatisés ne remplacent pas une vérification manuelle de chaque parcours dans l’interface. Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
 
