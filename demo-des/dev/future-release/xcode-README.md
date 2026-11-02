@@ -53,9 +53,9 @@ Le stockage local du jeu utilise le magasin de données persistant de WebKit. Ce
 
 ## Vérification et limites
 
-Le projet a été préparé dans un environnement Linux, sans Xcode ni `xcodebuild`. Sa structure, les fichiers plist/XML et les références des ressources peuvent y être contrôlés, mais **la compilation iOS n’a pas été exécutée ici**. Le premier lancement sur le Mac confirmera la compatibilité avec la version locale de Xcode et du simulateur.
+La version 0.3.0 a été compilée avec Xcode 27.2 pour le simulateur iOS, puis lancée sur un simulateur iPhone 18 Pro. L’écran d’accueil, le D6 numéroté et les 57 cartes sont visibles. Les tests fournis du parcours D20 (354 assertions), du score (43 assertions) et des dés (poses, raccords d’animation, annulation, réduction du mouvement, DPR 2 et secours Canvas2D) passent.
 
-Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
+Les tests automatisés ne remplacent pas une vérification manuelle de chaque parcours dans l’interface. Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
 
 ### Vérification en ligne de commande sur le Mac
 

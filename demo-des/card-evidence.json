@@ -1,0 +1,206 @@
+{
+  "version": "2026-11-02",
+  "purpose": "Faits contextuels vérifiés pour les cartes ONDE. Les faits ne mesurent ni la réussite d’une carte ni le consentement d’une personne.",
+  "sources": {
+    "herbenick2017": {
+      "sourceTitle": "Herbenick et al. — Sexual diversity in the United States: Results from a nationally representative probability sample of adult women and men",
+      "year": 2017,
+      "dataYear": "2014–2015",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "tableUrl": "https://doi.org/10.1371/journal.pone.0181198.t005",
+      "pdfUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0181198&type=printable",
+      "scope": "Enquête nationale probabiliste auprès de 2 021 adultes américains. Réponses individuelles, pondérées ; effectifs valides variables selon la question.",
+      "measure": "Somme des pourcentages « très attirant » et « assez attirant » du tableau 5, colonne Total. Les calculs utilisent les valeurs publiées arrondies à une décimale.",
+      "limitations": "Intérêt déclaré, pas fréquence de pratique ni bénéfice démontré. Pas un échantillon de couples français. Ne pas retirer le contexte intime d’une question.",
+      "refs": ["turn46search0", "turn47view0", "turn48view0", "turn51view0"]
+    },
+    "dunbar2017": {
+      "sourceTitle": "Dunbar — Breaking Bread: the Functions of Social Eating",
+      "year": 2017,
+      "dataYear": 2016,
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
+      "doi": "https://doi.org/10.1007/s40750-017-0061-4",
+      "scope": "Enquête britannique stratifiée auprès de 2 000 adultes, avril 2016.",
+      "limitations": "Déclarations et associations observées. L’étude ne permet pas d’attribuer un effet causal à une carte ONDE ; les repas incluent des liens familiaux et amicaux.",
+      "refs": ["turn45view1", "turn45view2", "turn46search1"]
+    },
+    "chang2022": {
+      "sourceTitle": "Chang et al. — Implementation intentions to express gratitude increase daily time co-present with an intimate partner, and moderate effects of variation in CD38",
+      "year": 2022,
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/",
+      "doi": "https://doi.org/10.1038/s41598-022-15650-4",
+      "scope": "Expérience de cinq semaines : 125 couples ayant terminé le protocole, 63 dans le groupe gratitude et 62 témoins ; 7 162 relevés quotidiens.",
+      "limitations": "Présence dans la même pièce autodéclarée, sommeil et activités séparées compris. Intervention répétée durant trois semaines ; résultat moyen, pas promesse liée à un seul merci.",
+      "refs": ["turn54search0", "turn54view0", "turn55view0", "turn55view1"]
+    }
+  },
+  "facts": [
+    {
+      "id": "cuddling-appeal",
+      "sourceId": "herbenick2017",
+      "metric": "87,8 %",
+      "headline": "L’envie de câlins",
+      "detail": "Trouvaient attirante l’idée de se câliner plus souvent.",
+      "scope": "Adultes américains ; 1 966 réponses à cette question.",
+      "year": 2017,
+      "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "limitations": "Intérêt déclaré, pas pratique.",
+      "topics": ["câlins", "se blottir", "proximité tendre"],
+      "calculation": {"veryAppealing": 52.8, "somewhatAppealing": 35.0, "sum": 87.8, "menN": 945, "womenN": 1021},
+      "sourceLocation": "Tableau 5, PDF page 16, ligne Cuddling more often"
+    },
+    {
+      "id": "massage-appeal",
+      "sourceId": "herbenick2017",
+      "metric": "79,3 %",
+      "headline": "Le massage a sa place",
+      "detail": "Trouvaient attirant de donner ou recevoir un massage avant un rapport.",
+      "scope": "Adultes américains ; 1 963 réponses à cette question.",
+      "year": 2017,
+      "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "limitations": "Pas de résultat spécifique au massage de la tête ou à dix minutes.",
+      "topics": ["massage"],
+      "calculation": {"veryAppealing": 40.1, "somewhatAppealing": 39.2, "sum": 79.3, "menN": 942, "womenN": 1021},
+      "sourceLocation": "Tableau 5, PDF page 16, ligne Give or receive a massage before sex"
+    },
+    {
+      "id": "kissing-appeal",
+      "sourceId": "herbenick2017",
+      "metric": "86,4 %",
+      "headline": "La place du baiser",
+      "detail": "Trouvaient attirante l’idée de s’embrasser davantage pendant les rapports.",
+      "scope": "Adultes américains ; 1 959 réponses à cette question.",
+      "year": 2017,
+      "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "limitations": "Contexte intime ; aucune technique de baiser mesurée.",
+      "topics": ["baiser"],
+      "calculation": {"veryAppealing": 46.1, "somewhatAppealing": 40.3, "sum": 86.4, "menN": 943, "womenN": 1016},
+      "sourceLocation": "Tableau 5, PDF page 15, ligne Kissing more often during sex"
+    },
+    {
+      "id": "romantic-words-appeal",
+      "sourceId": "herbenick2017",
+      "metric": "80,9 %",
+      "headline": "Les mots comptent aussi",
+      "detail": "Trouvaient attirants les mots doux et romantiques pendant les rapports.",
+      "scope": "Adultes américains ; 1 969 réponses à cette question.",
+      "year": 2017,
+      "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "limitations": "Ne mesure pas les compliments ordinaires ni la communication des limites.",
+      "topics": ["mots doux dans l’intimité"],
+      "calculation": {"veryAppealing": 39.9, "somewhatAppealing": 41.0, "sum": 80.9, "menN": 947, "womenN": 1022},
+      "sourceLocation": "Tableau 5, PDF page 15, ligne Saying sweet, romantic things during sex"
+    },
+    {
+      "id": "romantic-room-appeal",
+      "sourceId": "herbenick2017",
+      "metric": "77,1 %",
+      "headline": "Changer l’ambiance",
+      "detail": "Trouvaient attirante l’idée de rendre une pièce plus romantique.",
+      "scope": "Adultes américains ; 1 964 réponses à cette question.",
+      "year": 2017,
+      "sourceTitle": "Herbenick et al., PLOS ONE, tableau 5",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "limitations": "Enquête sur l’intimité ; intérêt déclaré.",
+      "topics": ["ambiance", "lumière", "pièce romantique"],
+      "calculation": {"veryAppealing": 33.2, "somewhatAppealing": 43.9, "sum": 77.1, "menN": 943, "womenN": 1021},
+      "sourceLocation": "Tableau 5, PDF page 15, ligne Making the room feel more romantic"
+    },
+    {
+      "id": "shared-meal-opinion",
+      "sourceId": "dunbar2017",
+      "metric": "76,4 %",
+      "headline": "Se retrouver autour d’un repas",
+      "detail": "Voyaient le repas partagé comme un bon moyen de rapprocher les gens.",
+      "scope": "Enquête auprès de 2 000 adultes britanniques.",
+      "year": 2017,
+      "sourceTitle": "Dunbar, Breaking Bread",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
+      "limitations": "Opinion déclarée ; pas une amélioration mesurée ni un résultat propre aux couples.",
+      "topics": ["repas à deux", "cuisiner pour partager", "petit-déjeuner", "goûter"],
+      "denominator": {"sampleN": 2000, "unit": "répondants à l’enquête", "itemN": null, "note": "Le texte indique 76,4 % sans isoler l’effectif valide de cette question."},
+      "sourceLocation": "Results, paragraphe commençant par Asked if sharing a meal"
+    },
+    {
+      "id": "dinner-laughter",
+      "sourceId": "dunbar2017",
+      "metric": "67,9 %",
+      "headline": "Une place pour rire",
+      "detail": "Des derniers dîners rapportés comprenaient des rires, associés à davantage de proximité ressentie.",
+      "scope": "Dîners britanniques avec une personne extérieure au foyer.",
+      "year": 2017,
+      "sourceTitle": "Dunbar, Breaking Bread, tableau 2",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
+      "limitations": "Association ; 67,9 % décrit la présence de rires, pas un taux de bénéfice.",
+      "topics": ["rire ensemble", "conversation légère pendant un repas"],
+      "denominator": {"sampleN": 2000, "unit": "derniers dîners rapportés avec une personne extérieure au foyer", "itemN": null, "note": "Tableau 2 : pourcentage des dîners où le comportement était présent ; effectif de la fréquence non isolé."},
+      "sourceLocation": "Tableau 2, ligne Laughter ; méthodes et résultats autour du tableau"
+    },
+    {
+      "id": "dinner-memories",
+      "sourceId": "dunbar2017",
+      "metric": "51,5 %",
+      "headline": "Les souvenirs à partager",
+      "detail": "Des derniers dîners rapportés comportaient des souvenirs partagés, associés à davantage de proximité ressentie.",
+      "scope": "Dîners britanniques avec une personne extérieure au foyer.",
+      "year": 2017,
+      "sourceTitle": "Dunbar, Breaking Bread, tableau 2",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
+      "limitations": "Association observée pendant des repas, pas effet démontré d’une photo ou d’une carte.",
+      "topics": ["souvenirs partagés", "photos souvenirs", "anecdotes"],
+      "denominator": {"sampleN": 2000, "unit": "derniers dîners rapportés avec une personne extérieure au foyer", "itemN": null, "note": "Tableau 2 : pourcentage des dîners où le comportement était présent ; effectif de la fréquence non isolé."},
+      "sourceLocation": "Tableau 2, ligne Reminiscences ; méthodes et résultats autour du tableau"
+    },
+    {
+      "id": "gratitude-presence",
+      "sourceId": "chang2022",
+      "metric": "≈ 68 min / jour",
+      "headline": "Faire une place aux mercis",
+      "detail": "Après un plan pour remercier davantage, le groupe gratitude a augmenté sa présence commune d’environ 68 minutes par jour.",
+      "scope": "125 couples, cinq semaines ; 63 couples dans ce groupe et 62 témoins.",
+      "year": 2022,
+      "sourceTitle": "Chang et al., Scientific Reports, tableau 1",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/",
+      "limitations": "Présence dans la même pièce, sommeil compris. Moyenne expérimentale, pas gain garanti après cette carte.",
+      "topics": ["gratitude", "remercier une attention", "apprécier les gestes quotidiens"],
+      "calculation": {"GETBeforeAfterMinutes": 67.87, "GET95CI": [35.44, 100.30], "controlBeforeAfterMinutes": -3.87, "conditionByPhaseP": 0.002},
+      "sourceLocation": "Tableau 1, lignes Overall time in proximity / GET ; Nightly measures ; Procedural compliance",
+      "technicalNote": "Le chiffre 67,87 est le changement estimé avant/après dans GET, pas la différence brute entre GET et témoin. Les auteurs résument ≈68 minutes en comparant les conditions. Garder la formulation avant/après proposée ici. Mesure totale comprenant sommeil et activités distinctes dans la même pièce."
+    }
+  ],
+  "suggestedMappings": {
+    "directTheme": {
+      "cuddling-appeal": ["tend-1", "tend-4"],
+      "romantic-room-appeal": ["det-6", "int-3"],
+      "gratitude-presence": ["att-3"],
+      "shared-meal-opinion": ["att-5", "stck-2-02", "stck-2-09", "stck-2-10", "stck-2-11", "stck-2-03", "stck-2-12", "stck-2-13", "stck-9-03", "stck-2-05", "stck-9-04", "stck-2-04", "stck-2-06"]
+    },
+    "relatedThemeRequireScope": {
+      "massage-appeal": ["det-1", "det-2", "stck-1-03", "stck-1-04", "stck-1-07"],
+      "kissing-appeal": ["int-2", "stck-5-01"],
+      "dinner-memories": ["comp-2", "comp-4"],
+      "gratitude-presence": ["comp-6"]
+    },
+    "avoidAutomaticCategoryFallback": true,
+    "reason": "Une catégorie générale ne suffit pas pour qu’un chiffre concerne la carte. Un fait peut être contextuel si le contexte réel est affiché, mais jamais reformulé comme la mesure exacte de ce défi."
+  },
+  "honestFallbacks": [
+    {"id": "conversation", "metric": null, "headline": "Votre façon de vous retrouver", "detail": "Une occasion de parler et d’écouter, avec vos propres mots.", "scope": "Suggestion ONDE — pas une statistique.", "topics": ["questions", "journée", "communication des envies", "limites"]},
+    {"id": "music-discovery", "metric": null, "headline": "À votre image", "detail": "Choisissez ce qui vous ressemble, ou faites découvrir un goût à l’autre.", "scope": "Suggestion ONDE — pas une statistique.", "topics": ["musique", "playlist", "promenade", "dessin", "création d’une carte"]},
+    {"id": "attention", "metric": null, "headline": "Une attention choisie", "detail": "Le geste et le moment peuvent se décider à deux.", "scope": "Suggestion ONDE — pas une statistique.", "topics": ["soin du visage", "vernis", "boisson", "mot caché", "main dans la main", "pause sans écran"]}
+  ],
+  "mappingNotes": [
+    "Afficher les pourcentages comme un résultat d’enquête contextualisé. Ne jamais écrire « X % des couples font ce défi » à partir de ces résultats.",
+    "Associer les cinq faits PLOS à la mention courte « intérêt déclaré · adultes américains · enquête 2015 / publication 2017 ». Afficher les précisions de la question dans le texte lisible, pas seulement derrière un lien.",
+    "Les faits Dunbar sur les rires et souvenirs concernent les repas avec des personnes hors foyer, ce qui limite leur correspondance avec un couple cohabitant.",
+    "Les faits de repas conviennent à une recette uniquement comme contexte du repas partagé ; aucune étude ici ne mesure burger, cookies, chocolat, cuisine commune ou petit-déjeuner précisément.",
+    "Aucun chiffre vérifié ici pour les bénéfices spécifiques d’une playlist, d’un soin cosmétique, d’une promenade nouvelle, du fait de se tenir la main, de la communication des limites ou d’un massage de la tête de dix minutes. Utiliser le repère non numérique approprié.",
+    "Ne pas utiliser l’effectif d’une étude comme s’il s’agissait d’un résultat encourageant.",
+    "Ne pas sélectionner un chiffre uniquement parce qu’il est élevé ; le rattachement au sujet et son libellé exact priment.",
+    "Les formulations proposées sont des synthèses françaises. Sources primaires ouvertes et contre-vérifiées avec le moteur system1 le 2 novembre 2026."
+  ]
+}

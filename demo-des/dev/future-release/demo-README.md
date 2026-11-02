@@ -12,6 +12,8 @@ Il reste possible d’arrêter ou de passer la carte à tout moment, sans point 
 
 Les 57 cartes de démonstration, les favoris, les variantes et le score commun sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
 
+La compilation pour simulateur avec Xcode 27.2 a réussi et l’application a été lancée sur un iPhone 18 Pro simulé. Les tests fournis du parcours D20 (354 assertions), du score (43 assertions) et des dés passent. Une vérification complète de tous les parcours dans l’interface et la fluidité sur iPhone physique restent à observer.
+
 ## Couleurs, mouvement et repères sourcés
 
 Les catégories ont des couleurs minérales plus présentes. Les changements d’étape, les cartes et les dés sont animés ; les trois dés portent des chiffres. Les cartes dépliées peuvent défiler pour lire la consigne, la variante et les informations associées. Les animations suivent automatiquement la préférence d’accessibilité du système.

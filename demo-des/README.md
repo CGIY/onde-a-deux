@@ -1,12 +1,24 @@
-# ONDE — démo jouable 0.2.0
+# ONDE — démo jouable 0.3.0
 
 [Jouer dans le navigateur](https://cgiy.github.io/onde-a-deux/demo-des/) · [Télécharger le projet Xcode](https://cgiy.github.io/onde-a-deux/demo-des/ONDE-Xcode.zip)
 
 ## Essayer
 
-Lancer le **D6** pour choisir une catégorie, puis le **D4** pour tirer une carte. Proposer la carte au second profil, puis changer de profil en haut de l’écran pour accepter, adapter, proposer un autre moment ou passer. Le défi facultatif permet de cumuler au maximum deux jets de D20 contre les PV de la carte. Passer reste toujours possible ; un échec ne vaut jamais accord.
+Lancer le **D6** pour choisir une catégorie, puis le **D4** pour tirer une carte. La personne qui tire peut proposer la carte directement ou tenter de l’écarter avec le **D20** : elle dispose de deux jets au maximum pour atteindre les PV de la carte avec leur total.
+
+Si ce total reste inférieur aux PV après le second jet, la carte est **automatiquement proposée à l’autre profil**. Changer de profil en haut de l’écran pour accepter, adapter, proposer un autre moment ou tenter à son tour un défi avec deux nouveaux jets de D20. Si l’autre accepte une carte proposée automatiquement, la personne qui l’a tirée doit encore **confirmer son accord** avant que la carte soit acceptée à deux. Une proposition envoyée volontairement suit le parcours d’accord habituel.
+
+Il reste possible d’arrêter ou de passer la carte à tout moment, sans point perdu. Le dé décide de l’issue du défi ; un lancer manqué ne donne jamais automatiquement l’accord d’une personne.
 
 Les 57 cartes de démonstration, les favoris, les variantes et le score commun sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
+
+La compilation pour simulateur avec Xcode 27.2 a réussi et l’application a été lancée sur un iPhone 18 Pro simulé. Les tests fournis du parcours D20 (354 assertions), du score (43 assertions) et des dés passent. Une vérification complète de tous les parcours dans l’interface et la fluidité sur iPhone physique restent à observer.
+
+## Couleurs, mouvement et repères sourcés
+
+Les catégories ont des couleurs minérales plus présentes. Les changements d’étape, les cartes et les dés sont animés ; les trois dés portent des chiffres. Les cartes dépliées peuvent défiler pour lire la consigne, la variante et les informations associées. Les animations suivent automatiquement la préférence d’accessibilité du système.
+
+Les repères chiffrés des cartes indiquent leur source et le contexte de l’étude : population, mesure et limites utiles. Ils apportent un éclairage sur le sujet, sans promettre qu’un défi produira le même résultat pour votre duo. Le dossier de recherche est fourni dans `card-evidence.json` lorsqu’il est inclus dans cette version.
 
 Les deux profils sont **simulés sur un seul appareil**. Les notifications sont des aperçus. Cette démo n’a ni synchronisation entre téléphones ni service distant de collecte. Les données de test restent dans le stockage local de la page ou de l’app.
 
@@ -34,4 +46,4 @@ Les sources iOS ne nécessitent ni générateur de projet ni installation de paq
 
 Après une modification dans `xcode/OndeDemo/Web/index.html`, lancer `python3 sync-demo.py` depuis ce dossier pour recopier le jeu vers `index.html` et reconstruire le ZIP. Aucune commande n’est nécessaire pour exécuter le projet dans Xcode.
 
-La version et le rapport de retour portent le numéro **0.2.0**. Les profils sont génériques ; cette page et son code sont publics.
+La version et le rapport de retour portent le numéro **0.3.0**, et le projet iOS utilise le **build 3**. Les profils sont génériques ; cette page et son code sont publics. La mise à jour conserve la même clé de stockage local pour reprendre la partie et le score existants.

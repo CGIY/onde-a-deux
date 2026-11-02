@@ -1,17 +1,10 @@
-<!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow">
-<meta name="onde-version" content="0.2.0">
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#181d1c">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#181d1c"><meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.3.0">
 <title>ONDE — Le hasard, à deux</title>
-<meta name="description" content="Démo interactive ONDE 0.2.0 : D6 catégorie, D4 carte et défi D20. Deux profils simulés, sans connexion à un serveur.">
 <style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
-</head><body>
-<div id="onde-app-v1" class="viz-dotted-background" lang="fr">
+</head><body><div id="onde-app-v1" class="viz-dotted-background" lang="fr">
   <section class="oa-shell" aria-label="ONDE, prototype de jeu à deux">
     <header class="oa-header">
       <a class="oa-wordmark cursor-interaction" href="#" data-action="tab" data-tab="play" aria-label="ONDE, accueil">ONDE<span>à deux.</span></a>
@@ -224,19 +217,72 @@
 @media(max-width:380px){#onde-app-v1{padding:6px 0}#onde-app-v1 .oa-shell{border-radius:24px}#onde-app-v1 .oa-header{padding:22px 18px 19px}#onde-app-v1 .oa-persona{margin-left:16px;margin-right:16px;gap:6px}#onde-app-v1 .oa-demo-label{font-size:9px;gap:5px;letter-spacing:.03em}#onde-app-v1 .oa-switch button{padding:7px 9px;font-size:11px}#onde-app-v1 .oa-main{padding-left:16px;padding-right:16px}#onde-app-v1 .oa-title{font-size:29px}#onde-app-v1 .oa-step{font-size:10px;gap:4px}#onde-app-v1 .oa-steps{gap:4px}#onde-app-v1 .oa-step b{width:27px}#onde-app-v1 .oa-stage{height:221px}#onde-app-v1 .oa-playing-card{padding:19px 17px}#onde-app-v1 .oa-card-title{font-size:26px}#onde-app-v1 .oa-category{padding:10px 8px}#onde-app-v1 .oa-category-label{font-size:10px}}
 @media(pointer:coarse){#onde-app-v1 .oa-switch button{min-height:40px}#onde-app-v1 .oa-help,#onde-app-v1 .oa-close,#onde-app-v1 .oa-favorite{width:44px;height:44px}#onde-app-v1 .oa-text-button,#onde-app-v1 .oa-feedback-button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 *,#onde-app-v1 *:before{transition:none!important;animation:none!important}}
+/* 0.3.0 — mineral color, soft rubber surfaces, card movement and accessible sheets. */
+#onde-app-v1{--oa-bg:#202321;--oa-surface:#2b302d;--oa-surface2:#353b37;--oa-line:#78807855;--oa-text:#f0eee7;--oa-muted:#bdc0b7;--oa-sage:#c7d1b9;--oa-ink:#252a25;--oa-sand:#d7b58e;--oa-slate:#9caebb;--oa-clay:#d49a81;--oa-rose:#d6aaa0;--oa-mauve:#b5a5bd;--oa-mineral-blue:#829ea9;--oa-mineral-rose:#bb8f83;--oa-mineral-moss:#8b9b7a}
+#onde-app-v1 .oa-shell{border-color:#59625b;border-radius:34px;background:radial-gradient(ellipse at 88% 0%,#51443c3d,transparent 34%),radial-gradient(ellipse at 0% 55%,#66786720,transparent 40%),var(--oa-bg)}
+#onde-app-v1 .oa-main>*{animation:oa-arrive .42s cubic-bezier(.2,.75,.25,1) both}
+#onde-app-v1 .oa-switch button[aria-pressed=true],#onde-app-v1 .oa-category[aria-pressed=true]{background:linear-gradient(145deg,#5d6b56,#465244);border-color:#aeb99d}
+#onde-app-v1 .oa-button{background:linear-gradient(145deg,#d7dfcb,#b9c7a8);box-shadow:inset 0 1px 0 #fff9,inset 0 -2px 4px #66745e25,0 7px 18px #0003;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,filter .22s}
+#onde-app-v1 .oa-button:not(:disabled):hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 #fff9,0 10px 22px #0004;filter:saturate(1.08)}
+#onde-app-v1 .oa-button.oa-clay{background:linear-gradient(145deg,#e2b19b,#c98570);color:#30231e}
+#onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 18% 0%,color-mix(in srgb,var(--category) 55%,transparent),transparent 50%),linear-gradient(145deg,color-mix(in srgb,var(--category) 48%,#343631),#292d2a 66%);border-color:color-mix(in srgb,var(--category) 65%,#d6d2c1);box-shadow:inset 0 2px 2px #ffffff1b,inset 0 -5px 10px #0b0e0c48,0 15px 28px #0004;animation:oa-card-breathe 8s ease-in-out infinite}
+#onde-app-v1 .oa-playing-card:before{content:"";position:absolute;inset:5px;border:1px solid #ffffff10;border-radius:19px;pointer-events:none}
+#onde-app-v1 .oa-card-illustration i{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 65%,#e7deca),var(--category));box-shadow:inset 0 2px 3px #ffffff48,inset 0 -5px 8px #171b1840,0 9px 16px #0004;animation:oa-rubber-float 4.8s ease-in-out infinite}
+#onde-app-v1 .oa-card-illustration i:nth-child(2){animation-delay:-1.1s;background:linear-gradient(145deg,#d4c2a7,#a98770)}
+#onde-app-v1 .oa-card-illustration i:nth-child(3){animation-delay:-2.2s}
+#onde-app-v1 .oa-card-stage{perspective:900px}
+#onde-app-v1 .oa-status-strip,#onde-app-v1 .oa-mini-card,#onde-app-v1 .oa-list-card,#onde-app-v1 .oa-summary-card{box-shadow:inset 0 1px 0 #ffffff0a,0 5px 15px #0002}
+#onde-app-v1 .oa-deck-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 10px}
+#onde-app-v1 .oa-deck-toolbar p{display:flex;align-items:center;gap:9px;color:#e2e1d8;font:11px ui-monospace,monospace;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-deck-hint{font:11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--oa-muted)}
+#onde-app-v1 .oa-deck-toolbar>div{display:flex;gap:7px}
+#onde-app-v1 .oa-deck-arrow{width:38px;height:38px;border:1px solid #8e998855;border-radius:50%;background:linear-gradient(145deg,#424944,#303632);color:#f0eee7;font-size:19px;box-shadow:inset 0 1px #ffffff1c,0 4px 9px #0003}
+#onde-app-v1 .oa-deck{display:flex;gap:15px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scroll-padding:0 2px;padding:2px 2px 14px;margin:0 -2px;scrollbar-width:thin;scrollbar-color:#78847475 transparent;-webkit-overflow-scrolling:touch}
+#onde-app-v1 .oa-deck::-webkit-scrollbar{height:4px}
+#onde-app-v1 .oa-deck::-webkit-scrollbar-thumb{background:#82907c88;border-radius:9px}
+#onde-app-v1 .oa-deck-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;transform-origin:center center;animation:oa-slide-enter .5s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-deck-slide:nth-child(2){animation-delay:.04s}
+#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:335px}
+#onde-app-v1 .oa-deck-open{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:45px;padding:10px 5px 4px;border:0;background:transparent;color:#d8dfd0;font-size:12px;text-align:left}
+#onde-app-v1 .oa-deck-open span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#ffffff12;color:#e4e8dc;font-size:16px}
+#onde-app-v1 .oa-evidence{position:relative;overflow:hidden;margin-top:17px;padding:18px;border:1px solid color-mix(in srgb,var(--category,#9aa78b) 58%,#535a50);border-radius:19px;background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--category,#9aa78b) 24%,transparent),transparent 60%),linear-gradient(145deg,#353a35,#292e2b);box-shadow:inset 0 1px #ffffff12,0 8px 18px #0002}
+#onde-app-v1 .oa-evidence:before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 4px 4px 0;background:var(--category,#b7c3a3)}
+#onde-app-v1 .oa-evidence .oa-eyebrow{font-size:9px;color:#d3d7cc;letter-spacing:.12em}
+#onde-app-v1 .oa-evidence-number{display:block;margin:10px 0 5px;color:#efe5ce;font-size:clamp(30px,9vw,43px);line-height:1.05;letter-spacing:-.06em;font-weight:430;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#onde-app-v1 .oa-evidence h3{font-size:15px;font-weight:500;line-height:1.4;margin-top:8px}
+#onde-app-v1 .oa-evidence>p:not(.oa-eyebrow){font-size:12px;line-height:1.6;color:#d1d2ca;margin-top:8px}
+#onde-app-v1 .oa-evidence .oa-evidence-scope{font-size:10px!important;color:#aeb5a9!important}
+#onde-app-v1 .oa-source{border-color:#747b6d55}
+#onde-app-v1 .oa-source summary{cursor:pointer;display:flex;align-items:center;min-height:42px;color:#e4ddc9}
+#onde-app-v1 .oa-source a{display:inline-flex;align-items:center;min-height:42px;color:#d7c7a8}
+#onde-app-v1 .oa-celebration{position:absolute;z-index:12;inset:18% 4%;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#d7dfbe33,transparent 64%);animation:oa-celebrate .9s ease-out both}
+#onde-app-v1 .oa-sheet-backdrop{position:fixed;inset:0;z-index:9999;overflow-y:auto;overscroll-behavior:contain;align-items:flex-start;padding:max(14px,env(safe-area-inset-top)) 13px max(14px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+#onde-app-v1 .oa-sheet{position:relative;flex:none;width:min(100%,412px);max-height:none;max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;margin:auto;padding:clamp(18px,5vw,24px);scrollbar-width:thin;scrollbar-color:#7a857578 transparent;-webkit-overflow-scrolling:touch}
+#onde-app-v1 .oa-sheet-head{position:sticky;z-index:2;top:calc(-1 * clamp(18px,5vw,24px));padding-top:4px;margin:calc(-1 * clamp(18px,5vw,24px)) calc(-1 * clamp(18px,5vw,24px)) 16px;padding:clamp(18px,5vw,24px);background:linear-gradient(#242d26 85%,#242d26eb);backdrop-filter:blur(10px)}
+#onde-app-v1 .oa-feedback-sheet{max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto}
+#onde-app-v1 .oa-field input,#onde-app-v1 .oa-field select,#onde-app-v1 .oa-field textarea{font-size:max(16px,1em)}
+#onde-app-v1 :focus-visible{scroll-margin-block:18px}
+@keyframes oa-arrive{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes oa-slide-enter{from{opacity:.55;transform:translateX(16px) scale(.985)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes oa-card-breathe{0%,100%{transform:rotateX(0) rotateY(0)}50%{transform:rotateX(.45deg) rotateY(-.35deg)}}
+@keyframes oa-rubber-float{0%,100%{translate:0 1px;rotate:-1deg}50%{translate:0 -5px;rotate:1.3deg}}
+@keyframes oa-celebrate{0%{opacity:0;transform:scale(.82)}28%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.12)}}
+@media(max-width:380px){#onde-app-v1 .oa-deck{gap:11px}#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:318px}#onde-app-v1 .oa-sheet-backdrop{padding-left:8px;padding-right:8px}#onde-app-v1 .oa-sheet-head h2{font-size:19px}}
+@media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-main>*,#onde-app-v1 .oa-playing-card,#onde-app-v1 .oa-card-illustration i,#onde-app-v1 .oa-deck-slide,#onde-app-v1 .oa-celebration{animation:none!important}#onde-app-v1 .oa-deck{scroll-behavior:auto}}
 </style>
+
 <script>
 /* ONDE — local prototype rules. No networking, storage, or UI side effects. */
 (function (scope) {
   'use strict';
 
   const categories = [
-    { id: 'complicite', number: 1, label: 'Complicité', color: '#6B7B8C', icon: 'messages-square', description: 'Se retrouver dans les petits échanges.' },
-    { id: 'detente', number: 2, label: 'Détente', color: '#7C8A6F', icon: 'leaf', description: 'Prendre soin du moment, à votre rythme.' },
-    { id: 'tendresse', number: 3, label: 'Tendresse', color: '#C29B8E', icon: 'heart', description: 'Des gestes simples, choisis ensemble.' },
-    { id: 'attention', number: 4, label: 'Attention', color: '#C2A578', icon: 'gift', description: 'Une petite attention qui vous ressemble.' },
-    { id: 'decouverte', number: 5, label: 'Découverte', color: '#9A8A9E', icon: 'sparkles', description: 'Essayer une autre façon de passer du temps à deux.' },
-    { id: 'intimite', number: 6, label: 'Intimité', color: '#B07D62', icon: 'moon', description: 'Faire une place à vos envies et à vos limites.' }
+    { id: 'complicite', number: 1, label: 'Complicité', color: '#8BB7C2', icon: 'messages-square', description: 'Se retrouver dans les petits échanges.' },
+    { id: 'detente', number: 2, label: 'Détente', color: '#A3BD8B', icon: 'leaf', description: 'Prendre soin du moment, à votre rythme.' },
+    { id: 'tendresse', number: 3, label: 'Tendresse', color: '#E1ABB5', icon: 'heart', description: 'Des gestes simples, choisis ensemble.' },
+    { id: 'attention', number: 4, label: 'Attention', color: '#E6B66E', icon: 'gift', description: 'Une petite attention qui vous ressemble.' },
+    { id: 'decouverte', number: 5, label: 'Découverte', color: '#B5A2D5', icon: 'sparkles', description: 'Essayer une autre façon de passer du temps à deux.' },
+    { id: 'intimite', number: 6, label: 'Intimité', color: '#DB9278', icon: 'moon', description: 'Faire une place à vos envies et à vos limites.' }
   ];
 
   const cards = [
@@ -292,7 +338,7 @@
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
   const cardMap = Object.fromEntries(cards.map(card => [card.id, card]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
-  const phases = ['category','card','draft','pending','challenge','challenge_failed','accepted','resolved'];
+  const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
   const prefKeys = ['reducedMotion','sound','discreet','reminder'];
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
   const getCard = id => cardMap[id] || null;
@@ -313,6 +359,8 @@
     return { id:'onde-'+sequence, from, to:otherPlayer(from), awaiting:null,
       categoryId:null, categoryRoll:null, hand:[], cardId:null, cardRoll:null,
       hp:null, rolls:[], rollTokens:[], challengeUsed:false, status:'drawing',
+      draftRolls:[], draftRollTokens:[], draftChallengeUsed:false, autoProposed:false,
+      fromConfirmed:false, toConfirmed:false,
       adapted:false, proposal:null, schedule:null, createdAt:at || null,
       sentAt:null, acceptedAt:null, endedAt:null, closedBy:null };
   }
@@ -335,6 +383,12 @@
       prefs:{reducedMotion:false,sound:false,discreet:true,reminder:true}, seen:{}, stats:emptyStats() };
   }
 
+  function validRolls(rolls, tokens) {
+    return Array.isArray(rolls) && Array.isArray(tokens) && rolls.length<=2 && tokens.length===rolls.length &&
+      new Set(tokens).size===tokens.length && rolls.every(value=>Number.isInteger(value) && value>=1 && value<=20) &&
+      tokens.every(token=>typeof token==='string' && token.length>0 && token.length<=150);
+  }
+
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
     if (!validStats(s.stats)) return false;
@@ -346,45 +400,82 @@
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20))) return false;
     const r=s.round;
     if (r.id !== 'onde-'+s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
-    if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !Array.isArray(r.rolls) || !Array.isArray(r.rollTokens)) return false;
-    if (r.rolls.length > 2 || r.rollTokens.length !== r.rolls.length || new Set(r.rollTokens).size !== r.rollTokens.length || r.rolls.some(v => !Number.isInteger(v) || v<1 || v>20)) return false;
-    if (r.rollTokens.some(t => typeof t !== 'string' || !t || t.length>150) || typeof r.challengeUsed !== 'boolean' || typeof r.adapted !== 'boolean') return false;
-    if (r.rolls.length && !r.challengeUsed) return false;
+    if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
+    if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
+    if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
-    if (s.phase === 'category') return r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && r.hp===null && r.hand.length === 0 && r.rolls.length===0 && !r.challengeUsed && r.status==='drawing' && r.awaiting===null;
+    const beforeCard=r.rolls.length===0 && r.draftRolls.length===0 && !r.challengeUsed && !r.draftChallengeUsed && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
+    if (s.phase === 'category') return r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
     const cat=getCategory(r.categoryId);
     if (!cat || r.categoryRoll !== cat.number || r.hand.length !== 4 || new Set(r.hand).size !== 4 || r.hand.some(id => !getCard(id) || getCard(id).categoryId !== cat.id)) return false;
-    if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && r.hp===null && r.rolls.length===0 && !r.challengeUsed && r.status==='drawing' && r.awaiting===null;
+    if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
     if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>4 || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || r.hp!==card.hp) return false;
-    if (s.phase === 'draft' && (r.status!=='draft' || r.awaiting!==null || r.challengeUsed || r.rolls.length)) return false;
-    if (s.phase === 'pending' && (!['a','b'].includes(r.awaiting) || !['pending','counterproposal','scheduled_proposal'].includes(r.status))) return false;
-    if (s.phase === 'pending' && r.status==='pending' && (r.awaiting!==r.to || r.challengeUsed)) return false;
-    if (s.phase === 'pending' && r.status==='counterproposal' && (!r.adapted || !r.proposal)) return false;
-    if (s.phase === 'pending' && r.status==='scheduled_proposal' && !r.schedule) return false;
-    if (s.phase === 'accepted' && (r.status!=='accepted' || r.awaiting!==null)) return false;
-    const total=r.rolls.reduce((sum,v)=>sum+v,0);
-    if (s.phase === 'challenge' && (!r.challengeUsed || r.rolls.length>=2 || total>=r.hp || r.awaiting!==r.to)) return false;
-    if (s.phase === 'challenge_failed' && (!r.challengeUsed || r.rolls.length!==2 || total>=r.hp || r.awaiting!==r.to)) return false;
-    if (s.phase === 'resolved' && (!['passed','defended','completed'].includes(r.status) || r.awaiting!==null)) return false;
+    const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
+    if(r.autoProposed && (!r.draftChallengeUsed || r.draftRolls.length!==2 || draftTotal>=r.hp)) return false;
+    if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
+    if(s.phase==='draft_challenge') return r.status==='draft_challenge' && r.awaiting===r.from && r.draftChallengeUsed && r.draftRolls.length<2 && draftTotal<r.hp && !r.challengeUsed && !r.rolls.length && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
+    if(s.phase==='pending') {
+      if(!['a','b'].includes(r.awaiting) || !['pending','counterproposal','scheduled_proposal'].includes(r.status)) return false;
+      if(r.status==='pending' && (r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
+      if(r.status==='counterproposal' && (!r.adapted || !r.proposal)) return false;
+      if(r.status==='scheduled_proposal' && !r.schedule) return false;
+      if(r.status!=='pending') {
+        const awaitingConfirmed=r.awaiting===r.from?r.fromConfirmed:r.toConfirmed;
+        const proposerConfirmed=r.awaiting===r.from?r.toConfirmed:r.fromConfirmed;
+        if(awaitingConfirmed || !proposerConfirmed) return false;
+      }
+    }
+    if(s.phase==='sender_confirmation' && (r.status!=='sender_confirmation' || r.awaiting!==r.from || r.fromConfirmed || !r.toConfirmed || !r.autoProposed)) return false;
+    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || !r.toConfirmed)) return false;
+    if(s.phase==='challenge' && (r.status!=='challenge' || !r.challengeUsed || r.rolls.length>=2 || total>=r.hp || r.awaiting!==r.to || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
+    if(s.phase==='challenge_failed' && (r.status!=='challenge_failed' || !r.challengeUsed || r.rolls.length!==2 || total>=r.hp || r.awaiting!==r.to || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
+    if(s.phase==='resolved' && (!['passed','defended','completed'].includes(r.status) || r.awaiting!==null || (r.status==='completed' && (!r.fromConfirmed || !r.toConfirmed)))) return false;
+    if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
   }
 
-  // Older v1 saves have no cumulative counters. Recover only completed rounds
-  // still present in their bounded history; earlier, discarded rounds are unknown.
-  // Keep the round, favorites, names and preferences unchanged during migration.
+  // Extend old v1 saves in place conceptually, but never mutate their original
+  // objects. Counters, current proposals, names and favorites stay intact.
   function normalizeState(state) {
     if(!state || typeof state!=='object' || Array.isArray(state)) return null;
-    if(Object.prototype.hasOwnProperty.call(state,'stats')) return validateState(state) ? state : null;
-    const migrated={...state,stats:emptyStats()};
+    if(validateState(state)) return state;
+    const has=key=>Object.prototype.hasOwnProperty.call(state,key);
+    let migrated;
+    try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
+    if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
+    function extendRound(round, phase) {
+      const missing=key=>!Object.prototype.hasOwnProperty.call(round,key);
+      if(missing('draftRolls')) round.draftRolls=[];
+      if(missing('draftRollTokens')) round.draftRollTokens=[];
+      if(missing('draftChallengeUsed')) round.draftChallengeUsed=false;
+      if(missing('autoProposed')) round.autoProposed=false;
+      let fromConfirmed=false,toConfirmed=false;
+      if(phase==='accepted' || round.status==='completed') fromConfirmed=toConfirmed=true;
+      else if(phase==='sender_confirmation') toConfirmed=true;
+      else if(['counterproposal','scheduled_proposal'].includes(round.status) && ['a','b'].includes(round.awaiting)) {
+        fromConfirmed=round.awaiting===round.to;toConfirmed=round.awaiting===round.from;
+      } else if(['pending','challenge','challenge_failed'].includes(phase) || round.status==='defended') fromConfirmed=!round.autoProposed;
+      else if(round.acceptedAt) fromConfirmed=toConfirmed=true;
+      else if(round.sentAt) fromConfirmed=!round.autoProposed;
+      if(missing('fromConfirmed')) round.fromConfirmed=fromConfirmed;
+      if(missing('toConfirmed')) round.toConfirmed=toConfirmed;
+    }
+    extendRound(migrated.round,migrated.phase);
+    if(Array.isArray(migrated.history)) for(const round of migrated.history) if(round && typeof round==='object') extendRound(round,'resolved');
+    if(!has('stats')) migrated.stats=emptyStats();
     if(!validateState(migrated)) return null;
-    const counted=new Set();
-    for(const round of migrated.history) {
-      if(round.status!=='completed' || counted.has(round.id)) continue;
-      counted.add(round.id);
-      migrated.stats.totalCompleted++;
-      migrated.stats.byCategory[getCard(round.cardId).categoryId]++;
+    // Only old states without cumulative counters need history reconstruction.
+    // Entries evicted by the previous 80-item history limit remain unknown.
+    if(!has('stats')) {
+      const counted=new Set();
+      for(const round of migrated.history) {
+        if(round.status!=='completed' || counted.has(round.id)) continue;
+        counted.add(round.id);
+        migrated.stats.totalCompleted++;
+        migrated.stats.byCategory[getCard(round.cardId).categoryId]++;
+      }
     }
     return migrated;
   }
@@ -407,8 +498,11 @@
   }
 
   function canRespond(s) {
-    return ['pending','challenge','challenge_failed'].includes(s.phase) && s.activePlayer===s.round.awaiting;
+    return ['pending','challenge','challenge_failed','sender_confirmation'].includes(s.phase) && s.activePlayer===s.round.awaiting;
   }
+
+  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed;
+  const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer;
 
   function closeRound(s, status, action) {
     s.phase='resolved';
@@ -470,21 +564,46 @@
         s.phase='draft';
         return s;
       case 'SEND':
-        if(s.phase!=='draft' || actor!==r.from) return state;
+        if(!['draft','draft_challenge'].includes(s.phase) || actor!==r.from) return state;
+        r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
         return s;
+      case 'CHALLENGE_DRAFT':
+        if(!canChallengeDraft(s)) return state;
+        r.draftChallengeUsed=true; r.status='draft_challenge'; r.awaiting=r.from; s.phase='draft_challenge';
+        return s;
+      case 'ROLL_DRAFT_DEFENSE': {
+        if(!canRollDraftDefense(s) || r.draftRolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.draftRollTokens.includes(action.token)) return state;
+        r.draftRolls.push(action.value); r.draftRollTokens.push(action.token);
+        const total=r.draftRolls.reduce((sum,v)=>sum+v,0);
+        if(total>=r.hp) closeRound(s,'defended',action);
+        else if(r.draftRolls.length===2) {
+          // The random result sends an invitation, never a person's agreement.
+          r.autoProposed=true; r.fromConfirmed=false; r.toConfirmed=false;
+          r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
+        }
+        return s;
+      }
       case 'ACCEPT':
         if(!canRespond(s)) return state;
-        r.status='accepted'; r.awaiting=null; r.acceptedAt=action.at || null; s.phase='accepted';
+        if(actor===r.from) r.fromConfirmed=true; else r.toConfirmed=true;
+        if(!r.fromConfirmed) {
+          r.status='sender_confirmation'; r.awaiting=r.from; s.phase='sender_confirmation';
+        } else {
+          r.status='accepted'; r.awaiting=null; r.acceptedAt=action.at || null; s.phase='accepted';
+        }
         return s;
       case 'LATER':
         if(!canRespond(s)) return state;
         r.schedule=(typeof action.schedule==='string' && action.schedule.trim() ? action.schedule.trim() : 'À convenir').slice(0,80);
+        r.fromConfirmed=actor===r.from; r.toConfirmed=actor===r.to;
         r.status='scheduled_proposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
         return s;
       case 'ADAPT':
         if(!canRespond(s)) return state;
         r.proposal=(typeof action.text==='string' && action.text.trim() ? action.text.trim() : getCard(r.cardId).variant).slice(0,400);
+        r.fromConfirmed=actor===r.from; r.toConfirmed=actor===r.to;
         r.adapted=true; r.status='counterproposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
         return s;
       case 'CHALLENGE':
@@ -522,12 +641,13 @@
     }
   }
 
-  const api={categories,cards,players,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond};
+  const api={categories,cards,players,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
 
 </script>
+
 <script>
 /* ONDE — self-contained organic dice renderer. No network dependencies. */
 (function (global) {
@@ -545,13 +665,17 @@ uniform sampler2D uAtlas;
 vec3 localPoint(vec3 p){vec3 v=(p-uPosition)/uScale;return vec3(dot(v,uRotation[0]),dot(v,uRotation[1]),dot(v,uRotation[2]));}
 float poly(vec3 p){float s=0.;for(int i=0;i<20;i++){if(i<uCount){float q=max(dot(p,uNormals[i]),0.);float q2=q*q;float q4=q2*q2;float q8=q4*q4;s+=uType==4?q4:q8*q8;}}float exponent=uType==4?.25:.0625;return (pow(max(s,1.e-20),exponent)-uOffset)/pow(float(uCount),exponent);}
 float roundedBox(vec3 p){vec3 q=p*p;q*=q;return (pow(q.x+q.y+q.z,.25)-1.)/1.316074;}
-float pipLayout(vec2 uv,float count){float d=10.;vec2 a=abs(uv);if(count<1.5){d=length(uv);}else if(count<2.5){d=min(length(uv-vec2(.36,.36)),length(uv+vec2(.36,.36)));}else if(count<3.5){d=min(length(uv),min(length(uv-vec2(.37,.37)),length(uv+vec2(.37,.37))));}else if(count<4.5){d=length(a-vec2(.37));}else if(count<5.5){d=min(length(uv),length(a-vec2(.39)));}else{d=min(length(vec2(a.x-.40,uv.y)),length(a-vec2(.40,.43)));}return d;}
-vec3 cubeFace(vec3 p){vec3 a=abs(p);if(a.y>=a.x&&a.y>=a.z)return vec3(p.xz,p.y>0.?1.:6.);if(a.z>=a.x)return vec3(p.xy,p.z>0.?2.:5.);return vec3(p.zy,p.x>0.?3.:4.);}
-float bodyLocal(vec3 p){if(uType!=6)return poly(p);float d=roundedBox(p);if(d<.17){vec3 f=cubeFace(p);float height=max(max(abs(p.x),abs(p.y)),abs(p.z));float cavity=length(vec2(pipLayout(f.xy,f.z),height-1.035))-.143;float a=d,b=-cavity,k=.015;float h=clamp(.5+.5*(a-b)/k,0.,1.);d=mix(b,a,h)+k*h*(1.-h);}return d;}
+float bodyLocal(vec3 p){return uType==6?roundedBox(p):poly(p);}
 float body(vec3 p){return bodyLocal(localPoint(p))*min(uScale.x,min(uScale.y,uScale.z));}
-vec3 normalAt(vec3 p){float e=.0025;vec2 k=vec2(1.,-1.);return normalize(k.xyy*body(p+k.xyy*e)+k.yyx*body(p+k.yyx*e)+k.yxy*body(p+k.yxy*e)+k.xxx*body(p+k.xxx*e));}
-float stamp(vec2 uv,float idx){if(uv.x<.02||uv.x>.98||uv.y<.02||uv.y>.98)return 0.;vec2 cell=vec2(mod(idx,5.),floor(idx/5.));return texture2D(uAtlas,(cell+vec2(uv.x,1.-uv.y))/vec2(5.,4.)).r;}
-float grain(vec3 p){return sin(p.x*173.)*sin(p.y*139.+sin(p.z*107.))*sin(p.z*151.+p.x*21.);}
+// Analytic derivatives keep rounded-edge lighting stable while the die turns.
+vec3 localGradient(vec3 p){
+ if(uType==6){vec3 p2=p*p;float s=max(dot(p2,p2),1.e-12);return p*p2*pow(s,-.75)/1.316074;}
+ float s=0.;vec3 grad=vec3(0.);for(int i=0;i<20;i++){if(i<uCount){float q=max(dot(p,uNormals[i]),0.);float q2=q*q,q3=q2*q,q4=q2*q2,q8=q4*q4;if(uType==4){s+=q4;grad+=q3*uNormals[i];}else{s+=q8*q8;grad+=q8*q4*q3*uNormals[i];}}}
+ float exponent=uType==4?.25:.0625;return grad*pow(max(s,1.e-12),exponent-1.)/pow(float(uCount),exponent);
+}
+vec3 worldGradient(vec3 lp){return (uRotation*localGradient(lp))/uScale*min(uScale.x,min(uScale.y,uScale.z));}
+float stamp(vec2 uv,float idx){if(uv.x<.02||uv.x>.98||uv.y<.02||uv.y>.98)return 0.;vec2 cell=vec2(mod(idx,4.),floor(idx/4.));return texture2D(uAtlas,(cell+vec2(uv.x,1.-uv.y))/vec2(4.,8.)).r;}
+float grain(vec3 p){return sin(p.x*71.)*sin(p.y*59.+sin(p.z*43.))*sin(p.z*67.+p.x*13.);}
 void main(){
  vec2 uv=(gl_FragCoord.xy/uResolution-.5)*vec2(uResolution.x/uResolution.y,1.);
  vec3 eye=vec3(4.3,6.2,6.4),target=vec3(0.,.95,0.);vec3 f=normalize(target-eye),right=normalize(cross(f,vec3(0.,1.,0.))),up=cross(right,f);
@@ -566,25 +690,30 @@ void main(){
  vec3 oc=ro-uPosition;float b=dot(oc,rd),c=dot(oc,oc)-uBound*uBound,disc=b*b-c;
  if(disc>0.){
   float t=max(0.,-b-sqrt(disc)),end=min(floorT,-b+sqrt(disc));bool hit=false;
-  for(int j=0;j<90;j++){if(t>end)break;float d=body(ro+rd*t);if(d<.0017){hit=true;break;}t+=max(.001,d*.90);}
-  if(hit){
-   outputAlpha=1.;
-   vec3 p=ro+rd*t,lp=localPoint(p),n=normalAt(p),v=-rd;float mark=0.;
-   if(uType==6){vec3 cf=cubeFace(lp);float pd=pipLayout(cf.xy,cf.z);float faceHeight=max(max(abs(lp.x),abs(lp.y)),abs(lp.z));mark=(1.-smoothstep(.088,.120,pd))*smoothstep(.025,.075,1.-faceHeight);}
-   else{float md=-1.e10,idx=0.;vec3 tn=vec3(1.,0.,0.),bn=vec3(0.,1.,0.);for(int j=0;j<20;j++){if(j<uCount){float z=dot(lp,uNormals[j]);if(z>md){md=z;idx=float(j);tn=uTangents[j];bn=uBitangents[j];}}}
-    float labelScale=uType==4?.95:1.78;vec2 tex=vec2(dot(lp,tn),dot(lp,bn))*labelScale+.5;mark=stamp(tex,idx);float eps=.012;
-    vec2 grad=vec2(stamp(tex+vec2(eps,0.),idx)-stamp(tex-vec2(eps,0.),idx),stamp(tex+vec2(0.,eps),idx)-stamp(tex-vec2(0.,eps),idx));
-    n=normalize(n+(uRotation*tn*grad.x+uRotation*bn*grad.y)/uScale*.12);
-   }
-   float g=grain(lp);n=normalize(n+vec3(g,grain(lp.yzx),grain(lp.zxy))*.006);
+  float best=1.e4,bestT=t,previous=1.e4,pixel=4.4/uResolution.y;
+  // A pixel-sized coverage fringe replaces a binary silhouette. It also keeps
+  // grazing rays visible instead of switching whole pixels on and off.
+  for(int j=0;j<112;j++){if(t>end)break;float d=body(ro+rd*t);if(d<best){best=d;bestT=t;}if(d<.0008){hit=true;break;}if(d>previous&&best<pixel*1.4)break;previous=d;t+=max(.0005,d*.92);}
+  if(hit||best<pixel*1.4){
+   if(!hit)t=bestT;
+   vec3 p=ro+rd*t,lp=localPoint(p),gradient=worldGradient(lp),n=normalize(gradient),v=-rd;float mark=0.;
+   float coverage=hit?1.:1.-smoothstep(0.,pixel*.95,best/max(length(gradient),.15));
+   float shadowAlpha=outputAlpha;vec3 shadowColor=color;
+   float md=-1.e10,idx=0.;vec3 tn=vec3(1.,0.,0.),bn=vec3(0.,1.,0.);for(int j=0;j<20;j++){if(j<uCount){float z=dot(lp,uNormals[j]);if(z>md){md=z;idx=float(j);tn=uTangents[j];bn=uBitangents[j];}}}
+   float labelScale=uType==4?.95:(uType==6?.68:1.78);vec2 tex=vec2(dot(lp,tn),dot(lp,bn))*labelScale+.5;mark=stamp(tex,idx);float eps=.012;
+   vec2 grad=vec2(stamp(tex+vec2(eps,0.),idx)-stamp(tex-vec2(eps,0.),idx),stamp(tex+vec2(0.,eps),idx)-stamp(tex-vec2(0.,eps),idx));
+   n=normalize(n+(uRotation*tn*grad.x+uRotation*bn*grad.y)/uScale*.09);
+   float g=grain(lp);n=normalize(n+vec3(g,grain(lp.yzx),grain(lp.zxy))*.004);
    vec3 base=pow(uColor,vec3(2.2));vec3 stampColor=pow(mix(uColor,vec3(.86,.85,.78),.58),vec3(2.2));base=mix(base,stampColor,mark*.86);
    vec3 light=normalize(vec3(-3.,6.,4.)),fill=normalize(vec3(4.,2.,-3.));float diffuse=max(dot(n,light),0.),fillD=max(dot(n,fill),0.);
    float ambient=.27+.17*(n.y*.5+.5);color=base*(ambient+diffuse*1.15+fillD*.25);
-   vec3 halfV=normalize(light+v);float spec=pow(max(dot(n,halfV),0.),20.)*.11+pow(max(dot(n,halfV),0.),90.)*.015;
+   vec3 halfV=normalize(light+v);float spec=pow(max(dot(n,halfV),0.),20.)*.11+pow(max(dot(n,halfV),0.),64.)*.008;
    vec3 rimHalf=normalize(fill+v);spec+=pow(max(dot(n,rimHalf),0.),35.)*.09;
    color+=vec3(1.,.98,.91)*spec*(1.-mark*.55);
    float fresnel=pow(1.-max(dot(n,v),0.),4.);color+=vec3(.27,.32,.28)*fresnel*.10;
-   color*=.93+.07*smoothstep(.0,.48,p.y);color*=1.+g*.006;
+   color*=.93+.07*smoothstep(.0,.48,p.y);color*=1.+g*.004;
+   outputAlpha=coverage+shadowAlpha*(1.-coverage);
+   color=(color*coverage+shadowColor*shadowAlpha*(1.-coverage))/max(outputAlpha,.0001);
   }
  }
  color=pow(max(color,vec3(0.)),vec3(1./2.2));
@@ -627,9 +756,9 @@ void main(){
       const t=norm(cross(Math.abs(n[1])>.9?[0,0,1]:[0,1,0],n));faces.push({n,t,b:cross(n,t),h:dot(n,a),points:[a,b,c]});
     }
     if(type===4)faces.forEach((f,i)=>{const ns=faces[(i+1)%4].n;f.b=norm(add(mul(ns,-1),mul(f.n,dot(ns,f.n))));f.t=cross(f.b,f.n);});
-    const h=faces[0].h,samples=[],exponent=type===4?4:16;
-    for(let i=0;i<1600;i++) {
-      const y=1-2*(i+.5)/1600,a=i*2.3999632297,d=[Math.sqrt(1-y*y)*Math.cos(a),y,Math.sqrt(1-y*y)*Math.sin(a)];
+    const h=faces[0].h,samples=[],exponent=type===4?4:16,sampleCount=6400;
+    for(let i=0;i<sampleCount;i++) {
+      const y=1-2*(i+.5)/sampleCount,a=i*2.3999632297,d=[Math.sqrt(1-y*y)*Math.cos(a),y,Math.sqrt(1-y*y)*Math.sin(a)];
       let sum=0;for(const f of faces)sum+=Math.pow(Math.max(0,dot(d,f.n)),exponent);
       samples.push(mul(d,h/Math.pow(sum,1/exponent)));
     }
@@ -637,6 +766,10 @@ void main(){
   }
   const POLYS={4:makePoly(4),20:makePoly(20)};
   const CUBE_NORMALS=[[0,1,0],[0,0,1],[1,0,0],[-1,0,0],[0,0,-1],[0,-1,0]];
+  // One right-handed face basis is shared by WebGL, fallback and result poses.
+  const CUBE_TANGENTS=[[1,0,0],[1,0,0],[0,0,-1],[0,0,1],[-1,0,0],[1,0,0]];
+  const CUBE_FACES=CUBE_NORMALS.map((n,i)=>{const t=CUBE_TANGENTS[i],b=cross(n,t);return {n,t,b,h:1,value:i+1,points:[[-1,-1],[1,-1],[1,1],[-1,1]].map(p=>add(n,add(mul(t,p[0]),mul(b,p[1]))))};});
+
   const COLORS={4:[.4196,.4824,.5490],6:[.4863,.5412,.4353],20:[.7608,.6471,.4706]};
   const HEX={4:'#6b7b8c',6:'#7c8a6f',20:'#c2a578'};
   const MATERIALS={4:'ardoise',6:'sauge',20:'sable'};
@@ -648,7 +781,7 @@ void main(){
       const angle=Math.atan2(cam[0],cam[2])-Math.atan2(p[0],p[2])+.42;return qmul(axisQ([0,1,0],angle),base);
     }
     const n=type===6?CUBE_NORMALS[value-1]:POLYS[20].faces[value-1].n,base=fromTo(n,[0,1,0]);
-    if(type===20) {const b=transform(matrix(base),POLYS[20].faces[value-1].b);yaw=Math.atan2(-4.3,-6.4)-Math.atan2(b[0],b[2]);}
+    if(type===20||type===6) {const face=type===6?CUBE_FACES[value-1]:POLYS[20].faces[value-1],b=transform(matrix(base),face.b);yaw=Math.atan2(-4.3,-6.4)-Math.atan2(b[0],b[2])+(type===6?(yaw-.48)*.18:0);}
     return qmul(axisQ([0,1,0],yaw),base);
   }
   function support(type,m) {
@@ -679,7 +812,7 @@ void main(){
     function setGeometry() {
       if(mode!=='webgl')return;
       gl.useProgram(program);gl.uniform1i(uniforms.uType,type);
-      const f=type===6?[]:POLYS[type].faces,n=new Float32Array(60),t=new Float32Array(60),b=new Float32Array(60);
+      const f=type===6?CUBE_FACES:POLYS[type].faces,n=new Float32Array(60),t=new Float32Array(60),b=new Float32Array(60);
       for(let i=0;i<f.length;i++){n.set(f[i].n,i*3);t.set(f[i].t,i*3);b.set(f[i].b,i*3);}
       gl.uniform3fv(uniforms.uNormals,n);gl.uniform3fv(uniforms.uTangents,t);gl.uniform3fv(uniforms.uBitangents,b);
       gl.uniform1i(uniforms.uCount,f.length||6);gl.uniform1f(uniforms.uOffset,f[0]?.h||1);gl.uniform3fv(uniforms.uColor,COLORS[type]);
@@ -693,12 +826,12 @@ void main(){
         gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
         const attr=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
         for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas'])uniforms[name]=gl.getUniformLocation(program,name);
-        const atlas=document.createElement('canvas');atlas.width=640;atlas.height=512;const a=atlas.getContext('2d');
+        const atlas=document.createElement('canvas');atlas.width=512;atlas.height=1024;const a=atlas.getContext('2d');
         if(!a)throw new Error('Dice texture canvas unavailable.');
-        a.fillStyle='#000';a.fillRect(0,0,640,512);a.fillStyle='#fff';a.font='500 67px Arial,sans-serif';a.textAlign='center';a.textBaseline='middle';
-        for(let i=0;i<20;i++)a.fillText(String(i+1),(i%5+.5)*128,(Math.floor(i/5)+.5)*128+4);
+        a.fillStyle='#000';a.fillRect(0,0,512,1024);a.fillStyle='#fff';a.font='500 67px Arial,sans-serif';a.textAlign='center';a.textBaseline='middle';
+        for(let i=0;i<20;i++)a.fillText(String(i+1),(i%4+.5)*128,(Math.floor(i/4)+.5)*128+4);
         texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);
-        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.uniform1i(uniforms.uAtlas,0);
+        gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.uniform1i(uniforms.uAtlas,0);
         mode='webgl';renderError='';rendererStatus();setGeometry();
       } catch(error) {
         mode='fallback';renderError=String(error.message||error).slice(0,1800);rendererStatus();try{if(gl){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}
@@ -709,8 +842,11 @@ void main(){
       ctx.beginPath();
       for(let i=0;i<points.length;i++) {
         const prev=points[(i+points.length-1)%points.length],p=points[i],next=points[(i+1)%points.length];
-        const pa=norm([prev[0]-p[0],prev[1]-p[1]]),pb=norm([next[0]-p[0],next[1]-p[1]]);
-        const a=[p[0]+pa[0]*radius,p[1]+pa[1]*radius],b=[p[0]+pb[0]*radius,p[1]+pb[1]*radius];
+        const edgeA=Math.hypot(prev[0]-p[0],prev[1]-p[1]),edgeB=Math.hypot(next[0]-p[0],next[1]-p[1]);
+        if(edgeA<1.e-6||edgeB<1.e-6)continue;
+        const pa=[(prev[0]-p[0])/edgeA,(prev[1]-p[1])/edgeA],pb=[(next[0]-p[0])/edgeB,(next[1]-p[1])/edgeB];
+        const cut=Math.min(radius,edgeA*.45,edgeB*.45);
+        const a=[p[0]+pa[0]*cut,p[1]+pa[1]*cut],b=[p[0]+pb[0]*cut,p[1]+pb[1]*cut];
         if(!i)ctx.moveTo(...a);else ctx.lineTo(...a);ctx.quadraticCurveTo(p[0],p[1],b[0],b[1]);
       }
       ctx.closePath();
@@ -730,11 +866,7 @@ void main(){
       const shadowCenter=projectWorld([x,0,z]);c.save();c.translate(shadowCenter[0]+5,shadowCenter[1]);c.scale(1,.34);
       const shadow=c.createRadialGradient(0,0,8,0,0,140+lift*16);shadow.addColorStop(0,'rgba(0,0,0,'+(.32/(1+lift))+')');shadow.addColorStop(.55,'rgba(0,0,0,.12)');shadow.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=shadow;c.fillRect(-180,-180,360,360);c.restore();
       let faces;
-      if(type===6)faces=CUBE_NORMALS.map((n,i)=>{
-        const t=i===0||i===5?[1,0,0]:i===1||i===4?[1,0,0]:[0,0,1];
-        const b=i===0||i===5?[0,0,1]:[0,1,0];
-        return {n,t,b,points:[[-1,-1],[1,-1],[1,1],[-1,1]].map(a=>add(n,add(mul(t,a[0]),mul(b,a[1])))),value:i+1};
-      });
+      if(type===6)faces=CUBE_FACES;
       else faces=POLYS[type].faces.map((f,i)=>({...f,value:i+1}));
       const allPoints=faces.flatMap(f=>f.points.map(project));
       const sorted=allPoints.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
@@ -754,20 +886,11 @@ void main(){
       }
       const gleam=c.createRadialGradient(175,135,10,210,210,210);gleam.addColorStop(0,'rgba(255,255,235,.18)');gleam.addColorStop(.48,'rgba(255,255,235,.035)');gleam.addColorStop(1,'rgba(255,255,235,0)');c.fillStyle=gleam;c.fillRect(0,0,480,480);
       const lowerShade=c.createLinearGradient(0,150,0,390);lowerShade.addColorStop(0,'rgba(0,0,0,0)');lowerShade.addColorStop(.7,'rgba(0,0,0,.015)');lowerShade.addColorStop(1,'rgba(0,0,0,.20)');c.fillStyle=lowerShade;c.fillRect(0,0,480,480);
-      function disc(face,u,v,r,fillStyle) {
-        c.beginPath();for(let j=0;j<24;j++){const angle=j*Math.PI/12,p=project(add(face.n,add(mul(face.t,u+Math.cos(angle)*r),mul(face.b,v+Math.sin(angle)*r))));if(!j)c.moveTo(...p);else c.lineTo(...p);}c.closePath();c.fillStyle=fillStyle;c.fill();
-      }
       for(const face of visible) {
         const n=transformedNormal(face.n),shade=.72+.27*Math.max(0,dot(n,light));
-        if(type===6) {
-          const corners=[[-.38,-.38],[-.38,.38],[.38,-.38],[.38,.38]];
-          const layouts=[[[0,0]],[[-.36,-.36],[.36,.36]],[[-.36,-.36],[0,0],[.36,.36]],corners,[...corners,[0,0]],[[-.40,-.43],[-.40,0],[-.40,.43],[.40,-.43],[.40,0],[.40,.43]]];
-          for(const [u,v] of layouts[face.value-1]){disc(face,u,v,.132,rgb(shade*.47));disc(face,u+.008,v+.008,.098,rgb(shade,.64));}
-        } else {
-          const center=project(face.center),tp=project(add(face.center,face.t)),bp=project(add(face.center,face.b)),size=type===4?.60:.34;
-          c.save();c.transform((tp[0]-center[0])*size/64,(tp[1]-center[1])*size/64,-(bp[0]-center[0])*size/64,-(bp[1]-center[1])*size/64,center[0],center[1]);
-          c.fillStyle=rgb(shade,.75);c.font='500 64px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(face.value),0,3);c.restore();
-        }
+        const center=project(face.center),tp=project(add(face.center,face.t)),bp=project(add(face.center,face.b)),size=type===4?.60:type===6?.80:.34;
+        c.save();c.transform((tp[0]-center[0])*size/64,(tp[1]-center[1])*size/64,-(bp[0]-center[0])*size/64,-(bp[1]-center[1])*size/64,center[0],center[1]);
+        c.fillStyle=rgb(shade,.75);c.font='500 64px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(face.value),0,3);c.restore();
       }
       c.restore();
       roundedPoly(c,hull,rounding);c.save();c.clip();c.lineWidth=1.4;c.strokeStyle='rgba(255,255,235,.11)';c.stroke();c.restore();
@@ -781,7 +904,7 @@ void main(){
     }
     function resize() {
       if(!alive)return;
-      const w=canvas.clientWidth||300,h=canvas.clientHeight||w,dpr=Math.min(global.devicePixelRatio||1,Number(options.maxPixelRatio)||1.5);
+      const w=canvas.clientWidth||300,h=canvas.clientHeight||w,dpr=Math.min(global.devicePixelRatio||1,Number(options.maxPixelRatio)||2);
       const rw=Math.max(1,Math.round(w*dpr)),rh=Math.max(1,Math.round(h*dpr));if(canvas.width!==rw)canvas.width=rw;if(canvas.height!==rh)canvas.height=rh;
       if(mode==='webgl'){gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);gl.uniform2f(uniforms.uResolution,canvas.width,canvas.height);}
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);
@@ -792,9 +915,9 @@ void main(){
       raf=0;if(!alive||!busy)return;
       const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0;
       if(ms<160){const t=ms/160;sy=pressScale-(pressScale-.82)*smooth(t);}
-      else if(ms<1160){const t=(ms-160)/1000,e=ease(t);q=qmul(axisQ([.8,.2,-.65],Math.PI*4*(1-e)),slerp(startQ,goalQ,smooth(t)));lift=.45*4*t*(1-t);x=.21*Math.sin(Math.PI*t);z=-.15*Math.sin(Math.PI*t);sy=1+.065*Math.sin(Math.PI*t)-.18*Math.exp(-t*28);}
-      else if(ms<1600){const t=(ms-1160)/440;if(t<.25){sy=1-.19*Math.sin(Math.PI*t/.25);}else{const b=(t-.25)/.75;lift=.15*Math.sin(Math.PI*b);sy=1+.045*Math.sin(2*Math.PI*b)*Math.exp(-b*3);}q=qmul(axisQ([.5,0,.8],.12*Math.sin(t*7)*Math.exp(-t*4)*(1-t)),goalQ);}
-      else if(ms<2250){const t=(ms-1600)/650;sy=1-.035*Math.sin(t*13)*Math.exp(-t*5)*(1-t);q=qmul(axisQ([.3,0,1],.035*Math.sin(t*10)*Math.exp(-t*5)*(1-t)),goalQ);}
+      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*4*(1-e)),slerp(startQ,goalQ,e));lift=.45*4*t*(1-t);x=.21*wave;z=-.15*wave;sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;}
+      else if(ms<1600){const t=(ms-1160)/440;if(t<.36){sy=1-.19*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,wave=Math.pow(Math.sin(Math.PI*b),2);lift=.14*wave;sy=1+.035*Math.sin(2*Math.PI*b)*wave;}q=qmul(axisQ([.5,0,.8],.12*Math.sin(t*3*Math.PI)*Math.pow(Math.sin(Math.PI*t),2)*Math.exp(-t*3)),goalQ);}
+      else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.035*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.035*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);}
       else{finish();return;}
       draw(q,sy,lift,x,z);raf=requestAnimationFrame(animate);
     }
@@ -833,7 +956,7 @@ void main(){
     resize();updateLabel();
     return {
       get mode(){return mode;},get error(){return renderError;},get busy(){return busy;},get value(){return result;},get kind(){return type;},
-      setKind(kind,value=1){if(!alive)return;cancelFrame();pressed=false;busy=false;resolvePending();type=validKind(kind);result=validValue(value,type);rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
+      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),same=nextKind===type&&nextValue===result;cancelFrame();pressed=false;busy=false;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
         const next=validValue(value,type);cancelFrame();pressed=false;busy=true;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activeDuration=Math.max(250,Number(rollOptions.duration)||duration);updateLabel(true);
@@ -848,6 +971,213 @@ void main(){
 })(window);
 
 </script>
+
+<script>
+/* ONDE — contextual evidence for cards. Plain text only; no UI or network effects.
+ * Sources and calculations: onde-evidence-research.json.
+ * An interest survey is neither a measure of practice nor a recommendation.
+ */
+(function (scope) {
+  'use strict';
+
+  const sources = {
+    appeal: {
+      year: 2017,
+      sourceTitle: 'Herbenick et al. · PLOS ONE · tableau 5',
+      url: 'https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198'
+    },
+    meals: {
+      year: 2017,
+      sourceTitle: 'Dunbar · Breaking Bread',
+      url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/'
+    },
+    gratitude: {
+      year: 2022,
+      sourceTitle: 'Chang et al. · Scientific Reports · tableau 1',
+      url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/'
+    }
+  };
+
+  function fact(source, values) {
+    return Object.freeze(Object.assign({}, sources[source], values));
+  }
+
+  const facts = {
+    cuddling: fact('appeal', {
+      metric: '87,8 %',
+      headline: 'L’envie de câlins',
+      detail: 'Dans cette enquête, se câliner plus souvent était jugé assez ou très attirant par 87,8 % des répondants.',
+      scope: 'États-Unis · adultes · enquête 2015 · 1 966 réponses à cette question.',
+      limitations: 'Intérêt déclaré, pas fréquence de pratique ni bénéfice mesuré. Ce chiffre ne prédit pas les envies de votre partenaire.'
+    }),
+    massage: fact('appeal', {
+      metric: '79,3 %',
+      headline: 'Le massage dans l’intimité',
+      detail: '79,3 % des répondants trouvaient assez ou très attirant de donner ou recevoir un massage avant un rapport.',
+      scope: 'États-Unis · adultes · enquête 2015 · 1 963 réponses à cette question.',
+      limitations: 'La question portait sur le massage avant un rapport, sans mesurer une zone ni une durée précise. Il s’agit d’intérêt déclaré, pas d’une pratique ou d’une suite à prévoir.'
+    }),
+    kissing: fact('appeal', {
+      metric: '86,4 %',
+      headline: 'La place du baiser',
+      detail: '86,4 % des répondants trouvaient assez ou très attirante l’idée de s’embrasser davantage pendant les rapports.',
+      scope: 'États-Unis · adultes · enquête 2015 · 1 959 réponses à cette question.',
+      limitations: 'Intérêt déclaré dans ce contexte intime. Aucune technique de baiser mesurée, ni recommandation sur votre moment.'
+    }),
+    atmosphere: fact('appeal', {
+      metric: '77,1 %',
+      headline: 'Changer l’ambiance',
+      detail: 'Rendre une pièce plus romantique était jugé assez ou très attirant par 77,1 % des répondants.',
+      scope: 'États-Unis · adultes · enquête sur l’intimité en 2015 · 1 964 réponses à cette question.',
+      limitations: 'Il s’agit d’un intérêt déclaré. L’étude ne mesure pas l’effet de la lumière, des coussins ou de cette carte.'
+    }),
+    meal: fact('meals', {
+      metric: '76,4 %',
+      headline: 'Se retrouver autour d’un repas',
+      detail: '76,4 % des personnes interrogées voyaient le repas partagé comme un bon moyen de rapprocher les gens.',
+      scope: 'Royaume-Uni · enquête de 2016 auprès de 2 000 adultes · liens familiaux et amicaux inclus.',
+      limitations: 'Opinion déclarée sur les repas partagés, pas effet démontré d’un plat, de la cuisine à deux ou de cette carte.'
+    }),
+    memories: fact('meals', {
+      metric: '51,5 %',
+      headline: 'Les souvenirs à partager',
+      detail: '51,5 % des derniers dîners rapportés comportaient des souvenirs partagés. Ceux-ci étaient associés à davantage de proximité ressentie.',
+      scope: 'Royaume-Uni · enquête de 2016 auprès de 2 000 adultes · dîners avec une personne extérieure au foyer.',
+      limitations: 'Le pourcentage décrit la présence de souvenirs pendant ces dîners. Il ne mesure pas un taux de bénéfice, ni l’effet de cette carte.'
+    }),
+    thanks: fact('gratitude', {
+      metric: '≈ 68 min / jour',
+      headline: 'Faire une place aux mercis',
+      detail: 'Après un plan pour remercier davantage, le groupe gratitude a augmenté sa présence commune d’environ 68 minutes par jour.',
+      scope: '125 couples sur cinq semaines : 63 dans le groupe gratitude et 62 témoins. Intervention durant les trois dernières semaines.',
+      limitations: 'Augmentation moyenne avant/après du groupe gratitude. Présence dans la même pièce, sommeil compris ; pas un gain garanti après un seul merci.'
+    })
+  };
+
+  // Deliberate ID mapping: a category alone never selects a statistic.
+  const factByCard = Object.freeze({
+    'comp-2': 'memories',
+    'comp-4': 'memories',
+    'det-1': 'massage',
+    'det-2': 'massage',
+    'det-6': 'atmosphere',
+    'tend-1': 'cuddling',
+    'tend-4': 'cuddling',
+    'att-3': 'thanks',
+    'att-5': 'meal',
+    'dec-3': 'meal',
+    'int-2': 'kissing',
+    'int-3': 'atmosphere',
+    'stck-5-01': 'kissing',
+    'stck-1-03': 'massage',
+    'stck-1-04': 'massage',
+    'stck-1-07': 'massage',
+    'stck-2-02': 'meal',
+    'stck-2-09': 'meal',
+    'stck-2-10': 'meal',
+    'stck-2-11': 'meal',
+    'stck-2-03': 'meal',
+    'stck-2-12': 'meal',
+    'stck-2-13': 'meal',
+    'stck-9-03': 'meal',
+    'stck-2-05': 'meal',
+    'stck-9-04': 'meal'
+  });
+
+  const fallbackText = Object.freeze({
+    conversation: 'Une question peut servir de point de départ. Vous choisissez ce que vous avez envie de raconter et d’écouter.',
+    day: 'Un petit événement suffit pour commencer à raconter votre journée. À vous de choisir le détail que vous souhaitez partager.',
+    planning: 'Vous pouvez imaginer une sortie ensemble et décider plus tard du moment qui vous convient.',
+    appreciation: 'Vous pouvez nommer un détail que vous appréciez chez l’autre, avec vos propres mots.',
+    quiet: 'Cette pause peut se passer en parlant ou en silence. Choisissez ce qui vous convient aujourd’hui.',
+    drink: 'Une boisson que vous aimez et un moment choisi ensemble : à vous de donner sa forme à cette pause.',
+    music: 'Choisissez un morceau pour vos goûts, les souvenirs qu’il évoque ou l’envie de le faire découvrir à l’autre.',
+    hand: 'Main dans la main, en marchant ou au repos : choisissez ensemble ce qui est agréable pour vous.',
+    message: 'Une phrase sincère suffit. Vous choisissez ce que vous souhaitez dire et la façon de le partager.',
+    welcome: 'Inventez un mot ou un geste pour vos retrouvailles, selon ce qui vous fait plaisir à tous les deux.',
+    walk: 'La promenade peut être courte et familière, ou emprunter un autre chemin. Décidez ensemble de votre parenthèse.',
+    care: 'Choisissez le soin, le geste et le moment qui plaisent à la personne qui reçoit cette attention.',
+    drawing: 'Le dessin peut être rapide, tendre ou amusant. Vous choisissez vous-mêmes ce que vous voulez en faire.',
+    creating: 'Inventez une proposition qui vous ressemble. Son contenu et son rythme se décident à deux.',
+    wishes: 'Vous pouvez partager une envie sans vous engager à la réaliser. La conversation peut simplement vous permettre de préciser vos préférences.',
+    preferences: 'Racontez un détail qui vous plaît et écoutez celui de l’autre. Vous choisissez la place que vous voulez lui donner.',
+    invitation: 'Une invitation ouvre une conversation. Vous pouvez convenir ensemble d’un moment et de ce que vous souhaitez y partager.',
+    rhythm: 'Vos envies peuvent changer d’un jour à l’autre. Chacun peut préciser ce qui lui convient pour ce moment.',
+    snack: 'Choisissez une boisson, quelque chose à grignoter et un moment où vous avez envie de vous retrouver.',
+    general: 'Adaptez cette proposition à vos goûts, au temps disponible et à ce qui vous convient à tous les deux.'
+  });
+
+  const fallbackByCard = Object.freeze({
+    'comp-1': 'conversation',
+    'comp-3': 'day',
+    'comp-5': 'planning',
+    'comp-6': 'appreciation',
+    'det-3': 'quiet',
+    'det-4': 'drink',
+    'det-5': 'music',
+    'tend-2': 'hand',
+    'tend-3': 'message',
+    'tend-5': 'welcome',
+    'tend-6': 'walk',
+    'att-1': 'message',
+    'att-2': 'music',
+    'att-4': 'care',
+    'att-6': 'message',
+    'dec-1': 'walk',
+    'dec-2': 'drawing',
+    'dec-4': 'music',
+    'dec-5': 'conversation',
+    'dec-6': 'creating',
+    'int-1': 'wishes',
+    'int-4': 'preferences',
+    'int-5': 'invitation',
+    'int-6': 'rhythm',
+    'stck-5-03': 'message',
+    'stck-9-01': 'care',
+    'stck-9-02': 'care',
+    'stck-1-06': 'care',
+    'stck-1-08': 'care',
+    'stck-2-04': 'drink',
+    'stck-2-06': 'snack'
+  });
+
+  const fallbackByCategory = Object.freeze({
+    complicite: 'conversation',
+    detente: 'quiet',
+    tendresse: 'general',
+    attention: 'care',
+    decouverte: 'creating',
+    intimite: 'wishes'
+  });
+
+  function ownValue(object, key) {
+    return Object.prototype.hasOwnProperty.call(object, key) ? object[key] : null;
+  }
+
+  function forCard(card) {
+    const id = card && typeof card.id === 'string' ? card.id : '';
+    const factKey = ownValue(factByCard, id);
+    if (factKey) return Object.assign({}, facts[factKey]);
+
+    const categoryId = card && typeof card.categoryId === 'string' ? card.categoryId : '';
+    const fallbackKey = ownValue(fallbackByCard, id) || ownValue(fallbackByCategory, categoryId) || 'general';
+    return {
+      metric: null,
+      headline: 'Un moment à votre façon',
+      detail: fallbackText[fallbackKey],
+      scope: 'Suggestion ONDE · pas une statistique.',
+      year: null,
+      sourceTitle: 'Repère ONDE',
+      url: null,
+      limitations: 'Aucun chiffre spécifique vérifié pour cette proposition.'
+    };
+  }
+
+  scope.OndeEvidence = Object.freeze({ forCard });
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+
 <script>
 (function(){
  'use strict';
@@ -855,21 +1185,25 @@ void main(){
  if(!root || !window.OndeGame || !window.OndeDice)return;
  const G=window.OndeGame, main=root.querySelector('#oa-main'), sheet=root.querySelector('#oa-sheet');
  const storageKey='onde-public-demo-v010';
- const systemReduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
+ let systemReduce=!!(motionQuery&&motionQuery.matches);
  let state=G.createState(), tab='play', catalog='detente', favoritesOnly=false, busy=false, toastTimer, lastFocus=null, animationSerial=0;
  let persisted=false, lastError='';
- let feedbackNote='', feedbackContext='';
+ let feedbackNote='', feedbackContext='', renderKey='';
+ const deckPositions=Object.create(null);
+ let deckFrame=0;
  try{const raw=localStorage.getItem(storageKey);if(raw){const saved=G.normalizeState(JSON.parse(raw));if(saved)state=saved;}localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
- const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:1.35,reducedMotion:!!systemReduce,onRelease:()=>{if(tab==='play'&&!busy)roll();}});
+ const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,onRelease:()=>{if(tab==='play'&&!busy)roll();}});
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
  const percent=hp=>(G.probability(hp)*100).toLocaleString('fr-FR',{maximumFractionDigits:2})+' %';
  const card=()=>G.getCard(state.round.cardId);
  const category=()=>G.getCategory(state.round.categoryId);
- const sum=()=>state.round.rolls.reduce((a,b)=>a+b,0);
+ const shownRolls=()=>state.phase==='draft_challenge'||(state.round.status==='defended'&&!state.round.rolls.length)?state.round.draftRolls:state.round.rolls;
+ const sum=()=>shownRolls().reduce((a,b)=>a+b,0);
  const remaining=()=>Math.max(0,(state.round.hp||0)-sum());
  const canDraw=()=>state.activePlayer===state.round.from;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
@@ -887,30 +1221,46 @@ void main(){
  function handGrid(){return '<div class="oa-card-grid">'+state.round.hand.map((id,i)=>{const c=G.getCard(id);return '<div class="oa-mini-card '+(state.round.cardRoll===i+1?'is-picked':'')+'"><span class="oa-mini-number">'+(i+1)+'</span><h3>'+h(c.title)+'</h3><p>'+c.duration+' min · '+c.hp+' PV</p></div>';}).join('')+'</div>';}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function favoriteButton(c){const selected=state.favorites.includes(c.id);return '<button type="button" class="oa-favorite cursor-interaction" data-action="favorite" data-card="'+c.id+'" aria-pressed="'+selected+'" aria-label="'+(selected?'Retirer des favoris':'Ajouter aux favoris')+'">'+(selected?'♥':'♡')+'</button>';}
- function source(c){if(c.categoryId!=='tendresse')return '';return '<details class="oa-source"><summary class="cursor-interaction">Un regard sur les gestes d’affection</summary><p>Dans une enquête américaine auprès de 2 021 adultes, les gestes romantiques et affectueux figuraient parmi les propositions les plus appréciées.</p><p>Enquête de 2015, publiée en 2017. Il s’agit d’intérêt déclaré, pas d’une fréquence à atteindre.</p><p><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198" target="_blank" rel="noopener noreferrer">Herbenick et al. · PLOS ONE ↗</a></p></details>';}
+
+ function source(c){
+  const fact=window.OndeEvidence&&window.OndeEvidence.forCard(c);
+  if(!fact)return '';
+  const scope=[fact.scope,fact.year].filter(Boolean).join(' · ');
+  return '<section class="oa-evidence" aria-label="Un repère sur cette carte"><p class="oa-eyebrow">UN REPÈRE SUR CE THÈME</p>'+(fact.metric?'<strong class="oa-evidence-number">'+h(fact.metric)+'</strong>':'')+'<h3>'+h(fact.headline)+'</h3><p>'+h(fact.detail)+'</p>'+(scope?'<p class="oa-evidence-scope">'+h(scope)+'</p>':'')+(fact.url?'<details class="oa-source"><summary>Source & contexte de l’étude</summary><p>'+h(fact.limitations)+'</p><a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a></details>':'')+'</section>';
+ }
  function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+' · '+(adapted?'VARIANTE':'À PARTAGER')+'</span>'+favoriteButton(c)+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2><p class="oa-card-description">'+h(adapted?r.proposal:c.description)+'</p><div class="oa-card-meta"><span>'+(adapted&&r.proposal!==c.variant?'Durée à convenir':'<b>'+(adapted?c.variantDuration:c.duration)+' min</b> à deux')+'</span><span><b>'+c.hp+' PV</b> de résistance</span></div><div class="oa-card-foot"><span>'+(c.source?'STCK · '+h(c.source.collectionTitle):'ONDE / '+h(c.id.toUpperCase()))+'</span><span>le temps de nous.</span></div></article>';}
  function hpTrack(){const hp=state.round.hp,rem=remaining(),fraction=rem/hp;let mark='',used=0;const weights=[2.3,1,1,1.65,2.3,1,1.65,1,2.3,1.65],weightTotal=weights.reduce((a,b)=>a+b,0);for(let i=0;i<10;i++){const fill=Math.max(0,Math.min(1,(fraction*weightTotal-used)/weights[i]));used+=weights[i];mark+='<i><span style="transform:scaleX('+fill+');'+(rem===0?'background:#a8c08c':'')+'"></span></i>';}
- return '<div class="oa-hp"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+rem+' <span>/ '+hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+hp+'" aria-valuenow="'+rem+'">'+mark+'</div><div class="oa-roll-history"><span class="oa-roll-token">JET 1 <b>'+(state.round.rolls[0]||'—')+'</b></span><span class="oa-roll-token">JET 2 <b>'+(state.round.rolls[1]||'—')+'</b></span></div></div>';}
+ return '<div class="oa-hp"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+rem+' <span>/ '+hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+hp+'" aria-valuenow="'+rem+'">'+mark+'</div><div class="oa-roll-history"><span class="oa-roll-token">JET 1 <b>'+(shownRolls()[0]||'—')+'</b></span><span class="oa-roll-token">JET 2 <b>'+(shownRolls()[1]||'—')+'</b></span></div></div>';}
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+((!r.challengeUsed&&r.status==='pending')?btn('Défier la carte <span class="oa-arrow">D20</span>','challenge','oa-secondary'):'')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
+ function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+((!r.challengeUsed&&r.status==='pending')?btn('Défier la carte <span class="oa-arrow">D20</span>','challenge','oa-secondary'):'')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter','pass')+'</div></div>';}
+
  function renderPlay(){const r=state.round,c=card();
   if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>','La catégorie a été tirée. La prochaine étape est la carte.','UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
    return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',h(category().description),'LE D6 A DONNÉ '+r.categoryRoll)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
   }
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':h(name(r.from))+' a tiré<br><em>une carte.</em>',canDraw()?'À proposer à '+h(name(r.to))+', quand le moment te plaît.':'Elle attend encore d’être proposée.','D6 · '+r.categoryRoll+'  /  D4 · '+r.cardRoll)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+textBtn('Laisser cette carte','pass')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>')+source(c);
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':h(name(r.from))+' a tiré<br><em>une carte.</em>',canDraw()?'Propose-la, ou tente de l’écarter avec le D20.':'Elle attend encore d’être proposée.','D6 · '+r.categoryRoll+'  /  D4 · '+r.cardRoll)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+btn('Tenter de l’écarter <span class="oa-arrow">D20</span>','challenge-draft','oa-secondary')+textBtn('Arrêter ce tour','pass')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>')+textBtn('Le repère & les détails de cette carte','card-detail','data-card="'+c.id+'"');
+  if(state.phase==='draft_challenge'){
+   if(!canDraw())return heading(h(name(r.from))+' tente<br><em>le hasard.</em>','Si ses deux jets échouent, la carte te sera proposée.','AVANT LA PROPOSITION')+hpTrack()+'<div class="oa-actions">'+switchButton(r.from)+textBtn('Arrêter ce tour','pass')+'</div>';
+   return heading(r.draftRolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Tu la joues<br><em>au hasard.</em>',h(c.title)+' · atteindre '+r.hp+' PV pour l’écarter.','TON D20 / JET '+(r.draftRolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.draftRolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.draftRolls[0]||12)+btn(r.draftRolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">Si les deux jets échouent, la carte est proposée automatiquement à '+h(name(r.to))+'.</p><div class="oa-action-row">'+textBtn('Proposer plutôt','send')+textBtn('Arrêter ce tour','pass')+'</div>';
+  }
   if(state.phase==='pending'){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
+   const automatic=r.autoProposed&&r.status==='pending';
    let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
-   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):h(name(r.from))+' te propose un moment à deux.'):'Réponse attendue : '+h(name(r.awaiting))+'.';
-   return (responds?'<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · MAINTENANT</small><p>'+h(state.prefs.discreet?'Une invitation t’attend.':c.title)+'</p></div></div>':'')+heading(title,sub,responds?'À TOI DE RÉPONDRE':'TOUR '+state.sequence)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'): '')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>')+source(c);
+   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Le D20 a proposé cette carte. À toi de choisir.':h(name(r.from))+' te propose un moment à deux.'):'Réponse attendue : '+h(name(r.awaiting))+'.';
+   return (responds?'<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · MAINTENANT</small><p>'+h(state.prefs.discreet?'Une invitation t’attend.':c.title)+'</p></div></div>':'')+heading(title,sub,responds?'À TOI DE RÉPONDRE':'TOUR '+state.sequence)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic?statusStrip('Proposée par le dé · vos deux accords restent à confirmer.',true):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>')+textBtn('Le repère & les détails de cette carte','card-detail','data-card="'+c.id+'"');
+  }
+  if(state.phase==='sender_confirmation'){
+   const responds=G.canRespond(state);
+   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté. Comme la carte a été proposée par le dé, confirme aussi ton envie.':'Ton accord est enregistré. '+h(name(r.from))+' doit encore confirmer le sien.','PROPOSITION DU D20')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip('Accord de '+h(name(r.to))+' reçu · accord de '+h(name(r.from))+' attendu.')+(responds?'<div class="oa-actions">'+btn('Oui, j’en ai envie aussi','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter ce tour','pass')+'</div></div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+textBtn('Arrêter ce tour','pass')+'</div>');
   }
   if(state.phase==='challenge'){
-   if(!G.canRespond(state))return heading(h(name(r.to))+' tente<br><em>le hasard.</em>','Deux lancers au maximum pour écarter la carte.','DÉFI D20')+hpTrack()+'<div class="oa-actions">'+switchButton(r.to,'Voir le défi de '+h(name(r.to)))+textBtn('Passer cette carte','pass')+'</div>';
-   return heading(r.rolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Défie<br><em>la carte.</em>',h(c.title)+' · '+c.duration+' minutes','D20 / JET '+(r.rolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.rolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.rolls[0]||12)+btn(r.rolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">'+(r.rolls.length?'Le total des deux dés doit atteindre '+r.hp+' PV.':percent(r.hp)+' de chances d’atteindre '+r.hp+' PV en deux jets.')+'</p><div class="oa-action-row">'+textBtn('Accepter plutôt','accept')+textBtn('Passer librement','pass')+'</div>';
+   if(!G.canRespond(state))return heading(h(name(r.to))+' tente<br><em>le hasard.</em>','Deux lancers au maximum pour écarter la carte.','DÉFI D20')+hpTrack()+'<div class="oa-actions">'+switchButton(r.to,'Voir le défi de '+h(name(r.to)))+textBtn('Arrêter ce tour','pass')+'</div>';
+   return heading(r.rolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Défie<br><em>la carte.</em>',h(c.title)+' · '+c.duration+' minutes','D20 / JET '+(r.rolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.rolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.rolls[0]||12)+btn(r.rolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">'+(r.rolls.length?'Le total des deux dés doit atteindre '+r.hp+' PV.':percent(r.hp)+' de chances d’atteindre '+r.hp+' PV en deux jets.')+'</p><div class="oa-action-row">'+textBtn('Accepter plutôt','accept')+textBtn('Arrêter ce tour','pass')+'</div>';
   }
-  if(state.phase==='challenge_failed')return heading('La carte<br><em>résiste encore.</em>',h(c.title),'DÉFI TERMINÉ')+hpTrack()+statusStrip(sum()+' points obtenus sur '+r.hp+'. La proposition reste ouverte.',true)+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Passer cette carte','pass')+'</div>')+'<p class="oa-note oa-center">Tu peux adapter ou passer, quel que soit le résultat.</p>';
+  if(state.phase==='challenge_failed')return heading('La carte<br><em>résiste encore.</em>',h(c.title),'DÉFI TERMINÉ')+hpTrack()+statusStrip(sum()+' points obtenus sur '+r.hp+'. La proposition reste ouverte.',true)+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Arrêter ce tour','pass')+'</div>')+'<p class="oa-note oa-center">Tu peux adapter ou arrêter, quel que soit le résultat.</p>';
   if(state.phase==='accepted')return heading('Un moment<br><em>pour vous.</em>','Vous avez tous les deux accepté cette proposition.','ACCORD À DEUX')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip(r.schedule?'Moment prévu : <strong>'+h(r.schedule)+'</strong>':'À vivre au moment qui vous convient.')+'<div class="oa-actions">'+btn('Marquer comme partagé','complete')+(state.prefs.reminder?textBtn('Aperçu du rappel','reminder'):'')+textBtn('Finalement, passer','pass')+'</div><p class="oa-note oa-center">Votre accord reste modifiable à tout moment.</p>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed';
@@ -918,21 +1268,73 @@ void main(){
   }
   return '';
  }
- function renderCatalog(){const cat=G.getCategory(catalog);const list=favoritesOnly?G.cards.filter(c=>state.favorites.includes(c.id)):G.cards.filter(c=>c.categoryId===catalog);return heading('Des petits<br><em>possibles.</em>','Six catégories, quatre cartes renouvelées à chaque tirage.','VOTRE JEU')+categoriesGrid(true)+'<div class="oa-filter-row" role="group" aria-label="Afficher les cartes"><button type="button" class="cursor-interaction" data-action="filter" data-favorites="false" aria-pressed="'+!favoritesOnly+'">'+h(cat.label)+'</button><button type="button" class="cursor-interaction" data-action="filter" data-favorites="true" aria-pressed="'+favoritesOnly+'">Favoris · '+state.favorites.length+'</button></div>'+(list.length?'<div class="oa-list">'+list.map(c=>'<article class="oa-list-card" style="--category:'+G.getCategory(c.categoryId).color+'"><span class="oa-list-color"></span><div class="oa-list-copy"><button type="button" class="oa-list-open cursor-interaction" data-action="card-detail" data-card="'+c.id+'"><h3>'+h(c.title)+'</h3><p>'+c.duration+' min · '+c.hp+' PV · détails ↗</p></button></div>'+favoriteButton(c)+'</article>').join('')+'</div>':'<div class="oa-empty"><p>Les cartes que vous aimez<br>se retrouveront ici.</p></div>');}
+
+ function renderCatalog(){
+  const cat=G.getCategory(catalog),list=favoritesOnly?G.cards.filter(c=>state.favorites.includes(c.id)):G.cards.filter(c=>c.categoryId===catalog);
+  const deckKey=favoritesOnly?'favorites':catalog;
+  return heading('Des petits<br><em>possibles.</em>','Fais défiler les cartes. Garde celles qui vous ressemblent.','VOTRE JEU')+categoriesGrid(true)+'<div class="oa-filter-row" role="group" aria-label="Afficher les cartes"><button type="button" class="cursor-interaction" data-action="filter" data-favorites="false" aria-pressed="'+!favoritesOnly+'">'+h(cat.label)+'</button><button type="button" class="cursor-interaction" data-action="filter" data-favorites="true" aria-pressed="'+favoritesOnly+'">Favoris · '+state.favorites.length+'</button></div>'+(list.length?'<div class="oa-deck-toolbar"><p><span data-deck-counter>1 / '+list.length+'</span> <span class="oa-deck-hint">Glisse pour explorer</span></p><div><button type="button" class="oa-deck-arrow" data-action="deck-prev" aria-label="Carte précédente">←</button><button type="button" class="oa-deck-arrow" data-action="deck-next" aria-label="Carte suivante">→</button></div></div><div class="oa-deck" data-deck="'+deckKey+'" role="region" aria-label="Cartes à faire défiler" tabindex="0">'+list.map((c,i)=>'<section class="oa-deck-slide" aria-label="Carte '+(i+1)+' sur '+list.length+'" style="--category:'+G.getCategory(c.categoryId).color+'">'+playingCard(c)+'<button type="button" class="oa-deck-open" data-action="card-detail" data-card="'+c.id+'">Déplier la carte <span>↗</span></button></section>').join('')+'</div>':'<div class="oa-empty"><p>Les cartes que vous aimez<br>se retrouveront ici.</p></div>');
+ }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  function sharedScore(){
   const stats=state.stats,total=stats.totalCompleted;
   return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div><p class="oa-note">Le score augmente quand une carte est marquée « partagée ». Il reste commun à votre duo.</p>';
  }
  function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Donner mon avis','feedback')+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+
  function render(){
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
+  const key=[tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer,tab==='cards'?catalog:'',tab==='cards'?favoritesOnly:''].join('|');
+  const animate=key!==renderKey;renderKey=key;
+  root.style.setProperty('--oa-accent',tab==='cards'&&!favoritesOnly?G.getCategory(catalog).color:(category()||G.categories[1]).color);
   main.innerHTML=tab==='play'?renderPlay():tab==='cards'?renderCatalog():renderUs();
-  root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!(state.phase==='pending'&&state.round.awaiting===el.dataset.player&&state.activePlayer!==el.dataset.player);});
+  root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!(['pending','sender_confirmation'].includes(state.phase)&&state.round.awaiting===el.dataset.player&&state.activePlayer!==el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(!!systemReduce);}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(systemReduce);}
   root.classList.toggle('is-busy',busy);
+  initDeck();
+  if(animate&&!systemReduce&&main.animate){
+   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
+   blocks.forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:520,delay:Math.min(i*38,160),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'}));
+   main.querySelectorAll('.oa-category,.oa-mini-card').forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(12px) rotate(-2deg)'},{opacity:1,transform:'translateY(0) rotate(0)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
+   const revealed=main.querySelector('.oa-card-stage .oa-playing-card');
+   if(revealed)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:740,easing:'cubic-bezier(.18,.76,.2,1)'});
+  }
+ }
+ function initDeck(){
+  cancelAnimationFrame(deckFrame);
+  const rail=main.querySelector('[data-deck]');if(!rail)return;
+  const slides=Array.from(rail.children),key=rail.dataset.deck;
+  let current=Math.max(0,Math.min(slides.length-1,deckPositions[key]||0));
+  function update(){
+   if(!rail.isConnected)return;
+   const center=rail.scrollLeft+rail.clientWidth/2;
+   let nearest=0,distance=Infinity;
+   slides.forEach((slide,i)=>{
+    const offset=(slide.offsetLeft+slide.offsetWidth/2-center)/slide.offsetWidth;
+    const amount=Math.min(1.5,Math.abs(offset));
+    if(Math.abs(offset)<distance){nearest=i;distance=Math.abs(offset);}
+    slide.style.transform=systemReduce?'none':'translateY('+(amount*9)+'px) scale('+(1-amount*.055)+') rotate('+(Math.max(-1.5,Math.min(1.5,offset))*2.8)+'deg)';
+    slide.style.zIndex=String(10-Math.round(amount*3));
+   });
+   current=nearest;deckPositions[key]=current;
+   const counter=main.querySelector('[data-deck-counter]');if(counter)counter.textContent=(current+1)+' / '+slides.length;
+   const prev=main.querySelector('[data-action="deck-prev"]'),next=main.querySelector('[data-action="deck-next"]');
+   if(prev)prev.disabled=current===0;if(next)next.disabled=current===slides.length-1;
+  }
+  rail.scrollLeft=slides[current].offsetLeft-(rail.clientWidth-slides[current].offsetWidth)/2;
+  update();
+  rail.addEventListener('scroll',()=>{cancelAnimationFrame(deckFrame);deckFrame=requestAnimationFrame(update);},{passive:true});
+  rail.addEventListener('keydown',e=>{if(e.target!==rail)return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();moveDeck(e.key==='ArrowRight'?1:-1);}});
+ }
+ function moveDeck(direction){const rail=main.querySelector('[data-deck]');if(!rail)return;const index=Math.max(0,Math.min(rail.children.length-1,(deckPositions[rail.dataset.deck]||0)+direction)),slide=rail.children[index];rail.scrollTo({left:slide.offsetLeft-(rail.clientWidth-slide.offsetWidth)/2,behavior:systemReduce?'instant':'smooth'});}
+ function celebrate(){
+  if(systemReduce||!main.animate)return;
+  const badge=main.querySelector('.oa-summary-glyph');
+  if(badge)badge.animate([{transform:'scale(.7) rotate(-12deg)'},{transform:'scale(1.15) rotate(7deg)',offset:.55},{transform:'scale(1) rotate(0)'}],{duration:650,easing:'cubic-bezier(.2,.8,.2,1)'});
+  const layer=document.createElement('div');layer.className='oa-celebration';layer.setAttribute('aria-hidden','true');root.querySelector('.oa-shell').append(layer);
+  for(let i=0;i<12;i++){const dot=document.createElement('i');dot.style.background=G.categories[i%6].color;layer.append(dot);const angle=(i/12)*Math.PI*2;dot.animate([{transform:'translate(0,0) scale(.2)',opacity:0},{opacity:1,offset:.12},{transform:'translate('+Math.cos(angle)*(65+i*4)+'px,'+(Math.sin(angle)*75-30)+'px) rotate('+(i*51)+'deg) scale(.85)',opacity:0}],{duration:900+i*20,easing:'cubic-bezier(.1,.6,.2,1)',fill:'forwards'});}
+  setTimeout(()=>layer.remove(),1300);
  }
  let audioContext;
  function softSound(){if(!state.prefs.sound)return;try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();audioContext.resume();[0,.44,.83].forEach((delay,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),t=audioContext.currentTime+delay;osc.type='sine';osc.frequency.setValueAtTime(155-i*18,t);osc.frequency.exponentialRampToValueAtTime(48,t+.1);gain.gain.setValueAtTime(.055/(i+1),t);gain.gain.exponentialRampToValueAtTime(.001,t+.13);osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+.14);});}catch(_){}}
@@ -942,6 +1344,7 @@ void main(){
   let sides,action;
   if(phase==='category'&&canDraw()){sides=6;const value=G.randomInt(6);action={type:'ROLL_CATEGORY',value,hand:G.drawHand(state,value)};}
   else if(phase==='card'&&canDraw()){sides=4;action={type:'ROLL_CARD',value:G.randomInt(4)};}
+  else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;action={type:'ROLL_DRAFT_DEFENSE',value:G.randomInt(20),token:roundId+'-draft-'+(state.round.draftRolls.length+1)};}
   else if(phase==='challenge'&&G.canRespond(state)){sides=20;action={type:'ROLL_DEFENSE',value:G.randomInt(20),token:roundId+'-'+(state.round.rolls.length+1)};}
   else return;
   const serial=++animationSerial;
@@ -957,17 +1360,20 @@ void main(){
   root.classList.remove('is-busy');render();
   announce('D'+sides+' : '+action.value+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:remaining()+' points de vie restants.'));
  }
- function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;const top=sheet.querySelector('button');top&&top.focus();}
- function closeSheet(){sheet.hidden=true;sheet.innerHTML='';if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
- function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi six.</h3><p>Complicité, détente, tendresse, attention, découverte ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Lis la proposition, puis envoie-la à l’autre profil.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Un défi facultatif.</h3><p>Deux lancers au maximum. Leur total doit atteindre les PV de la carte pour l’écarter.</p></div></div><p>Accepter, adapter, proposer un autre moment ou passer : le choix reste ouvert.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Aucun message réel n’est envoyé.</p>');}
- function challengeSheet(){const c=card();openSheet('Tenter le D20','<p>Deux lancers au maximum pour retirer les <strong>'+c.hp+' PV</strong> de « '+h(c.title)+' ».</p><div class="oa-summary-card"><span class="oa-summary-glyph">'+c.hp+'</span><div><h2>'+percent(c.hp)+' de réussite</h2><p>Total des deux D20 ≥ '+c.hp+'</p></div></div><p>Si la carte résiste, tu peux toujours l’accepter, l’adapter ou la passer.</p><div class="oa-actions">'+btn('Je tente le défi','start-challenge','oa-clay')+textBtn('Revenir à la carte','close')+'</div>');}
+ function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
+ function closeSheet(){sheet.hidden=true;sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
+
+ function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi six.</h3><p>Complicité, détente, tendresse, attention, découverte ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Propose-la à l’autre, ou tente le D20 pour l’écarter.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Deux jets pour atteindre ses PV.</h3><p>Si tu atteins le seuil, la carte est écartée. Sinon, elle est proposée automatiquement à l’autre.</p></div></div><p>L’autre peut accepter, tenter ses propres deux jets, adapter ou proposer un autre moment. Une proposition automatique demande ensuite ta confirmation aussi.</p><p>Chacun peut arrêter le tour. Seule une carte acceptée à deux puis marquée « partagée » ajoute 1 point à votre score commun.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Les notifications sont simulées sur cet appareil.</p>');}
+
+ function challengeSheet(draft=false){const c=card();openSheet(draft?'L’écarter avec le D20':'Tenter le D20','<p>Deux lancers au maximum pour atteindre les <strong>'+c.hp+' PV</strong> de « '+h(c.title)+' ».</p><div class="oa-summary-card"><span class="oa-summary-glyph">'+c.hp+'</span><div><h2>'+percent(c.hp)+' de réussite</h2><p>Total des deux D20 ≥ '+c.hp+'</p></div></div><p>'+(draft?'Si tes deux jets échouent, la carte est proposée automatiquement à '+h(name(state.round.to))+'. Si l’autre accepte, tu confirmes aussi ton envie.':'Si la carte résiste, tu peux l’accepter, l’adapter ou arrêter ce tour.')+'</p><div class="oa-actions">'+btn('Je tente le défi',draft?'start-draft-challenge':'start-challenge','oa-clay')+textBtn('Revenir à la carte','close')+'</div>');}
  function showAdapt(){const c=card();openSheet('Proposer une variante','<p>Cette proposition devra être acceptée par '+h(name(G.otherPlayer(state.activePlayer)))+'.</p><label class="oa-field">Ta variante<textarea id="oa-adapt-text" aria-label="Ta variante" maxlength="300">'+h(state.round.adapted?state.round.proposal:c.variant)+'</textarea></label><div class="oa-actions">'+btn('Envoyer la variante','confirm-adapt')+'</div>');}
  function showLater(){openSheet('Trouver le bon moment','<p>Propose un créneau à '+h(name(G.otherPlayer(state.activePlayer)))+'. Le moment sera confirmé à deux.</p><label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
- function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+'<p>Variante · '+c.variantDuration+' min<br>'+h(c.variant)+'</p><p>Avec '+c.hp+' PV, deux D20 atteignent le seuil dans '+percent(c.hp)+' des cas.</p>'+source(c));}
+
+ function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+source(c)+'<div class="oa-detail-variant"><p class="oa-eyebrow">UNE AUTRE FAÇON · '+c.variantDuration+' MIN</p><p>'+h(c.variant)+'</p></div><p class="oa-detail-odds">Côté jeu · '+c.hp+' PV : '+percent(c.hp)+' de chances de les atteindre avec deux D20.</p>','oa-card-sheet');}
  function feedbackReport(){return feedbackContext+'\n\nMon retour :\n'+(feedbackNote.trim()||'À compléter.');}
  function showFeedback(){
   const round=state.round;
-  feedbackContext=['ONDE — Retour de test','Version : 0.2.0','Écran : '+({play:'Jouer',cards:'Les cartes',us:'Nous'}[tab]||tab),'Étape : '+state.phase,'Catégorie : '+(round.categoryId||'—'),'Carte (cardId) : '+(round.cardId||'—'),'PV : '+(round.hp==null?'—':round.hp),'D6 : '+(round.categoryRoll||'—')+' · D4 : '+(round.cardRoll||'—')+' · D20 : '+(round.rolls.length?round.rolls.join(' + '):'—'),'Fenêtre : '+window.innerWidth+' × '+window.innerHeight+' px','Rendu : '+(die.mode||canvas.dataset.renderer||'inconnu')].join('\n');
+  feedbackContext=['ONDE — Retour de test','Version : 0.3.0','Écran : '+({play:'Jouer',cards:'Les cartes',us:'Nous'}[tab]||tab),'Étape : '+state.phase,'Catégorie : '+(round.categoryId||'—'),'Carte (cardId) : '+(round.cardId||'—'),'PV : '+(round.hp==null?'—':round.hp),'D6 : '+(round.categoryRoll||'—')+' · D4 : '+(round.cardRoll||'—')+' · D20 initiateur : '+(round.draftRolls.length?round.draftRolls.join(' + '):'—')+' · D20 destinataire : '+(round.rolls.length?round.rolls.join(' + '):'—'),'Fenêtre : '+window.innerWidth+' × '+window.innerHeight+' px','Rendu : '+(die.mode||canvas.dataset.renderer||'inconnu')].join('\n');
   openSheet('Donner mon avis','<p>Qu’est-ce qui te plaît, te gêne ou te manque ? Copie ce retour pour le partager dans notre conversation.</p><label class="oa-field">Ton avis<textarea id="oa-feedback-note" rows="3" maxlength="2000" placeholder="Par exemple : le dé rebondit trop vite…">'+h(feedbackNote)+'</textarea></label><label class="oa-field">Le rapport à copier<textarea id="oa-feedback-report" rows="5" readonly aria-describedby="oa-feedback-status" spellcheck="false">'+h(feedbackReport())+'</textarea></label><div class="oa-actions">'+btn('Copier mon retour','copy-feedback')+'</div><p id="oa-feedback-status" role="status">Aucun envoi automatique. Ton avis reste dans cette page jusqu’à sa fermeture.</p>','oa-feedback-sheet');
  }
  async function copyFeedback(){
@@ -986,23 +1392,26 @@ void main(){
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
   if(busy&&action!=='pass'&&action!=='close')return;
   if(action==='roll'){roll();return;}
+  if(action==='deck-prev'||action==='deck-next'){moveDeck(action==='deck-next'?1:-1);return;}
   if(action==='tab'){tab=el.dataset.tab;render();return;}
   if(action==='profile'){dispatch({type:'SWITCH_PLAYER',player:el.dataset.player});tab='play';render();announce('Profil : '+name(state.activePlayer));return;}
   if(action==='send'){dispatch({type:'SEND'});toast('Invitation pour '+name(state.round.to)+' · simulée dans la démo');return;}
-  if(action==='accept'){dispatch({type:'ACCEPT'});announce('Proposition acceptée à deux.');return;}
+  if(action==='accept'){dispatch({type:'ACCEPT'});announce(state.phase==='accepted'?'Proposition acceptée à deux.':'Accord reçu. Confirmation de '+name(state.round.awaiting)+' attendue.');return;}
   if(action==='pass'){
    if(busy){animationSerial++;busy=false;die.setKind(die.kind,die.value);root.querySelectorAll('button:disabled').forEach(b=>{b.disabled=false;});}
    dispatch({type:'PASS'});announce('Carte passée.');return;
   }
-  if(action==='challenge'){challengeSheet();return;}
+  if(action==='challenge'){challengeSheet(false);return;}
+  if(action==='challenge-draft'){challengeSheet(true);return;}
+  if(action==='start-draft-challenge'){closeSheet();dispatch({type:'CHALLENGE_DRAFT'});return;}
   if(action==='start-challenge'){closeSheet();dispatch({type:'CHALLENGE'});return;}
   if(action==='adapt'){showAdapt();return;}
   if(action==='confirm-adapt'){const field=root.querySelector('#oa-adapt-text');if(!field.value.trim()){field.focus();return;}const text=field.value.trim();closeSheet();dispatch({type:'ADAPT',text});return;}
   if(action==='later'){showLater();return;}
   if(action==='confirm-later'){const schedule=root.querySelector('#oa-schedule').value;closeSheet();dispatch({type:'LATER',schedule});return;}
-  if(action==='complete'){if(dispatch({type:'COMPLETE'})){announce('Moment partagé. Un point ajouté au score de votre duo.');toast('+1 point pour votre duo.');}return;}
+  if(action==='complete'){if(dispatch({type:'COMPLETE'})){announce('Moment partagé. Un point ajouté au score de votre duo.');toast('+1 point pour votre duo.');celebrate();}return;}
   if(action==='new'){dispatch({type:'NEW_ROUND'});tab='play';render();return;}
-  if(action==='favorite'){dispatch({type:'TOGGLE_FAVORITE',cardId:el.dataset.card});if(!sheet.hidden){const pressed=state.favorites.includes(el.dataset.card);sheet.querySelectorAll('[data-action="favorite"]').forEach(b=>{b.setAttribute('aria-pressed',String(pressed));b.textContent=pressed?'♥':'♡';});}return;}
+  if(action==='favorite'){const selectedId=el.dataset.card;dispatch({type:'TOGGLE_FAVORITE',cardId:selectedId});if(!systemReduce)root.querySelectorAll('[data-action="favorite"][data-card="'+selectedId+'"]').forEach(b=>b.animate([{transform:'scale(.75)'},{transform:'scale(1.18)',offset:.55},{transform:'scale(1)'}],{duration:340,easing:'ease-out'}));if(!sheet.hidden){const pressed=state.favorites.includes(el.dataset.card);sheet.querySelectorAll('[data-action="favorite"]').forEach(b=>{b.setAttribute('aria-pressed',String(pressed));b.textContent=pressed?'♥':'♡';});}return;}
   if(action==='catalog'){catalog=el.dataset.category;favoritesOnly=false;render();return;}
   if(action==='filter'){favoritesOnly=el.dataset.favorites==='true';render();return;}
   if(action==='card-detail'){details(el.dataset.card);return;}
@@ -1014,6 +1423,7 @@ void main(){
   if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
   if(action==='reset'){closeSheet();dispatch({type:'RESET'});tab='play';catalog='detente';favoritesOnly=false;render();toast('La démonstration repart de zéro.');return;}
  });
+ if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());if(tab==='cards')initDeck();});
  root.addEventListener('input',event=>{if(event.target.id==='oa-feedback-note'){feedbackNote=event.target.value;const report=sheet.querySelector('#oa-feedback-report');if(report)report.value=feedbackReport();}});
  root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
@@ -1023,5 +1433,4 @@ void main(){
 })();
 
 </script>
-
 </body></html>

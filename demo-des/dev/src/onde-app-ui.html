@@ -211,4 +211,56 @@
 @media(max-width:380px){#onde-app-v1{padding:6px 0}#onde-app-v1 .oa-shell{border-radius:24px}#onde-app-v1 .oa-header{padding:22px 18px 19px}#onde-app-v1 .oa-persona{margin-left:16px;margin-right:16px;gap:6px}#onde-app-v1 .oa-demo-label{font-size:9px;gap:5px;letter-spacing:.03em}#onde-app-v1 .oa-switch button{padding:7px 9px;font-size:11px}#onde-app-v1 .oa-main{padding-left:16px;padding-right:16px}#onde-app-v1 .oa-title{font-size:29px}#onde-app-v1 .oa-step{font-size:10px;gap:4px}#onde-app-v1 .oa-steps{gap:4px}#onde-app-v1 .oa-step b{width:27px}#onde-app-v1 .oa-stage{height:221px}#onde-app-v1 .oa-playing-card{padding:19px 17px}#onde-app-v1 .oa-card-title{font-size:26px}#onde-app-v1 .oa-category{padding:10px 8px}#onde-app-v1 .oa-category-label{font-size:10px}}
 @media(pointer:coarse){#onde-app-v1 .oa-switch button{min-height:40px}#onde-app-v1 .oa-help,#onde-app-v1 .oa-close,#onde-app-v1 .oa-favorite{width:44px;height:44px}#onde-app-v1 .oa-text-button,#onde-app-v1 .oa-feedback-button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 *,#onde-app-v1 *:before{transition:none!important;animation:none!important}}
+/* 0.3.0 — mineral color, soft rubber surfaces, card movement and accessible sheets. */
+#onde-app-v1{--oa-bg:#202321;--oa-surface:#2b302d;--oa-surface2:#353b37;--oa-line:#78807855;--oa-text:#f0eee7;--oa-muted:#bdc0b7;--oa-sage:#c7d1b9;--oa-ink:#252a25;--oa-sand:#d7b58e;--oa-slate:#9caebb;--oa-clay:#d49a81;--oa-rose:#d6aaa0;--oa-mauve:#b5a5bd;--oa-mineral-blue:#829ea9;--oa-mineral-rose:#bb8f83;--oa-mineral-moss:#8b9b7a}
+#onde-app-v1 .oa-shell{border-color:#59625b;border-radius:34px;background:radial-gradient(ellipse at 88% 0%,#51443c3d,transparent 34%),radial-gradient(ellipse at 0% 55%,#66786720,transparent 40%),var(--oa-bg)}
+#onde-app-v1 .oa-main>*{animation:oa-arrive .42s cubic-bezier(.2,.75,.25,1) both}
+#onde-app-v1 .oa-switch button[aria-pressed=true],#onde-app-v1 .oa-category[aria-pressed=true]{background:linear-gradient(145deg,#5d6b56,#465244);border-color:#aeb99d}
+#onde-app-v1 .oa-button{background:linear-gradient(145deg,#d7dfcb,#b9c7a8);box-shadow:inset 0 1px 0 #fff9,inset 0 -2px 4px #66745e25,0 7px 18px #0003;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,filter .22s}
+#onde-app-v1 .oa-button:not(:disabled):hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 #fff9,0 10px 22px #0004;filter:saturate(1.08)}
+#onde-app-v1 .oa-button.oa-clay{background:linear-gradient(145deg,#e2b19b,#c98570);color:#30231e}
+#onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 18% 0%,color-mix(in srgb,var(--category) 55%,transparent),transparent 50%),linear-gradient(145deg,color-mix(in srgb,var(--category) 48%,#343631),#292d2a 66%);border-color:color-mix(in srgb,var(--category) 65%,#d6d2c1);box-shadow:inset 0 2px 2px #ffffff1b,inset 0 -5px 10px #0b0e0c48,0 15px 28px #0004;animation:oa-card-breathe 8s ease-in-out infinite}
+#onde-app-v1 .oa-playing-card:before{content:"";position:absolute;inset:5px;border:1px solid #ffffff10;border-radius:19px;pointer-events:none}
+#onde-app-v1 .oa-card-illustration i{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 65%,#e7deca),var(--category));box-shadow:inset 0 2px 3px #ffffff48,inset 0 -5px 8px #171b1840,0 9px 16px #0004;animation:oa-rubber-float 4.8s ease-in-out infinite}
+#onde-app-v1 .oa-card-illustration i:nth-child(2){animation-delay:-1.1s;background:linear-gradient(145deg,#d4c2a7,#a98770)}
+#onde-app-v1 .oa-card-illustration i:nth-child(3){animation-delay:-2.2s}
+#onde-app-v1 .oa-card-stage{perspective:900px}
+#onde-app-v1 .oa-status-strip,#onde-app-v1 .oa-mini-card,#onde-app-v1 .oa-list-card,#onde-app-v1 .oa-summary-card{box-shadow:inset 0 1px 0 #ffffff0a,0 5px 15px #0002}
+#onde-app-v1 .oa-deck-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 10px}
+#onde-app-v1 .oa-deck-toolbar p{display:flex;align-items:center;gap:9px;color:#e2e1d8;font:11px ui-monospace,monospace;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-deck-hint{font:11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--oa-muted)}
+#onde-app-v1 .oa-deck-toolbar>div{display:flex;gap:7px}
+#onde-app-v1 .oa-deck-arrow{width:38px;height:38px;border:1px solid #8e998855;border-radius:50%;background:linear-gradient(145deg,#424944,#303632);color:#f0eee7;font-size:19px;box-shadow:inset 0 1px #ffffff1c,0 4px 9px #0003}
+#onde-app-v1 .oa-deck{display:flex;gap:15px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scroll-padding:0 2px;padding:2px 2px 14px;margin:0 -2px;scrollbar-width:thin;scrollbar-color:#78847475 transparent;-webkit-overflow-scrolling:touch}
+#onde-app-v1 .oa-deck::-webkit-scrollbar{height:4px}
+#onde-app-v1 .oa-deck::-webkit-scrollbar-thumb{background:#82907c88;border-radius:9px}
+#onde-app-v1 .oa-deck-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;transform-origin:center center;animation:oa-slide-enter .5s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-deck-slide:nth-child(2){animation-delay:.04s}
+#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:335px}
+#onde-app-v1 .oa-deck-open{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:45px;padding:10px 5px 4px;border:0;background:transparent;color:#d8dfd0;font-size:12px;text-align:left}
+#onde-app-v1 .oa-deck-open span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#ffffff12;color:#e4e8dc;font-size:16px}
+#onde-app-v1 .oa-evidence{position:relative;overflow:hidden;margin-top:17px;padding:18px;border:1px solid color-mix(in srgb,var(--category,#9aa78b) 58%,#535a50);border-radius:19px;background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--category,#9aa78b) 24%,transparent),transparent 60%),linear-gradient(145deg,#353a35,#292e2b);box-shadow:inset 0 1px #ffffff12,0 8px 18px #0002}
+#onde-app-v1 .oa-evidence:before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 4px 4px 0;background:var(--category,#b7c3a3)}
+#onde-app-v1 .oa-evidence .oa-eyebrow{font-size:9px;color:#d3d7cc;letter-spacing:.12em}
+#onde-app-v1 .oa-evidence-number{display:block;margin:10px 0 5px;color:#efe5ce;font-size:clamp(30px,9vw,43px);line-height:1.05;letter-spacing:-.06em;font-weight:430;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#onde-app-v1 .oa-evidence h3{font-size:15px;font-weight:500;line-height:1.4;margin-top:8px}
+#onde-app-v1 .oa-evidence>p:not(.oa-eyebrow){font-size:12px;line-height:1.6;color:#d1d2ca;margin-top:8px}
+#onde-app-v1 .oa-evidence .oa-evidence-scope{font-size:10px!important;color:#aeb5a9!important}
+#onde-app-v1 .oa-source{border-color:#747b6d55}
+#onde-app-v1 .oa-source summary{cursor:pointer;display:flex;align-items:center;min-height:42px;color:#e4ddc9}
+#onde-app-v1 .oa-source a{display:inline-flex;align-items:center;min-height:42px;color:#d7c7a8}
+#onde-app-v1 .oa-celebration{position:absolute;z-index:12;inset:18% 4%;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#d7dfbe33,transparent 64%);animation:oa-celebrate .9s ease-out both}
+#onde-app-v1 .oa-sheet-backdrop{position:fixed;inset:0;z-index:9999;overflow-y:auto;overscroll-behavior:contain;align-items:flex-start;padding:max(14px,env(safe-area-inset-top)) 13px max(14px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+#onde-app-v1 .oa-sheet{position:relative;flex:none;width:min(100%,412px);max-height:none;max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;margin:auto;padding:clamp(18px,5vw,24px);scrollbar-width:thin;scrollbar-color:#7a857578 transparent;-webkit-overflow-scrolling:touch}
+#onde-app-v1 .oa-sheet-head{position:sticky;z-index:2;top:calc(-1 * clamp(18px,5vw,24px));padding-top:4px;margin:calc(-1 * clamp(18px,5vw,24px)) calc(-1 * clamp(18px,5vw,24px)) 16px;padding:clamp(18px,5vw,24px);background:linear-gradient(#242d26 85%,#242d26eb);backdrop-filter:blur(10px)}
+#onde-app-v1 .oa-feedback-sheet{max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto}
+#onde-app-v1 .oa-field input,#onde-app-v1 .oa-field select,#onde-app-v1 .oa-field textarea{font-size:max(16px,1em)}
+#onde-app-v1 :focus-visible{scroll-margin-block:18px}
+@keyframes oa-arrive{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes oa-slide-enter{from{opacity:.55;transform:translateX(16px) scale(.985)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes oa-card-breathe{0%,100%{transform:rotateX(0) rotateY(0)}50%{transform:rotateX(.45deg) rotateY(-.35deg)}}
+@keyframes oa-rubber-float{0%,100%{translate:0 1px;rotate:-1deg}50%{translate:0 -5px;rotate:1.3deg}}
+@keyframes oa-celebrate{0%{opacity:0;transform:scale(.82)}28%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.12)}}
+@media(max-width:380px){#onde-app-v1 .oa-deck{gap:11px}#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:318px}#onde-app-v1 .oa-sheet-backdrop{padding-left:8px;padding-right:8px}#onde-app-v1 .oa-sheet-head h2{font-size:19px}}
+@media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-main>*,#onde-app-v1 .oa-playing-card,#onde-app-v1 .oa-card-illustration i,#onde-app-v1 .oa-deck-slide,#onde-app-v1 .oa-celebration{animation:none!important}#onde-app-v1 .oa-deck{scroll-behavior:auto}}
 </style>

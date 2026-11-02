@@ -1,6 +1,6 @@
 # ONDE — démo iPhone pour Xcode
 
-Une application de test locale : **D6 pour la catégorie, D4 pour la carte, D20 pour le défi facultatif**. Le prototype est embarqué dans une vue WebKit, avec les dés, les 57 cartes de démonstration et le score commun et deux profils simulés. Le jeu fonctionne sans serveur.
+Une application de test locale : **D6 pour la catégorie, D4 pour la carte, D20 pour le défi facultatif**. Le prototype est embarqué dans une vue WebKit, avec les dés, les 57 cartes de démonstration, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 3**.
 
 ## Démarrer en quatre étapes
 
@@ -29,7 +29,15 @@ Les fichiers Swift se trouvent dans **`OndeDemo/Sources/`** :
 - `ContentView.swift` : fond et espace d’affichage respectant les zones de sécurité.
 - `GameWebView.swift` : chargement du jeu local et ouverture des liens de sources dans le navigateur système.
 
-## Version 0.2.0
+## Version 0.3.0
+
+Après le D6 et le D4, la personne qui tire la carte peut la proposer directement ou tenter de l’écarter au **D20**. Elle dispose de **deux jets au maximum**, dont le total doit atteindre les PV de la carte. Si le total reste insuffisant après le second jet, la carte est **automatiquement proposée à l’autre profil**.
+
+L’autre personne peut accepter, adapter, proposer un autre moment, passer ou tenter son propre défi avec deux nouveaux jets de D20. Si elle accepte une proposition envoyée automatiquement, la personne qui a tiré la carte doit encore **confirmer son accord** avant que le jeu la considère acceptée à deux. Changer de profil en haut de l’écran permet de tester chaque réponse. Il reste possible d’arrêter ou de passer à tout moment, sans pénalité ; un échec au dé ne remplace jamais un accord.
+
+L’interface renforce les couleurs minérales des catégories et les animations de transition, de cartes et de dés. Les D4, D6 et D20 portent tous des chiffres. Les cartes dépliées défilent pour garder la consigne, la variante et les repères lisibles sur iPhone.
+
+Les chiffres présentés dans les cartes sont accompagnés de leurs sources et du contexte de mesure. Ils éclairent le sujet de la carte, sans promettre un effet particulier pour votre duo. Les références sont intégrées au jeu ; le dossier de recherche `card-evidence.json` accompagne aussi la version navigateur lorsqu’il est disponible.
 
 L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 point**, puis le détail par catégorie. Les cartes passées, acceptées sans réalisation ou écartées au dé ne donnent pas de point. L’ancien état local est repris à l’ouverture ; le score ne dépend plus du nombre d’entrées d’historique conservées.
 
@@ -39,15 +47,15 @@ Le catalogue ajoute 21 propositions adaptées des titres de STCK ; les durées e
 
 Les deux profils s’utilisent sur le même appareil. Les invitations, accords et notifications sont des interactions de démonstration ; aucun message ni rappel système n’est envoyé. La synchronisation entre deux téléphones n’est pas implémentée.
 
-Les cartes peuvent être passées avant ou après un défi. L’échec d’un lancer ne valide jamais automatiquement une proposition.
+Les cartes peuvent être passées avant ou après un défi. L’échec du défi de la personne qui tire peut envoyer une proposition, mais ne la valide jamais automatiquement.
 
-Le stockage local du jeu utilise le magasin de données persistant de WebKit. Une désinstallation ou une remise à zéro peut supprimer les données de test. Après une mise à jour du catalogue ou des règles, il peut être utile d’utiliser **Nous → Effacer la partie de démonstration**.
+Le stockage local du jeu utilise le magasin de données persistant de WebKit. Cette mise à jour conserve la clé de stockage pour reprendre les profils, la partie et le score. Une désinstallation ou une remise à zéro peut supprimer les données de test. **Nous → Effacer la partie de démonstration** permet de recommencer volontairement.
 
 ## Vérification et limites
 
-Le projet a été préparé dans un environnement Linux, sans Xcode ni `xcodebuild`. Sa structure, les fichiers plist/XML et les références des ressources peuvent y être contrôlés, mais **la compilation iOS n’a pas été exécutée ici**. Le premier lancement sur le Mac confirmera la compatibilité avec la version locale de Xcode et du simulateur.
+La version 0.3.0 a été compilée avec Xcode 27.2 pour le simulateur iOS, puis lancée sur un simulateur iPhone 18 Pro. L’écran d’accueil, le D6 numéroté et les 57 cartes sont visibles. Les tests fournis du parcours D20 (354 assertions), du score (43 assertions) et des dés (poses, raccords d’animation, annulation, réduction du mouvement, DPR 2 et secours Canvas2D) passent.
 
-Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
+Les tests automatisés ne remplacent pas une vérification manuelle de chaque parcours dans l’interface. Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
 
 ### Vérification en ligne de commande sur le Mac
 
