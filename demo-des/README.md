@@ -18,6 +18,8 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 
 Les PV restent des premières estimations. La jauge montre les PV restants et les deux résultats. Les opérations sont confirmées côté serveur : une réponse répétée ne relance pas un dé et ne compte pas deux fois un point.
 
+Dans « Nous », quatre badges progressent avec le score commun : **Couple complice** à 5 points, **Couple stable** à 10, **Super couple** à 15 et **Couple légendaire** à 30. Les paliers déjà atteints restent acquis ; ils suivent le total cumulé, même quand les anciennes actions quittent l’historique.
+
 ## Installer et recevoir les notifications
 
 Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écran d’accueil**. Ouvrir ensuite Dés·ir depuis cette icône, se connecter et toucher **Nous → Activer les notifications**. Les notifications Web nécessitent iOS/iPadOS 16.4 ou plus et l’app ajoutée à l’écran d’accueil. Sur les autres navigateurs compatibles, le même bouton demande l’autorisation.
@@ -28,7 +30,7 @@ Les notifications signalent une invitation, une réponse, un dé disponible ou u
 
 ## Matières et statistiques
 
-La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète.
+La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Le score commun et les accents passent au corail grisé, avec une texture propre au panneau pour rester visible. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète. Le chiffre du résultat s’éclaire progressivement en blanc ivoire brillant à la fin du lancer, y compris dans le rendu de secours.
 
 Les 88 cartes disposent de 88 résultats chiffrés distincts, dont 72 en pourcentage. Source, population, mesure et limites figurent dans « Source & contexte ». Plusieurs repères concernent un thème connexe : aucun bénéfice spécifique n’est attribué à une pratique sans étude correspondante. Les résultats ne sont pas des promesses individuelles. `card-evidence.json` contient leur traçabilité.
 

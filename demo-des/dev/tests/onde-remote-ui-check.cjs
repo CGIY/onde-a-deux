@@ -9,6 +9,9 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 let checks=0;const check=fn=>{fn();checks++;};
 const roomId='b98c371d-6355-4d37-a9bc-18f1228fd386';
 function initial(actor='a'){const s=G.createState();s.activePlayer=actor;s.players=[{id:'a',name:'Personne A'},{id:'b',name:'Personne B'}];return s;}
+function scored(total,actor='a'){const s=initial(actor);s.stats.totalCompleted=total;s.stats.byCategory.detente=total;assert.ok(G.validateState(s));return s;}
+function badgeSection(html){const found=html.match(/<section class="oa-badge-grid"[\s\S]*?<\/section>/);assert.ok(found,'badge section is rendered');return found[0];}
+function badgeProgress(html){return Array.from(badgeSection(html).matchAll(/<article class="oa-badge ([^"]+)"[\s\S]*?<\/article>/g),match=>{const article=match[0],progress=article.match(/role="progressbar"[^>]+/)[0];return {status:match[1],max:Number(progress.match(/aria-valuemax="(\d+)"/)[1]),value:Number(progress.match(/aria-valuenow="(\d+)"/)[1]),name:progress.match(/aria-label="([^"]+)"/)[1],text:progress.match(/aria-valuetext="([^"]+)"/)[1]};});}
 function snap(state,revision=1,remaining=1){return {roomId,state:copy(state),revision,actor:state.activePlayer,paired:true,quota:{remaining,window:'2026-11-02T06:00',label:'6 h – 12 h',nextAt:'2026-11-02T11:00:00.000Z'},serverTime:new Date().toISOString()};}
 function mockRemote(restored=null){
  let listener=null,current=restored,identity=restored?{roomId,actor:restored.actor}:null,authenticated=!!restored;
@@ -101,6 +104,22 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  // Personal settings and notification permissions remain on this device.
  {
   const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});check(()=>assert.ok(!ui.html.includes('À notre')));check(()=>assert.ok(!ui.html.includes('reset-confirm')));check(()=>assert.ok(ui.html.includes('Activer les notifications')));await ui.click('enable-notifications');check(()=>assert.equal(remote.calls.filter(c=>c.method==='notifications').length,1));check(()=>assert.ok(ui.html.includes('Activées sur cet appareil.')));
+ }
+ // Badges follow the persistent shared score at each boundary; progress never exceeds its own target.
+ {
+  const levels=[5,10,15,30],names=['Couple complice','Couple stable','Super couple','Couple légendaire'];
+  const cases=[[0,0,5,[0,0,0,0]],[4,0,5,[4,4,4,4]],[5,1,10,[5,5,5,5]],[9,1,10,[5,9,9,9]],[10,2,15,[5,10,10,10]],[14,2,15,[5,10,14,14]],[15,3,30,[5,10,15,15]],[29,3,30,[5,10,15,29]],[30,4,null,[5,10,15,30]],[31,4,null,[5,10,15,30]],[95,4,null,[5,10,15,30]]];
+  for(const [total,acquired,next,values] of cases){
+   const remote=mockRemote(snap(scored(total))),ui=shell(remote);await tick();const storageBefore=Array.from(ui.values.keys());await ui.click('tab',{tab:'us'});const badges=badgeProgress(ui.html);
+   check(()=>{assert.deepEqual(badges.map(b=>b.max),levels);assert.deepEqual(badges.map(b=>b.value),values);assert.deepEqual(badges.map(b=>b.name),names);assert.equal(badges.filter(b=>b.status==='is-earned').length,acquired);assert.deepEqual(badges.filter(b=>b.status==='is-next').map(b=>b.max),next?[next]:[]);badges.forEach(b=>assert.ok(b.text.includes((b.status==='is-earned'?'Acquis':b.status==='is-next'?'Prochain':'À débloquer')+' · '+b.value+' sur '+b.max+' points')));});
+   check(()=>{const section=badgeSection(ui.html);assert.ok(!/<(?:button|input)\b|data-action=/.test(section));assert.equal((section.match(/aria-hidden="true" focusable="false"/g)||[]).length,4);assert.ok(ui.html.indexOf('class="oa-shared-score"')<ui.html.indexOf('class="oa-badge-grid"'));assert.ok(ui.html.indexOf('class="oa-badge-grid"')<ui.html.indexOf('class="oa-score-grid"'));assert.equal(remote.calls.filter(c=>c.method==='action').length,0);assert.deepEqual(Array.from(ui.values.keys()),storageBefore);});
+  }
+ }
+ // Both accounts see the same badges, and an old response cannot undo an acquired grade.
+ {
+  const remote=mockRemote(snap(scored(4))),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});remote.emit(snap(scored(5),2));const earned=badgeSection(ui.html);check(()=>assert.equal(badgeProgress(ui.html)[0].status,'is-earned'));remote.emit(snap(scored(4),1));check(()=>assert.equal(badgeSection(ui.html),earned));
+  const other=shell(mockRemote(snap(scored(5,'b'),2)));await tick();await other.click('tab',{tab:'us'});check(()=>assert.equal(badgeSection(other.html),earned));
+  const reloaded=shell(mockRemote(snap(scored(5),2)),{storageValues:ui.values});await tick();await reloaded.click('tab',{tab:'us'});check(()=>assert.equal(badgeSection(reloaded.html),earned));check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));
  }
  // The native checkbox waits for server acknowledgement before the wave starts.
  {

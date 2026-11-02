@@ -156,19 +156,41 @@
 #onde-app-v1 .oa-list-open{border:0;background:transparent;padding:0;text-align:left;color:inherit;display:block;width:100%}
 #onde-app-v1 .oa-empty{padding:31px 15px;text-align:center;border-radius:18px;background:#242d26;margin-top:18px}
 #onde-app-v1 .oa-empty p{font-size:13px;color:#b7c3ad;line-height:1.6}
-#onde-app-v1 .oa-shared-score{margin-top:25px;padding:25px;border:1px solid #59664c;border-radius:26px;background:radial-gradient(ellipse at 12% 0,#62725455,transparent 70%),linear-gradient(145deg,#35402f,#242d25);box-shadow:inset 0 1px 1px #ffffff14,inset 0 -3px 10px #0e160b44,0 9px 22px #0002;position:relative;overflow:hidden}
-#onde-app-v1 .oa-shared-score .oa-eyebrow{color:#c3cfb2;letter-spacing:.13em}
+#onde-app-v1 .oa-shared-score{margin-top:25px;padding:25px;border:1px solid #b18a797a;border-radius:26px;background:radial-gradient(ellipse at 12% 0,#ba93812b,transparent 70%),linear-gradient(145deg,#6b4e47,#493a37);box-shadow:inset 0 1px 1px #f5decd20,inset 0 -3px 10px #291d1a44,0 9px 22px #0002;position:relative;isolation:isolate;overflow:hidden}
+#onde-app-v1 .oa-shared-score:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:var(--oa-grain);background-size:96px 96px;opacity:.88;mix-blend-mode:soft-light}
+#onde-app-v1 .oa-shared-score>*{position:relative;z-index:1}
+#onde-app-v1 .oa-shared-score .oa-eyebrow{color:#f0d6c6;letter-spacing:.13em}
 #onde-app-v1 .oa-score-number{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:13px 0 7px}
-#onde-app-v1 .oa-score-number strong{font-size:clamp(52px,16vw,78px);line-height:1;font-weight:350;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:#e5ead9;overflow-wrap:anywhere;min-width:0}
-#onde-app-v1 .oa-score-number span{font:italic 22px Georgia,serif;color:#c5d0b5}
-#onde-app-v1 .oa-score-caption{font-size:12px;color:#b9c4ad;line-height:1.6;margin-top:10px}
-#onde-app-v1 .oa-score-rule{display:flex;align-items:center;gap:8px;border-top:1px solid #87957233;padding-top:15px;margin-top:20px;font-size:11px;color:#c4cdb9}
-#onde-app-v1 .oa-score-rule span{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#afbf9850;color:#dbe7c9}
+#onde-app-v1 .oa-score-number strong{font-size:clamp(52px,16vw,78px);line-height:1;font-weight:350;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:#faecdc;overflow-wrap:anywhere;min-width:0}
+#onde-app-v1 .oa-score-number span{font:italic 22px Georgia,serif;color:#edcfb8}
+#onde-app-v1 .oa-score-caption{font-size:12px;color:#ecd9ce;line-height:1.6;margin-top:10px}
+#onde-app-v1 .oa-score-rule{display:flex;align-items:center;gap:8px;border-top:1px solid #d9bba333;padding-top:15px;margin-top:20px;font-size:11px;color:#f1ddd0}
+#onde-app-v1 .oa-score-rule span{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#b8887557;color:#fae8d7}
+#onde-app-v1 .oa-badge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+#onde-app-v1 .oa-badge{position:relative;isolation:isolate;overflow:hidden;min-width:0;padding:14px 13px 12px;border:1px solid #80756d66;border-radius:18px;background:linear-gradient(145deg,#373535,#2c2c2d);box-shadow:inset 0 1px #ffffff12,inset 0 -2px 5px #1d191940}
+#onde-app-v1 .oa-badge:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:var(--oa-grain);background-size:98px;opacity:.72;mix-blend-mode:soft-light}
+#onde-app-v1 .oa-badge>*{position:relative;z-index:1}
+#onde-app-v1 .oa-badge-top{display:flex;justify-content:space-between;align-items:center;gap:7px;min-height:32px}
+#onde-app-v1 .oa-badge-icon{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:11px;background:#4a4542;color:#c5b8ae;box-shadow:inset 0 1px 2px #f1e1d217,inset 0 -2px 3px #211c1a44}
+#onde-app-v1 .oa-badge-icon svg{display:block;flex:none;width:21px;height:21px}
+#onde-app-v1 .oa-badge-status{font-size:9.5px;line-height:1.35;text-align:right;color:#b6aca6}
+#onde-app-v1 .oa-badge h3{font-size:12px;font-weight:450;line-height:1.4;letter-spacing:-.1px;color:#ded4cc;margin-top:12px;min-height:34px;overflow-wrap:break-word}
+#onde-app-v1 .oa-badge-progress{height:4px;border-radius:3px;overflow:hidden;background:#1a171766;margin-top:10px}
+#onde-app-v1 .oa-badge-progress i{display:block;width:100%;height:100%;border-radius:inherit;background:#9c8d83;transform-origin:left center}
+#onde-app-v1 .oa-badge-progress-text{margin-top:7px;font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;color:#c7b3a7}
+#onde-app-v1 .oa-badge.is-earned{border-color:#b98c7b75;background:linear-gradient(145deg,#614c47,#403637)}
+#onde-app-v1 .oa-badge.is-earned .oa-badge-icon{background:#b38a78;color:#302321;box-shadow:inset 0 1px 2px #f4e0cf42,inset 0 -2px 3px #67463a3b}
+#onde-app-v1 .oa-badge.is-earned h3{color:#f1ddd1}
+#onde-app-v1 .oa-badge.is-earned .oa-badge-status{color:#e3c3b0}
+#onde-app-v1 .oa-badge.is-earned .oa-badge-progress i{background:#d0a18a}
+#onde-app-v1 .oa-badge.is-next{border-color:#b3997d99;background:linear-gradient(145deg,#49403b,#343030)}
+#onde-app-v1 .oa-badge.is-next .oa-badge-status{color:#dfc5af}
+#onde-app-v1 .oa-badge.is-next .oa-badge-progress i{background:#bd9c84}
 #onde-app-v1 .oa-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-#onde-app-v1 .oa-score-category{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:13px 12px;border:1px solid var(--oa-line);border-radius:14px;background:#242d27}
-#onde-app-v1 .oa-score-label{display:flex;align-items:center;gap:7px;font-size:11px;color:#bfc8b8;min-width:0}
+#onde-app-v1 .oa-score-category{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:13px 12px;border:1px solid #82766a55;border-radius:14px;background:#2d2d2c}
+#onde-app-v1 .oa-score-label{display:flex;align-items:center;gap:7px;font-size:11px;color:#c9c7bf;min-width:0}
 #onde-app-v1 .oa-score-label i{width:6px;height:17px;border-radius:4px;background:var(--category);flex:none}
-#onde-app-v1 .oa-score-category strong{font-size:18px;font-weight:450;font-variant-numeric:tabular-nums;color:#e0e6d8;overflow-wrap:anywhere;min-width:0}
+#onde-app-v1 .oa-score-category strong{font-size:18px;font-weight:450;font-variant-numeric:tabular-nums;color:#ece4d7;overflow-wrap:anywhere;min-width:0}
 #onde-app-v1 .oa-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 0;border-bottom:1px solid var(--oa-line)}
 #onde-app-v1 .oa-setting:last-child{border:0}
 #onde-app-v1 .oa-setting span{display:block;font-size:13px;line-height:1.4}
@@ -274,7 +296,7 @@
 #onde-app-v1 .oa-card-meta{border-top-color:color-mix(in srgb,var(--category) 38%,transparent)}
 #onde-app-v1 .oa-status-strip{background:linear-gradient(115deg,#55776455,#526a8540,#725d7240);border-color:#a4b89b66}
 #onde-app-v1 .oa-hp-track i span{background:linear-gradient(90deg,#95c7c4,#c1d397,#e7bc82)}
-#onde-app-v1 .oa-nav button[aria-current=page]{color:#f0d4ad}
+#onde-app-v1 .oa-nav button[aria-current=page]{color:#dfb6a3}
 #onde-app-v1 .oa-nav button[aria-current=page] .oa-nav-mark{filter:drop-shadow(0 0 7px #e8b98c99);animation:oa-nav-pop .45s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-button:not(:disabled):active{transform:translateY(2px) scale(.975);filter:saturate(1.16)}
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(140deg,#4b5e5d,#465144);border-color:#8fae9b;color:#f0eee4}
@@ -401,13 +423,13 @@
 #onde-app-v1 .oa-wordmark{font-size:clamp(20px,6vw,24px);letter-spacing:.12em;gap:8px}
 /* Final tactile balance: pigment, fine type, static high contrast fibres. */
 #onde-app-v1{--oa-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.9' intercept='-.45'/%3E%3CfeFuncG type='linear' slope='1.9' intercept='-.45'/%3E%3CfeFuncB type='linear' slope='1.9' intercept='-.45'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Cpath d='M0 0h180v180H0z' fill='%23fff' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E")}
-#onde-app-v1 .oa-shell:before{opacity:.8;background-size:116px 116px}
+#onde-app-v1 .oa-shell:before{opacity:.9;background-size:104px 104px}
 #onde-app-v1 .oa-playing-card:after{opacity:.78;background-size:105px 105px}
 #onde-app-v1 .oa-task:before{opacity:.82;background-size:104px 104px}
 #onde-app-v1 .oa-title{font-size:clamp(28px,7.5vw,32px);line-height:1.15;letter-spacing:-.035em}
 #onde-app-v1 .oa-wordmark{font-size:22px;letter-spacing:.09em}
 #onde-app-v1 .oa-wordmark span{font-size:16px}
-#onde-app-v1 .oa-button{background:linear-gradient(145deg,#d9b797,#cda38e);border-color:#e5c6a7;box-shadow:inset 0 1px #ffffff60,inset 0 -2px 4px #755d4220,0 3px 8px #0002;font-weight:500}
+#onde-app-v1 .oa-button{background:linear-gradient(145deg,#d5af9c,#bd8d7d);border-color:#e0c0ad;box-shadow:inset 0 1px #ffffff60,inset 0 -2px 4px #75544b20,0 3px 8px #0002;font-weight:500}
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(145deg,#9bb6b7,#809fa7);border-color:#b4c7c3;box-shadow:inset 0 1px #ffffff50,inset 0 -2px 4px #344b4a20,0 3px 8px #0002;font-weight:500}
 #onde-app-v1 .oa-button:not(:disabled):hover{box-shadow:inset 0 1px #fff6,0 4px 10px #0003;filter:none}
 #onde-app-v1 .oa-task{padding:18px;border-radius:22px;box-shadow:inset 0 1px #ffffff1f,inset 0 -2px 5px #0002}
@@ -420,7 +442,7 @@
 #onde-app-v1 .oa-nav button{gap:7px}
 #onde-app-v1 .oa-nav-icon{display:block;width:22px;height:22px;flex:none;opacity:.62}
 #onde-app-v1 .oa-nav button[aria-current=page] .oa-nav-icon{opacity:1;animation:oa-nav-pop .3s cubic-bezier(.22,1,.36,1) both}
-#onde-app-v1 .oa-task-count{min-width:16px;height:16px;font-size:9px;vertical-align:baseline;background:#b6c1a8}
+#onde-app-v1 .oa-task-count{min-width:16px;height:16px;font-size:9px;vertical-align:baseline;background:#c99d89;color:#352721}
 #onde-app-v1 .oa-card-title{font-size:clamp(25px,6.7vw,28px)}
 #onde-app-v1 .oa-card-fact>strong{font-size:clamp(26px,7vw,32px)}
 #onde-app-v1 .oa-hp-top strong{font-size:27px}
@@ -452,7 +474,7 @@
 /* Connection belongs to this device; player identities are no longer controls. */
 #onde-app-v1 .oa-identities{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:4px;padding:4px;border-radius:23px;background:#101512}
 #onde-app-v1 .oa-person-name{display:flex;align-items:center;justify-content:center;gap:3px;min-height:42px;padding:8px 10px;border-radius:19px;font-size:13px;line-height:1.3;text-align:center;color:#aeb7a6;overflow-wrap:anywhere}
-#onde-app-v1 .oa-person-name.is-me{background:linear-gradient(145deg,#5d6b56,#465244);color:#edf1e2;box-shadow:inset 0 1px #ffffff20,0 1px 3px #0003}
+#onde-app-v1 .oa-person-name.is-me{background:linear-gradient(145deg,#66524a,#4f4340);color:#f0e6d8;box-shadow:inset 0 1px #efd0be25,0 1px 3px #0003}
 #onde-app-v1 .oa-login{margin:30px 0 45px}
 #onde-app-v1 .oa-login .oa-field{font-size:13px}
 #onde-app-v1 .oa-login .oa-field input{font-size:16px;min-height:50px;border-radius:15px;background:#162019b3;border-color:#79887366}
@@ -1100,7 +1122,7 @@ uniform mat3 uRotation;
 uniform vec3 uPosition,uScale,uColor;
 uniform int uType,uCount;
 uniform vec3 uNormals[20],uTangents[20],uBitangents[20];
-uniform float uOffset,uBound;
+uniform float uOffset,uBound,uValue,uResultLight;
 uniform sampler2D uAtlas;
 vec3 localPoint(vec3 p){vec3 v=(p-uPosition)/uScale;return vec3(dot(v,uRotation[0]),dot(v,uRotation[1]),dot(v,uRotation[2]));}
 float poly(vec3 p){float s=0.;for(int i=0;i<20;i++){if(i<uCount){float q=max(dot(p,uNormals[i]),0.);float q2=q*q;float q4=q2*q2;float q8=q4*q4;s+=uType==4?q4:q8*q8;}}float exponent=uType==4?.25:.0625;return (pow(max(s,1.e-20),exponent)-uOffset)/pow(float(uCount),exponent);}
@@ -1151,6 +1173,12 @@ void main(){
    color+=vec3(1.,.98,.91)*spec*(1.-mark*.55);
    float fresnel=pow(1.-max(dot(n,v),0.),4.);color+=vec3(.27,.32,.28)*fresnel*.10;
    color*=.93+.07*smoothstep(.0,.48,p.y);color*=1.+g*.004;
+   // Only the settled result receives bright ivory ink. The glint stays inside
+   // the numeral, with fine material-space grain rather than an external glow.
+   float resultFace=1.-step(.5,abs(idx-(uValue-1.)));
+   float inkSpec=pow(max(dot(n,halfV),0.),24.)*.11;
+   vec3 resultInk=pow(vec3(.99,.985,.955),vec3(2.2))*(.94+.06*diffuse)+vec3(1.,.995,.97)*inkSpec+grain(lp*1.7)*.006;
+   color=mix(color,resultInk,mark*resultFace*uResultLight);
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
    color=(color*coverage+shadowColor*shadowAlpha*(1.-coverage))/max(outputAlpha,.0001);
   }
@@ -1234,6 +1262,7 @@ void main(){
     let duration=Math.max(250,Number(options.duration)||1600),activeDuration=duration,settleAt=0,settleScale=1;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
+    let resultLight=1;
     let gl=null,program=null,buffer=null,texture=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='';
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
@@ -1264,7 +1293,7 @@ void main(){
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Shader link: '+String(gl.getProgramInfoLog(program)||'Link failed without driver log.'));
         gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
         const attr=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
-        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas'])uniforms[name]=gl.getUniformLocation(program,name);
+        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas','uValue','uResultLight'])uniforms[name]=gl.getUniformLocation(program,name);
         const atlas=document.createElement('canvas');atlas.width=512;atlas.height=1024;const a=atlas.getContext('2d');
         if(!a)throw new Error('Dice texture canvas unavailable.');
         a.fillStyle='#000';a.fillRect(0,0,512,1024);a.fillStyle='#fff';a.font='500 67px Arial,sans-serif';a.textAlign='center';a.textBaseline='middle';
@@ -1329,7 +1358,13 @@ void main(){
         const n=transformedNormal(face.n),shade=.72+.27*Math.max(0,dot(n,light));
         const center=project(face.center),tp=project(add(face.center,face.t)),bp=project(add(face.center,face.b)),size=type===4?.60:type===6?.80:.34;
         c.save();c.transform((tp[0]-center[0])*size/64,(tp[1]-center[1])*size/64,-(bp[0]-center[0])*size/64,-(bp[1]-center[1])*size/64,center[0],center[1]);
-        c.fillStyle=rgb(shade,.75);c.font='500 64px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(face.value),0,3);c.restore();
+        c.fillStyle=rgb(shade,.75);
+        if(face.value===result&&resultLight>0) {
+          const ink=c.createLinearGradient(-30,-28,30,34),muted=COLORS[type].map((v,i)=>(v*255*.25+[235,232,215][i]*.75)*shade);
+          for(const [stop,ivory] of [[0,[247,246,237]],[.34,[250,249,241]],[.43,[255,254,248]],[.57,[250,249,241]],[1,[247,246,237]]])ink.addColorStop(stop,'rgb('+muted.map((v,i)=>Math.round(v+(ivory[i]-v)*resultLight)).join(',')+')');
+          c.fillStyle=ink;
+        }
+        c.font='500 64px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(face.value),0,3);c.restore();
       }
       c.restore();
       roundedPoly(c,hull,rounding);c.save();c.clip();c.lineWidth=1.4;c.strokeStyle='rgba(255,255,235,.11)';c.stroke();c.restore();
@@ -1339,7 +1374,7 @@ void main(){
       if(!alive)return;lastFrame={q,sy,lift,x,z};
       if(mode!=='webgl'){drawFallback(q,sy,lift,x,z);return;}
       const m=matrix(q),scale=[1/Math.sqrt(sy),sy,1/Math.sqrt(sy)],y=scale[1]*support(type,m)+lift+.002;
-      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,x,y,z);gl.uniform1f(uniforms.uBound,2.05*Math.max(...scale));gl.drawArrays(gl.TRIANGLES,0,6);
+      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,x,y,z);gl.uniform1f(uniforms.uBound,2.05*Math.max(...scale));gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }
     function resize() {
       if(!alive)return;
@@ -1349,7 +1384,7 @@ void main(){
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);
     }
     function resolvePending() { const resolve=resolveRoll;resolveRoll=null;pending=null;if(resolve)resolve(result); }
-    function finish() { cancelFrame();busy=false;pressed=false;rotation=goalQ||rotation;pressScale=1;draw();updateLabel();resolvePending(); }
+    function finish() { cancelFrame();busy=false;pressed=false;rotation=goalQ||rotation;pressScale=1;resultLight=1;draw();updateLabel();resolvePending(); }
     function animate(now) {
       raf=0;if(!alive||!busy)return;
       const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0;
@@ -1358,6 +1393,7 @@ void main(){
       else if(ms<1600){const t=(ms-1160)/440;if(t<.36){sy=1-.19*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,wave=Math.pow(Math.sin(Math.PI*b),2);lift=.14*wave;sy=1+.035*Math.sin(2*Math.PI*b)*wave;}q=qmul(axisQ([.5,0,.8],.12*Math.sin(t*3*Math.PI)*Math.pow(Math.sin(Math.PI*t),2)*Math.exp(-t*3)),goalQ);}
       else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.035*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.035*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);}
       else{finish();return;}
+      resultLight=smooth(Math.max(0,Math.min(1,(ms-1600)/650)));
       draw(q,sy,lift,x,z);raf=requestAnimationFrame(animate);
     }
     function animatePress(now) {
@@ -1395,10 +1431,10 @@ void main(){
     resize();updateLabel();
     return {
       get mode(){return mode;},get error(){return renderError;},get busy(){return busy;},get value(){return result;},get kind(){return type;},
-      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),same=nextKind===type&&nextValue===result;cancelFrame();pressed=false;busy=false;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
+      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),same=nextKind===type&&nextValue===result;cancelFrame();pressed=false;busy=false;resultLight=1;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;busy=true;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activeDuration=Math.max(250,Number(rollOptions.duration)||duration);updateLabel(true);
+        const next=validValue(value,type);cancelFrame();pressed=false;busy=true;resultLight=0;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activeDuration=Math.max(250,Number(rollOptions.duration)||duration);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
@@ -2082,9 +2118,23 @@ void main(){
   return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId);return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(task.proposal?'<p class="oa-task-proposal">'+h(task.proposal)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
+ function sharedBadges(total){
+  const badges=[
+   {points:5,name:'Couple complice',icon:'<circle cx="8.5" cy="12" r="5"/><circle cx="15.5" cy="12" r="5"/>'},
+   {points:10,name:'Couple stable',icon:'<path d="M5 19V11a7 7 0 0 1 14 0v8M9 19v-7a3 3 0 0 1 6 0v7M3.5 19h17"/>'},
+   {points:15,name:'Super couple',icon:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/>'},
+   {points:30,name:'Couple légendaire',icon:'<path d="M3.5 7 8 10.5l4-7 4 7 4.5-3.5L18 17.5H6ZM7.5 20.5h9"/>'}
+  ];
+  const next=badges.find(badge=>total<badge.points);
+  return '<section class="oa-badge-grid" aria-label="Vos badges communs">'+badges.map(badge=>{
+   const progress=Math.max(0,Math.min(total,badge.points)),earned=total>=badge.points,isNext=badge===next;
+   const status=earned?'Acquis':isNext?'Prochain':'À débloquer',key='oa-badge-'+badge.points;
+   return '<article class="oa-badge '+(earned?'is-earned':isNext?'is-next':'is-locked')+'" data-badge="'+badge.points+'" aria-labelledby="'+key+'"><div class="oa-badge-top"><span class="oa-badge-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+badge.icon+'</svg></span><span class="oa-badge-status">'+status+'</span></div><h3 id="'+key+'">'+badge.name+'</h3><div class="oa-badge-progress" role="progressbar" aria-label="'+badge.name+'" aria-valuemin="0" aria-valuemax="'+badge.points+'" aria-valuenow="'+progress+'" aria-valuetext="'+status+' · '+progress+' sur '+badge.points+' points"><i style="transform:scaleX('+progress/badge.points+')"></i></div><p class="oa-badge-progress-text">'+progress+' / '+badge.points+' points</p></article>';
+  }).join('')+'</section>';
+ }
  function sharedScore(){
   const stats=state.stats,total=stats.totalCompleted;
-  return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
+  return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section>'+sharedBadges(total)+'<div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
  }
  function notificationSetting(){
   const n=remote.notificationStatus;
@@ -2120,7 +2170,7 @@ void main(){
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   if(animate&&!systemReduce&&main.animate){
-   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
+   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score,:scope > .oa-badge-grid');
    blocks.forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,delay:Math.min(i*28,100),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'}));
    main.querySelectorAll('.oa-category,.oa-mini-card').forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(12px) rotate(-2deg)'},{opacity:1,transform:'translateY(0) rotate(0)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
    const revealed=main.querySelector('.oa-card-stage .oa-playing-card');

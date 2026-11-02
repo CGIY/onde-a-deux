@@ -9,7 +9,7 @@ uniform mat3 uRotation;
 uniform vec3 uPosition,uScale,uColor;
 uniform int uType,uCount;
 uniform vec3 uNormals[20],uTangents[20],uBitangents[20];
-uniform float uOffset,uBound;
+uniform float uOffset,uBound,uValue,uResultLight;
 uniform sampler2D uAtlas;
 vec3 localPoint(vec3 p){vec3 v=(p-uPosition)/uScale;return vec3(dot(v,uRotation[0]),dot(v,uRotation[1]),dot(v,uRotation[2]));}
 float poly(vec3 p){float s=0.;for(int i=0;i<20;i++){if(i<uCount){float q=max(dot(p,uNormals[i]),0.);float q2=q*q;float q4=q2*q2;float q8=q4*q4;s+=uType==4?q4:q8*q8;}}float exponent=uType==4?.25:.0625;return (pow(max(s,1.e-20),exponent)-uOffset)/pow(float(uCount),exponent);}
@@ -60,6 +60,12 @@ void main(){
    color+=vec3(1.,.98,.91)*spec*(1.-mark*.55);
    float fresnel=pow(1.-max(dot(n,v),0.),4.);color+=vec3(.27,.32,.28)*fresnel*.10;
    color*=.93+.07*smoothstep(.0,.48,p.y);color*=1.+g*.004;
+   // Only the settled result receives bright ivory ink. The glint stays inside
+   // the numeral, with fine material-space grain rather than an external glow.
+   float resultFace=1.-step(.5,abs(idx-(uValue-1.)));
+   float inkSpec=pow(max(dot(n,halfV),0.),24.)*.11;
+   vec3 resultInk=pow(vec3(.99,.985,.955),vec3(2.2))*(.94+.06*diffuse)+vec3(1.,.995,.97)*inkSpec+grain(lp*1.7)*.006;
+   color=mix(color,resultInk,mark*resultFace*uResultLight);
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
    color=(color*coverage+shadowColor*shadowAlpha*(1.-coverage))/max(outputAlpha,.0001);
   }
@@ -143,6 +149,7 @@ void main(){
     let duration=Math.max(250,Number(options.duration)||1600),activeDuration=duration,settleAt=0,settleScale=1;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
+    let resultLight=1;
     let gl=null,program=null,buffer=null,texture=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='';
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
@@ -173,7 +180,7 @@ void main(){
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Shader link: '+String(gl.getProgramInfoLog(program)||'Link failed without driver log.'));
         gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
         const attr=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
-        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas'])uniforms[name]=gl.getUniformLocation(program,name);
+        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas','uValue','uResultLight'])uniforms[name]=gl.getUniformLocation(program,name);
         const atlas=document.createElement('canvas');atlas.width=512;atlas.height=1024;const a=atlas.getContext('2d');
         if(!a)throw new Error('Dice texture canvas unavailable.');
         a.fillStyle='#000';a.fillRect(0,0,512,1024);a.fillStyle='#fff';a.font='500 67px Arial,sans-serif';a.textAlign='center';a.textBaseline='middle';
@@ -238,7 +245,13 @@ void main(){
         const n=transformedNormal(face.n),shade=.72+.27*Math.max(0,dot(n,light));
         const center=project(face.center),tp=project(add(face.center,face.t)),bp=project(add(face.center,face.b)),size=type===4?.60:type===6?.80:.34;
         c.save();c.transform((tp[0]-center[0])*size/64,(tp[1]-center[1])*size/64,-(bp[0]-center[0])*size/64,-(bp[1]-center[1])*size/64,center[0],center[1]);
-        c.fillStyle=rgb(shade,.75);c.font='500 64px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(face.value),0,3);c.restore();
+        c.fillStyle=rgb(shade,.75);
+        if(face.value===result&&resultLight>0) {
+          const ink=c.createLinearGradient(-30,-28,30,34),muted=COLORS[type].map((v,i)=>(v*255*.25+[235,232,215][i]*.75)*shade);
+          for(const [stop,ivory] of [[0,[247,246,237]],[.34,[250,249,241]],[.43,[255,254,248]],[.57,[250,249,241]],[1,[247,246,237]]])ink.addColorStop(stop,'rgb('+muted.map((v,i)=>Math.round(v+(ivory[i]-v)*resultLight)).join(',')+')');
+          c.fillStyle=ink;
+        }
+        c.font='500 64px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(face.value),0,3);c.restore();
       }
       c.restore();
       roundedPoly(c,hull,rounding);c.save();c.clip();c.lineWidth=1.4;c.strokeStyle='rgba(255,255,235,.11)';c.stroke();c.restore();
@@ -248,7 +261,7 @@ void main(){
       if(!alive)return;lastFrame={q,sy,lift,x,z};
       if(mode!=='webgl'){drawFallback(q,sy,lift,x,z);return;}
       const m=matrix(q),scale=[1/Math.sqrt(sy),sy,1/Math.sqrt(sy)],y=scale[1]*support(type,m)+lift+.002;
-      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,x,y,z);gl.uniform1f(uniforms.uBound,2.05*Math.max(...scale));gl.drawArrays(gl.TRIANGLES,0,6);
+      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,x,y,z);gl.uniform1f(uniforms.uBound,2.05*Math.max(...scale));gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }
     function resize() {
       if(!alive)return;
@@ -258,7 +271,7 @@ void main(){
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);
     }
     function resolvePending() { const resolve=resolveRoll;resolveRoll=null;pending=null;if(resolve)resolve(result); }
-    function finish() { cancelFrame();busy=false;pressed=false;rotation=goalQ||rotation;pressScale=1;draw();updateLabel();resolvePending(); }
+    function finish() { cancelFrame();busy=false;pressed=false;rotation=goalQ||rotation;pressScale=1;resultLight=1;draw();updateLabel();resolvePending(); }
     function animate(now) {
       raf=0;if(!alive||!busy)return;
       const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0;
@@ -267,6 +280,7 @@ void main(){
       else if(ms<1600){const t=(ms-1160)/440;if(t<.36){sy=1-.19*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,wave=Math.pow(Math.sin(Math.PI*b),2);lift=.14*wave;sy=1+.035*Math.sin(2*Math.PI*b)*wave;}q=qmul(axisQ([.5,0,.8],.12*Math.sin(t*3*Math.PI)*Math.pow(Math.sin(Math.PI*t),2)*Math.exp(-t*3)),goalQ);}
       else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.035*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.035*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);}
       else{finish();return;}
+      resultLight=smooth(Math.max(0,Math.min(1,(ms-1600)/650)));
       draw(q,sy,lift,x,z);raf=requestAnimationFrame(animate);
     }
     function animatePress(now) {
@@ -304,10 +318,10 @@ void main(){
     resize();updateLabel();
     return {
       get mode(){return mode;},get error(){return renderError;},get busy(){return busy;},get value(){return result;},get kind(){return type;},
-      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),same=nextKind===type&&nextValue===result;cancelFrame();pressed=false;busy=false;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
+      setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),same=nextKind===type&&nextValue===result;cancelFrame();pressed=false;busy=false;resultLight=1;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;busy=true;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activeDuration=Math.max(250,Number(rollOptions.duration)||duration);updateLabel(true);
+        const next=validValue(value,type);cancelFrame();pressed=false;busy=true;resultLight=0;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activeDuration=Math.max(250,Number(rollOptions.duration)||duration);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
