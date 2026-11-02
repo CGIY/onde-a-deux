@@ -36,7 +36,7 @@ Les inspirations jointes servent uniquement à comprendre des idées et une dire
 4. Afficher dans les cartes dépliées de vrais chiffres encourageants, pertinents et sourcés, avec leur contexte.
 5. Lisser les petites saccades visibles près des arêtes arrondies des dés et utiliser des **chiffres sur les D4, D6 et D20**, sans points sur le D6.
 
-## État exact du WIP
+## État du WIP à la reprise
 
 ### Moteur du jeu : terminé et testé
 
@@ -96,3 +96,13 @@ node demo-des/dev/tests/onde-dice-qa.cjs
 Le premier appel écrit seulement `demo-des/dev/dist/index.html` pour l’aperçu WIP. Après validation, `python3 demo-des/dev/build.py --release` met à jour les deux HTML, la version Xcode, les README, les sources JSON et le ZIP. Les anciens scripts dans `workflow/` sont des archives de provenance ; utiliser `build.py`.
 
 Les tests du dé ont aussi été relancés avec succès après copie : 30 faces finales, 15 raccords, pose finale, annulation, mouvement réduit, DPR 2 et chiffres du D6 en secours Canvas2D. Cela ne constitue pas un test de fluidité sur iPhone.
+
+## Clôture de la version 0.3.0
+
+Le correctif complémentaire a été publié sur `main` et `codex/onde-v030-handoff`, commit `9f1f996`.
+
+- Avant l’envoi, la personne qui tire choisit de proposer directement ou de tenter son propre D20. Elle ne peut plus passer la carte dans les phases `draft` ou `draft_challenge`. Le défi commencé doit aller jusqu’à son issue ; si ses deux jets sont insuffisants, la carte est automatiquement proposée à l’autre profil. Celui-ci peut ensuite passer sans pénalité. Un résultat de dé ne vaut jamais consentement.
+- La palette et les animations CSS ont été renforcées ; le carrousel, les repères sourcés et le défilement des fiches restent en place. Les références visuelles n’ont servi que d’inspiration.
+- **26 cartes** ont un repère chiffré contextualisé et sourcé ; **31** ont un texte honnête sans statistique. Aucun chiffre n’a été ajouté sans source pertinente.
+- Les tests finaux passent : **366 assertions** du parcours D20, **43** du score et QA des dés. La compilation Xcode 27.2 pour simulateur iOS passe ; l’app a été lancée sur iPhone 18 Pro simulé. La page GitHub Pages et le ZIP ont été reconstruits et déployés.
+- Il reste à observer chaque parcours interactif dans l’interface et la fluidité du rendu sur un iPhone physique. Le simulateur ne permet pas de conclure sur les performances GPU réelles.

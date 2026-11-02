@@ -12,7 +12,7 @@ Avant la proposition, la personne qui tire choisit entre l’envoyer directement
 
 Les 57 cartes de démonstration, les favoris, les variantes et le score commun sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
 
-La compilation pour simulateur avec Xcode 27.2 a réussi et l’application a été lancée sur un iPhone 18 Pro simulé. Les tests fournis du parcours D20 (354 assertions), du score (43 assertions) et des dés passent. Une vérification complète de tous les parcours dans l’interface et la fluidité sur iPhone physique restent à observer.
+La compilation pour simulateur avec Xcode 27.2 a réussi et l’application a été lancée sur un iPhone 18 Pro simulé. Les tests fournis du parcours D20 (366 assertions), du score (43 assertions) et des dés passent. Une vérification complète de tous les parcours dans l’interface et la fluidité sur iPhone physique restent à observer.
 
 ## Couleurs, mouvement et repères sourcés
 
