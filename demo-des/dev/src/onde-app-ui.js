@@ -57,10 +57,13 @@
 
  function announce(text){root.querySelector('#oa-announcement').textContent=text;}
  function serverNow(){return Date.now()+serverOffset;}
+ function samePerspective(a,b){return a&&b&&a.roomId===b.roomId&&a.actor===b.actor;}
+ function currentPerspective(value){const identity=remote?.connection;return !identity||samePerspective(value,identity);}
  function applyRemote(value,renderNow=true){
-  if(!value||!value.state||!['a','b'].includes(value.actor))return false;
-  if(remoteSnapshot&&value.roomId===remoteSnapshot.roomId&&value.revision<remoteSnapshot.revision)return false;
+  if(!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
+  if(samePerspective(value,remoteSnapshot)&&value.revision<remoteSnapshot.revision)return false;
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
+  if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
   const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
@@ -68,13 +71,17 @@
   if(renderNow&&changed)render();return changed;
  }
  function receiveRemote(value){
-  if(!value)return false;
-  if(busy||operationBusy||pendingChecks.size){if(!deferredSnapshot||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;return false;}
+  if(!value||!currentPerspective(value))return false;
+  if(busy||operationBusy||pendingChecks.size){if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;return false;}
   return applyRemote(value);
  }
  function flushRemote(value,renderNow=false){
-  let chosen=value;if(deferredSnapshot&&(!chosen||deferredSnapshot.revision>=chosen.revision))chosen=deferredSnapshot;
+  let chosen=currentPerspective(value)?value:null;
+  if(deferredSnapshot&&currentPerspective(deferredSnapshot)&&(!chosen||deferredSnapshot.revision>=chosen.revision))chosen=deferredSnapshot;
   deferredSnapshot=null;return chosen?applyRemote(chosen,renderNow):false;
+ }
+ function updateLoginError(message){
+  loginError=message||'';const element=main.querySelector('[data-login-error]');if(element){element.textContent=loginError;element.hidden=!loginError;}
  }
  function remoteError(error){
   if(error&&error.snapshot)flushRemote(error.snapshot,false);
@@ -122,7 +129,7 @@
 
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
-  return heading('Votre<br><em>espace.</em>',null,null)+'<form class="oa-login" data-login-form><label class="oa-field">Identifiant<input id="oa-username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="80" value="'+h(loginUsername)+'"></label><label class="oa-field">Mot de passe<input id="oa-password" name="password" type="password" autocomplete="current-password" required maxlength="256"></label>'+(loginError?'<p class="oa-form-error" role="alert">'+h(loginError)+'</p>':'')+'<div class="oa-actions"><button type="submit" class="oa-button cursor-interaction" '+(!remote?.enabled?'disabled':'')+'>Se connecter <span class="oa-arrow">↗</span></button></div></form>';
+  return heading('Votre<br><em>espace.</em>',null,null)+'<form class="oa-login" data-login-form><label class="oa-field">Identifiant<input id="oa-username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="80" value="'+h(loginUsername)+'"></label><label class="oa-field">Mot de passe<input id="oa-password" name="password" type="password" autocomplete="current-password" required maxlength="256"></label><p class="oa-form-error" data-login-error role="alert" '+(!loginError?'hidden':'')+'>'+h(loginError)+'</p><div class="oa-actions"><button type="submit" class="oa-button cursor-interaction" '+(!remote?.enabled?'disabled':'')+'>Se connecter <span class="oa-arrow">↗</span></button></div></form>';
  }
  function renderPersona(){
   persona.hidden=remoteMode&&!remoteReady;navigation.hidden=remoteMode&&!remoteReady;const help=root.querySelector('[data-action="rules"]');if(help)help.hidden=remoteMode&&!remoteReady;
@@ -266,7 +273,7 @@
     const value=await remote.action({...action,roundId});
     if(!value.roll||value.roll.kind!==sides)throw Error('Unconfirmed roll');
     faceValue=value.roll.value;next=value.state;
-    if(!deferredSnapshot||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
+    if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
     faceValue=G.randomInt(sides);action.value=faceValue;
     if(sides===6)action.hand=G.drawHand(state,faceValue);
@@ -341,9 +348,13 @@
   if(!remote?.enabled){authBusy=false;loginError='La connexion à votre espace n’est pas encore disponible.';render();}
   else{
    remote.subscribeToChanges(event=>{
-    if(remote.connection&&!remote.authenticated){remoteReady=false;authBusy=false;loginError=event.status.message;render();return;}
+    if(remote.connection&&!remote.authenticated){
+     // A reconnect owns its pending screen. Background status must not reset it.
+     if(authBusy)return;
+     const wasReady=remoteReady;remoteReady=false;updateLoginError(event.status.message);if(wasReady)render();return;
+    }
     if(event.snapshot)receiveRemote(event.snapshot);
-    else if(!authBusy&&!remoteReady&&event.status.message){loginError=event.status.message;render();}
+    else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);
     if(remoteReady&&tab==='us'&&!busy&&!operationBusy&&!pendingChecks.size)render();
    });
    remote.start();

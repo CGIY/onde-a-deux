@@ -75,6 +75,27 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
  {
   let revoked=false,second=false;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login'){if(!second)return response(loginReply(options,'a',10));return response(loginReply(options,'b',1,state('b')));}if(revoked)return response({error:{code:'unauthorized'}},401);return response(reply('a',10));}));await r.login('fixture-a','fixture-password');revoked=true;await assert.rejects(r.refresh(),{code:'unauthorized'});second=true;await r.login('fixture-b','fixture-password');check(()=>assert.equal(r.connection.actor,'b'));check(()=>assert.equal(r.snapshot.actor,'b'));check(()=>assert.equal(r.snapshot.revision,1));
  }
+ // Revocation suspends background refreshes through failed credentials until a new login succeeds.
+ {
+  const storage=memory(),accounts=new Map(),loginTokens=[];let revokedToken=null,states=0;
+  const serviceWorker={...eventTarget(),async register(){return {active:{}};}};
+  const environment=env(async(url,options)=>{
+   const p=payload(options),token=options.headers.Authorization.slice(7);
+   if(p.op==='login'){
+    loginTokens.push(token);
+    if(p.password==='bad-secret')return response({error:{code:'invalid_credentials'}},401);
+    const actor=p.username==='fixture-b'?'b':'a';accounts.set(token,actor);return response(loginReply(options,actor,actor==='a'?10:1,state(actor)));
+   }
+   states++;if(token===revokedToken)return response({error:{code:'unauthorized'}},401);
+   return response(reply(accounts.get(token),1,state(accounts.get(token))));
+  },storage,{navigator:{serviceWorker,userAgent:'Test Browser'}});
+  const r=create(config,environment);await r.login('fixture-a','fixture-secret-a');r.start();revokedToken=loginTokens[0];
+  environment.intervals[0]();await tick();check(()=>assert.equal(r.authenticated,false));check(()=>assert.equal(states,1));
+  environment.intervals[0]();environment.intervals[0]();environment.document.emit('visibilitychange');serviceWorker.emit('message',{data:{type:'desir-state-refresh'}});await tick();check(()=>assert.equal(states,1));
+  await assert.rejects(r.login('fixture-b','bad-secret'),{code:'invalid_credentials'});check(()=>assert.equal(r.authenticated,false));environment.intervals[0]();await tick();check(()=>assert.equal(states,1));
+  const next=await r.login('fixture-b','fixture-secret-b');check(()=>assert.equal(next.actor,'b'));check(()=>assert.equal(next.revision,1));check(()=>assert.equal(r.authenticated,true));check(()=>assert.notEqual(loginTokens[1],revokedToken));check(()=>assert.equal(loginTokens[2],loginTokens[1]));
+  environment.intervals[0]();await tick();check(()=>assert.equal(states,2));check(()=>assert.equal(r.snapshot.actor,'b'));check(()=>assert.equal(storage.getItem('desir-connection-v1-registration'),null));check(()=>assert.ok(!Array.from(storage.values.values()).join('').includes('secret')));r.stop();
+ }
  // A committed action whose response is lost is retried with the same durable ID after reload.
  {
   const storage=memory(),ids=[],receipts=new Map();let fail=true,commits=0;

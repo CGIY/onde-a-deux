@@ -105,7 +105,7 @@
   function login(username,password){
    const user=String(username||'').trim();
    if(!user||user.length>80||typeof password!=='string'||!password||password.length>256)return Promise.reject(failure('invalid_credentials','Renseigne ton identifiant et ton mot de passe.'));
-   return serial(async()=>{requireEnabled();if(connection&&!authFailed)return fetchState();setStatus('connecting');try{const pending=pendingLogin();const raw=await request({op:'login',requestId:pending.requestId,username:user,password},pending.token);return await finishLogin(raw,pending);}catch(error){markFailure(error);throw error;}});
+   return serial(async()=>{requireEnabled();try{if(connection&&!authFailed)return await fetchState();setStatus('connecting');const pending=pendingLogin();const raw=await request({op:'login',requestId:pending.requestId,username:user,password},pending.token);return await finishLogin(raw,pending);}catch(error){markFailure(error);throw error;}});
   }
   function cleanAction(action){
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
@@ -187,7 +187,7 @@
     await request({op:'subscribe',subscription:sub.toJSON()},connection.token);setNotification({permission:'granted',subscribed:true,reason:null,message:''});return {...notificationStatus};
    }catch(error){const known=error?.isDesirRemoteError?error:failure('notifications_unavailable','Les notifications n’ont pas pu être activées sur cet appareil.');setNotification({subscribed:false,message:known.message,reason:known.code});throw known;}
   }
-  function refreshQuietly(){if(connection&&(!doc||!doc.hidden))refresh().catch(()=>{});}
+  function refreshQuietly(){if(connection&&!authFailed&&(!doc||!doc.hidden))refresh().catch(()=>{});}
   function visible(){if(!doc?.hidden)refreshQuietly();}
   function pushMessage(event){if(event.data?.type==='desir-state-refresh')refreshQuietly();}
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}

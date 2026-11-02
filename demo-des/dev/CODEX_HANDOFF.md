@@ -28,6 +28,19 @@ node demo-des/dev/tests/onde-visibility-check.cjs
 
 **Xcode et ZIP : archive build 7 conservée à l’identique depuis `325eba7`.** Ne plus synchroniser l’HTML web connecté dans l’archive ni régénérer le ZIP pendant cet essai. Les publications web ne reconstruisent plus Xcode. Les mesures sur matériel physique et la livraison de notifications sur les deux téléphones restent à vérifier ; les tests automatisés ne les remplacent pas.
 
+### Publication et vérification du service
+
+Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 2, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
+
+- 48 vérifications HTTP sur le service hébergé : deux connexions, tirages privés, résultats serveur, rejeu idempotent, deux coches et point unique, quotas et contrôle des accès.
+- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 82 transport, 78 UI, 133 backend et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
+- Navigateur publié : connexion des deux comptes (identifiant accentué compris), D6/D4, envoi, invitation différée, acceptation, tâche de six heures et coche personnelle après confirmation serveur. Aucune erreur de console observée. L'aide ne montre ni quota ni probabilités ; Nous ne contient plus le titre ou le lien de règles redondants.
+- Révocation/reconnexion : les actualisations automatiques s'arrêtent après un accès refusé ; la saisie reste stable, les erreurs se mettent à jour en place et un autre compte peut reprendre avec sa propre perspective.
+- Cron actif chaque minute, appels hébergés 202 et exécutions réussies. Les clés VAPID et le secret cron sont en base privée. Les conseillers de sécurité n'indiquent que l'information attendue « RLS sans politique » : toutes les lectures directes sont volontairement refusées aux rôles publics.
+- Données de jeu d'essai retirées avant remise des accès, sans toucher aux comptes, secrets serveur ou clés de notification. Identifiants et mots de passe remis hors dépôt ; ne jamais les ajouter ici.
+
+La livraison d'une notification sur les deux téléphones physiques reste à observer après installation et activation par chaque personne. Une seule manche est active à la fois, conformément au moteur existant ; une invitation en attente retient donc la manche suivante.
+
 ## Historique de conception et de publication
 
 ## Objectif et dépôt
