@@ -41,7 +41,7 @@ node demo-des/server/tests/backend-check.mjs
 Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 3, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
 
 - 48 vérifications HTTP sur le service hébergé : deux connexions, tirages privés, résultats serveur, rejeu idempotent, deux coches et point unique, quotas et contrôle des accès.
-- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 102 transport, 234 UI, 790 backend, 1 003 relance D4 et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
+- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 102 transport, 248 UI, 790 backend, 1 003 relance D4 et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
 - Navigateur publié : connexion des deux comptes (identifiant accentué compris), D6/D4, envoi, invitation différée, acceptation, tâche de six heures et coche personnelle après confirmation serveur. Aucune erreur de console observée. L'aide ne montre ni quota ni probabilités ; Nous ne contient plus le titre ou le lien de règles redondants.
 - Révocation/reconnexion : les actualisations automatiques s'arrêtent après un accès refusé ; la saisie reste stable, les erreurs se mettent à jour en place et un autre compte peut reprendre avec sa propre perspective.
 - Cron actif chaque minute, appels hébergés 202 et exécutions réussies. Les clés VAPID et le secret cron sont en base privée. Les conseillers de sécurité n'indiquent que l'information attendue « RLS sans politique » : toutes les lectures directes sont volontairement refusées aux rôles publics.
@@ -190,3 +190,5 @@ Moteur : `tasks`, `TOGGLE_TASK_CHECK`, `EXPIRE_TASKS`, `rules.taskLifetimeMs`. `
 Le monogramme ON avant le D4 est remplacé par une composition miniature floutée de la carte : formes rubber, pigments et lignes abstraites. Aucun titre réel ni donnée de carte n’est placé dans le DOM de l’aperçu ; les quatre numéros restent nets et accessibles. Le flou reste actif avec la réduction du mouvement. Les ressources publiques, Xcode et ZIP sont régénérées.
 
 Palette : Projets utilise désormais le bleu ardoise `#8198b4`, distinct du mauve Intimité `#c49bc9`. La couleur centrale est reprise dans tous les écrans.
+
+Dernière précision UI : pendant la relance D4, la grille réaffiche les quatre emplacements. L’ancienne carte est lisible et marquée Écartée ; les trois alternatives restent floutées sans spoiler ni sélection manuelle. Vérification visuelle à 320 px avec le titre maximal.

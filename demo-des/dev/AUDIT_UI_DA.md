@@ -143,14 +143,14 @@ Le grade bleu ardoise demandé sert à le distinguer du score corail. Il ne just
 
 Le 2 novembre 2026, la version construite a été parcourue dans le navigateur intégré. Les scénarios de QA utilisent exclusivement des états fictifs validés par le moteur, isolés du serveur réel et marqués FICTIF. Aucun tirage, quota, point ou tâche du couple n’a été consommé pour l’audit.
 
-| Largeur × hauteur | Couverture des états | Résultat |
+| Largeur interne mesurée | Couverture des états | Résultat |
 |---|---|---|
-| 390 × 844 | 49 états : accueil, connexion et erreurs, dés/quota, mondes privés, six catégories, relance, D20 des deux joueurs, invitations et confirmations, tâches, fins de tour, scores 0/15/50, cinq états de notification, règles, textes maximaux. | Pas de débordement horizontal ni texte tronqué dans les titres, paragraphes et contrôles mesurés. |
-| 320 × 780 | 12 états critiques, dont titre de carte et statistique les plus longs, tâches multiples et dialogue. | Même contrôle sans débordement ; retour à la ligne conservé. |
-| 768 × 1024 | 6 états : connexion, D6, carte au titre maximal, tâches multiples, Nous à 15 points, règles. | Cadre et densité cohérents ; grade unique. |
-| 1280 × 900 | 6 états : accueil, D6, Attentions, statistique longue, Nous à 50 points, règles. | Format mobile centré conservé ; aucun étirement des composants. |
+| 390 px | 49 états : accueil, connexion et erreurs, dés/quota, mondes privés, six catégories, relance, D20 des deux joueurs, invitations et confirmations, tâches, fins de tour, scores 0/15/50, cinq états de notification, règles, textes maximaux. | Pas de débordement horizontal ni texte tronqué dans les titres, paragraphes et contrôles mesurés. |
+| 320 px | 12 états critiques, dont titre de carte et statistique les plus longs, tâches multiples et dialogue. | Même contrôle sans débordement ; retour à la ligne conservé. |
+| 768 px | 6 états : connexion, D6, carte au titre maximal, tâches multiples, Nous à 15 points, règles. | Cadre et densité cohérents ; grade unique. |
+| 1280 px | 6 états : accueil, D6, Attentions, statistique longue, Nous à 50 points, règles. | Format mobile centré conservé ; aucun étirement des composants. |
 
-Soit **73 observations distinctes état/largeur**, avec captures et mesures DOM, puis revue visuelle de 47 captures en planches et contrôles complémentaires individuels. Aucun contrôle actif sous 24 px n’a été détecté par la sonde ; cela ne constitue pas une certification exhaustive des cibles tactiles. Les captures locales sont conservées hors des sources publiques dans le dossier `ui-da-audit` voisin du dépôt.
+Soit **73 observations distinctes état/largeur**, avec largeurs internes effectivement mesurées, mesures DOM et captures représentatives. Une première passe a également permis la revue visuelle de 47 captures en planches ; les valeurs demandées au navigateur qui ne correspondaient pas à la largeur effective ont été remplacées par cette contre-vérification en cadres de largeur explicite. Aucun contrôle actif sous 24 px n’a été détecté par la sonde ; cela ne constitue pas une certification exhaustive des cibles tactiles. Les captures locales sont conservées hors des sources publiques dans le dossier `ui-da-audit` voisin du dépôt.
 
 La revue visuelle confirme les six teintes distinctes, la lecture des cartes assombries, les proportions du cadre, la discrétion des icônes, le score corail et le grade bleu ardoise. Le titre maximal se répartit sur plusieurs lignes sans réduction forcée. La source longue s’ouvre et défile jusqu’au lien et aux actions. Le choix du cadre arrondi est conservé intentionnellement, malgré les anciennes règles du head qui évoquaient un mode plein écran.
 
@@ -159,7 +159,7 @@ La revue visuelle confirme les six teintes distinctes, la lecture des cartes ass
 - Appui de 1 400 ms sur Lancer : charge plafonnée à 1, un seul tirage, durée mesurée du renderer **2 508 ms** (cible de 2 500 ms, plus le pas d’animation). Les clés de la requête restent exclusivement `type` et `roundId`.
 - Clic court : puissance 0,001 environ, un seul tirage, durée mesurée **1 668 ms** (cible 1 650 ms). La face reste fournie par la réponse du moteur.
 - Glissement hors de la zone pendant l’appui : zéro tirage et zéro animation ; le clic suivant fonctionne immédiatement.
-- Relance D4 depuis une carte : une autre carte apparaît après l’animation ; les boutons D20 et relance disparaissent, Proposer reste disponible.
+- Relance D4 depuis une carte : les quatre emplacements reviennent pendant le tirage. La carte abandonnée reste lisible et marquée Écartée, dans un contour pointillé ; les trois autres restent floutées sans aucun titre caché dans le DOM. Les tuiles sont passives et conservent la position du D4. Le titre maximal de 66 caractères est lisible à 320 px. Une autre carte apparaît après l’animation ; les boutons D20 et relance disparaissent, Proposer reste disponible.
 - Validation de sa case lorsque l’autre est déjà cochée : tâche retirée, liste vide affichée, annonce et message **+1 point** visibles.
 - Dialogue : focus initial sur Fermer ; Shift-Tab rejoint le dernier bouton ; Tab boucle ; Escape ferme et rend le focus au bouton d’aide.
 - Source : ouverture native du contexte, paragraphes et lien lisibles après défilement. Réglage iOS non installé : explication d’ajout à l’écran d’accueil visible, sans demande automatique de permission.
@@ -167,7 +167,7 @@ La revue visuelle confirme les six teintes distinctes, la lecture des cartes ass
 
 ### Contre-vérification automatisée
 
-Les suites ciblées couvrent **234 contrôles UI, 102 transport, 790 backend et 1 003 relance**, en complément des suites D20, tâches, score, quotas, confidentialité, statistiques, notifications, renderer et build. Les essais du renderer couvrent les poses finales, les transitions, l’absence de saut pour un résultat répété, les annulations et la réduction des animations. Les grades aux différents seuils et l’absence de noms de grades futurs sont également couverts.
+Les suites ciblées couvrent **248 contrôles UI, 102 transport, 790 backend et 1 003 relance**, en complément des suites D20, tâches, score, quotas, confidentialité, statistiques, notifications, renderer et build. Les essais du renderer couvrent les poses finales, les transitions, l’absence de saut pour un résultat répété, les annulations et la réduction des animations. Les grades aux différents seuils et l’absence de noms de grades futurs sont également couverts.
 
 Le serveur Edge v3 a été déployé. Un appel hébergé à REROLL_CARD avec un identifiant de tour volontairement périmé renvoie le conflit attendu ; un résultat client forgé est rejeté. Aucun tour réel n’a été joué. Le contrôle ne modifie pas les mécanismes métier hors de la relance explicitement approuvée.
 

@@ -449,6 +449,11 @@
 /* Unreadable card glimpses: only soft shapes, never the hidden title in the DOM. */
 #onde-app-v1 .oa-card-back{min-height:100px;background:linear-gradient(145deg,color-mix(in srgb,var(--oa-accent) 28%,#32362e),color-mix(in srgb,var(--oa-accent) 12%,#272d27))}
 #onde-app-v1 .oa-card-back .oa-mini-number{z-index:2;background:#243128b8;color:#e1e5d6;box-shadow:inset 0 1px #ffffff18}
+#onde-app-v1 .oa-card-grid.is-reroll .oa-mini-card{height:118px;min-height:118px}
+#onde-app-v1 .oa-card-back.oa-card-discarded{padding:38px 10px 10px;border-style:dashed;border-color:#ad9a8677;background:linear-gradient(145deg,#3d3732,#2c2c2c);align-items:flex-start;text-align:left}
+#onde-app-v1 .oa-card-discarded .oa-mini-number{background:#52473f;color:#e4d7c8}
+#onde-app-v1 .oa-discarded-state{position:absolute;top:12px;right:10px;z-index:1;color:#d7c1ad;font-size:9px;line-height:1.3;letter-spacing:.025em}
+#onde-app-v1 .oa-card-discarded .oa-discarded-title{position:relative;z-index:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;width:100%;margin:0;font-size:11px;font-weight:450;line-height:1.35;color:#f0e1d3;overflow-wrap:anywhere}
 #onde-app-v1 .oa-card-ghost{position:absolute;inset:-4px;filter:blur(8px);opacity:.7;transform:scale(1.06);pointer-events:none;user-select:none;-webkit-user-select:none}
 #onde-app-v1 .oa-ghost-art{height:49px;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
 #onde-app-v1 .oa-ghost-art i{display:block;width:15px;height:24px;border-radius:9px;background:var(--oa-accent);transform:rotate(-22deg)}

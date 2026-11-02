@@ -459,6 +459,11 @@
 /* Unreadable card glimpses: only soft shapes, never the hidden title in the DOM. */
 #onde-app-v1 .oa-card-back{min-height:100px;background:linear-gradient(145deg,color-mix(in srgb,var(--oa-accent) 28%,#32362e),color-mix(in srgb,var(--oa-accent) 12%,#272d27))}
 #onde-app-v1 .oa-card-back .oa-mini-number{z-index:2;background:#243128b8;color:#e1e5d6;box-shadow:inset 0 1px #ffffff18}
+#onde-app-v1 .oa-card-grid.is-reroll .oa-mini-card{height:118px;min-height:118px}
+#onde-app-v1 .oa-card-back.oa-card-discarded{padding:38px 10px 10px;border-style:dashed;border-color:#ad9a8677;background:linear-gradient(145deg,#3d3732,#2c2c2c);align-items:flex-start;text-align:left}
+#onde-app-v1 .oa-card-discarded .oa-mini-number{background:#52473f;color:#e4d7c8}
+#onde-app-v1 .oa-discarded-state{position:absolute;top:12px;right:10px;z-index:1;color:#d7c1ad;font-size:9px;line-height:1.3;letter-spacing:.025em}
+#onde-app-v1 .oa-card-discarded .oa-discarded-title{position:relative;z-index:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;width:100%;margin:0;font-size:11px;font-weight:450;line-height:1.35;color:#f0e1d3;overflow-wrap:anywhere}
 #onde-app-v1 .oa-card-ghost{position:absolute;inset:-4px;filter:blur(8px);opacity:.7;transform:scale(1.06);pointer-events:none;user-select:none;-webkit-user-select:none}
 #onde-app-v1 .oa-ghost-art{height:49px;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
 #onde-app-v1 .oa-ghost-art i{display:block;width:15px;height:24px;border-radius:9px;background:var(--oa-accent);transform:rotate(-22deg)}
@@ -2124,7 +2129,12 @@ void main(){
  function steps(active){return '<div class="oa-steps" aria-label="Parcours du jeu"><span class="oa-step '+(active===1?'is-active':active>1?'is-done':'')+'"><b>D6</b>Catégorie</span><span class="oa-step-sep" aria-hidden="true">›</span><span class="oa-step '+(active===2?'is-active':'')+'"><b>D4</b>Carte</span></div>'; }
  function stage(type,label,value){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+'</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'"></div></section>';}
  function categoriesGrid(){return '<div class="oa-category-grid">'+G.categories.map(c=>'<div class="oa-category" style="--category:'+c.color+'"><div class="oa-category-top"><span class="oa-category-swatch"></span><span class="oa-category-number">0'+c.number+'</span></div><span class="oa-category-label">'+h(c.label)+'</span></div>').join('')+'</div>';}
- function handGrid(){return '<div class="oa-card-grid" aria-label="Quatre cartes face cachée">'+state.round.hand.map((id,i)=>{const width=[68,82,74,60][i];return '<div class="oa-mini-card oa-card-back" aria-label="Carte '+(i+1)+' face cachée"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-card-ghost" aria-hidden="true" inert style="--ghost-title:'+width+'%"><div class="oa-ghost-art"><i></i><i></i><i></i></div><span class="oa-ghost-title"></span><span class="oa-ghost-line"></span></div></div>';}).join('')+'</div>';}
+ function handGrid(discarded=null){return '<div class="oa-card-grid'+(discarded?' is-reroll':'')+'" aria-label="'+(discarded?'Quatre emplacements, une carte écartée':'Quatre cartes face cachée')+'">'+state.round.hand.map((id,i)=>{
+  const width=[68,82,74,60][i],old=discarded&&discarded.slot===i+1&&discarded.cardId===id?G.getCard(discarded.cardId):null;
+  if(old)return '<div class="oa-mini-card oa-card-back oa-card-discarded" aria-label="Carte '+(i+1)+' écartée : '+h(old.title)+'"><span class="oa-mini-number">'+(i+1)+'</span><span class="oa-discarded-state">Écartée</span><h3 class="oa-discarded-title" title="'+h(old.title)+'">'+h(old.title)+'</h3></div>';
+  return '<div class="oa-mini-card oa-card-back" aria-label="Carte '+(i+1)+' face cachée"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-card-ghost" aria-hidden="true" inert style="--ghost-title:'+width+'%"><div class="oa-ghost-art"><i></i><i></i><i></i></div><span class="oa-ghost-title"></span><span class="oa-ghost-line"></span></div></div>';
+ }).join('')+'</div>';}
+
  function healthGauge(owner){
   const r=state.round,rolls=owner==='from'?r.draftRolls:r.rolls,total=rolls.reduce((a,b)=>a+b,0),left=Math.max(0,r.hp-total),ratio=left/r.hp;
   const needed=r.hp-total,chance=rolls.length===0?G.probability(r.hp):rolls.length===1?Math.max(0,Math.min(20,21-needed))/20:0;
@@ -2171,7 +2181,7 @@ void main(){
   if(state.phase==='card'){
    return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',null,null)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
   }
-  if(state.phase==='draft'&&rerolling)return heading('Le D4<br><em>rejoue.</em>',null,null)+stage(4,'02 / UNE AUTRE CARTE',r.cardRoll)+btn('Tirage…','roll');
+  if(state.phase==='draft'&&rerolling)return heading('Le D4<br><em>rejoue.</em>',null,null)+stage(4,'02 / UNE AUTRE CARTE',r.cardRoll)+btn('Tirage…','roll')+handGrid({cardId:r.cardId,slot:r.cardRoll});
   if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canChallengeDraft(state)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+(G.canRerollCard(state)?textBtn('Relancer le D4 · sans mon D20','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='draft_challenge'&&!canDraw())return heading('Un défi<br><em>en cours.</em>',h(name(r.from))+' tente d’écarter la carte.',null)+switchButton(r.from);
   if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('from')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll');
