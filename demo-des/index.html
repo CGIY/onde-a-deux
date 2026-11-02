@@ -13,7 +13,6 @@
       </div>
     </header>
     <div class="oa-persona">
-      <span class="oa-demo-label"><span class="oa-dot"></span> DÉMO · VUE DE</span>
       <div class="oa-switch" role="group" aria-label="Changer de profil dans la simulation">
         <button type="button" class="cursor-interaction" data-action="profile" data-player="a" aria-pressed="true">Joueur 1<span class="oa-unread" hidden></span></button>
         <button type="button" class="cursor-interaction" data-action="profile" data-player="b" aria-pressed="false">Joueur 2<span class="oa-unread" hidden></span></button>
@@ -44,8 +43,7 @@
 #onde-app-v1 .oa-wordmark{color:var(--oa-text);text-decoration:none;font-size:24px;font-weight:500;letter-spacing:.19em;display:flex;align-items:baseline;gap:11px}
 #onde-app-v1 .oa-wordmark span{font-family:Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-.02em;color:var(--oa-muted);font-weight:400}
 #onde-app-v1 .oa-help{border:1px solid var(--oa-line);background:#242c27;color:#b9c4b5;width:36px;height:36px;border-radius:50%;font-size:16px}
-#onde-app-v1 .oa-persona{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 22px 20px;padding-bottom:18px;border-bottom:1px solid var(--oa-line)}
-#onde-app-v1 .oa-demo-label{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.09em;color:var(--oa-muted);line-height:1.4}
+#onde-app-v1 .oa-persona{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:0 22px 20px;padding-bottom:18px;border-bottom:1px solid var(--oa-line)}
 #onde-app-v1 .oa-dot{width:5px;height:5px;border-radius:50%;background:var(--oa-sage);flex:none}
 #onde-app-v1 .oa-switch{display:flex;background:#101512;border-radius:20px;padding:3px;gap:2px}
 #onde-app-v1 .oa-switch button{min-height:34px;padding:7px 12px;border-radius:17px;border:0;background:transparent;color:#aab3a7;font-size:12px;position:relative;white-space:nowrap}
@@ -209,7 +207,6 @@
 #onde-app-v1 .oa-source a{color:#d5ddca;text-underline-offset:3px}
 #onde-app-v1 .oa-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 #onde-app-v1.is-busy [data-action=roll]{opacity:.65}
-@media(max-width:380px){#onde-app-v1{padding:6px 0}#onde-app-v1 .oa-shell{border-radius:24px}#onde-app-v1 .oa-header{padding:22px 18px 19px}#onde-app-v1 .oa-persona{margin-left:16px;margin-right:16px;gap:6px}#onde-app-v1 .oa-demo-label{font-size:9px;gap:5px;letter-spacing:.03em}#onde-app-v1 .oa-switch button{padding:7px 9px;font-size:11px}#onde-app-v1 .oa-main{padding-left:16px;padding-right:16px}#onde-app-v1 .oa-title{font-size:29px}#onde-app-v1 .oa-step{font-size:10px;gap:4px}#onde-app-v1 .oa-steps{gap:4px}#onde-app-v1 .oa-step b{width:27px}#onde-app-v1 .oa-stage{height:221px}#onde-app-v1 .oa-playing-card{padding:19px 17px}#onde-app-v1 .oa-card-title{font-size:26px}#onde-app-v1 .oa-category{padding:10px 8px}#onde-app-v1 .oa-category-label{font-size:10px}}
 @media(pointer:coarse){#onde-app-v1 .oa-switch button{min-height:40px}#onde-app-v1 .oa-help,#onde-app-v1 .oa-close,#onde-app-v1 .oa-favorite{width:44px;height:44px}#onde-app-v1 .oa-text-button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 *,#onde-app-v1 *:before{transition:none!important;animation:none!important}}
 /* 0.3.0 — mineral color, soft rubber surfaces, card movement and accessible sheets. */
@@ -273,6 +270,14 @@
 #onde-app-v1 button.oa-category[aria-pressed=true]{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 72%,#383b35),color-mix(in srgb,var(--category) 45%,#2b2e2a));border-color:color-mix(in srgb,var(--category) 88%,white);box-shadow:inset 0 1px #ffffff44,0 0 0 2px color-mix(in srgb,var(--category) 24%,transparent),0 6px 15px #0003}
 #onde-app-v1 button.oa-category:active{transform:scale(.95) rotate(-1deg)}
 #onde-app-v1 .oa-category-swatch{width:30px;height:11px;border-radius:8px;background:linear-gradient(110deg,color-mix(in srgb,var(--category) 65%,white),var(--category));box-shadow:0 0 14px color-mix(in srgb,var(--category) 55%,transparent),inset 0 1px #ffffff66}
+#onde-app-v1 .oa-button{background:linear-gradient(145deg,#efc18f,#df9877);color:#2b211b;border-color:#f0c29a;box-shadow:inset 0 1px #fff8,0 7px 18px #0004}
+#onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(145deg,#91c2c7,#6d9da6);color:#172625;border-color:#b0d9d9;box-shadow:inset 0 1px #ffffff77,0 6px 14px #0003}
+#onde-app-v1 .oa-card-fact{position:relative;z-index:1;display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;margin-top:17px;padding:13px 14px;border:1px solid color-mix(in srgb,var(--category) 50%,#596058);border-radius:15px;background:color-mix(in srgb,var(--category) 15%,#292d29)}
+#onde-app-v1 .oa-card-fact>strong{font-size:clamp(22px,6vw,31px);line-height:1.05;letter-spacing:-.05em;color:#f2dfc3;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-card-fact b{display:block;font-size:11px;font-weight:600;color:#f0eee7}
+#onde-app-v1 .oa-card-fact p{margin-top:4px;font-size:10px;line-height:1.4;color:#d0d2c9}
+#onde-app-v1 .oa-card-fact small{display:block;margin-top:6px;font-size:8px;line-height:1.35;color:#b6bcb0}
+#onde-app-v1 .oa-card-fact a{color:#d4c5a6;text-decoration:underline;text-underline-offset:2px}
 #onde-app-v1 .oa-category-number{color:#f0e8d7}
 #onde-app-v1 .oa-mini-card{background:linear-gradient(145deg,color-mix(in srgb,var(--oa-mineral-blue) 15%,#2b2e2a),color-mix(in srgb,var(--oa-mineral-moss) 12%,#262824));animation:oa-mini-arrive .52s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-mini-card:nth-child(2){animation-delay:.06s}#onde-app-v1 .oa-mini-card:nth-child(3){animation-delay:.12s}#onde-app-v1 .oa-mini-card:nth-child(4){animation-delay:.18s}
@@ -321,15 +326,14 @@
   'use strict';
 
   const categories = [
-    { id: 'complicite', number: 1, label: 'Complicité', color: '#8BB7C2', icon: 'messages-square', description: 'Se retrouver dans les petits échanges.' },
-    { id: 'detente', number: 2, label: 'Détente', color: '#A3BD8B', icon: 'leaf', description: 'Prendre soin du moment, à votre rythme.' },
-    { id: 'tendresse', number: 3, label: 'Tendresse', color: '#E1ABB5', icon: 'heart', description: 'Des gestes simples, choisis ensemble.' },
-    { id: 'attention', number: 4, label: 'Attention', color: '#E6B66E', icon: 'gift', description: 'Une petite attention qui vous ressemble.' },
-    { id: 'decouverte', number: 5, label: 'Découverte', color: '#B5A2D5', icon: 'sparkles', description: 'Essayer une autre façon de passer du temps à deux.' },
-    { id: 'intimite', number: 6, label: 'Intimité', color: '#DB9278', icon: 'moon', description: 'Faire une place à vos envies et à vos limites.' }
+    { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
+    { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
+    { id: 'attention', number: 3, label: 'Attentions', color: '#e3bd8b', icon: 'gift', description: 'Choisir une attention.' },
+    { id: 'bouffe', number: 4, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
+    { id: 'intimite', number: 5, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
   ];
 
-  const cards = [
+  const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
     { id:'comp-2', categoryId:'complicite', title:'Un souvenir à deux', description:'Racontez chacun un détail d’un moment partagé que vous aimeriez revivre.', duration:5, hp:18, variant:'Partagez simplement le nom de ce souvenir.', variantDuration:1 },
     { id:'comp-3', categoryId:'complicite', title:'Trois choses de ta journée', description:'Racontez une petite joie, une difficulté et une surprise de votre journée.', duration:8, hp:21, variant:'Gardez seulement la petite joie du jour.', variantDuration:2 },
@@ -375,12 +379,103 @@
 
   // STCK titles adapted for ONDE; durations and HP are prototype values.
   const stckCards=[{"id":"stck-5-01","categoryId":"intimite","title":"Bisou avec la langue","description":"Propose ce baiser et prenez un instant pour choisir ensemble le moment qui vous convient.","duration":2,"hp":18,"variant":"Proposez-vous un baiser bref, à votre rythme.","variantDuration":1,"sourceId":"5-01","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-01","title":"Bisou avec la langue","collectionId":"11","collectionTitle":"Amour","activeInSource":true}},{"id":"stck-5-03","categoryId":"complicite","title":"Message d’amour sincère","description":"Écris à l’autre quelques phrases sincères sur ce que tu apprécies dans votre relation, puis partage ton message.","duration":5,"hp":21,"variant":"Dis ou écris une seule phrase qui te tient à cœur.","variantDuration":1,"sourceId":"5-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-03","title":"Message d’amour sincère","collectionId":"11","collectionTitle":"Amour","activeInSource":true}},{"id":"stck-1-03","categoryId":"detente","title":"Massage des épaules","description":"Propose un massage des épaules pendant dix minutes. La personne qui le reçoit indique les gestes et la pression qui lui conviennent.","duration":10,"hp":25,"variant":"Masse les épaules pendant trois minutes, avec la pression choisie ensemble.","variantDuration":3,"sourceId":"1-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-03","title":"Massage des épaules","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-1-04","categoryId":"detente","title":"Massage des cuisses","description":"Propose un massage des cuisses. Choisissez une installation confortable et ajustez les gestes et la pression aux préférences de la personne qui reçoit.","duration":8,"hp":25,"variant":"Propose un massage de trois minutes sur une zone choisie ensemble.","variantDuration":3,"sourceId":"1-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-04","title":"Massage des cuisses","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-1-07","categoryId":"detente","title":"Massage total","description":"Propose vingt minutes de massage en passant entre les zones choisies ensemble. La personne qui reçoit guide la pression et peut demander une pause.","duration":20,"hp":35,"variant":"Choisissez une seule zone confortable pour cinq minutes de massage.","variantDuration":5,"sourceId":"1-07","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-07","title":"Massage total","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-9-01","categoryId":"attention","title":"Pose de vernis","description":"Propose de poser du vernis à l’autre. Choisissez une couleur parmi celles disponibles et installez-vous confortablement pour prendre votre temps.","duration":20,"hp":25,"variant":"Choisissez ensemble une couleur pour une prochaine pose.","variantDuration":3,"sourceId":"9-01","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-01","title":"Pose de vernis","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-9-02","categoryId":"detente","title":"Masque (soin)","description":"Prévoyez une pause avec un masque de soin que vous utilisez déjà. Installez-vous ensemble et suivez le temps indiqué sur le produit.","duration":15,"hp":21,"variant":"Prenez cinq minutes pour un soin habituel, sans ajouter de produit nouveau.","variantDuration":5,"sourceId":"9-02","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-02","title":"Masque (soin)","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-1-06","categoryId":"attention","title":"Soin complet du visage","description":"Prépare un moment de soin du visage avec les produits habituels de l’autre. Laisse la personne choisir les étapes et propose ton aide.","duration":20,"hp":30,"variant":"Propose ton aide pour une seule étape de son soin habituel.","variantDuration":5,"sourceId":"1-06","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-06","title":"Soin complet du visage","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-1-08","categoryId":"tendresse","title":"Soirée complète de soin","description":"Prévoyez une soirée de soin à deux avec ce que vous avez déjà : visage, mains ou vernis. Choisissez vos soins et prenez soin l’un de l’autre.","duration":45,"hp":35,"variant":"Choisissez un seul soin à partager pendant dix minutes.","variantDuration":10,"sourceId":"1-08","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-08","title":"Soirée complète de soin","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-2-02","categoryId":"complicite","title":"Burger","description":"Prévoyez un repas burger à deux. Choisissez ensemble les garnitures et le moment, puis partagez le repas tranquillement.","duration":30,"hp":25,"variant":"Choisissez les garnitures et une date pour ce repas.","variantDuration":3,"sourceId":"2-02","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-02","title":"Burger","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-09","categoryId":"complicite","title":"Pizza","description":"Prévoyez un repas pizza à deux. Choisissez une garniture commune ou chacun la sienne, puis installez-vous pour partager ce moment.","duration":30,"hp":25,"variant":"Choisissez ensemble la garniture de votre prochaine pizza.","variantDuration":3,"sourceId":"2-09","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-09","title":"Pizza","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-10","categoryId":"decouverte","title":"Sushi","description":"Prévoyez un repas sushi à deux. Choisissez ensemble ce que vous aimeriez goûter et prenez le temps de découvrir vos préférences.","duration":30,"hp":25,"variant":"Choisissez chacun une saveur pour un prochain repas sushi.","variantDuration":3,"sourceId":"2-10","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-10","title":"Sushi","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-11","categoryId":"complicite","title":"Kébab","description":"Prévoyez une pause kébab à deux. Choisissez ensemble le moment et profitez du repas pour vous retrouver.","duration":25,"hp":21,"variant":"Choisissez un moment pour votre prochaine pause kébab.","variantDuration":2,"sourceId":"2-11","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-11","title":"Kébab","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-03","categoryId":"decouverte","title":"Faire un cake","description":"Préparez un cake ensemble avec une recette choisie à deux. Répartissez les étapes et gardez un moment pour le goûter une fois prêt.","duration":60,"hp":30,"variant":"Choisissez une recette de cake et répartissez les étapes pour une autre fois.","variantDuration":5,"sourceId":"2-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-03","title":"Faire un cake","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-12","categoryId":"decouverte","title":"Faire des cookies","description":"Préparez une petite fournée de cookies ensemble. Choisissez les ajouts, partagez les étapes et goûtez votre préparation une fois prête.","duration":30,"hp":25,"variant":"Choisissez une recette et les ajouts de votre prochaine fournée.","variantDuration":3,"sourceId":"2-12","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-12","title":"Faire des cookies","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-13","categoryId":"decouverte","title":"Faire des crêpes","description":"Préparez des crêpes à deux. Alternez les étapes et choisissez chacun une garniture à faire découvrir à l’autre.","duration":30,"hp":25,"variant":"Choisissez chacun une garniture pour une prochaine tournée de crêpes.","variantDuration":3,"sourceId":"2-13","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-13","title":"Faire des crêpes","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-9-03","categoryId":"decouverte","title":"Faire une tarte","description":"Préparez une tarte ensemble avec les ingrédients disponibles. Choisissez la recette et répartissez la préparation.","duration":50,"hp":30,"variant":"Choisissez la recette de votre prochaine tarte et notez les ingrédients nécessaires.","variantDuration":5,"sourceId":"9-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-03","title":"Faire une tarte","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-05","categoryId":"attention","title":"Petit-déjeuner sur canapé","description":"Prépare un petit-déjeuner à partager sur le canapé, avec ce que vous aimez et ce que vous avez déjà. Convenez du matin qui vous convient.","duration":20,"hp":21,"variant":"Apporte une boisson et partagez cinq minutes sur le canapé.","variantDuration":5,"sourceId":"2-05","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-05","title":"Petit-déjeuner sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-9-04","categoryId":"attention","title":"Petit goûter sur canapé","description":"Prépare un petit goûter à partager sur le canapé. Choisissez une collation disponible et faites une pause ensemble.","duration":15,"hp":18,"variant":"Partagez une petite collation pendant cinq minutes.","variantDuration":5,"sourceId":"9-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-04","title":"Petit goûter sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-2-04","categoryId":"tendresse","title":"Chocolat du soir et canapé","description":"Préparez votre chocolat du soir et installez-vous ensemble sur le canapé pour une pause tranquille.","duration":15,"hp":18,"variant":"Partagez cinq minutes sur le canapé avec votre boisson du soir.","variantDuration":5,"sourceId":"2-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-04","title":"Chocolat du soir et canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-2-06","categoryId":"complicite","title":"Apéro sur canapé","description":"Prévoyez un apéro sur le canapé avec une boisson de votre choix et de quoi grignoter. Prenez le temps de vous retrouver.","duration":20,"hp":21,"variant":"Partagez une boisson et une courte pause sur le canapé.","variantDuration":5,"sourceId":"2-06","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-06","title":"Apéro sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}}];
-  cards.push(...stckCards);
+  legacyCards.push(...stckCards);
   const stckExistingLinks={"det-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-02","title":"Massage de la tête","collectionId":"12","collectionTitle":"Massage","activeInSource":true},"tend-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-02","title":"Câlin (accolade)","collectionId":"11","collectionTitle":"Amour","activeInSource":true},"att-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-05","title":"Mot doux à cacher","collectionId":"11","collectionTitle":"Amour","activeInSource":true}};
-  for(const [id,source] of Object.entries(stckExistingLinks)) { const card=cards.find(card=>card.id===id); if(card)card.source=source; }
+  for(const [id,source] of Object.entries(stckExistingLinks)) { const card=legacyCards.find(card=>card.id===id); if(card)card.source=source; }
+
+  // The former catalogue stays available only to validate existing saves and history.
+  const legacyCategory = id => id==='tendresse'?'complicite':id==='decouverte'?'bouffe':id;
+  const hiddenLegacyCards = legacyCards.map(card=>Object.assign({},card,{categoryId:legacyCategory(card.categoryId)}));
+  const oldCardById = Object.fromEntries(hiddenLegacyCards.map(card=>[card.id,card]));
+  const catalogRows = [
+    {id:'new-complicite-01',categoryId:'complicite',title:'Le selfie à deux du jour'},
+    {id:'new-complicite-02',categoryId:'complicite',title:'Baiser avec la langue',legacyId:'stck-5-01'},
+    {id:'new-complicite-03',categoryId:'complicite',title:'Câlin',legacyId:'tend-1'},
+    {id:'new-complicite-04',categoryId:'complicite',title:'Mot doux à cacher',legacyId:'att-1'},
+    {id:'new-complicite-05',categoryId:'complicite',title:'Pose de vernis',legacyId:'stck-9-01'},
+    {id:'new-complicite-06',categoryId:'complicite',title:'Caresse sous le plaid devant une série'},
+    {id:'new-complicite-07',categoryId:'complicite',title:'Une heure sans téléphone'},
+    {id:'new-complicite-08',categoryId:'complicite',title:'Un jeu de société'},
+    {id:'new-complicite-09',categoryId:'complicite',title:'Regarder un film'},
+    {id:'new-complicite-10',categoryId:'complicite',title:'Regarder une série'},
+    {id:'new-detente-01',categoryId:'detente',title:'Massage de la tête',legacyId:'det-1'},
+    {id:'new-detente-02',categoryId:'detente',title:'Massage des épaules',legacyId:'stck-1-03'},
+    {id:'new-detente-03',categoryId:'detente',title:'Massage des pieds'},
+    {id:'new-detente-04',categoryId:'detente',title:'Massage des cuisses',legacyId:'stck-1-04'},
+    {id:'new-detente-05',categoryId:'detente',title:'Massage des oreilles'},
+    {id:'new-detente-06',categoryId:'detente',title:'Massage du visage'},
+    {id:'new-detente-07',categoryId:'detente',title:'Massage du dos'},
+    {id:'new-detente-08',categoryId:'detente',title:'Massage total',legacyId:'stck-1-07'},
+    {id:'new-detente-09',categoryId:'detente',title:'Masque visage',legacyId:'stck-9-02'},
+    {id:'new-detente-10',categoryId:'detente',title:'Soin complet du visage',legacyId:'stck-1-06'},
+    {id:'new-attention-01',categoryId:'attention',title:'Achat Vinted à petit budget'},
+    {id:'new-attention-02',categoryId:'attention',title:'Achat Vinted à gros budget'},
+    {id:'new-attention-03',categoryId:'attention',title:'Un café à Columbus'},
+    {id:'new-attention-04',categoryId:'attention',title:'Achat d’un roman'},
+    {id:'new-attention-05',categoryId:'attention',title:'Achat d’un jeu vidéo'},
+    {id:'new-attention-06',categoryId:'attention',title:'Achat d’un roman graphique'},
+    {id:'new-attention-07',categoryId:'attention',title:'Achat d’un manga'},
+    {id:'new-attention-08',categoryId:'attention',title:'Achat d’un jeu de société de type cartes'},
+    {id:'new-attention-09',categoryId:'attention',title:'Achat d’un jeu de société de type plateau (budget plus conséquent)'},
+    {id:'new-attention-10',categoryId:'attention',title:'Petit achat sur Passage du Désir'},
+    {id:'new-attention-11',categoryId:'attention',title:'Gros achat sur Passage du Désir'},
+    {id:'new-attention-12',categoryId:'attention',title:'Achat Rouge Gorge 20 euros'},
+    {id:'new-attention-13',categoryId:'attention',title:'Achat Monoprix 20 euros'},
+    {id:'new-attention-14',categoryId:'attention',title:'Achat Rouge Gorge +30 euros'},
+    {id:'new-attention-15',categoryId:'attention',title:'Achat Monoprix +30 euros'},
+    {id:'new-bouffe-01',categoryId:'bouffe',title:'Manger un burger',legacyId:'stck-2-02'},
+    {id:'new-bouffe-02',categoryId:'bouffe',title:'Manger de la pizza',legacyId:'stck-2-09'},
+    {id:'new-bouffe-03',categoryId:'bouffe',title:'Manger sushi',legacyId:'stck-2-10'},
+    {id:'new-bouffe-04',categoryId:'bouffe',title:'Manger un kebab'},
+    {id:'new-bouffe-05',categoryId:'bouffe',title:'Acheter de quoi faire un plat mexicain'},
+    {id:'new-bouffe-06',categoryId:'bouffe',title:'Acheter de quoi faire un plat asiatique'},
+    {id:'new-bouffe-07',categoryId:'bouffe',title:'Acheter de quoi faire un plat d’un pays européen au hasard'},
+    {id:'new-bouffe-08',categoryId:'bouffe',title:'Faire des crêpes'},
+    {id:'new-bouffe-09',categoryId:'bouffe',title:'Faire des cookies'},
+    {id:'new-bouffe-10',categoryId:'bouffe',title:'Faire une tarte ou un gâteau'},
+    {id:'new-bouffe-11',categoryId:'bouffe',title:'Apéro sur canapé',legacyId:'stck-2-06'},
+    {id:'new-bouffe-12',categoryId:'bouffe',title:'Chocolat du soir et canapé',legacyId:'stck-2-04'},
+    {id:'new-intimite-01',categoryId:'intimite',title:'Léchage de chatte'},
+    {id:'new-intimite-02',categoryId:'intimite',title:'Sit face'},
+    {id:'new-intimite-03',categoryId:'intimite',title:'Massage Nuru'},
+    {id:'new-intimite-04',categoryId:'intimite',title:'Lovense'},
+    {id:'new-intimite-05',categoryId:'intimite',title:'Fellation'},
+    {id:'new-intimite-06',categoryId:'intimite',title:'Faciale'},
+    {id:'new-intimite-07',categoryId:'intimite',title:'Dans la bouche'},
+    {id:'new-intimite-08',categoryId:'intimite',title:'Avaler le sperme'},
+    {id:'new-intimite-09',categoryId:'intimite',title:'Reproduction porno 1:1'},
+    {id:'new-intimite-10',categoryId:'intimite',title:'Pénétration anale'},
+    {id:'new-intimite-11',categoryId:'intimite',title:'Golden shower'},
+    {id:'new-intimite-12',categoryId:'intimite',title:'Double pénétration'},
+    {id:'new-intimite-13',categoryId:'intimite',title:'Montrer ses seins sur Reddit'},
+    {id:'new-intimite-14',categoryId:'intimite',title:'Montrer ses fesses sur Reddit'},
+    {id:'new-intimite-15',categoryId:'intimite',title:'Montrer sa chatte sur Reddit'},
+    {id:'new-intimite-16',categoryId:'intimite',title:'Webcam show seins'},
+    {id:'new-intimite-17',categoryId:'intimite',title:'Webcam show fesses'},
+    {id:'new-intimite-18',categoryId:'intimite',title:'Webcam show masturbation'},
+    {id:'new-intimite-19',categoryId:'intimite',title:'Montrer une faciale sur Reddit'},
+    {id:'new-intimite-20',categoryId:'intimite',title:'Une heure de soumission'},
+    {id:'new-intimite-21',categoryId:'intimite',title:'Session fessée'},
+    {id:'new-intimite-22',categoryId:'intimite',title:'Photoshoot original'}
+  ];
+  const sourceIdByTitle = Object.fromEntries(legacyCards.map(card=>[card.title,card]));
+  const categoryPrompts = {
+    complicite:'Choisissez le moment et la façon qui vous plaisent à tous les deux.',
+    detente:'La personne qui reçoit choisit la zone, les gestes et la pression. Vous pouvez arrêter à tout moment.',
+    attention:'Décidez ensemble de l’achat et respectez le budget indiqué dans la proposition.',
+    bouffe:'Choisissez ensemble ce qui vous fait envie et le budget qui vous convient.',
+    intimite:'À réserver à des adultes consentants. Définissez ensemble les limites, le cadre et les conditions de sécurité ; chacun peut dire non ou arrêter à tout moment.'
+  };
+  const cards = catalogRows.map((row,index)=>{
+    const old=(row.legacyId&&oldCardById[row.legacyId])||sourceIdByTitle[row.title]||null;
+    const prompts=categoryPrompts[row.categoryId];
+    return {id:row.id,categoryId:row.categoryId,title:row.title,description:prompts,duration:null,hp:null,variant:'Choisissez ensemble une version plus simple ou un autre moment.',variantDuration:null,...(old&&old.source?{source:old.source}:{})};
+  });
+
+  const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
 
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const cardMap = Object.fromEntries(cards.map(card => [card.id, card]));
+  const cardMap = Object.fromEntries([...hiddenLegacyCards,...cards].map(card => [card.id, card]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
   const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
   const prefKeys = ['reducedMotion','sound','discreet','reminder'];
@@ -489,6 +584,15 @@
     let migrated;
     try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
     if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
+    if(migrated.stats&&migrated.stats.byCategory&&('decouverte' in migrated.stats.byCategory || 'tendresse' in migrated.stats.byCategory)){
+      const old=migrated.stats.byCategory;
+      migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,attention:old.attention||0,bouffe:old.decouverte||0,intimite:old.intimite||0};
+    }
+    if(migrated.round.categoryId){migrated.round.categoryId=legacyCategory(migrated.round.categoryId);const mapped=getCategory(migrated.round.categoryId);if(mapped)migrated.round.categoryRoll=mapped.number;}
+    migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>legacyFavoriteMap[id]||id))):migrated.favorites;
+    if(migrated.seen&&typeof migrated.seen==='object'){
+      const seen={};for(const [id,list] of Object.entries(migrated.seen)){const key=legacyCategory(id);seen[key]=[...(seen[key]||[]),...(Array.isArray(list)?list:[])].slice(0,8);}migrated.seen=seen;
+    }
     function extendRound(round, phase) {
       const missing=key=>!Object.prototype.hasOwnProperty.call(round,key);
       if(missing('draftRolls')) round.draftRolls=[];
@@ -545,8 +649,8 @@
     return ['pending','challenge','challenge_failed','sender_confirmation'].includes(s.phase) && s.activePlayer===s.round.awaiting;
   }
 
-  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed;
-  const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer;
+  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && Number.isFinite(getCard(s.round.cardId)?.hp);
+  const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
   function closeRound(s, status, action) {
     s.phase='resolved';
@@ -594,9 +698,9 @@
         s.round=blankRound(s.sequence,actor,action.at);
         return s;
       case 'ROLL_CATEGORY': {
-        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>6) return state;
+        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>5) return state;
         const cat=categories.find(c=>c.number===action.value);
-        if(!Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
+        if(!cat || !Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
         s.phase='card';
         return s;
@@ -617,7 +721,7 @@
         r.draftChallengeUsed=true; r.status='draft_challenge'; r.awaiting=r.from; s.phase='draft_challenge';
         return s;
       case 'ROLL_DRAFT_DEFENSE': {
-        if(!canRollDraftDefense(s) || r.draftRolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(!canRollDraftDefense(s) || !Number.isFinite(getCard(r.cardId)?.hp) || r.draftRolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
         if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.draftRollTokens.includes(action.token)) return state;
         r.draftRolls.push(action.value); r.draftRollTokens.push(action.token);
         const total=r.draftRolls.reduce((sum,v)=>sum+v,0);
@@ -651,11 +755,11 @@
         r.adapted=true; r.status='counterproposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
         return s;
       case 'CHALLENGE':
-        if(s.phase!=='pending' || r.status!=='pending' || actor!==r.to || r.awaiting!==actor || r.challengeUsed) return state;
+        if(s.phase!=='pending' || r.status!=='pending' || actor!==r.to || r.awaiting!==actor || r.challengeUsed || !Number.isFinite(getCard(r.cardId)?.hp)) return state;
         r.challengeUsed=true; r.status='challenge'; s.phase='challenge';
         return s;
       case 'ROLL_DEFENSE': {
-        if(s.phase!=='challenge' || actor!==r.to || r.awaiting!==actor || r.rolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(s.phase!=='challenge' || actor!==r.to || r.awaiting!==actor || !Number.isFinite(getCard(r.cardId)?.hp) || r.rolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
         if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.rollTokens.includes(action.token)) return state;
         r.rolls.push(action.value); r.rollTokens.push(action.token);
         const total=r.rolls.reduce((sum,v)=>sum+v,0);
@@ -1103,6 +1207,21 @@ void main(){
 
   // Deliberate ID mapping: a category alone never selects a statistic.
   const factByCard = Object.freeze({
+    'new-complicite-02': 'kissing',
+    'new-complicite-03': 'cuddling',
+    'new-detente-01': 'massage',
+    'new-detente-02': 'massage',
+    'new-detente-04': 'massage',
+    'new-detente-06': 'massage',
+    'new-detente-07': 'massage',
+    'new-detente-08': 'massage',
+    'new-bouffe-01': 'meal',
+    'new-bouffe-02': 'meal',
+    'new-bouffe-03': 'meal',
+    'new-bouffe-04': 'meal',
+    'new-bouffe-11': 'meal',
+    'new-bouffe-12': 'meal',
+    'new-intimite-03': 'massage',
     'comp-2': 'memories',
     'comp-4': 'memories',
     'det-1': 'massage',
@@ -1262,10 +1381,10 @@ void main(){
  function textBtn(label,action,extra=''){return '<button type="button" class="oa-text-button cursor-interaction" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function eyebrow(text){return '<p class="oa-eyebrow">'+h(text)+'</p>';}
  function heading(title,sub,eyebrowText){return (eyebrowText?eyebrow(eyebrowText):'')+'<h1 class="oa-title">'+title+'</h1>'+(sub?'<p class="oa-subtitle">'+sub+'</p>':'');}
- function steps(active){return '<div class="oa-steps" aria-label="Parcours du jeu"><span class="oa-step '+(active===1?'is-active':active>1?'is-done':'')+'"><b>D6</b>Catégorie</span><span class="oa-step-sep" aria-hidden="true">›</span><span class="oa-step '+(active===2?'is-active':active>2?'is-done':'')+'"><b>D4</b>Carte</span><span class="oa-step-sep" aria-hidden="true">›</span><span class="oa-step '+(active===3?'is-active':'')+'"><b>D20</b>Défi</span></div>';}
+ function steps(active){return '<div class="oa-steps" aria-label="Parcours du jeu"><span class="oa-step '+(active===1?'is-active':active>1?'is-done':'')+'"><b>D6</b>Catégorie</span><span class="oa-step-sep" aria-hidden="true">›</span><span class="oa-step '+(active===2?'is-active':'')+'"><b>D4</b>Carte</span></div>'; }
  function stage(type,label,value){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+' · RUBBER</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'"><div class="oa-gesture">Appuyer · relâcher</div></div></section>';}
  function categoriesGrid(interactive=false){return '<div class="oa-category-grid">'+G.categories.map(c=>'<'+(interactive?'button type="button" data-action="catalog" data-category="'+c.id+'" aria-pressed="'+(catalog===c.id&&!favoritesOnly)+'"':'div')+' class="oa-category '+(interactive?'cursor-interaction':'')+'" style="--category:'+c.color+'"><div class="oa-category-top"><span class="oa-category-swatch"></span><span class="oa-category-number">0'+c.number+'</span></div><span class="oa-category-label">'+h(c.label)+'</span></'+(interactive?'button':'div')+'>').join('')+'</div>';}
- function handGrid(){return '<div class="oa-card-grid">'+state.round.hand.map((id,i)=>{const c=G.getCard(id);return '<div class="oa-mini-card '+(state.round.cardRoll===i+1?'is-picked':'')+'"><span class="oa-mini-number">'+(i+1)+'</span><h3>'+h(c.title)+'</h3><p>'+c.duration+' min · '+c.hp+' PV</p></div>';}).join('')+'</div>';}
+ function handGrid(){return '<div class="oa-card-grid">'+state.round.hand.map((id,i)=>{const c=G.getCard(id);return '<div class="oa-mini-card '+(state.round.cardRoll===i+1?'is-picked':'')+'"><span class="oa-mini-number">'+(i+1)+'</span><h3>'+h(c.title)+'</h3></div>';}).join('')+'</div>';}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function favoriteButton(c){const selected=state.favorites.includes(c.id);return '<button type="button" class="oa-favorite cursor-interaction" data-action="favorite" data-card="'+c.id+'" aria-pressed="'+selected+'" aria-label="'+(selected?'Retirer des favoris':'Ajouter aux favoris')+'">'+(selected?'♥':'♡')+'</button>';}
 
@@ -1275,43 +1394,42 @@ void main(){
   const scope=[fact.scope,fact.year].filter(Boolean).join(' · ');
   return '<section class="oa-evidence" aria-label="Un repère sur cette carte"><p class="oa-eyebrow">UN REPÈRE SUR CE THÈME</p>'+(fact.metric?'<strong class="oa-evidence-number">'+h(fact.metric)+'</strong>':'')+'<h3>'+h(fact.headline)+'</h3><p>'+h(fact.detail)+'</p>'+(scope?'<p class="oa-evidence-scope">'+h(scope)+'</p>':'')+(fact.url?'<details class="oa-source"><summary>Source & contexte de l’étude</summary><p>'+h(fact.limitations)+'</p><a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a></details>':'')+'</section>';
  }
- function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+' · '+(adapted?'VARIANTE':'À PARTAGER')+'</span>'+favoriteButton(c)+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2><p class="oa-card-description">'+h(adapted?r.proposal:c.description)+'</p><div class="oa-card-meta"><span>'+(adapted&&r.proposal!==c.variant?'Durée à convenir':'<b>'+(adapted?c.variantDuration:c.duration)+' min</b> à deux')+'</span><span><b>'+c.hp+' PV</b> de résistance</span></div><div class="oa-card-foot"><span>'+(c.source?'STCK · '+h(c.source.collectionTitle):'ONDE / '+h(c.id.toUpperCase()))+'</span><span>le temps de nous.</span></div></article>';}
- function hpTrack(){const hp=state.round.hp,rem=remaining(),fraction=rem/hp;let mark='',used=0;const weights=[2.3,1,1,1.65,2.3,1,1.65,1,2.3,1.65],weightTotal=weights.reduce((a,b)=>a+b,0);for(let i=0;i<10;i++){const fill=Math.max(0,Math.min(1,(fraction*weightTotal-used)/weights[i]));used+=weights[i];mark+='<i><span style="transform:scaleX('+fill+');'+(rem===0?'background:#a8c08c':'')+'"></span></i>';}
- return '<div class="oa-hp"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+rem+' <span>/ '+hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+hp+'" aria-valuenow="'+rem+'">'+mark+'</div><div class="oa-roll-history"><span class="oa-roll-token">JET 1 <b>'+(shownRolls()[0]||'—')+'</b></span><span class="oa-roll-token">JET 2 <b>'+(shownRolls()[1]||'—')+'</b></span></div></div>';}
+ function cardFact(c){
+  const fact=window.OndeEvidence&&window.OndeEvidence.forCard(c);
+  if(!fact||!fact.metric)return '';
+  const scope=[fact.scope,fact.year].filter(Boolean).join(' · ');
+  return '<section class="oa-card-fact"><strong>'+h(fact.metric)+'</strong><div><b>'+h(fact.headline)+'</b><p>'+h(fact.detail)+'</p><small>'+(fact.url?'<a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a>':h(fact.sourceTitle))+(scope?' · '+h(scope):'')+'</small></div></section>';
+ }
+ function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+favoriteButton(c)+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2><p class="oa-card-description">'+h(adapted?r.proposal:c.description)+'</p>'+(compact?'':cardFact(c))+'</article>';}
+
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+((!r.challengeUsed&&r.status==='pending')?btn('Défier la carte <span class="oa-arrow">D20</span>','challenge','oa-secondary'):'')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
+ function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
 
  function renderPlay(){const r=state.round,c=card();
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Cinq façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>','La catégorie a été tirée. La prochaine étape est la carte.','UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
    return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',h(category().description),'LE D6 A DONNÉ '+r.categoryRoll)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
   }
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':h(name(r.from))+' a tiré<br><em>une carte.</em>',canDraw()?'Propose-la directement. Si tu préfères l’écarter, tente le D20 : deux jets insuffisants la proposeront automatiquement à '+h(name(r.to))+'.':'Elle attend encore d’être proposée.','D6 · '+r.categoryRoll+'  /  D4 · '+r.cardRoll)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+btn('Tenter de l’écarter <span class="oa-arrow">D20</span>','challenge-draft','oa-secondary')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>')+textBtn('Le repère & les détails de cette carte','card-detail','data-card="'+c.id+'"');
-  if(state.phase==='draft_challenge'){
-   if(!canDraw())return heading(h(name(r.from))+' tente<br><em>le hasard.</em>','Si ses deux jets échouent, la carte te sera proposée automatiquement.','AVANT LA PROPOSITION')+hpTrack()+'<div class="oa-actions">'+switchButton(r.from)+'</div>';
-   return heading(r.draftRolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Tu la joues<br><em>au hasard.</em>',h(c.title)+' · atteindre '+r.hp+' PV pour l’écarter.','TON D20 / JET '+(r.draftRolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.draftRolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.draftRolls[0]||12)+btn(r.draftRolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">Si les deux jets échouent, la carte est proposée automatiquement à '+h(name(r.to))+'.</p>';
-  }
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
+  if(state.phase==='draft_challenge')return heading('Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='pending'){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
    const automatic=r.autoProposed&&r.status==='pending';
    let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
-   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Le D20 a proposé cette carte. À toi de choisir.':h(name(r.from))+' te propose un moment à deux.'):'Réponse attendue : '+h(name(r.awaiting))+'.';
-   return (responds?'<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · MAINTENANT</small><p>'+h(state.prefs.discreet?'Une invitation t’attend.':c.title)+'</p></div></div>':'')+heading(title,sub,responds?'À TOI DE RÉPONDRE':'TOUR '+state.sequence)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic?statusStrip('Proposée par le dé · vos deux accords restent à confirmer.',true):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>')+textBtn('Le repère & les détails de cette carte','card-detail','data-card="'+c.id+'"');
+   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Cette carte t’est proposée automatiquement. À toi de choisir.':h(name(r.from))+' te propose un moment à deux.'):'Réponse attendue : '+h(name(r.awaiting))+'.';
+   return (responds?'<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · MAINTENANT</small><p>'+h(state.prefs.discreet?'Une invitation t’attend.':c.title)+'</p></div></div>':'')+heading(title,sub,responds?'À TOI DE RÉPONDRE':'TOUR '+state.sequence)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic?statusStrip('Proposition automatique · vos deux accords restent à confirmer.',true):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>');
   }
   if(state.phase==='sender_confirmation'){
    const responds=G.canRespond(state);
-   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté. Comme la carte a été proposée par le dé, confirme aussi ton envie.':'Ton accord est enregistré. '+h(name(r.from))+' doit encore confirmer le sien.','PROPOSITION DU D20')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip('Accord de '+h(name(r.to))+' reçu · accord de '+h(name(r.from))+' attendu.')+(responds?'<div class="oa-actions">'+btn('Oui, j’en ai envie aussi','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter ce tour','pass')+'</div></div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+textBtn('Arrêter ce tour','pass')+'</div>');
+   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté. Comme la carte a été proposée par le dé, confirme aussi ton envie.':'Ton accord est enregistré. '+h(name(r.from))+' doit encore confirmer le sien.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip('Accord de '+h(name(r.to))+' reçu · accord de '+h(name(r.from))+' attendu.')+(responds?'<div class="oa-actions">'+btn('Oui, j’en ai envie aussi','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter ce tour','pass')+'</div></div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+textBtn('Arrêter ce tour','pass')+'</div>');
   }
-  if(state.phase==='challenge'){
-   if(!G.canRespond(state))return heading(h(name(r.to))+' tente<br><em>le hasard.</em>','Deux lancers au maximum pour écarter la carte.','DÉFI D20')+hpTrack()+'<div class="oa-actions">'+switchButton(r.to,'Voir le défi de '+h(name(r.to)))+textBtn('Arrêter ce tour','pass')+'</div>';
-   return heading(r.rolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Défie<br><em>la carte.</em>',h(c.title)+' · '+c.duration+' minutes','D20 / JET '+(r.rolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.rolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.rolls[0]||12)+btn(r.rolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">'+(r.rolls.length?'Le total des deux dés doit atteindre '+r.hp+' PV.':percent(r.hp)+' de chances d’atteindre '+r.hp+' PV en deux jets.')+'</p><div class="oa-action-row">'+textBtn('Accepter plutôt','accept')+textBtn('Arrêter ce tour','pass')+'</div>';
-  }
-  if(state.phase==='challenge_failed')return heading('La carte<br><em>résiste encore.</em>',h(c.title),'DÉFI TERMINÉ')+hpTrack()+statusStrip(sum()+' points obtenus sur '+r.hp+'. La proposition reste ouverte.',true)+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Arrêter ce tour','pass')+'</div>')+'<p class="oa-note oa-center">Tu peux adapter ou arrêter, quel que soit le résultat.</p>';
+  if(state.phase==='challenge')return heading('Une proposition<br><em>à choisir.</em>',G.canRespond(state)?'Cette carte se décide librement.':'La réponse est attendue.','')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting)+'</div>');
+  if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Arrêter ce tour','pass')+'</div>');
   if(state.phase==='accepted')return heading('Un moment<br><em>pour vous.</em>','Vous avez tous les deux accepté cette proposition.','ACCORD À DEUX')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip(r.schedule?'Moment prévu : <strong>'+h(r.schedule)+'</strong>':'À vivre au moment qui vous convient.')+'<div class="oa-actions">'+btn('Marquer comme partagé','complete')+(state.prefs.reminder?textBtn('Aperçu du rappel','reminder'):'')+textBtn('Finalement, passer','pass')+'</div><p class="oa-note oa-center">Votre accord reste modifiable à tout moment.</p>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed';
-   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Bien joué.<br><em>Carte écartée.</em>':'Une autre<br><em>fois, peut-être.</em>',completed?'Un point de plus pour votre duo. Vous pouvez aussi garder cette carte parmi vos favoris.':defended?'Le hasard a tranché ce petit défi.':'Cette proposition a été passée. Le prochain tour vous attend.',completed?'MOMENT PARTAGÉ':defended?'DÉFI RÉUSSI':'CARTE PASSÉE')+(defended?hpTrack():'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':' · '+c.duration+' min')+'</p></div>'+favoriteButton(c)+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
+   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':'Une autre<br><em>fois, peut-être.</em>',completed?'Un point de plus pour votre duo. Vous pouvez aussi garder cette carte parmi vos favoris.':defended?'':'Cette proposition a été passée. Le prochain tour vous attend.',completed?'MOMENT PARTAGÉ':defended?'CARTE ÉCARTÉE':'CARTE PASSÉE')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':' · '+c.duration+' min')+'</p></div>'+favoriteButton(c)+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
   }
   return '';
  }
@@ -1380,7 +1498,7 @@ void main(){
   const badge=main.querySelector('.oa-summary-glyph');
   if(badge)badge.animate([{transform:'scale(.7) rotate(-12deg)'},{transform:'scale(1.15) rotate(7deg)',offset:.55},{transform:'scale(1) rotate(0)'}],{duration:650,easing:'cubic-bezier(.2,.8,.2,1)'});
   const layer=document.createElement('div');layer.className='oa-celebration';layer.setAttribute('aria-hidden','true');root.querySelector('.oa-shell').append(layer);
-  for(let i=0;i<12;i++){const dot=document.createElement('i');dot.style.background=G.categories[i%6].color;layer.append(dot);const angle=(i/12)*Math.PI*2;dot.animate([{transform:'translate(0,0) scale(.2)',opacity:0},{opacity:1,offset:.12},{transform:'translate('+Math.cos(angle)*(65+i*4)+'px,'+(Math.sin(angle)*75-30)+'px) rotate('+(i*51)+'deg) scale(.85)',opacity:0}],{duration:900+i*20,easing:'cubic-bezier(.1,.6,.2,1)',fill:'forwards'});}
+  for(let i=0;i<12;i++){const dot=document.createElement('i');dot.style.background=G.categories[i%G.categories.length].color;layer.append(dot);const angle=(i/12)*Math.PI*2;dot.animate([{transform:'translate(0,0) scale(.2)',opacity:0},{opacity:1,offset:.12},{transform:'translate('+Math.cos(angle)*(65+i*4)+'px,'+(Math.sin(angle)*75-30)+'px) rotate('+(i*51)+'deg) scale(.85)',opacity:0}],{duration:900+i*20,easing:'cubic-bezier(.1,.6,.2,1)',fill:'forwards'});}
   setTimeout(()=>layer.remove(),1300);
  }
  let audioContext;
@@ -1388,11 +1506,16 @@ void main(){
  async function roll(){
   if(busy||tab!=='play')return;
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
-  let sides,action;
-  if(phase==='category'&&canDraw()){sides=6;const value=G.randomInt(6);action={type:'ROLL_CATEGORY',value,hand:G.drawHand(state,value)};}
-  else if(phase==='card'&&canDraw()){sides=4;action={type:'ROLL_CARD',value:G.randomInt(4)};}
-  else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;action={type:'ROLL_DRAFT_DEFENSE',value:G.randomInt(20),token:roundId+'-draft-'+(state.round.draftRolls.length+1)};}
-  else if(phase==='challenge'&&G.canRespond(state)){sides=20;action={type:'ROLL_DEFENSE',value:G.randomInt(20),token:roundId+'-'+(state.round.rolls.length+1)};}
+  let sides,action,faceValue;
+  if(phase==='category'&&canDraw()){
+   sides=6;faceValue=G.randomInt(6);
+   while(faceValue===6){busy=true;root.classList.add('is-busy');softSound();try{await die.roll(6,{duration:systemReduce?0:850});}catch(error){lastError=String(error);}faceValue=G.randomInt(6);}
+   busy=false;root.classList.remove('is-busy');
+   action={type:'ROLL_CATEGORY',value:faceValue,hand:G.drawHand(state,faceValue)};
+  }
+  else if(phase==='card'&&canDraw()){sides=4;faceValue=G.randomInt(4);action={type:'ROLL_CARD',value:faceValue};}
+  else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;faceValue=G.randomInt(20);action={type:'ROLL_DRAFT_DEFENSE',value:faceValue,token:roundId+'-draft-'+(state.round.draftRolls.length+1)};}
+  else if(phase==='challenge'&&G.canRespond(state)){sides=20;faceValue=G.randomInt(20);action={type:'ROLL_DEFENSE',value:faceValue,token:roundId+'-'+(state.round.rolls.length+1)};}
   else return;
   const serial=++animationSerial;
   const next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
@@ -1400,23 +1523,22 @@ void main(){
   root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
   const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le hasard fait son chemin…';
   state=next;save();softSound();
-  try{await die.roll(action.value,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
+  try{await die.roll(faceValue,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
   if(serial!==animationSerial)return;
   busy=false;
   root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
   root.classList.remove('is-busy');render();
-  announce('D'+sides+' : '+action.value+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:remaining()+' points de vie restants.'));
+  announce('D'+sides+' : '+faceValue+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:'Lancer terminé.'));
  }
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
  function closeSheet(){sheet.hidden=true;sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
 
- function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi six.</h3><p>Complicité, détente, tendresse, attention, découverte ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Tu peux la proposer directement. Si tu ne souhaites pas la proposer, tente de l’écarter au D20.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Deux jets pour atteindre ses PV.</h3><p>Si tu atteins le seuil, la carte est écartée. Sinon, elle est proposée automatiquement à l’autre.</p></div></div><p>L’autre peut accepter, tenter ses propres deux jets, adapter, proposer un autre moment ou passer. Une proposition automatique demande ensuite ta confirmation aussi.</p><p>Vous pouvez arrêter ou passer une proposition sans pénalité. Seule une carte acceptée à deux puis marquée « partagée » ajoute 1 point à votre score commun.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Les notifications sont simulées sur cet appareil.</p>');}
+ function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi cinq.</h3><p>Complicité, détente, attentions, bouffe ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Tu peux la proposer directement. L’autre peut accepter, adapter, choisir un autre moment ou passer.</p></div></div><p>Les niveaux de difficulté pour écarter une carte seront définis plus tard. Pour l’instant, chaque carte se décide librement, sans obligation.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Les notifications sont simulées sur cet appareil.</p>');}
 
- function challengeSheet(draft=false){const c=card();openSheet(draft?'L’écarter avec le D20':'Tenter le D20','<p>Deux lancers au maximum pour atteindre les <strong>'+c.hp+' PV</strong> de « '+h(c.title)+' ».</p><div class="oa-summary-card"><span class="oa-summary-glyph">'+c.hp+'</span><div><h2>'+percent(c.hp)+' de réussite</h2><p>Total des deux D20 ≥ '+c.hp+'</p></div></div><p>'+(draft?'Si tes deux jets échouent, la carte est proposée automatiquement à '+h(name(state.round.to))+'. Si l’autre accepte, tu confirmes aussi ton envie.':'Si la carte résiste, tu peux l’accepter, l’adapter ou arrêter ce tour.')+'</p><div class="oa-actions">'+btn('Je tente le défi',draft?'start-draft-challenge':'start-challenge','oa-clay')+textBtn('Revenir à la carte','close')+'</div>');}
  function showAdapt(){const c=card();openSheet('Proposer une variante','<p>Cette proposition devra être acceptée par '+h(name(G.otherPlayer(state.activePlayer)))+'.</p><label class="oa-field">Ta variante<textarea id="oa-adapt-text" aria-label="Ta variante" maxlength="300">'+h(state.round.adapted?state.round.proposal:c.variant)+'</textarea></label><div class="oa-actions">'+btn('Envoyer la variante','confirm-adapt')+'</div>');}
  function showLater(){openSheet('Trouver le bon moment','<p>Propose un créneau à '+h(name(G.otherPlayer(state.activePlayer)))+'. Le moment sera confirmé à deux.</p><label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
 
- function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+source(c)+'<div class="oa-detail-variant"><p class="oa-eyebrow">UNE AUTRE FAÇON · '+c.variantDuration+' MIN</p><p>'+h(c.variant)+'</p></div><p class="oa-detail-odds">Côté jeu · '+c.hp+' PV : '+percent(c.hp)+' de chances de les atteindre avec deux D20.</p>','oa-card-sheet');}
+ function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+source(c)+'<div class="oa-detail-variant"><p class="oa-eyebrow">UNE VARIANTE</p><p>'+h(c.variant)+'</p></div>'+(Number.isFinite(c.hp)?'<p class="oa-detail-odds">Repère de difficulté · '+c.hp+' PV.</p>':''),'oa-card-sheet');}
  root.addEventListener('click',event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
   if(busy&&action!=='pass'&&action!=='close')return;
@@ -1430,10 +1552,6 @@ void main(){
    if(busy){animationSerial++;busy=false;die.setKind(die.kind,die.value);root.querySelectorAll('button:disabled').forEach(b=>{b.disabled=false;});}
    dispatch({type:'PASS'});announce('Carte passée.');return;
   }
-  if(action==='challenge'){challengeSheet(false);return;}
-  if(action==='challenge-draft'){challengeSheet(true);return;}
-  if(action==='start-draft-challenge'){closeSheet();dispatch({type:'CHALLENGE_DRAFT'});return;}
-  if(action==='start-challenge'){closeSheet();dispatch({type:'CHALLENGE'});return;}
   if(action==='adapt'){showAdapt();return;}
   if(action==='confirm-adapt'){const field=root.querySelector('#oa-adapt-text');if(!field.value.trim()){field.focus();return;}const text=field.value.trim();closeSheet();dispatch({type:'ADAPT',text});return;}
   if(action==='later'){showLater();return;}

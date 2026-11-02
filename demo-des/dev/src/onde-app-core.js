@@ -3,15 +3,14 @@
   'use strict';
 
   const categories = [
-    { id: 'complicite', number: 1, label: 'Complicité', color: '#8BB7C2', icon: 'messages-square', description: 'Se retrouver dans les petits échanges.' },
-    { id: 'detente', number: 2, label: 'Détente', color: '#A3BD8B', icon: 'leaf', description: 'Prendre soin du moment, à votre rythme.' },
-    { id: 'tendresse', number: 3, label: 'Tendresse', color: '#E1ABB5', icon: 'heart', description: 'Des gestes simples, choisis ensemble.' },
-    { id: 'attention', number: 4, label: 'Attention', color: '#E6B66E', icon: 'gift', description: 'Une petite attention qui vous ressemble.' },
-    { id: 'decouverte', number: 5, label: 'Découverte', color: '#B5A2D5', icon: 'sparkles', description: 'Essayer une autre façon de passer du temps à deux.' },
-    { id: 'intimite', number: 6, label: 'Intimité', color: '#DB9278', icon: 'moon', description: 'Faire une place à vos envies et à vos limites.' }
+    { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
+    { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
+    { id: 'attention', number: 3, label: 'Attentions', color: '#e3bd8b', icon: 'gift', description: 'Choisir une attention.' },
+    { id: 'bouffe', number: 4, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
+    { id: 'intimite', number: 5, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
   ];
 
-  const cards = [
+  const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
     { id:'comp-2', categoryId:'complicite', title:'Un souvenir à deux', description:'Racontez chacun un détail d’un moment partagé que vous aimeriez revivre.', duration:5, hp:18, variant:'Partagez simplement le nom de ce souvenir.', variantDuration:1 },
     { id:'comp-3', categoryId:'complicite', title:'Trois choses de ta journée', description:'Racontez une petite joie, une difficulté et une surprise de votre journée.', duration:8, hp:21, variant:'Gardez seulement la petite joie du jour.', variantDuration:2 },
@@ -57,12 +56,103 @@
 
   // STCK titles adapted for ONDE; durations and HP are prototype values.
   const stckCards=[{"id":"stck-5-01","categoryId":"intimite","title":"Bisou avec la langue","description":"Propose ce baiser et prenez un instant pour choisir ensemble le moment qui vous convient.","duration":2,"hp":18,"variant":"Proposez-vous un baiser bref, à votre rythme.","variantDuration":1,"sourceId":"5-01","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-01","title":"Bisou avec la langue","collectionId":"11","collectionTitle":"Amour","activeInSource":true}},{"id":"stck-5-03","categoryId":"complicite","title":"Message d’amour sincère","description":"Écris à l’autre quelques phrases sincères sur ce que tu apprécies dans votre relation, puis partage ton message.","duration":5,"hp":21,"variant":"Dis ou écris une seule phrase qui te tient à cœur.","variantDuration":1,"sourceId":"5-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-03","title":"Message d’amour sincère","collectionId":"11","collectionTitle":"Amour","activeInSource":true}},{"id":"stck-1-03","categoryId":"detente","title":"Massage des épaules","description":"Propose un massage des épaules pendant dix minutes. La personne qui le reçoit indique les gestes et la pression qui lui conviennent.","duration":10,"hp":25,"variant":"Masse les épaules pendant trois minutes, avec la pression choisie ensemble.","variantDuration":3,"sourceId":"1-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-03","title":"Massage des épaules","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-1-04","categoryId":"detente","title":"Massage des cuisses","description":"Propose un massage des cuisses. Choisissez une installation confortable et ajustez les gestes et la pression aux préférences de la personne qui reçoit.","duration":8,"hp":25,"variant":"Propose un massage de trois minutes sur une zone choisie ensemble.","variantDuration":3,"sourceId":"1-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-04","title":"Massage des cuisses","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-1-07","categoryId":"detente","title":"Massage total","description":"Propose vingt minutes de massage en passant entre les zones choisies ensemble. La personne qui reçoit guide la pression et peut demander une pause.","duration":20,"hp":35,"variant":"Choisissez une seule zone confortable pour cinq minutes de massage.","variantDuration":5,"sourceId":"1-07","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-07","title":"Massage total","collectionId":"12","collectionTitle":"Massage","activeInSource":true}},{"id":"stck-9-01","categoryId":"attention","title":"Pose de vernis","description":"Propose de poser du vernis à l’autre. Choisissez une couleur parmi celles disponibles et installez-vous confortablement pour prendre votre temps.","duration":20,"hp":25,"variant":"Choisissez ensemble une couleur pour une prochaine pose.","variantDuration":3,"sourceId":"9-01","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-01","title":"Pose de vernis","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-9-02","categoryId":"detente","title":"Masque (soin)","description":"Prévoyez une pause avec un masque de soin que vous utilisez déjà. Installez-vous ensemble et suivez le temps indiqué sur le produit.","duration":15,"hp":21,"variant":"Prenez cinq minutes pour un soin habituel, sans ajouter de produit nouveau.","variantDuration":5,"sourceId":"9-02","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-02","title":"Masque (soin)","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-1-06","categoryId":"attention","title":"Soin complet du visage","description":"Prépare un moment de soin du visage avec les produits habituels de l’autre. Laisse la personne choisir les étapes et propose ton aide.","duration":20,"hp":30,"variant":"Propose ton aide pour une seule étape de son soin habituel.","variantDuration":5,"sourceId":"1-06","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-06","title":"Soin complet du visage","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-1-08","categoryId":"tendresse","title":"Soirée complète de soin","description":"Prévoyez une soirée de soin à deux avec ce que vous avez déjà : visage, mains ou vernis. Choisissez vos soins et prenez soin l’un de l’autre.","duration":45,"hp":35,"variant":"Choisissez un seul soin à partager pendant dix minutes.","variantDuration":10,"sourceId":"1-08","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-08","title":"Soirée complète de soin","collectionId":"13","collectionTitle":"Soin","activeInSource":true}},{"id":"stck-2-02","categoryId":"complicite","title":"Burger","description":"Prévoyez un repas burger à deux. Choisissez ensemble les garnitures et le moment, puis partagez le repas tranquillement.","duration":30,"hp":25,"variant":"Choisissez les garnitures et une date pour ce repas.","variantDuration":3,"sourceId":"2-02","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-02","title":"Burger","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-09","categoryId":"complicite","title":"Pizza","description":"Prévoyez un repas pizza à deux. Choisissez une garniture commune ou chacun la sienne, puis installez-vous pour partager ce moment.","duration":30,"hp":25,"variant":"Choisissez ensemble la garniture de votre prochaine pizza.","variantDuration":3,"sourceId":"2-09","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-09","title":"Pizza","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-10","categoryId":"decouverte","title":"Sushi","description":"Prévoyez un repas sushi à deux. Choisissez ensemble ce que vous aimeriez goûter et prenez le temps de découvrir vos préférences.","duration":30,"hp":25,"variant":"Choisissez chacun une saveur pour un prochain repas sushi.","variantDuration":3,"sourceId":"2-10","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-10","title":"Sushi","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-11","categoryId":"complicite","title":"Kébab","description":"Prévoyez une pause kébab à deux. Choisissez ensemble le moment et profitez du repas pour vous retrouver.","duration":25,"hp":21,"variant":"Choisissez un moment pour votre prochaine pause kébab.","variantDuration":2,"sourceId":"2-11","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-11","title":"Kébab","collectionId":"14","collectionTitle":"Fast Food","activeInSource":true}},{"id":"stck-2-03","categoryId":"decouverte","title":"Faire un cake","description":"Préparez un cake ensemble avec une recette choisie à deux. Répartissez les étapes et gardez un moment pour le goûter une fois prêt.","duration":60,"hp":30,"variant":"Choisissez une recette de cake et répartissez les étapes pour une autre fois.","variantDuration":5,"sourceId":"2-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-03","title":"Faire un cake","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-12","categoryId":"decouverte","title":"Faire des cookies","description":"Préparez une petite fournée de cookies ensemble. Choisissez les ajouts, partagez les étapes et goûtez votre préparation une fois prête.","duration":30,"hp":25,"variant":"Choisissez une recette et les ajouts de votre prochaine fournée.","variantDuration":3,"sourceId":"2-12","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-12","title":"Faire des cookies","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-13","categoryId":"decouverte","title":"Faire des crêpes","description":"Préparez des crêpes à deux. Alternez les étapes et choisissez chacun une garniture à faire découvrir à l’autre.","duration":30,"hp":25,"variant":"Choisissez chacun une garniture pour une prochaine tournée de crêpes.","variantDuration":3,"sourceId":"2-13","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-13","title":"Faire des crêpes","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-9-03","categoryId":"decouverte","title":"Faire une tarte","description":"Préparez une tarte ensemble avec les ingrédients disponibles. Choisissez la recette et répartissez la préparation.","duration":50,"hp":30,"variant":"Choisissez la recette de votre prochaine tarte et notez les ingrédients nécessaires.","variantDuration":5,"sourceId":"9-03","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-03","title":"Faire une tarte","collectionId":"15","collectionTitle":"Pâtissier","activeInSource":true}},{"id":"stck-2-05","categoryId":"attention","title":"Petit-déjeuner sur canapé","description":"Prépare un petit-déjeuner à partager sur le canapé, avec ce que vous aimez et ce que vous avez déjà. Convenez du matin qui vous convient.","duration":20,"hp":21,"variant":"Apporte une boisson et partagez cinq minutes sur le canapé.","variantDuration":5,"sourceId":"2-05","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-05","title":"Petit-déjeuner sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-9-04","categoryId":"attention","title":"Petit goûter sur canapé","description":"Prépare un petit goûter à partager sur le canapé. Choisissez une collation disponible et faites une pause ensemble.","duration":15,"hp":18,"variant":"Partagez une petite collation pendant cinq minutes.","variantDuration":5,"sourceId":"9-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"9-04","title":"Petit goûter sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-2-04","categoryId":"tendresse","title":"Chocolat du soir et canapé","description":"Préparez votre chocolat du soir et installez-vous ensemble sur le canapé pour une pause tranquille.","duration":15,"hp":18,"variant":"Partagez cinq minutes sur le canapé avec votre boisson du soir.","variantDuration":5,"sourceId":"2-04","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-04","title":"Chocolat du soir et canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}},{"id":"stck-2-06","categoryId":"complicite","title":"Apéro sur canapé","description":"Prévoyez un apéro sur le canapé avec une boisson de votre choix et de quoi grignoter. Prenez le temps de vous retrouver.","duration":20,"hp":21,"variant":"Partagez une boisson et une courte pause sur le canapé.","variantDuration":5,"sourceId":"2-06","source":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"2-06","title":"Apéro sur canapé","collectionId":"16","collectionTitle":"Canapé","activeInSource":true}}];
-  cards.push(...stckCards);
+  legacyCards.push(...stckCards);
   const stckExistingLinks={"det-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-02","title":"Massage de la tête","collectionId":"12","collectionTitle":"Massage","activeInSource":true},"tend-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-02","title":"Câlin (accolade)","collectionId":"11","collectionTitle":"Amour","activeInSource":true},"att-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-05","title":"Mot doux à cacher","collectionId":"11","collectionTitle":"Amour","activeInSource":true}};
-  for(const [id,source] of Object.entries(stckExistingLinks)) { const card=cards.find(card=>card.id===id); if(card)card.source=source; }
+  for(const [id,source] of Object.entries(stckExistingLinks)) { const card=legacyCards.find(card=>card.id===id); if(card)card.source=source; }
+
+  // The former catalogue stays available only to validate existing saves and history.
+  const legacyCategory = id => id==='tendresse'?'complicite':id==='decouverte'?'bouffe':id;
+  const hiddenLegacyCards = legacyCards.map(card=>Object.assign({},card,{categoryId:legacyCategory(card.categoryId)}));
+  const oldCardById = Object.fromEntries(hiddenLegacyCards.map(card=>[card.id,card]));
+  const catalogRows = [
+    {id:'new-complicite-01',categoryId:'complicite',title:'Le selfie à deux du jour'},
+    {id:'new-complicite-02',categoryId:'complicite',title:'Baiser avec la langue',legacyId:'stck-5-01'},
+    {id:'new-complicite-03',categoryId:'complicite',title:'Câlin',legacyId:'tend-1'},
+    {id:'new-complicite-04',categoryId:'complicite',title:'Mot doux à cacher',legacyId:'att-1'},
+    {id:'new-complicite-05',categoryId:'complicite',title:'Pose de vernis',legacyId:'stck-9-01'},
+    {id:'new-complicite-06',categoryId:'complicite',title:'Caresse sous le plaid devant une série'},
+    {id:'new-complicite-07',categoryId:'complicite',title:'Une heure sans téléphone'},
+    {id:'new-complicite-08',categoryId:'complicite',title:'Un jeu de société'},
+    {id:'new-complicite-09',categoryId:'complicite',title:'Regarder un film'},
+    {id:'new-complicite-10',categoryId:'complicite',title:'Regarder une série'},
+    {id:'new-detente-01',categoryId:'detente',title:'Massage de la tête',legacyId:'det-1'},
+    {id:'new-detente-02',categoryId:'detente',title:'Massage des épaules',legacyId:'stck-1-03'},
+    {id:'new-detente-03',categoryId:'detente',title:'Massage des pieds'},
+    {id:'new-detente-04',categoryId:'detente',title:'Massage des cuisses',legacyId:'stck-1-04'},
+    {id:'new-detente-05',categoryId:'detente',title:'Massage des oreilles'},
+    {id:'new-detente-06',categoryId:'detente',title:'Massage du visage'},
+    {id:'new-detente-07',categoryId:'detente',title:'Massage du dos'},
+    {id:'new-detente-08',categoryId:'detente',title:'Massage total',legacyId:'stck-1-07'},
+    {id:'new-detente-09',categoryId:'detente',title:'Masque visage',legacyId:'stck-9-02'},
+    {id:'new-detente-10',categoryId:'detente',title:'Soin complet du visage',legacyId:'stck-1-06'},
+    {id:'new-attention-01',categoryId:'attention',title:'Achat Vinted à petit budget'},
+    {id:'new-attention-02',categoryId:'attention',title:'Achat Vinted à gros budget'},
+    {id:'new-attention-03',categoryId:'attention',title:'Un café à Columbus'},
+    {id:'new-attention-04',categoryId:'attention',title:'Achat d’un roman'},
+    {id:'new-attention-05',categoryId:'attention',title:'Achat d’un jeu vidéo'},
+    {id:'new-attention-06',categoryId:'attention',title:'Achat d’un roman graphique'},
+    {id:'new-attention-07',categoryId:'attention',title:'Achat d’un manga'},
+    {id:'new-attention-08',categoryId:'attention',title:'Achat d’un jeu de société de type cartes'},
+    {id:'new-attention-09',categoryId:'attention',title:'Achat d’un jeu de société de type plateau (budget plus conséquent)'},
+    {id:'new-attention-10',categoryId:'attention',title:'Petit achat sur Passage du Désir'},
+    {id:'new-attention-11',categoryId:'attention',title:'Gros achat sur Passage du Désir'},
+    {id:'new-attention-12',categoryId:'attention',title:'Achat Rouge Gorge 20 euros'},
+    {id:'new-attention-13',categoryId:'attention',title:'Achat Monoprix 20 euros'},
+    {id:'new-attention-14',categoryId:'attention',title:'Achat Rouge Gorge +30 euros'},
+    {id:'new-attention-15',categoryId:'attention',title:'Achat Monoprix +30 euros'},
+    {id:'new-bouffe-01',categoryId:'bouffe',title:'Manger un burger',legacyId:'stck-2-02'},
+    {id:'new-bouffe-02',categoryId:'bouffe',title:'Manger de la pizza',legacyId:'stck-2-09'},
+    {id:'new-bouffe-03',categoryId:'bouffe',title:'Manger sushi',legacyId:'stck-2-10'},
+    {id:'new-bouffe-04',categoryId:'bouffe',title:'Manger un kebab'},
+    {id:'new-bouffe-05',categoryId:'bouffe',title:'Acheter de quoi faire un plat mexicain'},
+    {id:'new-bouffe-06',categoryId:'bouffe',title:'Acheter de quoi faire un plat asiatique'},
+    {id:'new-bouffe-07',categoryId:'bouffe',title:'Acheter de quoi faire un plat d’un pays européen au hasard'},
+    {id:'new-bouffe-08',categoryId:'bouffe',title:'Faire des crêpes'},
+    {id:'new-bouffe-09',categoryId:'bouffe',title:'Faire des cookies'},
+    {id:'new-bouffe-10',categoryId:'bouffe',title:'Faire une tarte ou un gâteau'},
+    {id:'new-bouffe-11',categoryId:'bouffe',title:'Apéro sur canapé',legacyId:'stck-2-06'},
+    {id:'new-bouffe-12',categoryId:'bouffe',title:'Chocolat du soir et canapé',legacyId:'stck-2-04'},
+    {id:'new-intimite-01',categoryId:'intimite',title:'Léchage de chatte'},
+    {id:'new-intimite-02',categoryId:'intimite',title:'Sit face'},
+    {id:'new-intimite-03',categoryId:'intimite',title:'Massage Nuru'},
+    {id:'new-intimite-04',categoryId:'intimite',title:'Lovense'},
+    {id:'new-intimite-05',categoryId:'intimite',title:'Fellation'},
+    {id:'new-intimite-06',categoryId:'intimite',title:'Faciale'},
+    {id:'new-intimite-07',categoryId:'intimite',title:'Dans la bouche'},
+    {id:'new-intimite-08',categoryId:'intimite',title:'Avaler le sperme'},
+    {id:'new-intimite-09',categoryId:'intimite',title:'Reproduction porno 1:1'},
+    {id:'new-intimite-10',categoryId:'intimite',title:'Pénétration anale'},
+    {id:'new-intimite-11',categoryId:'intimite',title:'Golden shower'},
+    {id:'new-intimite-12',categoryId:'intimite',title:'Double pénétration'},
+    {id:'new-intimite-13',categoryId:'intimite',title:'Montrer ses seins sur Reddit'},
+    {id:'new-intimite-14',categoryId:'intimite',title:'Montrer ses fesses sur Reddit'},
+    {id:'new-intimite-15',categoryId:'intimite',title:'Montrer sa chatte sur Reddit'},
+    {id:'new-intimite-16',categoryId:'intimite',title:'Webcam show seins'},
+    {id:'new-intimite-17',categoryId:'intimite',title:'Webcam show fesses'},
+    {id:'new-intimite-18',categoryId:'intimite',title:'Webcam show masturbation'},
+    {id:'new-intimite-19',categoryId:'intimite',title:'Montrer une faciale sur Reddit'},
+    {id:'new-intimite-20',categoryId:'intimite',title:'Une heure de soumission'},
+    {id:'new-intimite-21',categoryId:'intimite',title:'Session fessée'},
+    {id:'new-intimite-22',categoryId:'intimite',title:'Photoshoot original'}
+  ];
+  const sourceIdByTitle = Object.fromEntries(legacyCards.map(card=>[card.title,card]));
+  const categoryPrompts = {
+    complicite:'Choisissez le moment et la façon qui vous plaisent à tous les deux.',
+    detente:'La personne qui reçoit choisit la zone, les gestes et la pression. Vous pouvez arrêter à tout moment.',
+    attention:'Décidez ensemble de l’achat et respectez le budget indiqué dans la proposition.',
+    bouffe:'Choisissez ensemble ce qui vous fait envie et le budget qui vous convient.',
+    intimite:'À réserver à des adultes consentants. Définissez ensemble les limites, le cadre et les conditions de sécurité ; chacun peut dire non ou arrêter à tout moment.'
+  };
+  const cards = catalogRows.map((row,index)=>{
+    const old=(row.legacyId&&oldCardById[row.legacyId])||sourceIdByTitle[row.title]||null;
+    const prompts=categoryPrompts[row.categoryId];
+    return {id:row.id,categoryId:row.categoryId,title:row.title,description:prompts,duration:null,hp:null,variant:'Choisissez ensemble une version plus simple ou un autre moment.',variantDuration:null,...(old&&old.source?{source:old.source}:{})};
+  });
+
+  const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
 
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const cardMap = Object.fromEntries(cards.map(card => [card.id, card]));
+  const cardMap = Object.fromEntries([...hiddenLegacyCards,...cards].map(card => [card.id, card]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
   const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
   const prefKeys = ['reducedMotion','sound','discreet','reminder'];
@@ -171,6 +261,15 @@
     let migrated;
     try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
     if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
+    if(migrated.stats&&migrated.stats.byCategory&&('decouverte' in migrated.stats.byCategory || 'tendresse' in migrated.stats.byCategory)){
+      const old=migrated.stats.byCategory;
+      migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,attention:old.attention||0,bouffe:old.decouverte||0,intimite:old.intimite||0};
+    }
+    if(migrated.round.categoryId){migrated.round.categoryId=legacyCategory(migrated.round.categoryId);const mapped=getCategory(migrated.round.categoryId);if(mapped)migrated.round.categoryRoll=mapped.number;}
+    migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>legacyFavoriteMap[id]||id))):migrated.favorites;
+    if(migrated.seen&&typeof migrated.seen==='object'){
+      const seen={};for(const [id,list] of Object.entries(migrated.seen)){const key=legacyCategory(id);seen[key]=[...(seen[key]||[]),...(Array.isArray(list)?list:[])].slice(0,8);}migrated.seen=seen;
+    }
     function extendRound(round, phase) {
       const missing=key=>!Object.prototype.hasOwnProperty.call(round,key);
       if(missing('draftRolls')) round.draftRolls=[];
@@ -227,8 +326,8 @@
     return ['pending','challenge','challenge_failed','sender_confirmation'].includes(s.phase) && s.activePlayer===s.round.awaiting;
   }
 
-  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed;
-  const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer;
+  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && Number.isFinite(getCard(s.round.cardId)?.hp);
+  const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
   function closeRound(s, status, action) {
     s.phase='resolved';
@@ -276,9 +375,9 @@
         s.round=blankRound(s.sequence,actor,action.at);
         return s;
       case 'ROLL_CATEGORY': {
-        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>6) return state;
+        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>5) return state;
         const cat=categories.find(c=>c.number===action.value);
-        if(!Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
+        if(!cat || !Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
         s.phase='card';
         return s;
@@ -299,7 +398,7 @@
         r.draftChallengeUsed=true; r.status='draft_challenge'; r.awaiting=r.from; s.phase='draft_challenge';
         return s;
       case 'ROLL_DRAFT_DEFENSE': {
-        if(!canRollDraftDefense(s) || r.draftRolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(!canRollDraftDefense(s) || !Number.isFinite(getCard(r.cardId)?.hp) || r.draftRolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
         if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.draftRollTokens.includes(action.token)) return state;
         r.draftRolls.push(action.value); r.draftRollTokens.push(action.token);
         const total=r.draftRolls.reduce((sum,v)=>sum+v,0);
@@ -333,11 +432,11 @@
         r.adapted=true; r.status='counterproposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
         return s;
       case 'CHALLENGE':
-        if(s.phase!=='pending' || r.status!=='pending' || actor!==r.to || r.awaiting!==actor || r.challengeUsed) return state;
+        if(s.phase!=='pending' || r.status!=='pending' || actor!==r.to || r.awaiting!==actor || r.challengeUsed || !Number.isFinite(getCard(r.cardId)?.hp)) return state;
         r.challengeUsed=true; r.status='challenge'; s.phase='challenge';
         return s;
       case 'ROLL_DEFENSE': {
-        if(s.phase!=='challenge' || actor!==r.to || r.awaiting!==actor || r.rolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(s.phase!=='challenge' || actor!==r.to || r.awaiting!==actor || !Number.isFinite(getCard(r.cardId)?.hp) || r.rolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
         if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.rollTokens.includes(action.token)) return state;
         r.rolls.push(action.value); r.rollTokens.push(action.token);
         const total=r.rolls.reduce((sum,v)=>sum+v,0);

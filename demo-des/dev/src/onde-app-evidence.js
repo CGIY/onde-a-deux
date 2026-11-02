@@ -81,6 +81,21 @@
 
   // Deliberate ID mapping: a category alone never selects a statistic.
   const factByCard = Object.freeze({
+    'new-complicite-02': 'kissing',
+    'new-complicite-03': 'cuddling',
+    'new-detente-01': 'massage',
+    'new-detente-02': 'massage',
+    'new-detente-04': 'massage',
+    'new-detente-06': 'massage',
+    'new-detente-07': 'massage',
+    'new-detente-08': 'massage',
+    'new-bouffe-01': 'meal',
+    'new-bouffe-02': 'meal',
+    'new-bouffe-03': 'meal',
+    'new-bouffe-04': 'meal',
+    'new-bouffe-11': 'meal',
+    'new-bouffe-12': 'meal',
+    'new-intimite-03': 'massage',
     'comp-2': 'memories',
     'comp-4': 'memories',
     'det-1': 'massage',

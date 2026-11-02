@@ -4,15 +4,11 @@
 
 ## Essayer
 
-Lancer le **D6** pour choisir une catégorie, puis le **D4** pour tirer une carte. La personne qui tire peut proposer la carte directement ou tenter de l’écarter avec le **D20** : elle dispose de deux jets au maximum pour atteindre les PV de la carte avec leur total.
+Le D6 choisit parmi cinq catégories, puis le D4 tire une carte parmi quatre. Un 6 relance le D6 pour garder une chance égale entre les cinq catégories. La personne qui la tire peut la proposer à l’autre profil ; celui-ci peut accepter, adapter, choisir un autre moment ou passer.
 
-Si ce total reste inférieur aux PV après le second jet, la carte est **automatiquement proposée à l’autre profil**. Changer de profil en haut de l’écran pour accepter, adapter, proposer un autre moment ou tenter à son tour un défi avec deux nouveaux jets de D20. Si l’autre accepte une carte proposée automatiquement, la personne qui l’a tirée doit encore **confirmer son accord** avant que la carte soit acceptée à deux. Une proposition envoyée volontairement suit le parcours d’accord habituel.
+Les seuils de difficulté pour écarter une carte restent à définir. Le défi D20 est donc temporairement masqué et aucune résistance ou durée n’est attribuée aux nouvelles cartes. Les 69 cartes, leurs variantes, les favoris et le score commun fonctionnent localement.
 
-Avant la proposition, la personne qui tire choisit entre l’envoyer directement et tenter le D20. Elle ne peut pas écarter la carte en la passant : après deux jets insuffisants, la proposition part automatiquement à l’autre profil. Une fois la carte reçue, l’autre personne peut la passer sans pénalité. Le dé ne vaut jamais accord.
-
-Les 57 cartes de démonstration, les favoris, les variantes et le score commun sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
-
-La compilation pour simulateur avec Xcode 27.2 a réussi et l’application a été lancée sur un iPhone 18 Pro simulé. Les tests fournis du parcours D20 (366 assertions), du score (43 assertions) et des dés passent. Une vérification complète de tous les parcours dans l’interface et la fluidité sur iPhone physique restent à observer.
+La compilation du projet Xcode avec ce catalogue de 69 cartes a réussi pour le simulateur iOS. Le rendu sur un iPhone physique n’a pas été vérifié.
 
 ## Couleurs, mouvement et repères sourcés
 
@@ -24,11 +20,11 @@ Les deux profils sont **simulés sur un seul appareil**. Les notifications sont 
 
 ## Score commun et catalogue STCK
 
-Dans **Nous**, une carte marquée **partagée** ajoute **1 point au duo**, avec une répartition par catégorie. Accepter, passer ou écarter une carte au D20 n’ajoute aucun point. Le total cumulé reste conservé indépendamment de la limite technique de l’ancien historique. Les anciens tours partagés encore disponibles sont repris lors de la mise à jour ; les tours déjà évincés ne peuvent pas être reconstitués.
+Dans **Nous**, une carte marquée **partagée** ajoute **1 point au duo**, avec une répartition par catégorie. Passer une invitation n’ajoute aucun point. Le total cumulé reste conservé indépendamment de la limite technique de l’ancien historique. Les anciens tours partagés encore disponibles sont repris lors de la mise à jour ; les tours déjà évincés ne peuvent pas être reconstitués.
 
 La section chronologique « Les derniers moments » et le réglage manuel « Mouvements réduits » ont été retirés. Les animations respectent automatiquement la préférence d’accessibilité du système.
 
-Le catalogue reprend **21 nouvelles cartes** des collections Amour, Massage, Soin, Fast Food, Pâtissier et Canapé de [STCK](https://github.com/CGIY/stck/blob/98119ed48b8af6e868582eeeed0912214e007e9c/src/catalog.json). Trois propositions déjà présentes (massage de la tête, câlin et petit mot caché) sont reliées à leur équivalent sans créer de doublon. Les titres proviennent de STCK ; les consignes, variantes, durées estimées et PV provisoires sont adaptés pour ONDE. La traçabilité complète est dans `stck-adaptations.json`.
+Le catalogue contient **69 cartes sélectionnées par Clément** dans cinq catégories : Complicité, Détente, Attentions, Bouffe et Intimité. Certains titres réutilisent des cartes STCK ; leur provenance est conservée dans les données. Les sources factuelles n’apparaissent que lorsque l’étude concerne réellement le sujet de la carte.
 
 
 ## Dans Xcode

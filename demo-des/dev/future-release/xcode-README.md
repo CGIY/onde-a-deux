@@ -1,6 +1,6 @@
 # ONDE — démo iPhone pour Xcode
 
-Une application de test locale : **D6 pour la catégorie, D4 pour la carte, D20 pour le défi facultatif**. Le prototype est embarqué dans une vue WebKit, avec les dés, les 57 cartes de démonstration, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 3**.
+Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le défi D20 est temporairement masqué, le temps de définir les scores de résistance. Le prototype est embarqué dans une vue WebKit, avec les dés, 69 cartes, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 3**.
 
 ## Démarrer en quatre étapes
 
@@ -31,29 +31,23 @@ Les fichiers Swift se trouvent dans **`OndeDemo/Sources/`** :
 
 ## Version 0.3.0
 
-Après le D6 et le D4, la personne qui tire la carte peut la proposer directement ou tenter de l’écarter au **D20**. Elle dispose de **deux jets au maximum**, dont le total doit atteindre les PV de la carte. Si le total reste insuffisant après le second jet, la carte est **automatiquement proposée à l’autre profil**.
+Le D6 choisit parmi cinq catégories, puis le D4 tire une carte parmi quatre. Un résultat 6 relance le D6 pour conserver une chance égale entre les cinq catégories. La personne qui tire peut proposer directement. L’autre peut accepter, adapter, proposer un autre moment ou passer, sans pénalité. Les seuils pour écarter une carte restent à définir ; le défi D20 est temporairement masqué.
 
-L’autre personne peut accepter, adapter, proposer un autre moment, passer ou tenter son propre défi avec deux nouveaux jets de D20. La personne qui tire ne peut pas passer la carte avant la proposition : elle choisit de l’envoyer directement ou de tenter les deux jets ; en cas d’échec, la proposition est automatique. Si l’autre accepte cette proposition, la personne qui l’a tirée doit encore **confirmer son accord** avant que le jeu la considère acceptée à deux. Changer de profil en haut de l’écran permet de tester chaque réponse. Passer une proposition reste toujours possible, sans pénalité ; un résultat de dé ne remplace jamais un accord.
+Les 69 cartes appartiennent aux catégories Complicité, Détente, Attentions, Bouffe et Intimité. Aucune durée ni valeur de résistance n’est attribuée au nouveau catalogue. Les repères factuels affichent leur mesure, leur contexte et leur source lorsqu’ils s’appliquent au sujet de la carte.
 
-L’interface renforce les couleurs minérales des catégories et les animations de transition, de cartes et de dés. Les D4, D6 et D20 portent tous des chiffres. Les cartes dépliées défilent pour garder la consigne, la variante et les repères lisibles sur iPhone.
-
-Les chiffres présentés dans les cartes sont accompagnés de leurs sources et du contexte de mesure. Ils éclairent le sujet de la carte, sans promettre un effet particulier pour votre duo. Les références sont intégrées au jeu ; le dossier de recherche `card-evidence.json` accompagne aussi la version navigateur lorsqu’il est disponible.
-
-L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 point**, puis le détail par catégorie. Les cartes passées, acceptées sans réalisation ou écartées au dé ne donnent pas de point. L’ancien état local est repris à l’ouverture ; le score ne dépend plus du nombre d’entrées d’historique conservées.
-
-Le catalogue ajoute 21 propositions adaptées des titres de STCK ; les durées et PV sont des valeurs de prototype. Les rubriques « Les derniers moments » et « Mouvements réduits » ont été retirées. La préférence d’accessibilité de mouvement du système continue d’être respectée automatiquement.
+L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 point**, avec le détail par catégorie. Le stockage local reprend les données déjà compatibles ; les tours passés et le score restent séparés du catalogue affiché.
 
 ## Ce qui est simulé
 
 Les deux profils s’utilisent sur le même appareil. Les invitations, accords et notifications sont des interactions de démonstration ; aucun message ni rappel système n’est envoyé. La synchronisation entre deux téléphones n’est pas implémentée.
 
-La personne qui tire choisit de proposer directement la carte ou de tenter de l’écarter au D20. Elle ne peut pas la passer avant proposition : après deux jets insuffisants, l’envoi à l’autre profil est automatique. Le dé ne valide jamais une proposition.
+Les nouvelles cartes se proposent directement. Il n’y a pour le moment ni défi d’écartement ni score de résistance. Les décisions restent libres et le dé de catégorie ou de tirage ne remplace jamais un accord.
 
 Le stockage local du jeu utilise le magasin de données persistant de WebKit. Cette mise à jour conserve la clé de stockage pour reprendre les profils, la partie et le score. Une désinstallation ou une remise à zéro peut supprimer les données de test. **Nous → Effacer la partie de démonstration** permet de recommencer volontairement.
 
 ## Vérification et limites
 
-La version 0.3.0 a été compilée avec Xcode 27.2 pour le simulateur iOS, puis lancée sur un simulateur iPhone 18 Pro. L’écran d’accueil, le D6 numéroté et les 57 cartes sont visibles. Les tests fournis du parcours D20 (366 assertions), du score (43 assertions) et des dés (poses, raccords d’animation, annulation, réduction du mouvement, DPR 2 et secours Canvas2D) passent.
+Le projet simplifié avec le catalogue de 69 cartes a été compilé avec Xcode 27.2 pour le simulateur iOS. L’application n’a pas été relancée sur simulateur après ce changement ; les animations sur un iPhone physique restent à observer.
 
 Les tests automatisés ne remplacent pas une vérification manuelle de chaque parcours dans l’interface. Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
 
