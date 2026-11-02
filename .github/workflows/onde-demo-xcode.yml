@@ -1,0 +1,33 @@
+name: ONDE demo — Xcode
+
+on:
+  push:
+    paths:
+      - 'demo-des/xcode/**'
+      - '.github/workflows/onde-demo-xcode.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulator-build:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Build iOS simulator app
+        run: >-
+          xcodebuild
+          -project demo-des/xcode/OndeDemo.xcodeproj
+          -scheme OndeDemo
+          -configuration Debug
+          -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/onde-demo-build"
+          CODE_SIGNING_ALLOWED=NO
+          build
