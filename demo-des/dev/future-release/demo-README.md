@@ -30,9 +30,6 @@ La section chronologique « Les derniers moments » et le réglage manuel « Mou
 
 Le catalogue reprend **21 nouvelles cartes** des collections Amour, Massage, Soin, Fast Food, Pâtissier et Canapé de [STCK](https://github.com/CGIY/stck/blob/98119ed48b8af6e868582eeeed0912214e007e9c/src/catalog.json). Trois propositions déjà présentes (massage de la tête, câlin et petit mot caché) sont reliées à leur équivalent sans créer de doublon. Les titres proviennent de STCK ; les consignes, variantes, durées estimées et PV provisoires sont adaptés pour ONDE. La traçabilité complète est dans `stck-adaptations.json`.
 
-## Faire un retour
-
-Ouvrir **Avis** dans l’en-tête ou **Nous → Donner mon avis**. Écrire une observation puis copier le rapport et le coller dans la conversation. Le rapport indique la version et l’état utile du jeu ; il n’est jamais envoyé automatiquement.
 
 ## Dans Xcode
 

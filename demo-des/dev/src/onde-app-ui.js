@@ -8,7 +8,7 @@
  let systemReduce=!!(motionQuery&&motionQuery.matches);
  let state=G.createState(), tab='play', catalog='detente', favoritesOnly=false, busy=false, toastTimer, lastFocus=null, animationSerial=0;
  let persisted=false, lastError='';
- let feedbackNote='', feedbackContext='', renderKey='';
+ let renderKey='';
  const deckPositions=Object.create(null);
  let deckFrame=0;
  try{const raw=localStorage.getItem(storageKey);if(raw){const saved=G.normalizeState(JSON.parse(raw));if(saved)state=saved;}localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}
@@ -98,7 +98,7 @@
   const stats=state.stats,total=stats.totalCompleted;
   return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div><p class="oa-note">Le score augmente quand une carte est marquée « partagée ». Il reste commun à votre duo.</p>';
  }
- function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Donner mon avis','feedback')+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+ function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
 
  function render(){
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
@@ -169,13 +169,13 @@
   const serial=++animationSerial;
   const next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
   busy=true;root.classList.add('is-busy');
-  root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="feedback"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
+  root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
   const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le hasard fait son chemin…';
   state=next;save();softSound();
   try{await die.roll(action.value,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
   if(serial!==animationSerial)return;
   busy=false;
-  root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="feedback"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
+  root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
   root.classList.remove('is-busy');render();
   announce('D'+sides+' : '+action.value+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:remaining()+' points de vie restants.'));
  }
@@ -189,24 +189,6 @@
  function showLater(){openSheet('Trouver le bon moment','<p>Propose un créneau à '+h(name(G.otherPlayer(state.activePlayer)))+'. Le moment sera confirmé à deux.</p><label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
 
  function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+source(c)+'<div class="oa-detail-variant"><p class="oa-eyebrow">UNE AUTRE FAÇON · '+c.variantDuration+' MIN</p><p>'+h(c.variant)+'</p></div><p class="oa-detail-odds">Côté jeu · '+c.hp+' PV : '+percent(c.hp)+' de chances de les atteindre avec deux D20.</p>','oa-card-sheet');}
- function feedbackReport(){return feedbackContext+'\n\nMon retour :\n'+(feedbackNote.trim()||'À compléter.');}
- function showFeedback(){
-  const round=state.round;
-  feedbackContext=['ONDE — Retour de test','Version : 0.3.0','Écran : '+({play:'Jouer',cards:'Les cartes',us:'Nous'}[tab]||tab),'Étape : '+state.phase,'Catégorie : '+(round.categoryId||'—'),'Carte (cardId) : '+(round.cardId||'—'),'PV : '+(round.hp==null?'—':round.hp),'D6 : '+(round.categoryRoll||'—')+' · D4 : '+(round.cardRoll||'—')+' · D20 initiateur : '+(round.draftRolls.length?round.draftRolls.join(' + '):'—')+' · D20 destinataire : '+(round.rolls.length?round.rolls.join(' + '):'—'),'Fenêtre : '+window.innerWidth+' × '+window.innerHeight+' px','Rendu : '+(die.mode||canvas.dataset.renderer||'inconnu')].join('\n');
-  openSheet('Donner mon avis','<p>Qu’est-ce qui te plaît, te gêne ou te manque ? Copie ce retour pour le partager dans notre conversation.</p><label class="oa-field">Ton avis<textarea id="oa-feedback-note" rows="3" maxlength="2000" placeholder="Par exemple : le dé rebondit trop vite…">'+h(feedbackNote)+'</textarea></label><label class="oa-field">Le rapport à copier<textarea id="oa-feedback-report" rows="5" readonly aria-describedby="oa-feedback-status" spellcheck="false">'+h(feedbackReport())+'</textarea></label><div class="oa-actions">'+btn('Copier mon retour','copy-feedback')+'</div><p id="oa-feedback-status" role="status">Aucun envoi automatique. Ton avis reste dans cette page jusqu’à sa fermeture.</p>','oa-feedback-sheet');
- }
- async function copyFeedback(){
-  const field=sheet.querySelector('#oa-feedback-report'),status=sheet.querySelector('#oa-feedback-status'),button=sheet.querySelector('[data-action="copy-feedback"]');
-  if(!field||!status||!button)return;
-  button.disabled=true;
-  try{
-   if(!navigator.clipboard||typeof navigator.clipboard.writeText!=='function')throw new Error('clipboard-unavailable');
-   await navigator.clipboard.writeText(field.value);
-   status.textContent='Retour copié. Tu peux maintenant le coller dans notre conversation.';
-  }catch(_){
-   if(field.isConnected){field.focus();field.select();field.setSelectionRange(0,field.value.length);status.textContent='Copie automatique indisponible. Le rapport est sélectionné : utilise la commande Copier de ton appareil.';}
-  }finally{button.disabled=false;}
- }
  root.addEventListener('click',event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
   if(busy&&action!=='pass'&&action!=='close')return;
@@ -235,15 +217,12 @@
   if(action==='filter'){favoritesOnly=el.dataset.favorites==='true';render();return;}
   if(action==='card-detail'){details(el.dataset.card);return;}
   if(action==='rules'){rules();return;}
-  if(action==='feedback'){showFeedback();return;}
-  if(action==='copy-feedback'){copyFeedback();return;}
   if(action==='close'){closeSheet();return;}
   if(action==='reminder'){openSheet('Aperçu du rappel','<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · RAPPEL</small><p>'+h(state.prefs.discreet?'Votre moment à deux vous attend.':card().title)+'</p></div></div><p>Ceci est un aperçu dans la démo. Aucun rappel système n’est programmé.</p><div class="oa-actions">'+btn('Fermer l’aperçu','close')+'</div>');return;}
   if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
   if(action==='reset'){closeSheet();dispatch({type:'RESET'});tab='play';catalog='detente';favoritesOnly=false;render();toast('La démonstration repart de zéro.');return;}
  });
  if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());if(tab==='cards')initDeck();});
- root.addEventListener('input',event=>{if(event.target.id==='oa-feedback-note'){feedbackNote=event.target.value;const report=sheet.querySelector('#oa-feedback-report');if(report)report.value=feedbackReport();}});
  root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});

@@ -9,7 +9,6 @@
     <header class="oa-header">
       <a class="oa-wordmark cursor-interaction" href="#" data-action="tab" data-tab="play" aria-label="ONDE, accueil">ONDE<span>à deux.</span></a>
       <div class="oa-header-actions">
-        <button class="oa-feedback-button cursor-interaction" type="button" data-action="feedback" aria-label="Donner mon avis">Avis</button>
         <button class="oa-help cursor-interaction" type="button" data-action="rules" aria-label="Comprendre les règles">?</button>
       </div>
     </header>
@@ -42,7 +41,6 @@
 #onde-app-v1 .oa-shell{position:relative;max-width:452px;margin:0 auto;border:1px solid #3b453e;border-radius:34px;background:var(--oa-bg);box-shadow:0 28px 70px #0004,inset 0 1px 0 #ffffff0a;overflow:clip}
 #onde-app-v1 .oa-header{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:27px 26px 22px}
 #onde-app-v1 .oa-header-actions{display:flex;align-items:center;gap:8px;flex:none}
-#onde-app-v1 .oa-feedback-button{min-height:36px;padding:0 10px;border:1px solid var(--oa-line);border-radius:18px;background:transparent;color:var(--oa-muted);font-size:11px}
 #onde-app-v1 .oa-wordmark{color:var(--oa-text);text-decoration:none;font-size:24px;font-weight:500;letter-spacing:.19em;display:flex;align-items:baseline;gap:11px}
 #onde-app-v1 .oa-wordmark span{font-family:Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-.02em;color:var(--oa-muted);font-weight:400}
 #onde-app-v1 .oa-help{border:1px solid var(--oa-line);background:#242c27;color:#b9c4b5;width:36px;height:36px;border-radius:50%;font-size:16px}
@@ -205,9 +203,6 @@
 #onde-app-v1 .oa-field{display:block;margin-top:16px;font-size:12px;color:#ccd7c1}
 #onde-app-v1 .oa-field input,#onde-app-v1 .oa-field select,#onde-app-v1 .oa-field textarea{display:block;width:100%;margin-top:8px;background:#151d16;color:#e4ebdb;border:1px solid #526049;border-radius:11px;padding:12px;font-size:16px;line-height:1.4}
 #onde-app-v1 .oa-field textarea{resize:vertical;min-height:92px}
-#onde-app-v1 .oa-feedback-sheet{max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain}
-#onde-app-v1 .oa-feedback-sheet .oa-field{margin-top:12px}
-#onde-app-v1 .oa-feedback-sheet #oa-feedback-report{font:16px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:116px;white-space:pre-wrap}
 #onde-app-v1 .oa-source{border-top:1px solid #52604970;margin-top:18px;padding-top:13px}
 #onde-app-v1 .oa-source summary{font-size:11px;color:#c9d3c0;min-height:30px;padding:6px 0}
 #onde-app-v1 .oa-source p{font-size:11px!important}
@@ -215,7 +210,7 @@
 #onde-app-v1 .oa-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 #onde-app-v1.is-busy [data-action=roll]{opacity:.65}
 @media(max-width:380px){#onde-app-v1{padding:6px 0}#onde-app-v1 .oa-shell{border-radius:24px}#onde-app-v1 .oa-header{padding:22px 18px 19px}#onde-app-v1 .oa-persona{margin-left:16px;margin-right:16px;gap:6px}#onde-app-v1 .oa-demo-label{font-size:9px;gap:5px;letter-spacing:.03em}#onde-app-v1 .oa-switch button{padding:7px 9px;font-size:11px}#onde-app-v1 .oa-main{padding-left:16px;padding-right:16px}#onde-app-v1 .oa-title{font-size:29px}#onde-app-v1 .oa-step{font-size:10px;gap:4px}#onde-app-v1 .oa-steps{gap:4px}#onde-app-v1 .oa-step b{width:27px}#onde-app-v1 .oa-stage{height:221px}#onde-app-v1 .oa-playing-card{padding:19px 17px}#onde-app-v1 .oa-card-title{font-size:26px}#onde-app-v1 .oa-category{padding:10px 8px}#onde-app-v1 .oa-category-label{font-size:10px}}
-@media(pointer:coarse){#onde-app-v1 .oa-switch button{min-height:40px}#onde-app-v1 .oa-help,#onde-app-v1 .oa-close,#onde-app-v1 .oa-favorite{width:44px;height:44px}#onde-app-v1 .oa-text-button,#onde-app-v1 .oa-feedback-button{min-height:44px}}
+@media(pointer:coarse){#onde-app-v1 .oa-switch button{min-height:40px}#onde-app-v1 .oa-help,#onde-app-v1 .oa-close,#onde-app-v1 .oa-favorite{width:44px;height:44px}#onde-app-v1 .oa-text-button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 *,#onde-app-v1 *:before{transition:none!important;animation:none!important}}
 /* 0.3.0 — mineral color, soft rubber surfaces, card movement and accessible sheets. */
 #onde-app-v1{--oa-bg:#202321;--oa-surface:#2b302d;--oa-surface2:#353b37;--oa-line:#78807855;--oa-text:#f0eee7;--oa-muted:#bdc0b7;--oa-sage:#c7d1b9;--oa-ink:#252a25;--oa-sand:#d7b58e;--oa-slate:#9caebb;--oa-clay:#d49a81;--oa-rose:#d6aaa0;--oa-mauve:#b5a5bd;--oa-mineral-blue:#829ea9;--oa-mineral-rose:#bb8f83;--oa-mineral-moss:#8b9b7a}
@@ -259,7 +254,6 @@
 #onde-app-v1 .oa-sheet-backdrop{position:fixed;inset:0;z-index:9999;overflow-y:auto;overscroll-behavior:contain;align-items:flex-start;padding:max(14px,env(safe-area-inset-top)) 13px max(14px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
 #onde-app-v1 .oa-sheet{position:relative;flex:none;width:min(100%,412px);max-height:none;max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;margin:auto;padding:clamp(18px,5vw,24px);scrollbar-width:thin;scrollbar-color:#7a857578 transparent;-webkit-overflow-scrolling:touch}
 #onde-app-v1 .oa-sheet-head{position:sticky;z-index:2;top:calc(-1 * clamp(18px,5vw,24px));padding-top:4px;margin:calc(-1 * clamp(18px,5vw,24px)) calc(-1 * clamp(18px,5vw,24px)) 16px;padding:clamp(18px,5vw,24px);background:linear-gradient(#242d26 85%,#242d26eb);backdrop-filter:blur(10px)}
-#onde-app-v1 .oa-feedback-sheet{max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto}
 #onde-app-v1 .oa-field input,#onde-app-v1 .oa-field select,#onde-app-v1 .oa-field textarea{font-size:max(16px,1em)}
 #onde-app-v1 :focus-visible{scroll-margin-block:18px}
 @keyframes oa-arrive{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -269,7 +263,7 @@
 @keyframes oa-celebrate{0%{opacity:0;transform:scale(.82)}28%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.12)}}
 @media(max-width:380px){#onde-app-v1 .oa-deck{gap:11px}#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:318px}#onde-app-v1 .oa-sheet-backdrop{padding-left:8px;padding-right:8px}#onde-app-v1 .oa-sheet-head h2{font-size:19px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-main>*,#onde-app-v1 .oa-playing-card,#onde-app-v1 .oa-card-illustration i,#onde-app-v1 .oa-deck-slide,#onde-app-v1 .oa-celebration{animation:none!important}#onde-app-v1 .oa-deck{scroll-behavior:auto}}
-/* Final visual polish — bring the category pigments forward and make feedback visible. */
+/* Final visual polish — bring the category pigments forward. */
 #onde-app-v1{--oa-bg:#22221f;--oa-surface:#30312c;--oa-surface2:#3a3b35;--oa-line:#96938a55;--oa-sage:#d0d6b8;--oa-ink:#24251f;--oa-sand:#e3bd8b;--oa-clay:#e0a08a;--oa-rose:#e4a9aa;--oa-mineral-blue:#92bdc7;--oa-mineral-moss:#a9c48f}
 #onde-app-v1 .oa-shell{background:radial-gradient(ellipse at 0% 18%,#7bb1b525,transparent 29%),radial-gradient(ellipse at 100% 14%,#dc957525,transparent 30%),radial-gradient(ellipse at 82% 72%,#b49ac41c,transparent 34%),linear-gradient(155deg,#282923,#1f211f 60%,#24211f)}
 #onde-app-v1 .oa-header{background:linear-gradient(100deg,#82b5c011,#d9a27f0b,#b29acb10)}
@@ -1242,7 +1236,7 @@ void main(){
  let systemReduce=!!(motionQuery&&motionQuery.matches);
  let state=G.createState(), tab='play', catalog='detente', favoritesOnly=false, busy=false, toastTimer, lastFocus=null, animationSerial=0;
  let persisted=false, lastError='';
- let feedbackNote='', feedbackContext='', renderKey='';
+ let renderKey='';
  const deckPositions=Object.create(null);
  let deckFrame=0;
  try{const raw=localStorage.getItem(storageKey);if(raw){const saved=G.normalizeState(JSON.parse(raw));if(saved)state=saved;}localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}
@@ -1332,7 +1326,7 @@ void main(){
   const stats=state.stats,total=stats.totalCompleted;
   return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div><p class="oa-note">Le score augmente quand une carte est marquée « partagée ». Il reste commun à votre duo.</p>';
  }
- function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Donner mon avis','feedback')+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+ function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
 
  function render(){
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
@@ -1403,13 +1397,13 @@ void main(){
   const serial=++animationSerial;
   const next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
   busy=true;root.classList.add('is-busy');
-  root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="feedback"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
+  root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
   const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le hasard fait son chemin…';
   state=next;save();softSound();
   try{await die.roll(action.value,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
   if(serial!==animationSerial)return;
   busy=false;
-  root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="feedback"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
+  root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
   root.classList.remove('is-busy');render();
   announce('D'+sides+' : '+action.value+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:remaining()+' points de vie restants.'));
  }
@@ -1423,24 +1417,6 @@ void main(){
  function showLater(){openSheet('Trouver le bon moment','<p>Propose un créneau à '+h(name(G.otherPlayer(state.activePlayer)))+'. Le moment sera confirmé à deux.</p><label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
 
  function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+source(c)+'<div class="oa-detail-variant"><p class="oa-eyebrow">UNE AUTRE FAÇON · '+c.variantDuration+' MIN</p><p>'+h(c.variant)+'</p></div><p class="oa-detail-odds">Côté jeu · '+c.hp+' PV : '+percent(c.hp)+' de chances de les atteindre avec deux D20.</p>','oa-card-sheet');}
- function feedbackReport(){return feedbackContext+'\n\nMon retour :\n'+(feedbackNote.trim()||'À compléter.');}
- function showFeedback(){
-  const round=state.round;
-  feedbackContext=['ONDE — Retour de test','Version : 0.3.0','Écran : '+({play:'Jouer',cards:'Les cartes',us:'Nous'}[tab]||tab),'Étape : '+state.phase,'Catégorie : '+(round.categoryId||'—'),'Carte (cardId) : '+(round.cardId||'—'),'PV : '+(round.hp==null?'—':round.hp),'D6 : '+(round.categoryRoll||'—')+' · D4 : '+(round.cardRoll||'—')+' · D20 initiateur : '+(round.draftRolls.length?round.draftRolls.join(' + '):'—')+' · D20 destinataire : '+(round.rolls.length?round.rolls.join(' + '):'—'),'Fenêtre : '+window.innerWidth+' × '+window.innerHeight+' px','Rendu : '+(die.mode||canvas.dataset.renderer||'inconnu')].join('\n');
-  openSheet('Donner mon avis','<p>Qu’est-ce qui te plaît, te gêne ou te manque ? Copie ce retour pour le partager dans notre conversation.</p><label class="oa-field">Ton avis<textarea id="oa-feedback-note" rows="3" maxlength="2000" placeholder="Par exemple : le dé rebondit trop vite…">'+h(feedbackNote)+'</textarea></label><label class="oa-field">Le rapport à copier<textarea id="oa-feedback-report" rows="5" readonly aria-describedby="oa-feedback-status" spellcheck="false">'+h(feedbackReport())+'</textarea></label><div class="oa-actions">'+btn('Copier mon retour','copy-feedback')+'</div><p id="oa-feedback-status" role="status">Aucun envoi automatique. Ton avis reste dans cette page jusqu’à sa fermeture.</p>','oa-feedback-sheet');
- }
- async function copyFeedback(){
-  const field=sheet.querySelector('#oa-feedback-report'),status=sheet.querySelector('#oa-feedback-status'),button=sheet.querySelector('[data-action="copy-feedback"]');
-  if(!field||!status||!button)return;
-  button.disabled=true;
-  try{
-   if(!navigator.clipboard||typeof navigator.clipboard.writeText!=='function')throw new Error('clipboard-unavailable');
-   await navigator.clipboard.writeText(field.value);
-   status.textContent='Retour copié. Tu peux maintenant le coller dans notre conversation.';
-  }catch(_){
-   if(field.isConnected){field.focus();field.select();field.setSelectionRange(0,field.value.length);status.textContent='Copie automatique indisponible. Le rapport est sélectionné : utilise la commande Copier de ton appareil.';}
-  }finally{button.disabled=false;}
- }
  root.addEventListener('click',event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
   if(busy&&action!=='pass'&&action!=='close')return;
@@ -1469,15 +1445,12 @@ void main(){
   if(action==='filter'){favoritesOnly=el.dataset.favorites==='true';render();return;}
   if(action==='card-detail'){details(el.dataset.card);return;}
   if(action==='rules'){rules();return;}
-  if(action==='feedback'){showFeedback();return;}
-  if(action==='copy-feedback'){copyFeedback();return;}
   if(action==='close'){closeSheet();return;}
   if(action==='reminder'){openSheet('Aperçu du rappel','<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · RAPPEL</small><p>'+h(state.prefs.discreet?'Votre moment à deux vous attend.':card().title)+'</p></div></div><p>Ceci est un aperçu dans la démo. Aucun rappel système n’est programmé.</p><div class="oa-actions">'+btn('Fermer l’aperçu','close')+'</div>');return;}
   if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
   if(action==='reset'){closeSheet();dispatch({type:'RESET'});tab='play';catalog='detente';favoritesOnly=false;render();toast('La démonstration repart de zéro.');return;}
  });
  if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());if(tab==='cards')initDeck();});
- root.addEventListener('input',event=>{if(event.target.id==='oa-feedback-note'){feedbackNote=event.target.value;const report=sheet.querySelector('#oa-feedback-report');if(report)report.value=feedbackReport();}});
  root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
