@@ -33,7 +33,7 @@ Les fichiers Swift se trouvent dans **`OndeDemo/Sources/`** :
 
 Après le D6 et le D4, la personne qui tire la carte peut la proposer directement ou tenter de l’écarter au **D20**. Elle dispose de **deux jets au maximum**, dont le total doit atteindre les PV de la carte. Si le total reste insuffisant après le second jet, la carte est **automatiquement proposée à l’autre profil**.
 
-L’autre personne peut accepter, adapter, proposer un autre moment, passer ou tenter son propre défi avec deux nouveaux jets de D20. Si elle accepte une proposition envoyée automatiquement, la personne qui a tiré la carte doit encore **confirmer son accord** avant que le jeu la considère acceptée à deux. Changer de profil en haut de l’écran permet de tester chaque réponse. Il reste possible d’arrêter ou de passer à tout moment, sans pénalité ; un échec au dé ne remplace jamais un accord.
+L’autre personne peut accepter, adapter, proposer un autre moment, passer ou tenter son propre défi avec deux nouveaux jets de D20. La personne qui tire ne peut pas passer la carte avant la proposition : elle choisit de l’envoyer directement ou de tenter les deux jets ; en cas d’échec, la proposition est automatique. Si l’autre accepte cette proposition, la personne qui l’a tirée doit encore **confirmer son accord** avant que le jeu la considère acceptée à deux. Changer de profil en haut de l’écran permet de tester chaque réponse. Passer une proposition reste toujours possible, sans pénalité ; un résultat de dé ne remplace jamais un accord.
 
 L’interface renforce les couleurs minérales des catégories et les animations de transition, de cartes et de dés. Les D4, D6 et D20 portent tous des chiffres. Les cartes dépliées défilent pour garder la consigne, la variante et les repères lisibles sur iPhone.
 
@@ -47,7 +47,7 @@ Le catalogue ajoute 21 propositions adaptées des titres de STCK ; les durées e
 
 Les deux profils s’utilisent sur le même appareil. Les invitations, accords et notifications sont des interactions de démonstration ; aucun message ni rappel système n’est envoyé. La synchronisation entre deux téléphones n’est pas implémentée.
 
-Les cartes peuvent être passées avant ou après un défi. L’échec du défi de la personne qui tire peut envoyer une proposition, mais ne la valide jamais automatiquement.
+La personne qui tire choisit de proposer directement la carte ou de tenter de l’écarter au D20. Elle ne peut pas la passer avant proposition : après deux jets insuffisants, l’envoi à l’autre profil est automatique. Le dé ne valide jamais une proposition.
 
 Le stockage local du jeu utilise le magasin de données persistant de WebKit. Cette mise à jour conserve la clé de stockage pour reprendre les profils, la partie et le score. Une désinstallation ou une remise à zéro peut supprimer les données de test. **Nous → Effacer la partie de démonstration** permet de recommencer volontairement.
 

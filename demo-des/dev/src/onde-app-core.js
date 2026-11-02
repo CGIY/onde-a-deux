@@ -347,6 +347,9 @@
       }
       case 'PASS':
       case 'CANCEL':
+        // The drawer must propose the card or resolve their own D20 challenge.
+        // Passing becomes available once the card reaches the other player.
+        if(s.phase==='draft' || s.phase==='draft_challenge') return state;
         if(!r.cardId || s.phase==='resolved') return state;
         closeRound(s,'passed',action);
         return s;

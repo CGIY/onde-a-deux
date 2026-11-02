@@ -8,7 +8,7 @@ Lancer le **D6** pour choisir une catégorie, puis le **D4** pour tirer une cart
 
 Si ce total reste inférieur aux PV après le second jet, la carte est **automatiquement proposée à l’autre profil**. Changer de profil en haut de l’écran pour accepter, adapter, proposer un autre moment ou tenter à son tour un défi avec deux nouveaux jets de D20. Si l’autre accepte une carte proposée automatiquement, la personne qui l’a tirée doit encore **confirmer son accord** avant que la carte soit acceptée à deux. Une proposition envoyée volontairement suit le parcours d’accord habituel.
 
-Il reste possible d’arrêter ou de passer la carte à tout moment, sans point perdu. Le dé décide de l’issue du défi ; un lancer manqué ne donne jamais automatiquement l’accord d’une personne.
+Avant la proposition, la personne qui tire choisit entre l’envoyer directement et tenter le D20. Elle ne peut pas écarter la carte en la passant : après deux jets insuffisants, la proposition part automatiquement à l’autre profil. Une fois la carte reçue, l’autre personne peut la passer sans pénalité. Le dé ne vaut jamais accord.
 
 Les 57 cartes de démonstration, les favoris, les variantes et le score commun sont utilisables localement. Les dés ont une animation WebGL et un rendu de secours lorsque WebGL est indisponible.
 

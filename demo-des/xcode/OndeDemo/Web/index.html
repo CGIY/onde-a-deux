@@ -269,6 +269,56 @@
 @keyframes oa-celebrate{0%{opacity:0;transform:scale(.82)}28%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.12)}}
 @media(max-width:380px){#onde-app-v1 .oa-deck{gap:11px}#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:318px}#onde-app-v1 .oa-sheet-backdrop{padding-left:8px;padding-right:8px}#onde-app-v1 .oa-sheet-head h2{font-size:19px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-main>*,#onde-app-v1 .oa-playing-card,#onde-app-v1 .oa-card-illustration i,#onde-app-v1 .oa-deck-slide,#onde-app-v1 .oa-celebration{animation:none!important}#onde-app-v1 .oa-deck{scroll-behavior:auto}}
+/* Final visual polish — bring the category pigments forward and make feedback visible. */
+#onde-app-v1{--oa-bg:#22221f;--oa-surface:#30312c;--oa-surface2:#3a3b35;--oa-line:#96938a55;--oa-sage:#d0d6b8;--oa-ink:#24251f;--oa-sand:#e3bd8b;--oa-clay:#e0a08a;--oa-rose:#e4a9aa;--oa-mineral-blue:#92bdc7;--oa-mineral-moss:#a9c48f}
+#onde-app-v1 .oa-shell{background:radial-gradient(ellipse at 0% 18%,#7bb1b525,transparent 29%),radial-gradient(ellipse at 100% 14%,#dc957525,transparent 30%),radial-gradient(ellipse at 82% 72%,#b49ac41c,transparent 34%),linear-gradient(155deg,#282923,#1f211f 60%,#24211f)}
+#onde-app-v1 .oa-header{background:linear-gradient(100deg,#82b5c011,#d9a27f0b,#b29acb10)}
+#onde-app-v1 .oa-wordmark span{color:#dfb9a5}
+#onde-app-v1 .oa-persona{border-image:linear-gradient(90deg,#78afbc77,#a4be7877,#dfa57b77,#c49bc977) 1}
+#onde-app-v1 .oa-category{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 34%,#2b2d29),color-mix(in srgb,var(--category) 15%,#252724));border-color:color-mix(in srgb,var(--category) 56%,#4d514b);box-shadow:inset 0 1px #ffffff15,0 4px 11px #0002;transition:transform .32s cubic-bezier(.2,.8,.2,1),background .32s,border-color .32s,box-shadow .32s}
+#onde-app-v1 button.oa-category[aria-pressed=true]{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 72%,#383b35),color-mix(in srgb,var(--category) 45%,#2b2e2a));border-color:color-mix(in srgb,var(--category) 88%,white);box-shadow:inset 0 1px #ffffff44,0 0 0 2px color-mix(in srgb,var(--category) 24%,transparent),0 6px 15px #0003}
+#onde-app-v1 button.oa-category:active{transform:scale(.95) rotate(-1deg)}
+#onde-app-v1 .oa-category-swatch{width:30px;height:11px;border-radius:8px;background:linear-gradient(110deg,color-mix(in srgb,var(--category) 65%,white),var(--category));box-shadow:0 0 14px color-mix(in srgb,var(--category) 55%,transparent),inset 0 1px #ffffff66}
+#onde-app-v1 .oa-category-number{color:#f0e8d7}
+#onde-app-v1 .oa-mini-card{background:linear-gradient(145deg,color-mix(in srgb,var(--oa-mineral-blue) 15%,#2b2e2a),color-mix(in srgb,var(--oa-mineral-moss) 12%,#262824));animation:oa-mini-arrive .52s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-mini-card:nth-child(2){animation-delay:.06s}#onde-app-v1 .oa-mini-card:nth-child(3){animation-delay:.12s}#onde-app-v1 .oa-mini-card:nth-child(4){animation-delay:.18s}
+#onde-app-v1 .oa-mini-card.is-picked{background:linear-gradient(145deg,#61775c,#475743);box-shadow:0 0 0 2px #c0d39c44,0 8px 18px #0003}
+#onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 12% 0%,color-mix(in srgb,var(--category) 68%,transparent),transparent 56%),linear-gradient(145deg,color-mix(in srgb,var(--category) 58%,#3a3932),color-mix(in srgb,var(--category) 20%,#282a27) 68%);border-color:color-mix(in srgb,var(--category) 78%,#eee5d1);box-shadow:inset 0 2px 2px #ffffff27,inset 0 -6px 12px #0b0e0c38,0 15px 30px #0005}
+#onde-app-v1 .oa-card-illustration i:nth-child(2){background:linear-gradient(145deg,#eed4ad,#bf9274)}
+#onde-app-v1 .oa-card-category{color:color-mix(in srgb,var(--category) 45%,white)}
+#onde-app-v1 .oa-card-meta{border-top-color:color-mix(in srgb,var(--category) 38%,transparent)}
+#onde-app-v1 .oa-status-strip{background:linear-gradient(115deg,#55776455,#526a8540,#725d7240);border-color:#a4b89b66}
+#onde-app-v1 .oa-hp-track i span{background:linear-gradient(90deg,#95c7c4,#c1d397,#e7bc82)}
+#onde-app-v1 .oa-nav button[aria-current=page]{color:#f0d4ad}
+#onde-app-v1 .oa-nav button[aria-current=page] .oa-nav-mark{filter:drop-shadow(0 0 7px #e8b98c99);animation:oa-nav-pop .45s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-button:not(:disabled):active{transform:translateY(2px) scale(.975);filter:saturate(1.16)}
+#onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(140deg,#4b5e5d,#465144);border-color:#8fae9b;color:#f0eee4}
+#onde-app-v1 .oa-stage{overflow:visible;border-radius:0}
+#onde-app-v1 .oa-stage:before{content:"";position:absolute;z-index:-1;inset:14% 13%;border-radius:50%;background:radial-gradient(ellipse,#94b9a03a 0%,#8eb0bf22 37%,#be9b8b12 61%,transparent 72%);filter:blur(8px);animation:oa-stage-pulse 3.2s ease-in-out infinite alternate}
+#onde-app-v1 .oa-stage:after{content:"";position:absolute;z-index:-1;left:27%;right:27%;bottom:16%;height:16%;border-radius:50%;background:#b8c4a733;filter:blur(13px);animation:oa-shadow-breathe 1.65s ease-in-out infinite alternate}
+#onde-app-v1 .oa-dice-section:has(.oa-stage[data-kind="4"]) .oa-stage:before{background:radial-gradient(ellipse,#91bccb44,#a29aba23 44%,transparent 72%)}
+#onde-app-v1 .oa-dice-section:has(.oa-stage[data-kind="20"]) .oa-stage:before{background:radial-gradient(ellipse,#e4ad7944,#bf8f8b24 44%,transparent 72%)}
+#onde-app-v1 .oa-step.is-active b{animation:oa-step-pulse 1.8s ease-in-out infinite;box-shadow:0 0 0 0 #d7dfbe58}
+#onde-app-v1 .oa-deck-arrow{transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s}
+#onde-app-v1 .oa-deck-arrow:not(:disabled):hover{transform:translateY(-2px) scale(1.06);background:linear-gradient(145deg,#637169,#4a514b);border-color:#bdc8ac}
+#onde-app-v1 .oa-deck-arrow:active{transform:scale(.92)}
+#onde-app-v1 .oa-evidence{background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--category,#9aa78b) 40%,transparent),transparent 62%),linear-gradient(145deg,#393b35,#292b28);animation:oa-evidence-in .48s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-evidence-number{color:#f1d6a8;text-shadow:0 0 28px #e5b87833;animation:oa-number-in .62s cubic-bezier(.16,1.25,.3,1) both}
+#onde-app-v1 .oa-sheet-backdrop:not([hidden]){animation:oa-backdrop-in .22s ease-out both}
+#onde-app-v1 .oa-sheet{animation:oa-sheet-in .36s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-toast:not([hidden]){animation:oa-toast-in .35s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-celebration{background:radial-gradient(ellipse at 50% 50%,#d7dfbe44,transparent 42%),radial-gradient(ellipse at 23% 40%,#8abdc344,transparent 50%),radial-gradient(ellipse at 76% 60%,#dc9a8440,transparent 50%)}
+@keyframes oa-mini-arrive{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes oa-nav-pop{0%{transform:scale(.72) translateY(4px)}72%{transform:scale(1.18) translateY(-1px)}100%{transform:scale(1) translateY(0)}}
+@keyframes oa-stage-pulse{from{opacity:.55;transform:scale(.88)}to{opacity:1;transform:scale(1.08)}}
+@keyframes oa-shadow-breathe{from{opacity:.45;transform:scaleX(.78)}to{opacity:1;transform:scaleX(1.14)}}
+@keyframes oa-step-pulse{0%,100%{box-shadow:0 0 0 0 #d7dfbe00;transform:scale(1)}50%{box-shadow:0 0 0 5px #d7dfbe20;transform:scale(1.045)}}
+@keyframes oa-evidence-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes oa-number-in{from{opacity:0;transform:translateY(8px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes oa-backdrop-in{from{opacity:0}to{opacity:1}}
+@keyframes oa-sheet-in{from{opacity:.7;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes oa-toast-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#onde-app-v1 *,#onde-app-v1 *::before,#onde-app-v1 *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 
 <script>
@@ -621,6 +671,9 @@
       }
       case 'PASS':
       case 'CANCEL':
+        // The drawer must propose the card or resolve their own D20 challenge.
+        // Passing becomes available once the card reaches the other player.
+        if(s.phase==='draft' || s.phase==='draft_challenge') return state;
         if(!r.cardId || s.phase==='resolved') return state;
         closeRound(s,'passed',action);
         return s;
@@ -1232,7 +1285,7 @@ void main(){
  function hpTrack(){const hp=state.round.hp,rem=remaining(),fraction=rem/hp;let mark='',used=0;const weights=[2.3,1,1,1.65,2.3,1,1.65,1,2.3,1.65],weightTotal=weights.reduce((a,b)=>a+b,0);for(let i=0;i<10;i++){const fill=Math.max(0,Math.min(1,(fraction*weightTotal-used)/weights[i]));used+=weights[i];mark+='<i><span style="transform:scaleX('+fill+');'+(rem===0?'background:#a8c08c':'')+'"></span></i>';}
  return '<div class="oa-hp"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+rem+' <span>/ '+hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+hp+'" aria-valuenow="'+rem+'">'+mark+'</div><div class="oa-roll-history"><span class="oa-roll-token">JET 1 <b>'+(shownRolls()[0]||'—')+'</b></span><span class="oa-roll-token">JET 2 <b>'+(shownRolls()[1]||'—')+'</b></span></div></div>';}
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+((!r.challengeUsed&&r.status==='pending')?btn('Défier la carte <span class="oa-arrow">D20</span>','challenge','oa-secondary'):'')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter','pass')+'</div></div>';}
+ function responseActions(){const r=state.round;return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+((!r.challengeUsed&&r.status==='pending')?btn('Défier la carte <span class="oa-arrow">D20</span>','challenge','oa-secondary'):'')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
 
  function renderPlay(){const r=state.round,c=card();
   if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
@@ -1240,10 +1293,10 @@ void main(){
    if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>','La catégorie a été tirée. La prochaine étape est la carte.','UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
    return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',h(category().description),'LE D6 A DONNÉ '+r.categoryRoll)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
   }
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':h(name(r.from))+' a tiré<br><em>une carte.</em>',canDraw()?'Propose-la, ou tente de l’écarter avec le D20.':'Elle attend encore d’être proposée.','D6 · '+r.categoryRoll+'  /  D4 · '+r.cardRoll)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+btn('Tenter de l’écarter <span class="oa-arrow">D20</span>','challenge-draft','oa-secondary')+textBtn('Arrêter ce tour','pass')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>')+textBtn('Le repère & les détails de cette carte','card-detail','data-card="'+c.id+'"');
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':h(name(r.from))+' a tiré<br><em>une carte.</em>',canDraw()?'Propose-la directement. Si tu préfères l’écarter, tente le D20 : deux jets insuffisants la proposeront automatiquement à '+h(name(r.to))+'.':'Elle attend encore d’être proposée.','D6 · '+r.categoryRoll+'  /  D4 · '+r.cardRoll)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+btn('Tenter de l’écarter <span class="oa-arrow">D20</span>','challenge-draft','oa-secondary')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>')+textBtn('Le repère & les détails de cette carte','card-detail','data-card="'+c.id+'"');
   if(state.phase==='draft_challenge'){
-   if(!canDraw())return heading(h(name(r.from))+' tente<br><em>le hasard.</em>','Si ses deux jets échouent, la carte te sera proposée.','AVANT LA PROPOSITION')+hpTrack()+'<div class="oa-actions">'+switchButton(r.from)+textBtn('Arrêter ce tour','pass')+'</div>';
-   return heading(r.draftRolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Tu la joues<br><em>au hasard.</em>',h(c.title)+' · atteindre '+r.hp+' PV pour l’écarter.','TON D20 / JET '+(r.draftRolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.draftRolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.draftRolls[0]||12)+btn(r.draftRolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">Si les deux jets échouent, la carte est proposée automatiquement à '+h(name(r.to))+'.</p><div class="oa-action-row">'+textBtn('Proposer plutôt','send')+textBtn('Arrêter ce tour','pass')+'</div>';
+   if(!canDraw())return heading(h(name(r.from))+' tente<br><em>le hasard.</em>','Si ses deux jets échouent, la carte te sera proposée automatiquement.','AVANT LA PROPOSITION')+hpTrack()+'<div class="oa-actions">'+switchButton(r.from)+'</div>';
+   return heading(r.draftRolls.length?'Encore<br><em>'+remaining()+' points.</em>':'Tu la joues<br><em>au hasard.</em>',h(c.title)+' · atteindre '+r.hp+' PV pour l’écarter.','TON D20 / JET '+(r.draftRolls.length+1)+' SUR 2')+hpTrack()+stage(20,r.draftRolls.length?'LE SECOND LANCER':'LE PREMIER LANCER',r.draftRolls[0]||12)+btn(r.draftRolls.length?'Lancer le dernier D20':'Lancer le premier D20','roll','oa-clay')+'<p class="oa-note oa-center">Si les deux jets échouent, la carte est proposée automatiquement à '+h(name(r.to))+'.</p>';
   }
   if(state.phase==='pending'){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
@@ -1363,7 +1416,7 @@ void main(){
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
  function closeSheet(){sheet.hidden=true;sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
 
- function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi six.</h3><p>Complicité, détente, tendresse, attention, découverte ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Propose-la à l’autre, ou tente le D20 pour l’écarter.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Deux jets pour atteindre ses PV.</h3><p>Si tu atteins le seuil, la carte est écartée. Sinon, elle est proposée automatiquement à l’autre.</p></div></div><p>L’autre peut accepter, tenter ses propres deux jets, adapter ou proposer un autre moment. Une proposition automatique demande ensuite ta confirmation aussi.</p><p>Chacun peut arrêter le tour. Seule une carte acceptée à deux puis marquée « partagée » ajoute 1 point à votre score commun.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Les notifications sont simulées sur cet appareil.</p>');}
+ function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi six.</h3><p>Complicité, détente, tendresse, attention, découverte ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Tu peux la proposer directement. Si tu ne souhaites pas la proposer, tente de l’écarter au D20.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Deux jets pour atteindre ses PV.</h3><p>Si tu atteins le seuil, la carte est écartée. Sinon, elle est proposée automatiquement à l’autre.</p></div></div><p>L’autre peut accepter, tenter ses propres deux jets, adapter, proposer un autre moment ou passer. Une proposition automatique demande ensuite ta confirmation aussi.</p><p>Vous pouvez arrêter ou passer une proposition sans pénalité. Seule une carte acceptée à deux puis marquée « partagée » ajoute 1 point à votre score commun.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Les notifications sont simulées sur cet appareil.</p>');}
 
  function challengeSheet(draft=false){const c=card();openSheet(draft?'L’écarter avec le D20':'Tenter le D20','<p>Deux lancers au maximum pour atteindre les <strong>'+c.hp+' PV</strong> de « '+h(c.title)+' ».</p><div class="oa-summary-card"><span class="oa-summary-glyph">'+c.hp+'</span><div><h2>'+percent(c.hp)+' de réussite</h2><p>Total des deux D20 ≥ '+c.hp+'</p></div></div><p>'+(draft?'Si tes deux jets échouent, la carte est proposée automatiquement à '+h(name(state.round.to))+'. Si l’autre accepte, tu confirmes aussi ton envie.':'Si la carte résiste, tu peux l’accepter, l’adapter ou arrêter ce tour.')+'</p><div class="oa-actions">'+btn('Je tente le défi',draft?'start-draft-challenge':'start-challenge','oa-clay')+textBtn('Revenir à la carte','close')+'</div>');}
  function showAdapt(){const c=card();openSheet('Proposer une variante','<p>Cette proposition devra être acceptée par '+h(name(G.otherPlayer(state.activePlayer)))+'.</p><label class="oa-field">Ta variante<textarea id="oa-adapt-text" aria-label="Ta variante" maxlength="300">'+h(state.round.adapted?state.round.proposal:c.variant)+'</textarea></label><div class="oa-actions">'+btn('Envoyer la variante','confirm-adapt')+'</div>');}

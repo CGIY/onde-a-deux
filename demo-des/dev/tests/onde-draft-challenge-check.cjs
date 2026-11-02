@@ -50,8 +50,11 @@ for(const type of ['ADAPT','LATER']){
 // Explicit SEND can assume the card before/during draft challenge.
 s=acceptedExplicit();eq(s.phase,'accepted');ok(s.round.fromConfirmed&&s.round.toConfirmed);
 s=apply(draft(),{type:'CHALLENGE_DRAFT'});s=apply(s,{type:'ROLL_DRAFT_DEFENSE',value:1,token:'partial'});s=apply(s,{type:'SEND'});eq(s.phase,'pending');ok(s.round.fromConfirmed&&!s.round.toConfirmed&&!s.round.autoProposed);
-// Free pass stays open at every relevant phase.
-const states=[draft(),apply(draft(),{type:'CHALLENGE_DRAFT'}),failedDraft(),acceptedExplicit()];
+// The drawer cannot bypass their own challenge; recipients can pass without penalty.
+for(const state of [draft(),apply(draft(),{type:'CHALLENGE_DRAFT'})])eq(apply(state,{type:'PASS'}),state,'initiator cannot pass before proposal');
+s=apply(draft(),{type:'CHALLENGE_DRAFT'});s=apply(s,{type:'ROLL_DRAFT_DEFENSE',value:1,token:'must-finish'});eq(apply(s,{type:'PASS'}),s,'initiator must finish both D20 rolls');
+const states=[failedDraft(),acceptedExplicit()];
+s=failedDraft();s=apply(s,{type:'SWITCH_PLAYER',player:'b'});states.push(s);
 s=failedDraft();s=apply(s,{type:'SWITCH_PLAYER',player:'b'});s=apply(s,{type:'ACCEPT'});states.push(s);
 for(const state of states){const stopped=apply(state,{type:'PASS'});eq(stopped.phase,'resolved');eq(stopped.round.status,'passed');eq(stopped.stats.totalCompleted,0);}
 // Legacy v1 migration: preserve current round, score, names, prefs, favorites.
