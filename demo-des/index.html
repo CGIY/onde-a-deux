@@ -1545,7 +1545,7 @@ void main(){
   }
   if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='draft_challenge'&&!canDraw())return heading('Un défi<br><em>en cours.</em>',h(name(r.from))+' tente d’écarter la carte.',null)+switchButton(r.from);
-  if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('from')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll')+'<p class="oa-note oa-center">Deux jets insuffisants → proposée à '+h(name(r.to))+'.</p>';
+  if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('from')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll');
   if(state.phase==='pending'){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
    const automatic=r.autoProposed&&r.status==='pending';
