@@ -119,3 +119,16 @@ La demande récente conserve le modèle visuel, renforce la matière suédine/ru
 - L’UI ne propose plus de jets au mauvais profil et préserve le focus. Les descriptions et rappels génériques ont été retirés ; les actions restent disponibles. Favoris historiques conservés en données mais contrôles retirés avec le catalogue.
 - 470 assertions moteur passent ; le nouveau contrôle statistique couvre les 88 cartes. QA du dé, syntaxe, compilation iOS simulateur, HTML identiques et ZIP contrôlés.
 - Sources canoniques dans `dev/src`, recherche dans `dev/data/card-evidence.json`. `build.py --release` produit les livrables 0.3.0 build 5.
+
+
+## Dés·ir — build 6
+
+Nom visible choisi avec l’utilisateur : **Dés·ir**, signature « à deux ». Le dépôt, le projet Xcode `OndeDemo`, le bundle ID et la clé de stockage restent compatibles.
+
+Nouvelles demandes : statistiques préférentiellement en %, suppression des actions Passer/Plus tard/Adapter, ombre et halo des dés réduits, grain très présent sans couleurs criardes, profil symétrique pleine largeur et icônes SVG cohérentes.
+
+Le deuxième onglet est désormais **À faire** : validation à deux → tâche de six heures. Chaque profil coche sa propre case, avec remplissage par vague. Les deux coches retirent l’action et donnent exactement un point ; expiration sans point. Des tâches peuvent rester en attente pendant un nouveau tour. L’alternance du tireur ne change pas quand on bascule de profil pour cocher une tâche. Les anciennes sauvegardes sont migrées.
+
+Moteur : `tasks`, `TOGGLE_TASK_CHECK`, `EXPIRE_TASKS`, `rules.taskLifetimeMs`. `COMPLETE` est neutralisé pour empêcher un ancien bouton de contourner les deux coches. Les anciennes APIs de report/variante/passage restent uniquement compatibles avec les sauvegardes ; aucun bouton n’est affiché.
+
+567 assertions moteur passent (374 défi, 43 score, 61 règles, 89 tâches), plus contrôle de la couverture des 88 statistiques et QA des dés. L’expiration est contrôlée avant les coches et planifiée à son échéance dans l’UI ; elle ne coupe jamais une animation de dé. Les deux cases d’une tâche sont verrouillées pendant le bref remplissage animé.

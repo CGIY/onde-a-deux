@@ -3,10 +3,11 @@ const G=require(require('node:path').join(__dirname,'../src/onde-app-core.js'));
 let checks=0;
 const check=(fn)=>{fn();checks++;};
 function action(state,type,rest={}) {
-  const next=G.reduce(state,{type,...rest});
+  const next=G.reduce(state,{at:'2026-11-02T12:00:00.000Z',type,...rest});
   assert(G.validateState(next),`${type} must produce valid state`);
   return next;
 }
+function complete(state) {const taskId=state.round.id;state=action(state,'TOGGLE_TASK_CHECK',{taskId,checked:true});state=action(state,'SWITCH_PLAYER',{player:G.otherPlayer(state.activePlayer)});return action(state,'TOGGLE_TASK_CHECK',{taskId,checked:true});}
 function draft(state,category=0) {
   const cat=G.categories[category];
   const hand=G.cards.filter(card=>card.categoryId===cat.id).slice(0,4).map(card=>card.id);
@@ -23,14 +24,14 @@ let state=G.createState();
 check(()=>assert.deepEqual(state.stats,{totalCompleted:0,byCategory:Object.fromEntries(G.categories.map(c=>[c.id,0]))}));
 state=accept(state);
 check(()=>assert.equal(state.stats.totalCompleted,0));
-state=action(state,'COMPLETE');
+state=complete(state);
 check(()=>assert.equal(state.stats.totalCompleted,1));
 check(()=>assert.equal(state.stats.byCategory[G.categories[0].id],1));
 check(()=>assert.equal(action(state,'COMPLETE'),state));
 for(let i=1;i<95;i++) {
   state=action(state,'NEW_ROUND');
   state=accept(state,i%2);
-  state=action(state,'COMPLETE');
+  state=complete(state);
 }
 check(()=>assert.equal(state.history.length,80));
 check(()=>assert.equal(state.stats.totalCompleted,95));
@@ -87,9 +88,8 @@ for(const mutate of [
  check(()=>assert.equal(G.normalizeState(broken),null));
 }
 let replay=accept(G.createState());
-const alreadyCompleted=action(replay,'COMPLETE');
-replay.history=alreadyCompleted.history;
-replay.stats=alreadyCompleted.stats;
+const alreadyCompleted=complete(replay);
+replay=alreadyCompleted;
 check(()=>assert.equal(action(replay,'COMPLETE').stats.totalCompleted,1));
 check(()=>assert.equal(action(state,'RESET').stats.totalCompleted,0));
 check(()=>assert(G.categories.every(c=>action(state,'RESET').stats.byCategory[c.id]===0)));

@@ -1,6 +1,6 @@
-# ONDE — démo iPhone pour Xcode
+# Dés·ir — démo iPhone pour Xcode
 
-Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le D20 permet de tenter d’écarter une carte selon les PV attribués à son action. Le prototype est embarqué dans une vue WebKit, avec les dés, 88 cartes en six catégories, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 5**.
+Une application de test locale : **D6 pour la catégorie et D4 pour la carte**. Le D20 permet de tenter d’écarter une carte selon les PV attribués à son action. Le prototype est embarqué dans une vue WebKit, avec les dés, 88 cartes en six catégories, le score commun et deux profils simulés. Le jeu fonctionne sans serveur. Cette version porte le numéro **0.3.0**, **build 6**.
 
 ## Démarrer en quatre étapes
 
@@ -31,11 +31,11 @@ Les fichiers Swift se trouvent dans **`OndeDemo/Sources/`** :
 
 ## Version 0.3.0
 
-Le D6 choisit parmi six catégories, puis le D4 tire une carte parmi quatre. La personne qui tire peut proposer directement ou tenter d’écarter la carte en deux jets de D20 maximum. Le total doit atteindre les PV indiqués sur la carte. En cas d’échec, elle est proposée automatiquement à l’autre profil, qui peut accepter, adapter, reporter ou passer, sans pénalité. Un dé ne vaut pas consentement.
+Le D6 choisit parmi six catégories, puis le D4 tire une carte parmi quatre. La personne qui tire peut proposer directement ou tenter d’écarter la carte en deux jets de D20 maximum. Le total doit atteindre les PV indiqués sur la carte. En cas d’échec, elle est proposée automatiquement à l’autre profil, qui peut accepter ou tenter son propre D20.
 
 Les 88 cartes appartiennent aux catégories Complicité, Détente, Projets, Attentions, Bouffe et Intimité. Leurs PV sont des estimations initiales : plus le seuil est élevé, plus la carte est difficile à écarter. Les actions simples, à moins de 20 € ou sexuellement simples ont des seuils élevés ; les actions plus coûteuses ou engageantes ont des seuils plus bas. Chaque carte affiche un résultat chiffré distinct et sourcé, avec ses limites de pertinence. Le contexte des études est dépliable. Aucune durée n’est imposée aux nouvelles cartes.
 
-L’onglet **Nous** affiche un score commun : **1 carte marquée partagée = 1 point**, avec le détail par catégorie. Le stockage local reprend les sauvegardes précédentes et conserve les PV de la manche commencée. Les rôles alternent, une seule manche reste active et il n’y a pas de quota quotidien. Le catalogue public a été retiré pour préserver la surprise.
+L’onglet **Nous** affiche un score commun : **1 action cochée par les deux profils = 1 point**, avec le détail par catégorie. Le stockage local reprend les sauvegardes précédentes et conserve les PV de la manche commencée. Les rôles alternent, une seule manche reste active et il n’y a pas de quota quotidien. Le catalogue public a été retiré pour préserver la surprise. Le deuxième onglet « À faire » contient les actions validées, six heures maximum. Les deux cases sont indépendantes et l’action disparaît au second clic ou à l’expiration.
 
 ## Ce qui est simulé
 
@@ -45,7 +45,7 @@ Le stockage local du jeu utilise le magasin de données persistant de WebKit. Ce
 
 ## Vérification et limites
 
-Le build 5 avec 88 cartes et 88 résultats distincts a été compilé pour le simulateur iOS. Les parcours D6/D4/D20 et les écrans ont été contrôlés dans le navigateur au format téléphone. Les animations sur un iPhone physique restent à observer.
+Le build 6 avec 88 cartes et 88 résultats distincts a été compilé pour le simulateur iOS. Les parcours D6/D4/D20 et les écrans ont été contrôlés dans le navigateur au format téléphone. Les animations sur un iPhone physique restent à observer.
 
 Les tests automatisés ne remplacent pas une vérification manuelle de chaque parcours dans l’interface. Les animations WebGL doivent aussi être observées sur un iPhone réel : le simulateur ne représente pas exactement ses performances. Un rendu de secours est présent lorsque WebGL n’est pas disponible.
 

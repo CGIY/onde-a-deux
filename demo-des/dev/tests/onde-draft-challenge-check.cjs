@@ -4,7 +4,9 @@ const G=require(require('node:path').join(__dirname,'../src/onde-app-core.js'));
 let checks=0;
 const ok=(x,message)=>{checks++;assert.ok(x,message);};
 const eq=(a,b,message)=>{checks++;assert.deepEqual(a,b,message);};
-function apply(s,a){const n=G.reduce(s,a);ok(G.validateState(n),'invalid output '+a.type+' '+n.phase);return n;}
+const at='2026-11-02T12:00:00.000Z';
+function apply(s,a){const n=G.reduce(s,{at,...a});ok(G.validateState(n),'invalid output '+a.type+' '+n.phase);return n;}
+function complete(s){const taskId=s.round.id;s=apply(s,{type:'TOGGLE_TASK_CHECK',taskId,checked:true});s=apply(s,{type:'SWITCH_PLAYER',player:G.otherPlayer(s.activePlayer)});return apply(s,{type:'TOGGLE_TASK_CHECK',taskId,checked:true});}
 function draft(from='a',cardId='det-1') {
  let s=G.createState(); if(from==='b')s=apply(s,{type:'SWITCH_PLAYER',player:'b'});
  const card=G.getCard(cardId),cat=G.getCategory(card.categoryId),hand=[card.id,...G.cards.filter(c=>c.categoryId===cat.id&&c.id!==card.id).slice(0,3).map(c=>c.id)];
@@ -33,7 +35,7 @@ for(const from of ['a','b']){
  s=apply(s,{type:'SWITCH_PLAYER',player:to});ok(G.canRespond(s));s=apply(s,{type:'ACCEPT'});eq(s.phase,'sender_confirmation');eq(s.round.awaiting,from);eq(s.round.toConfirmed,true);eq(s.round.fromConfirmed,false);eq(s.stats.totalCompleted,0);
  eq(G.reduce(s,{type:'COMPLETE'}),s,'cannot complete without both agreements');
  s=apply(s,{type:'SWITCH_PLAYER',player:from});ok(G.canRespond(s));s=apply(s,{type:'ACCEPT'});eq(s.phase,'accepted');ok(s.round.fromConfirmed&&s.round.toConfirmed);
- s=apply(s,{type:'COMPLETE'});eq(s.stats.totalCompleted,1);eq(s.stats.byCategory.detente,1);eq(G.reduce(s,{type:'COMPLETE'}),s,'double scoring impossible');
+ s=complete(s);eq(s.stats.totalCompleted,1);eq(s.stats.byCategory.detente,1);eq(G.reduce(s,{type:'COMPLETE'}),s,'double scoring impossible');
  eq(G.normalizeState(JSON.parse(JSON.stringify(s))).stats.totalCompleted,1);
 }
 // Recipient keeps a full independent challenge after automatic proposal.
@@ -59,11 +61,11 @@ s=failedDraft();s=apply(s,{type:'SWITCH_PLAYER',player:'b'});s=apply(s,{type:'AC
 for(const state of states){const stopped=apply(state,{type:'PASS'});eq(stopped.phase,'resolved');eq(stopped.round.status,'passed');eq(stopped.stats.totalCompleted,0);}
 // Legacy v1 migration: preserve current round, score, names, prefs, favorites.
 const additions=['draftRolls','draftRollTokens','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed'];
-function legacy(s,stats=true){const old=JSON.parse(JSON.stringify(s));for(const k of additions)delete old.round[k];for(const r of old.history)for(const k of additions)delete r[k];if(!stats)delete old.stats;return old;}
-for(let state of [G.createState(),draft(),apply(draft(),{type:'SEND'}),acceptedExplicit(),apply(acceptedExplicit(),{type:'COMPLETE'})]){
+function legacy(s,stats=true){const old=JSON.parse(JSON.stringify(s));delete old.tasks;for(const k of additions)delete old.round[k];for(const r of old.history)for(const k of additions)delete r[k];if(!stats)delete old.stats;return old;}
+for(let state of [G.createState(),draft(),apply(draft(),{type:'SEND'}),acceptedExplicit(),complete(acceptedExplicit())]){
  const old=legacy(state),before=JSON.stringify(old),m=G.normalizeState(old);ok(m);ok(G.validateState(m));eq(JSON.stringify(old),before,'migration must not mutate input');eq(m.round.cardId,state.round.cardId);eq(m.stats,state.stats);eq(m.players,state.players);eq(m.prefs,state.prefs);
 }
-s=apply(acceptedExplicit(),{type:'COMPLETE'});const old=legacy(s,false),m=G.normalizeState(old);ok(m);eq(m.stats.totalCompleted,1);eq(m.stats.byCategory.detente,1);
+s=complete(acceptedExplicit());const old=legacy(s,false),m=G.normalizeState(old);ok(m);eq(m.stats.totalCompleted,1);eq(m.stats.byCategory.detente,1);
 for(const type of ['ADAPT','LATER']){s=apply(draft(),{type:'SEND'});s=apply(s,{type:'SWITCH_PLAYER',player:'b'});s=apply(s,{type,text:'Une variante',schedule:'Demain'});const m=G.normalizeState(legacy(s));ok(m);eq(m.round.fromConfirmed,false);eq(m.round.toConfirmed,true);s=apply(m,{type:'SWITCH_PLAYER',player:'a'});s=apply(s,{type:'ACCEPT'});eq(s.phase,'accepted');}
 // New malformed flags and rolls are rejected, never silently downgraded.
 s=draft();s.round.fromConfirmed='yes';eq(G.normalizeState(s),null);

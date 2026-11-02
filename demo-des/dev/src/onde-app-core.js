@@ -183,7 +183,7 @@
   const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
 
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:6, cardSides:4, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1 });
+  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:6, cardSides:4, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
   const cardMap = Object.fromEntries([...hiddenLegacyCards,...cards].map(card => [card.id, card]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
   const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
@@ -191,6 +191,9 @@
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
   const getCard = id => cardMap[id] || null;
   const getCategory = id => categoryMap[id] || null;
+  const isoTime = value => typeof value==='string' && Number.isFinite(Date.parse(value)) && new Date(Date.parse(value)).toISOString()===value;
+  const taskStartTime = value => isoTime(value) && Date.parse(value)<=8640000000000000-rules.taskLifetimeMs;
+  const fallbackTime = '1970-01-01T00:00:00.000Z';
 
   function randomInt(n) {
     if (!Number.isInteger(n) || n < 1 || n > 4294967296) throw new RangeError('randomInt expects an integer from 1 to 2^32.');
@@ -228,7 +231,7 @@
   function createState() {
     return { version:1, activePlayer:'a', phase:'category', sequence:1,
       players:players.map(p => ({...p})), round:blankRound(1,'a'), history:[], favorites:[],
-      prefs:{reducedMotion:false,sound:false,discreet:true,reminder:true}, seen:{}, stats:emptyStats() };
+      prefs:{reducedMotion:false,sound:false,discreet:true,reminder:true}, seen:{}, stats:emptyStats(), tasks:[] };
   }
 
   function validRolls(rolls, tokens) {
@@ -237,15 +240,31 @@
       tokens.every(token=>typeof token==='string' && token.length>0 && token.length<=150);
   }
 
+  function validTasks(s) {
+    if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
+    const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'].sort().join(',');
+    return s.tasks.every(task=>{
+      if(!task || typeof task!=='object' || Array.isArray(task) || Object.keys(task).sort().join(',')!==keys) return false;
+      const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
+      if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
+      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || Date.parse(task.expiresAt)-Date.parse(task.createdAt)!==rules.taskLifetimeMs) return false;
+      if(!task.checks || typeof task.checks!=='object' || Array.isArray(task.checks) || Object.keys(task.checks).sort().join(',')!=='a,b' || ['a','b'].some(id=>typeof task.checks[id]!=='boolean') || task.checks.a&&task.checks.b) return false;
+      if(task.proposal!==null && (typeof task.proposal!=='string' || !task.proposal.trim() || task.proposal.length>400)) return false;
+      if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
+      return !s.history.some(round=>round&&round.id===task.id && ['completed','expired','passed','defended'].includes(round.status));
+    });
+  }
+
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
     if (!validStats(s.stats)) return false;
     if (!Number.isSafeInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
+    if (!validTasks(s)) return false;
     if (!Array.isArray(s.favorites) || s.favorites.some(id => !getCard(id)) || !s.prefs || prefKeys.some(k => typeof s.prefs[k] !== 'boolean')) return false;
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
     if (Object.entries(s.seen).some(([key,list]) => !getCategory(key) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
-    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20))) return false;
+    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20))) return false;
     const r=s.round;
     if (r.id !== 'onde-'+s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
@@ -278,17 +297,17 @@
       }
     }
     if(s.phase==='sender_confirmation' && (r.status!=='sender_confirmation' || r.awaiting!==r.from || r.fromConfirmed || !r.toConfirmed || !r.autoProposed)) return false;
-    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || !r.toConfirmed)) return false;
+    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || !r.toConfirmed || !s.tasks.some(task=>task.id===r.id))) return false;
     if(s.phase==='challenge' && (r.status!=='challenge' || !r.challengeUsed || r.rolls.length>=2 || total>=r.hp || r.awaiting!==r.to || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
     if(s.phase==='challenge_failed' && (r.status!=='challenge_failed' || !r.challengeUsed || r.rolls.length!==2 || total>=r.hp || r.awaiting!==r.to || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
-    if(s.phase==='resolved' && (!['passed','defended','completed'].includes(r.status) || r.awaiting!==null || (r.status==='completed' && (!r.fromConfirmed || !r.toConfirmed)))) return false;
+    if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || (['completed','expired'].includes(r.status) && (!r.fromConfirmed || !r.toConfirmed)))) return false;
     if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
   }
 
   // Extend old v1 saves in place conceptually, but never mutate their original
   // objects. Counters, current proposals, names and favorites stay intact.
-  function normalizeState(state) {
+  function normalizeState(state, options={}) {
     if(!state || typeof state!=='object' || Array.isArray(state)) return null;
     if(validateState(state)) return state;
     const has=key=>Object.prototype.hasOwnProperty.call(state,key);
@@ -330,6 +349,18 @@
     }
     extendRound(migrated.round,migrated.phase);
     if(Array.isArray(migrated.history)) for(const round of migrated.history) if(round && typeof round==='object') extendRound(round,'resolved');
+    if(!has('tasks')) {
+      migrated.tasks=[];
+      if(migrated.phase==='accepted') {
+        const ended=Array.isArray(migrated.history)&&migrated.history.find(round=>round.id===migrated.round.id&&['completed','expired'].includes(round.status));
+        if(ended) {migrated.phase='resolved';migrated.round.status=ended.status;migrated.round.awaiting=null;}
+        else {
+          const acceptedAt=[migrated.round.acceptedAt,options.at,migrated.round.sentAt,migrated.round.createdAt].find(taskStartTime)||fallbackTime;
+          migrated.round.acceptedAt=acceptedAt;
+          enqueueTask(migrated,acceptedAt);
+        }
+      }
+    }
     if(!has('stats')) migrated.stats=emptyStats();
     if(!validateState(migrated)) return null;
     // Only old states without cumulative counters need history reconstruction.
@@ -373,14 +404,42 @@
   const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && Number.isFinite(getCard(s.round.cardId)?.hp);
   const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
+  function recordHistory(s, round) {
+    s.history=[JSON.parse(JSON.stringify(round)),...s.history.filter(item=>item.id!==round.id)].slice(0,80);
+  }
+
+  function enqueueTask(s, acceptedAt) {
+    const r=s.round;
+    if(s.tasks.some(task=>task.id===r.id)) return;
+    s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
+      createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
+      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null});
+    recordHistory(s,{...r,status:'queued'});
+  }
+
+  function finishTask(s, task, status, at) {
+    const current=s.round.id===task.id&&s.phase==='accepted';
+    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
+    const ended={...base,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    recordHistory(s,ended);
+    if(current) {s.round={...ended};s.phase='resolved';}
+    s.tasks=s.tasks.filter(item=>item.id!==task.id);
+  }
+
+  function expireTasks(s, at) {
+    const expired=s.tasks.filter(task=>Date.parse(task.expiresAt)<=Date.parse(at));
+    for(const task of expired) finishTask(s,task,'expired',at);
+    return expired.length>0;
+  }
+
   function closeRound(s, status, action) {
     s.phase='resolved';
     s.round.status=status;
     s.round.awaiting=null;
     s.round.endedAt=action.at || null;
     s.round.closedBy=s.activePlayer;
-    if(!s.history.some(item=>item.id===s.round.id)) s.history.unshift(JSON.parse(JSON.stringify(s.round)));
-    s.history=s.history.slice(0,80);
+    s.tasks=s.tasks.filter(task=>task.id!==s.round.id);
+    recordHistory(s,s.round);
   }
 
   function reduce(state, action) {
@@ -392,18 +451,37 @@
       return fresh;
     }
     // Reject stale UI callbacks, such as an animation from a previous round.
-    if(action.roundId && action.roundId!==state.round.id) return state;
+    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','EXPIRE_TASKS'].includes(kind)) return state;
     if(action.actor && action.actor!==state.activePlayer) return state;
     const s=JSON.parse(JSON.stringify(state));
     const r=s.round;
     const actor=s.activePlayer;
 
     switch(kind) {
+      case 'EXPIRE_TASKS':
+        if(!isoTime(action.at)) return state;
+        return expireTasks(s,action.at)?s:state;
+      case 'TOGGLE_TASK_CHECK': {
+        if(typeof action.taskId!=='string' || typeof action.checked!=='boolean' || !isoTime(action.at) || action.player&&action.player!==actor) return state;
+        if(!s.tasks.some(item=>item.id===action.taskId)) return state;
+        const expired=expireTasks(s,action.at);
+        const task=s.tasks.find(item=>item.id===action.taskId);
+        if(!task || Date.parse(action.at)<Date.parse(task.createdAt) || task.checks[actor]===action.checked) return expired?s:state;
+        if(action.checked && task.checks[otherPlayer(actor)] && s.stats.totalCompleted===Number.MAX_SAFE_INTEGER) return expired?s:state;
+        task.checks[actor]=action.checked;
+        if(task.checks.a&&task.checks.b) {
+          s.stats.totalCompleted++;
+          s.stats.byCategory[task.categoryId]++;
+          finishTask(s,task,'completed',action.at);
+        }
+        return s;
+      }
       case 'SWITCH_PLAYER':
         if(!['a','b'].includes(action.player) || action.player===actor) return state;
         s.activePlayer=action.player;
-        // A blank, untouched table follows the profile that starts the turn.
-        if(s.phase==='category') s.round=blankRound(s.sequence,action.player,r.createdAt);
+        // Let either profile start the demo. Later profile switches may be
+        // used to check an older task, so they must not change the next drawer.
+        if(s.phase==='category'&&s.sequence===1) s.round=blankRound(s.sequence,action.player,r.createdAt);
         return s;
       case 'SET_PREFS':
         for(const key of prefKeys) if(action.patch && typeof action.patch[key]==='boolean') s.prefs[key]=action.patch[key];
@@ -413,7 +491,7 @@
         s.favorites=s.favorites.includes(action.cardId) ? s.favorites.filter(id=>id!==action.cardId) : [...s.favorites,action.cardId];
         return s;
       case 'NEW_ROUND':
-        if(!['resolved','category','card'].includes(s.phase) || s.sequence===Number.MAX_SAFE_INTEGER) return state;
+        if(!['resolved','accepted','category','card'].includes(s.phase) || s.sequence===Number.MAX_SAFE_INTEGER) return state;
         s.sequence++;
         s.phase='category';
         // Alternate the drawer, regardless of who closed the previous round.
@@ -462,7 +540,10 @@
         if(!r.fromConfirmed) {
           r.status='sender_confirmation'; r.awaiting=r.from; s.phase='sender_confirmation';
         } else {
-          r.status='accepted'; r.awaiting=null; r.acceptedAt=action.at || null; s.phase='accepted';
+          const acceptedAt=action.at===undefined?fallbackTime:taskStartTime(action.at)?action.at:null;
+          if(!acceptedAt) return state;
+          r.status='accepted'; r.awaiting=null; r.acceptedAt=acceptedAt; s.phase='accepted';
+          enqueueTask(s,acceptedAt);
         }
         return s;
       case 'LATER':
@@ -499,17 +580,9 @@
         closeRound(s,'passed',action);
         return s;
       case 'COMPLETE':
-        if(s.phase!=='accepted') return state;
-        // A resolved round cannot be completed again. Also tolerate a legacy
-        // saved history that already contains this completed round without
-        // crediting it a second time. Future rounds may reuse the same card.
-        if(!s.history.some(item=>item.id===r.id && item.status==='completed')) {
-          if(s.stats.totalCompleted===Number.MAX_SAFE_INTEGER) return state;
-          s.stats.totalCompleted++;
-          s.stats.byCategory[r.categoryId]++;
-        }
-        closeRound(s,'completed',action);
-        return s;
+        // Completion now requires both independent task checkboxes. Keep the
+        // old action inert so an old control cannot bypass that requirement.
+        return state;
       default:
         return state;
     }

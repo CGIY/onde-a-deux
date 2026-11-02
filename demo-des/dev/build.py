@@ -35,7 +35,7 @@ html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#181d1c"><meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.3.0">
-<title>ONDE — Le hasard, à deux</title>
+<title>Dés·ir — À deux</title>
 <style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
 </head><body>''' + html + '</body></html>\n'
 (root / 'dist').mkdir(exist_ok=True)

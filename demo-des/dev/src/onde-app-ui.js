@@ -10,10 +10,12 @@
  let persisted=false, canPersist=true, recovery=false, lastError='';
  let renderKey='';
  const gaugeFrames=new Map();
+ const pendingChecks=new Set();
+ let taskExpiryTimer;
  let visibleCardId=null;
  try{
   const raw=localStorage.getItem(storageKey);
-  if(raw){let saved=null;try{saved=G.normalizeState(JSON.parse(raw));}catch(_){}if(saved)state=saved;else{localStorage.setItem(storageKey+'-recovery',raw);recovery=true;}}
+  if(raw){let saved=null;try{saved=G.normalizeState(JSON.parse(raw),{at:new Date().toISOString()});}catch(_){}if(saved)state=saved;else{localStorage.setItem(storageKey+'-recovery',raw);recovery=true;}}
   localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;
  }catch(_){canPersist=false;persisted=false;}
  const canvas=document.createElement('canvas');
@@ -53,12 +55,13 @@
   if(!fact||!fact.metric)return '';
   return '<section class="oa-card-fact"><strong>'+h(fact.metric)+'</strong><div><b>'+h(fact.headline)+'</b><p>'+h(fact.detail)+'</p><details class="oa-source"><summary>Source & contexte ↗</summary><p>'+h([fact.scope,fact.year].filter(Boolean).join(' · '))+'</p><p>'+h(fact.limitations)+'</p><a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a></details></div></section>';
  }
- function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+''+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+cardFact(c)+'</article>';}
+ function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+cardFact(c)+'</article>';}
 
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
+ function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'</div>';}
 
  function renderPlay(){const r=state.round,c=card();
+  if(state.phase==='category'&&!canDraw())return heading('Au tour de<br><em>'+h(name(r.from))+'.</em>',null,null)+switchButton(r.from,'Jouer côté '+h(name(r.from)));
   if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>',null,'UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
@@ -72,40 +75,53 @@
    const automatic=r.autoProposed&&r.status==='pending';
    let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
    let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Proposée par le D20.':h(name(r.from))+' te propose…'):'Réponse attendue : '+h(name(r.awaiting))+'.';
-   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>');
+   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+'</div>');
   }
   if(state.phase==='sender_confirmation'){
    const responds=G.canRespond(state);
-   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter ce tour','pass')+'</div></div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+textBtn('Arrêter ce tour','pass')+'</div>');
+   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'</div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+'</div>');
   }
   if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+switchButton(r.to);
-  if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('to')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll')+textBtn('Passer','pass');
-  if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+healthGauge('to')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Arrêter ce tour','pass')+'</div>');
-  if(state.phase==='accepted')return heading('Un moment<br><em>pour vous.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(r.schedule?statusStrip('<strong>'+h(r.schedule)+'</strong>'):'')+'<div class="oa-actions">'+btn('Marquer comme partagé','complete')+(state.prefs.reminder?textBtn('Aperçu du rappel','reminder'):'')+textBtn('Finalement, passer','pass')+'</div>';
+  if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('to')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll');
+  if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+healthGauge('to')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+'</div>');
+  if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
-   const defended=r.status==='defended',completed=r.status==='completed';
-   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+(defended?healthGauge(r.rolls.length?'to':'from'):'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':'')+'</p></div>'+''+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
+   const defended=r.status==='defended',completed=r.status==='completed',expired=r.status==='expired';
+   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':expired?'Temps écoulé.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+(defended?healthGauge(r.rolls.length?'to':'from'):'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':'')+'</p></div>'+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
   }
   return '';
  }
 
+ function timeLeft(task){const minutes=Math.max(0,Math.ceil((Date.parse(task.expiresAt)-Date.now())/60000));return Math.floor(minutes/60)+' h '+String(minutes%60).padStart(2,'0');}
+ function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
+ function renderTasks(){
+  const tasks=state.tasks||[];
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId);return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(task.proposal?'<p class="oa-task-proposal">'+h(task.proposal)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+ }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  function sharedScore(){
   const stats=state.stats,total=stats.totalCompleted;
   return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
  }
- function renderUs(){return heading('À notre<br><em>rythme.</em>',null,null)+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu du rappel.')+'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+ function renderUs(){return heading('À notre<br><em>rythme.</em>',null,null)+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
 
+ function scheduleExpiry(){
+  clearTimeout(taskExpiryTimer);if(!state.tasks.length)return;
+  const delay=Math.max(0,Math.min(...state.tasks.map(task=>Date.parse(task.expiresAt)))-Date.now());
+  taskExpiryTimer=setTimeout(()=>{const changed=dispatch({type:'EXPIRE_TASKS'},false);if(changed&&!busy&&!pendingChecks.size)render();else scheduleExpiry();},delay);
+ }
  function render(){
+  const fresh=G.reduce(state,{type:'EXPIRE_TASKS',at:now()});if(fresh!==state){state=fresh;save();}
   const focused=document.activeElement,focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const previousKey=renderKey;
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
   const key=[tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer].join('|');
   const animate=key!==renderKey;renderKey=key;
   root.style.setProperty('--oa-accent',(category()||G.categories[1]).color);
-  main.innerHTML=tab==='play'?renderPlay():renderUs();
+  main.innerHTML=tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!(['pending','sender_confirmation'].includes(state.phase)&&state.round.awaiting===el.dataset.player&&state.activePlayer!==el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
+  const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
   const holder=main.querySelector('[data-stage]');
   if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(systemReduce);}
   root.classList.toggle('is-busy',busy);
@@ -118,7 +134,8 @@
    if(revealed&&visibleCardId!==state.round.cardId)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:480,easing:'cubic-bezier(.18,.76,.2,1)'});
   }
   visibleCardId=state.round.cardId;
-  if(focusData&&previousKey===renderKey){const controls=Array.from(main.querySelectorAll('button,input'));const same=controls.find(el=>['action','pref','card','tab'].every(k=>(el.dataset[k]||'')===(focusData[k]||'')));if(same)same.focus({preventScroll:true});}
+  scheduleExpiry();
+  if(focusData&&previousKey===renderKey){const controls=Array.from(main.querySelectorAll('button,input')); const same=controls.find(el=>['action','pref','taskCheck','player','card','tab'].every(k=>(el.dataset[k]||'')===(focusData[k]||'')));if(same)same.focus({preventScroll:true});else{const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}}
   else if(previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
  }
  function animateGauge(){
@@ -167,39 +184,41 @@
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;document.body.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
  function closeSheet(){sheet.hidden=true;document.body.style.overflow='';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D6</b><div><h3>La catégorie.</h3><p>Six catégories · une chance sur six chacune.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>La carte.</h3><p>Quatre cartes cachées · une chance sur quatre. Les derniers tirages sont évités.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-odds-table"><span>PV</span><span>Chance sur 2 jets</span>'+[10,15,20,25,30,35].map(pv=>'<b>'+pv+'</b><span>'+percent(pv)+'</span>').join('')+'</div><div class="oa-rule"><b>∞</b><div><h3>Pas de quota quotidien.</h3><p>Une manche à la fois. Les rôles alternent à chaque tour.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Une carte partagée, un point.</h3><p>Le score est commun. Les cartes passées ou écartées ne comptent pas.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
-
- function showAdapt(){const c=card();openSheet('Proposer une variante','<label class="oa-field">Ta variante<textarea id="oa-adapt-text" aria-label="Ta variante" maxlength="300">'+h(state.round.adapted?state.round.proposal:c.variant)+'</textarea></label><div class="oa-actions">'+btn('Envoyer la variante','confirm-adapt')+'</div>');}
- function showLater(){openSheet('Trouver le bon moment','<label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D6</b><div><h3>La catégorie.</h3><p>Six catégories · une chance sur six chacune.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>La carte.</h3><p>Quatre cartes cachées · une chance sur quatre. Les derniers tirages sont évités.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-odds-table"><span>PV</span><span>Chance sur 2 jets</span>'+[10,15,20,25,30,35].map(pv=>'<b>'+pv+'</b><span>'+percent(pv)+'</span>').join('')+'</div><div class="oa-rule"><b>∞</b><div><h3>Pas de quota quotidien.</h3><p>Une manche à la fois. Les rôles alternent à chaque tour.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent six heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration. Le score est commun.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('click',event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
-  if(busy&&action!=='pass'&&action!=='close')return;
+  if(busy&&action!=='close')return;
   if(action==='roll'){roll();return;}
-  if(action==='tab'){tab=el.dataset.tab==='us'?'us':'play';render();return;}
-  if(action==='profile'){tab='play';dispatch({type:'SWITCH_PLAYER',player:el.dataset.player});announce('Profil : '+name(state.activePlayer));return;}
+  if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();root.scrollIntoView({block:'start',behavior:systemReduce?'instant':'smooth'});return;}
+  if(action==='profile'){tab=tab==='tasks'?'tasks':'play';dispatch({type:'SWITCH_PLAYER',player:el.dataset.player});announce('Profil : '+name(state.activePlayer));return;}
   if(action==='send'){dispatch({type:'SEND'});toast('Proposée à '+name(state.round.to));return;}
   if(action==='challenge-draft'){dispatch({type:'CHALLENGE_DRAFT'});return;}
   if(action==='challenge'){dispatch({type:'CHALLENGE'});return;}
-  if(action==='accept'){dispatch({type:'ACCEPT'});announce(state.phase==='accepted'?'Proposition acceptée à deux.':'Accord reçu. Confirmation de '+name(state.round.awaiting)+' attendue.');return;}
-  if(action==='pass'){
-   if(busy){animationSerial++;busy=false;die.setKind(die.kind,die.value);root.querySelectorAll('button:disabled').forEach(b=>{b.disabled=false;});}
-   dispatch({type:'PASS'});announce('Carte passée.');return;
-  }
-  if(action==='adapt'){showAdapt();return;}
-  if(action==='confirm-adapt'){const field=root.querySelector('#oa-adapt-text');if(!field.value.trim()){field.focus();return;}const text=field.value.trim();closeSheet();dispatch({type:'ADAPT',text});return;}
-  if(action==='later'){showLater();return;}
-  if(action==='confirm-later'){const schedule=root.querySelector('#oa-schedule').value;closeSheet();dispatch({type:'LATER',schedule});return;}
-  if(action==='complete'){if(dispatch({type:'COMPLETE'})){announce('Moment partagé. Un point ajouté au score de votre duo.');toast('+1 point pour votre duo.');celebrate();}return;}
+  if(action==='accept'){dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();announce(state.phase==='accepted'?'Proposition acceptée à deux.':'Accord reçu. Confirmation de '+name(state.round.awaiting)+' attendue.');return;}
   if(action==='new'){gaugeFrames.clear();tab='play';dispatch({type:'NEW_ROUND'});return;}
   if(action==='rules'){rules();return;}
   if(action==='close'){closeSheet();return;}
-  if(action==='reminder'){openSheet('Aperçu du rappel','<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · RAPPEL</small><p>'+h(state.prefs.discreet?'Votre moment à deux vous attend.':card().title)+'</p></div></div><p>Ceci est un aperçu dans la démo. Aucun rappel système n’est programmé.</p><div class="oa-actions">'+btn('Fermer l’aperçu','close')+'</div>');return;}
   if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
   if(action==='reset'){closeSheet();tab='play';gaugeFrames.clear();dispatch({type:'RESET'});toast('La démonstration repart de zéro.');return;}
  });
  if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
- root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}});
+ root.addEventListener('change',event=>{
+  const el=event.target;
+  if(el.dataset.taskCheck){
+   const id=el.dataset.taskCheck;if(pendingChecks.has(id)){render();return;}
+   const before=state.stats.totalCompleted,changed=dispatch({type:'TOGGLE_TASK_CHECK',taskId:id,checked:el.checked},false);
+   if(!changed){render();return;}
+   pendingChecks.add(id);el.disabled=true;const label=el.closest('label');label.classList.add('is-waving');
+   const completed=state.stats.totalCompleted>before,article=el.closest('.oa-task');
+   if(completed&&!systemReduce&&article.animate)article.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-7px)'}],{duration:180,delay:440,fill:'forwards',easing:'ease-out'});
+   setTimeout(()=>{pendingChecks.delete(id);render();if(completed){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}},systemReduce?0:640);
+   return;
+  }
+  if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
+ });
+ setInterval(()=>{if(!document.hidden&&!busy&&!pendingChecks.size){const changed=dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}},30000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!busy&&!pendingChecks.size)render();});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
  render();

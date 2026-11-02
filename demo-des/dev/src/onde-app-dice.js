@@ -30,12 +30,11 @@ void main(){
  vec3 eye=vec3(4.3,6.2,6.4),target=vec3(0.,.95,0.);vec3 f=normalize(target-eye),right=normalize(cross(f,vec3(0.,1.,0.))),up=cross(right,f);
  vec3 ro=eye+right*uv.x*4.4+up*uv.y*4.4,rd=f;
  float floorT=-ro.y/rd.y;vec3 floorP=ro+rd*floorT;
- vec3 bg=pow(vec3(.098,.119,.106),vec3(2.2));
- float studio=exp(-dot(floorP.xz*.20,floorP.xz*.20));bg+=vec3(.011,.013,.009)*studio;
  float h=max(0.,uPosition.y-.70);vec2 shadowP=floorP.xz-uPosition.xz-vec2(.18,-.13)*h;
- float spread=.65+h*.28;float shadow=exp(-dot(shadowP/vec2(spread*1.4,spread),shadowP/vec2(spread*1.4,spread)))*(.62/(1.+h*.6));
- float contact=exp(-dot((floorP.xz-uPosition.xz)/vec2(.64,.52),(floorP.xz-uPosition.xz)/vec2(.64,.52)))*.35/(1.+h*3.);
- float outputAlpha=min(.80,shadow+contact);vec3 color=vec3(.014,.018,.014);
+ // A restrained contact shadow grounds the object without a dark platform.
+ float spread=.48+h*.18;float shadow=exp(-dot(shadowP/vec2(spread*1.4,spread),shadowP/vec2(spread*1.4,spread)))*(.20/(1.+h*.6));
+ float contact=exp(-dot((floorP.xz-uPosition.xz)/vec2(.52,.42),(floorP.xz-uPosition.xz)/vec2(.52,.42)))*.12/(1.+h*3.);
+ float outputAlpha=min(.32,shadow+contact);vec3 color=vec3(.014,.018,.014);
  vec3 oc=ro-uPosition;float b=dot(oc,rd),c=dot(oc,oc)-uBound*uBound,disc=b*b-c;
  if(disc>0.){
   float t=max(0.,-b-sqrt(disc)),end=min(floorT,-b+sqrt(disc));bool hit=false;
@@ -212,8 +211,8 @@ void main(){
       const transformedNormal=n=>norm(transform(m,n).map((v,i)=>v/scale[i]));
       const light=norm([-3,6,4]),fill=norm([4,2,-3]);
       const rgb=(factor,blend=0)=>{const b=COLORS[type].map((v,i)=>Math.round(Math.min(255,(v*255*(1-blend)+[235,232,215][i]*blend)*factor)));return 'rgb('+b.join(',')+')';};
-      const shadowCenter=projectWorld([x,0,z]);c.save();c.translate(shadowCenter[0]+5,shadowCenter[1]);c.scale(1,.34);
-      const shadow=c.createRadialGradient(0,0,8,0,0,140+lift*16);shadow.addColorStop(0,'rgba(0,0,0,'+(.32/(1+lift))+')');shadow.addColorStop(.55,'rgba(0,0,0,.12)');shadow.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=shadow;c.fillRect(-180,-180,360,360);c.restore();
+      const shadowCenter=projectWorld([x,0,z]);c.save();c.translate(shadowCenter[0]+5,shadowCenter[1]);c.scale(1,.27);
+      const shadow=c.createRadialGradient(0,0,8,0,0,105+lift*12);shadow.addColorStop(0,'rgba(0,0,0,'+(.13/(1+lift))+')');shadow.addColorStop(.55,'rgba(0,0,0,.035)');shadow.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=shadow;c.fillRect(-150,-150,300,300);c.restore();
       let faces;
       if(type===6)faces=CUBE_FACES;
       else faces=POLYS[type].faces.map((f,i)=>({...f,value:i+1}));

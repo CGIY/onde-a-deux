@@ -38,7 +38,7 @@ struct GameWebView: UIViewRepresentable {
                 """
                 <html lang="fr"><meta name="viewport" content="width=device-width,initial-scale=1">
                 <body style="font:17px -apple-system;padding:28px;background:#181d1c;color:#ecebe1">
-                <h1>ONDE</h1><p>La ressource Web/index.html est introuvable dans l’application.</p>
+                <h1>Dés·ir</h1><p>La ressource Web/index.html est introuvable dans l’application.</p>
                 <p>Vérifiez la phase Copy Bundle Resources du projet Xcode.</p></body></html>
                 """,
                 baseURL: nil
