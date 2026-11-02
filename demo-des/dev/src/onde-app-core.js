@@ -183,6 +183,7 @@
   const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
 
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
+  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:6, cardSides:4, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1 });
   const cardMap = Object.fromEntries([...hiddenLegacyCards,...cards].map(card => [card.id, card]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
   const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
@@ -239,7 +240,7 @@
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
     if (!validStats(s.stats)) return false;
-    if (!Number.isInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
+    if (!Number.isSafeInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
     if (!Array.isArray(s.favorites) || s.favorites.some(id => !getCard(id)) || !s.prefs || prefKeys.some(k => typeof s.prefs[k] !== 'boolean')) return false;
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
     if (Object.entries(s.seen).some(([key,list]) => !getCategory(key) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
@@ -258,7 +259,9 @@
     if (!cat || r.categoryRoll !== cat.number || r.hand.length !== 4 || new Set(r.hand).size !== 4 || r.hand.some(id => !getCard(id) || getCard(id).categoryId !== cat.id)) return false;
     if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
-    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>4 || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || r.hp!==card.hp) return false;
+    // PV belong to the round that was drawn. A later catalogue update must not
+    // rewrite an in-progress challenge or invalidate an already won one.
+    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>4 || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(r.autoProposed && (!r.draftChallengeUsed || r.draftRolls.length!==2 || draftTotal>=r.hp)) return false;
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
@@ -292,12 +295,18 @@
     let migrated;
     try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
     if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
-    if(migrated.stats&&migrated.stats.byCategory&&Object.keys(migrated.stats.byCategory).length!==categories.length){
+    if(migrated.stats&&migrated.stats.byCategory&&!validStats(migrated.stats)){
       const old=migrated.stats.byCategory;
+      if(!old || typeof old!=='object' || Array.isArray(old)) return null;
+      const keys=Object.keys(old).sort().join(',');
+      const legacyKeys=[['complicite','detente','tendresse','attention','decouverte','intimite'],['complicite','detente','attention','bouffe','intimite']];
+      // Only migrate catalogue shapes that were actually published. Do not
+      // silently drop an unknown counter or repair a damaged current save.
+      if(!legacyKeys.some(list=>list.sort().join(',')===keys) || Object.values(old).some(value=>!Number.isSafeInteger(value)||value<0)) return null;
       migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,projets:(old.projets||0)+(old.decouverte||0),attention:old.attention||0,bouffe:old.bouffe||0,intimite:old.intimite||0};
     }
     if(migrated.round.categoryId){migrated.round.categoryId=legacyCategory(migrated.round.categoryId);const mapped=getCategory(migrated.round.categoryId);if(mapped)migrated.round.categoryRoll=mapped.number;}
-    if(migrated.round.cardId){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
+    if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
     migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>legacyFavoriteMap[id]||id))):migrated.favorites;
     if(migrated.seen&&typeof migrated.seen==='object'){
       const seen={};for(const [id,list] of Object.entries(migrated.seen)){const key=legacyCategory(id);seen[key]=[...(seen[key]||[]),...(Array.isArray(list)?list:[])].slice(0,8);}migrated.seen=seen;
@@ -340,8 +349,11 @@
   function drawHand(state, categoryId) {
     const category=typeof categoryId==='number' ? categories.find(c=>c.number===categoryId) : getCategory(categoryId);
     if (!category) throw new RangeError('Unknown category.');
-    const previous=(state.seen[category.id] || [])[0];
-    const pool=cards.filter(c=>c.categoryId===category.id && c.id!==previous).map(c=>c.id);
+    const available=cards.filter(c=>c.categoryId===category.id).map(c=>c.id);
+    // Keep enough cards for a complete D4 hand while giving recently drawn
+    // cards a rest. Small categories cycle sooner without favouring one face.
+    const recent=(state.seen[category.id] || []).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-4)));
+    const pool=available.filter(id=>!recent.includes(id));
     for(let i=pool.length-1;i>0;i--) { const j=randomInt(i+1)-1; [pool[i],pool[j]]=[pool[j],pool[i]]; }
     return pool.slice(0,4);
   }
@@ -401,10 +413,12 @@
         s.favorites=s.favorites.includes(action.cardId) ? s.favorites.filter(id=>id!==action.cardId) : [...s.favorites,action.cardId];
         return s;
       case 'NEW_ROUND':
-        if(!['resolved','category','card'].includes(s.phase)) return state;
+        if(!['resolved','category','card'].includes(s.phase) || s.sequence===Number.MAX_SAFE_INTEGER) return state;
         s.sequence++;
         s.phase='category';
-        s.round=blankRound(s.sequence,actor,action.at);
+        // Alternate the drawer, regardless of who closed the previous round.
+        s.activePlayer=otherPlayer(r.from);
+        s.round=blankRound(s.sequence,s.activePlayer,action.at);
         return s;
       case 'ROLL_CATEGORY': {
         if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>6) return state;
@@ -501,7 +515,7 @@
     }
   }
 
-  const api={categories,cards,players,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canChallengeDraft,canRollDraftDefense};
+  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

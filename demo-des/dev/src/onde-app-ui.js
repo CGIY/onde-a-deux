@@ -6,12 +6,16 @@
  const storageKey='onde-couple-prototype-v1';
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
  let systemReduce=!!(motionQuery&&motionQuery.matches);
- let state=G.createState(), tab='play', catalog='detente', favoritesOnly=false, busy=false, toastTimer, lastFocus=null, animationSerial=0;
- let persisted=false, lastError='';
+ let state=G.createState(), tab='play', busy=false, toastTimer, lastFocus=null, animationSerial=0;
+ let persisted=false, canPersist=true, recovery=false, lastError='';
  let renderKey='';
- const deckPositions=Object.create(null);
- let deckFrame=0;
- try{const raw=localStorage.getItem(storageKey);if(raw){const saved=G.normalizeState(JSON.parse(raw));if(saved)state=saved;}localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}
+ const gaugeFrames=new Map();
+ let visibleCardId=null;
+ try{
+  const raw=localStorage.getItem(storageKey);
+  if(raw){let saved=null;try{saved=G.normalizeState(JSON.parse(raw));}catch(_){}if(saved)state=saved;else{localStorage.setItem(storageKey+'-recovery',raw);recovery=true;}}
+  localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;
+ }catch(_){canPersist=false;persisted=false;}
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
  const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,onRelease:()=>{if(tab==='play'&&!busy)roll();}});
@@ -23,10 +27,9 @@
  const category=()=>G.getCategory(state.round.categoryId);
  const shownRolls=()=>state.phase==='draft_challenge'||(state.round.status==='defended'&&!state.round.rolls.length)?state.round.draftRolls:state.round.rolls;
  const sum=()=>shownRolls().reduce((a,b)=>a+b,0);
- const remaining=()=>Math.max(0,(state.round.hp||0)-sum());
  const canDraw=()=>state.activePlayer===state.round.from;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
- function save(){try{localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}}
+ function save(){if(!canPersist)return;try{localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}}
  function announce(text){root.querySelector('#oa-announcement').textContent=text;}
  function dispatch(action,doRender=true){const next=G.reduce(state,{at:now(),...action});const changed=next!==state;state=next;if(changed)save();if(doRender)render();return changed;}
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
@@ -35,117 +38,97 @@
  function eyebrow(text){return '<p class="oa-eyebrow">'+h(text)+'</p>';}
  function heading(title,sub,eyebrowText){return (eyebrowText?eyebrow(eyebrowText):'')+'<h1 class="oa-title">'+title+'</h1>'+(sub?'<p class="oa-subtitle">'+sub+'</p>':'');}
  function steps(active){return '<div class="oa-steps" aria-label="Parcours du jeu"><span class="oa-step '+(active===1?'is-active':active>1?'is-done':'')+'"><b>D6</b>Catégorie</span><span class="oa-step-sep" aria-hidden="true">›</span><span class="oa-step '+(active===2?'is-active':'')+'"><b>D4</b>Carte</span></div>'; }
- function stage(type,label,value){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+' · RUBBER</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'"><div class="oa-gesture">Appuyer · relâcher</div></div></section>';}
- function categoriesGrid(interactive=false){return '<div class="oa-category-grid">'+G.categories.map(c=>'<'+(interactive?'button type="button" data-action="catalog" data-category="'+c.id+'" aria-pressed="'+(catalog===c.id&&!favoritesOnly)+'"':'div')+' class="oa-category '+(interactive?'cursor-interaction':'')+'" style="--category:'+c.color+'"><div class="oa-category-top"><span class="oa-category-swatch"></span><span class="oa-category-number">0'+c.number+'</span></div><span class="oa-category-label">'+h(c.label)+'</span></'+(interactive?'button':'div')+'>').join('')+'</div>';}
- function handGrid(){return '<div class="oa-card-grid">'+state.round.hand.map((id,i)=>{const c=G.getCard(id);return '<div class="oa-mini-card '+(state.round.cardRoll===i+1?'is-picked':'')+'"><span class="oa-mini-number">'+(i+1)+'</span><h3>'+h(c.title)+'</h3></div>';}).join('')+'</div>';}
- function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
- function favoriteButton(c){const selected=state.favorites.includes(c.id);return '<button type="button" class="oa-favorite cursor-interaction" data-action="favorite" data-card="'+c.id+'" aria-pressed="'+selected+'" aria-label="'+(selected?'Retirer des favoris':'Ajouter aux favoris')+'">'+(selected?'♥':'♡')+'</button>';}
-
- function source(c){
-  const fact=window.OndeEvidence&&window.OndeEvidence.forCard(c);
-  if(!fact)return '';
-  const scope=[fact.scope,fact.year].filter(Boolean).join(' · ');
-  return '<section class="oa-evidence" aria-label="Un repère sur cette carte"><p class="oa-eyebrow">UN REPÈRE SUR CE THÈME</p>'+(fact.metric?'<strong class="oa-evidence-number">'+h(fact.metric)+'</strong>':'')+'<h3>'+h(fact.headline)+'</h3><p>'+h(fact.detail)+'</p>'+(scope?'<p class="oa-evidence-scope">'+h(scope)+'</p>':'')+(fact.url?'<details class="oa-source"><summary>Source & contexte de l’étude</summary><p>'+h(fact.limitations)+'</p><a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a></details>':'')+'</section>';
+ function stage(type,label,value){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+'</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'"></div></section>';}
+ function categoriesGrid(){return '<div class="oa-category-grid">'+G.categories.map(c=>'<div class="oa-category" style="--category:'+c.color+'"><div class="oa-category-top"><span class="oa-category-swatch"></span><span class="oa-category-number">0'+c.number+'</span></div><span class="oa-category-label">'+h(c.label)+'</span></div>').join('')+'</div>';}
+ function handGrid(){return '<div class="oa-card-grid" aria-label="Quatre cartes face cachée">'+state.round.hand.map((id,i)=>'<div class="oa-mini-card oa-card-back" aria-label="Carte '+(i+1)+' face cachée"><span class="oa-mini-number">'+(i+1)+'</span><span class="oa-back-symbol" aria-hidden="true">ON</span></div>').join('')+'</div>';}
+ function healthGauge(owner){
+  const r=state.round,rolls=owner==='from'?r.draftRolls:r.rolls,total=rolls.reduce((a,b)=>a+b,0),left=Math.max(0,r.hp-total),ratio=left/r.hp;
+  const needed=r.hp-total,chance=rolls.length===0?G.probability(r.hp):rolls.length===1?Math.max(0,Math.min(20,21-needed))/20:0;
+  const odds=left===0?'Carte écartée':rolls.length===2?'Deux jets terminés':(chance*100).toLocaleString('fr-FR',{maximumFractionDigits:2})+' % de chance '+(rolls.length?'au dernier jet':'sur deux jets');
+  return '<section class="oa-hp" data-gauge="'+r.id+'-'+owner+'" data-ratio="'+ratio+'" aria-label="Résistance de la carte"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+left+' <span>/ '+r.hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+r.hp+'" aria-valuenow="'+left+'">'+Array.from({length:12},(_,i)=>'<i aria-hidden="true"><span style="transform:scaleX('+Math.max(0,Math.min(1,ratio*12-i))+')"></span></i>').join('')+'</div><div class="oa-roll-history">'+[0,1].map(i=>'<span class="oa-roll-token">Jet '+(i+1)+' <b>'+(rolls[i]||'—')+'</b></span>').join('')+'</div><p class="oa-hp-odds">'+odds+'</p></section>';
  }
+ function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function cardFact(c){
   const fact=window.OndeEvidence&&window.OndeEvidence.forCard(c);
   if(!fact||!fact.metric)return '';
-  const scope=[fact.scope,fact.year].filter(Boolean).join(' · ');
-  return '<section class="oa-card-fact"><strong>'+h(fact.metric)+'</strong><div><b>'+h(fact.headline)+'</b><p>'+h(fact.detail)+'</p><small>'+(fact.url?'<a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a>':h(fact.sourceTitle))+(scope?' · '+h(scope):'')+'</small></div></section>';
+  return '<section class="oa-card-fact"><strong>'+h(fact.metric)+'</strong><div><b>'+h(fact.headline)+'</b><p>'+h(fact.detail)+'</p><details class="oa-source"><summary>Source & contexte ↗</summary><p>'+h([fact.scope,fact.year].filter(Boolean).join(' · '))+'</p><p>'+h(fact.limitations)+'</p><a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a></details></div></section>';
  }
- function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+favoriteButton(c)+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2><p class="oa-card-description">'+h(adapted?r.proposal:c.description)+'</p>'+(compact?'':cardFact(c))+'</article>';}
+ function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+''+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+cardFact(c)+'</article>';}
 
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(card()?.hp)?btn('Tenter de l’écarter · D20 · '+card().hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
+ function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Passer','pass')+'</div></div>';}
 
  function renderPlay(){const r=state.round,c=card();
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>','Lance le dé. Une catégorie, puis une carte à proposer.',currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
-   if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>','La catégorie a été tirée. La prochaine étape est la carte.','UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
-   return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',h(category().description),'LE D6 A DONNÉ '+r.categoryRoll)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
+   if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>',null,'UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
+   return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',null,null)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
   }
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(Number.isFinite(c.hp)?btn('Tenter de l’écarter · D20 · '+c.hp+' PV','challenge-draft','oa-secondary'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
-  if(state.phase==='draft_challenge')return heading('Un dernier<br><em>jet ?</em>','Seuil : '+r.hp+' PV · total actuel : '+sum()+' PV. Deux jets maximum.','DÉFI DE LA PERSONNE QUI TIRE')+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll')+'<p class="oa-note oa-center">Si le total atteint '+r.hp+' PV, la carte est écartée. Après deux jets insuffisants, elle est proposée automatiquement à '+h(name(r.to))+'.</p>';
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
+  if(state.phase==='draft_challenge'&&!canDraw())return heading('Un défi<br><em>en cours.</em>',h(name(r.from))+' tente d’écarter la carte.',null)+switchButton(r.from);
+  if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('from')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll')+'<p class="oa-note oa-center">Deux jets insuffisants → proposée à '+h(name(r.to))+'.</p>';
   if(state.phase==='pending'){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
    const automatic=r.autoProposed&&r.status==='pending';
    let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
-   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Cette carte t’est proposée automatiquement. À toi de choisir.':h(name(r.from))+' te propose un moment à deux.'):'Réponse attendue : '+h(name(r.awaiting))+'.';
-   return (responds?'<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · MAINTENANT</small><p>'+h(state.prefs.discreet?'Une invitation t’attend.':c.title)+'</p></div></div>':'')+heading(title,sub,responds?'À TOI DE RÉPONDRE':'TOUR '+state.sequence)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic?statusStrip('Proposition automatique · vos deux accords restent à confirmer.',true):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>');
+   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Proposée par le D20.':h(name(r.from))+' te propose…'):'Réponse attendue : '+h(name(r.awaiting))+'.';
+   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+textBtn('Retirer la proposition','pass')+'</div>');
   }
   if(state.phase==='sender_confirmation'){
    const responds=G.canRespond(state);
-   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté. Comme la carte a été proposée par le dé, confirme aussi ton envie.':'Ton accord est enregistré. '+h(name(r.from))+' doit encore confirmer le sien.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip('Accord de '+h(name(r.to))+' reçu · accord de '+h(name(r.from))+' attendu.')+(responds?'<div class="oa-actions">'+btn('Oui, j’en ai envie aussi','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter ce tour','pass')+'</div></div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+textBtn('Arrêter ce tour','pass')+'</div>');
+   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'<div class="oa-action-row">'+textBtn('Adapter','adapt')+textBtn('Plus tard','later')+textBtn('Arrêter ce tour','pass')+'</div></div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+textBtn('Arrêter ce tour','pass')+'</div>');
   }
-  if(state.phase==='challenge')return heading('Tu veux tenter<br><em>le D20 ?</em>','Seuil : '+r.hp+' PV · total actuel : '+sum()+' PV. Deux jets maximum.','DÉFI DE LA PERSONNE QUI REÇOIT')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll')+textBtn('Passer sans pénalité','pass');
-  if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Arrêter ce tour','pass')+'</div>');
-  if(state.phase==='accepted')return heading('Un moment<br><em>pour vous.</em>','Vous avez tous les deux accepté cette proposition.','ACCORD À DEUX')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+statusStrip(r.schedule?'Moment prévu : <strong>'+h(r.schedule)+'</strong>':'À vivre au moment qui vous convient.')+'<div class="oa-actions">'+btn('Marquer comme partagé','complete')+(state.prefs.reminder?textBtn('Aperçu du rappel','reminder'):'')+textBtn('Finalement, passer','pass')+'</div><p class="oa-note oa-center">Votre accord reste modifiable à tout moment.</p>';
+  if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+switchButton(r.to);
+  if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('to')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll')+textBtn('Passer','pass');
+  if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+healthGauge('to')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+textBtn('Arrêter ce tour','pass')+'</div>');
+  if(state.phase==='accepted')return heading('Un moment<br><em>pour vous.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(r.schedule?statusStrip('<strong>'+h(r.schedule)+'</strong>'):'')+'<div class="oa-actions">'+btn('Marquer comme partagé','complete')+(state.prefs.reminder?textBtn('Aperçu du rappel','reminder'):'')+textBtn('Finalement, passer','pass')+'</div>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed';
-   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':'Une autre<br><em>fois, peut-être.</em>',completed?'Un point de plus pour votre duo. Vous pouvez aussi garder cette carte parmi vos favoris.':defended?'':'Cette proposition a été passée. Le prochain tour vous attend.',completed?'MOMENT PARTAGÉ':defended?'CARTE ÉCARTÉE':'CARTE PASSÉE')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':' · '+c.duration+' min')+'</p></div>'+favoriteButton(c)+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
+   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+(defended?healthGauge(r.rolls.length?'to':'from'):'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':'')+'</p></div>'+''+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
   }
   return '';
  }
 
- function renderCatalog(){
-  const cat=G.getCategory(catalog),list=favoritesOnly?G.cards.filter(c=>state.favorites.includes(c.id)):G.cards.filter(c=>c.categoryId===catalog);
-  const deckKey=favoritesOnly?'favorites':catalog;
-  return heading('Des petits<br><em>possibles.</em>','Fais défiler les cartes. Garde celles qui vous ressemblent.','VOTRE JEU')+categoriesGrid(true)+'<div class="oa-filter-row" role="group" aria-label="Afficher les cartes"><button type="button" class="cursor-interaction" data-action="filter" data-favorites="false" aria-pressed="'+!favoritesOnly+'">'+h(cat.label)+'</button><button type="button" class="cursor-interaction" data-action="filter" data-favorites="true" aria-pressed="'+favoritesOnly+'">Favoris · '+state.favorites.length+'</button></div>'+(list.length?'<div class="oa-deck-toolbar"><p><span data-deck-counter>1 / '+list.length+'</span> <span class="oa-deck-hint">Glisse pour explorer</span></p><div><button type="button" class="oa-deck-arrow" data-action="deck-prev" aria-label="Carte précédente">←</button><button type="button" class="oa-deck-arrow" data-action="deck-next" aria-label="Carte suivante">→</button></div></div><div class="oa-deck" data-deck="'+deckKey+'" role="region" aria-label="Cartes à faire défiler" tabindex="0">'+list.map((c,i)=>'<section class="oa-deck-slide" aria-label="Carte '+(i+1)+' sur '+list.length+'" style="--category:'+G.getCategory(c.categoryId).color+'">'+playingCard(c)+'<button type="button" class="oa-deck-open" data-action="card-detail" data-card="'+c.id+'">Déplier la carte <span>↗</span></button></section>').join('')+'</div>':'<div class="oa-empty"><p>Les cartes que vous aimez<br>se retrouveront ici.</p></div>');
- }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  function sharedScore(){
   const stats=state.stats,total=stats.totalCompleted;
-  return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div><p class="oa-note">Le score augmente quand une carte est marquée « partagée ». Il reste commun à votre duo.</p>';
+  return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
  }
- function renderUs(){return heading('À notre<br><em>rythme.</em>','Vos moments partagés, un point à la fois.','VOTRE DUO')+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu disponible après un accord.')+'<p class="oa-note">Démo sur cet appareil : les deux profils et les notifications sont simulés. '+(persisted?'Votre partie et votre score sont conservés dans ce navigateur.':'La partie et le score restent disponibles tant que cette page est ouverte.')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+ function renderUs(){return heading('À notre<br><em>rythme.</em>',null,null)+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('discreet','Aperçus discrets','Le contenu de la carte reste masqué.')+setting('reminder','Rappel du moment','Aperçu du rappel.')+'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
 
  function render(){
+  const focused=document.activeElement,focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
+  const previousKey=renderKey;
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
-  const key=[tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer,tab==='cards'?catalog:'',tab==='cards'?favoritesOnly:''].join('|');
+  const key=[tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer].join('|');
   const animate=key!==renderKey;renderKey=key;
-  root.style.setProperty('--oa-accent',tab==='cards'&&!favoritesOnly?G.getCategory(catalog).color:(category()||G.categories[1]).color);
-  main.innerHTML=tab==='play'?renderPlay():tab==='cards'?renderCatalog():renderUs();
+  root.style.setProperty('--oa-accent',(category()||G.categories[1]).color);
+  main.innerHTML=tab==='play'?renderPlay():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!(['pending','sender_confirmation'].includes(state.phase)&&state.round.awaiting===el.dataset.player&&state.activePlayer!==el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const holder=main.querySelector('[data-stage]');
   if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(systemReduce);}
   root.classList.toggle('is-busy',busy);
-  initDeck();
+  animateGauge();
   if(animate&&!systemReduce&&main.animate){
    const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
-   blocks.forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:520,delay:Math.min(i*38,160),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'}));
+   blocks.forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,delay:Math.min(i*28,100),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'}));
    main.querySelectorAll('.oa-category,.oa-mini-card').forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(12px) rotate(-2deg)'},{opacity:1,transform:'translateY(0) rotate(0)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
    const revealed=main.querySelector('.oa-card-stage .oa-playing-card');
-   if(revealed)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:740,easing:'cubic-bezier(.18,.76,.2,1)'});
+   if(revealed&&visibleCardId!==state.round.cardId)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:480,easing:'cubic-bezier(.18,.76,.2,1)'});
   }
+  visibleCardId=state.round.cardId;
+  if(focusData&&previousKey===renderKey){const controls=Array.from(main.querySelectorAll('button,input'));const same=controls.find(el=>['action','pref','card','tab'].every(k=>(el.dataset[k]||'')===(focusData[k]||'')));if(same)same.focus({preventScroll:true});}
+  else if(previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
  }
- function initDeck(){
-  cancelAnimationFrame(deckFrame);
-  const rail=main.querySelector('[data-deck]');if(!rail)return;
-  const slides=Array.from(rail.children),key=rail.dataset.deck;
-  let current=Math.max(0,Math.min(slides.length-1,deckPositions[key]||0));
-  function update(){
-   if(!rail.isConnected)return;
-   const center=rail.scrollLeft+rail.clientWidth/2;
-   let nearest=0,distance=Infinity;
-   slides.forEach((slide,i)=>{
-    const offset=(slide.offsetLeft+slide.offsetWidth/2-center)/slide.offsetWidth;
-    const amount=Math.min(1.5,Math.abs(offset));
-    if(Math.abs(offset)<distance){nearest=i;distance=Math.abs(offset);}
-    slide.style.transform=systemReduce?'none':'translateY('+(amount*9)+'px) scale('+(1-amount*.055)+') rotate('+(Math.max(-1.5,Math.min(1.5,offset))*2.8)+'deg)';
-    slide.style.zIndex=String(10-Math.round(amount*3));
-   });
-   current=nearest;deckPositions[key]=current;
-   const counter=main.querySelector('[data-deck-counter]');if(counter)counter.textContent=(current+1)+' / '+slides.length;
-   const prev=main.querySelector('[data-action="deck-prev"]'),next=main.querySelector('[data-action="deck-next"]');
-   if(prev)prev.disabled=current===0;if(next)next.disabled=current===slides.length-1;
-  }
-  rail.scrollLeft=slides[current].offsetLeft-(rail.clientWidth-slides[current].offsetWidth)/2;
-  update();
-  rail.addEventListener('scroll',()=>{cancelAnimationFrame(deckFrame);deckFrame=requestAnimationFrame(update);},{passive:true});
-  rail.addEventListener('keydown',e=>{if(e.target!==rail)return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();moveDeck(e.key==='ArrowRight'?1:-1);}});
+ function animateGauge(){
+  const gauge=main.querySelector('[data-gauge]');if(!gauge)return;
+  const key=gauge.dataset.gauge,ratio=Number(gauge.dataset.ratio),previous=gaugeFrames.has(key)?gaugeFrames.get(key):ratio;
+  gaugeFrames.set(key,ratio);
+  if(systemReduce||!gauge.animate||previous===ratio)return;
+  gauge.querySelectorAll('.oa-hp-track i span').forEach((fill,i)=>fill.animate([{transform:'scaleX('+Math.max(0,Math.min(1,previous*12-i))+')'},{transform:'scaleX('+Math.max(0,Math.min(1,ratio*12-i))+')'}],{duration:560,easing:'cubic-bezier(.22,1,.36,1)'}));
+  gauge.querySelector('.oa-hp-top strong').animate([{transform:'translateY(-3px)',opacity:.55},{transform:'translateY(0)',opacity:1}],{duration:280,easing:'ease-out'});
  }
- function moveDeck(direction){const rail=main.querySelector('[data-deck]');if(!rail)return;const index=Math.max(0,Math.min(rail.children.length-1,(deckPositions[rail.dataset.deck]||0)+direction)),slide=rail.children[index];rail.scrollTo({left:slide.offsetLeft-(rail.clientWidth-slide.offsetWidth)/2,behavior:systemReduce?'instant':'smooth'});}
  function celebrate(){
   if(systemReduce||!main.animate)return;
   const badge=main.querySelector('.oa-summary-glyph');
@@ -172,7 +155,7 @@
   const next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
   busy=true;root.classList.add('is-busy');
   root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
-  const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le hasard fait son chemin…';
+  const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le dé roule…';if(button)button.setAttribute('aria-busy','true');
   state=next;save();softSound();
   try{await die.roll(faceValue,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
   if(serial!==animationSerial)return;
@@ -181,23 +164,21 @@
   root.classList.remove('is-busy');render();
   announce('D'+sides+' : '+faceValue+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:'Lancer terminé.'));
  }
- function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
- function closeSheet(){sheet.hidden=true;sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
+ function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;document.body.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
+ function closeSheet(){sheet.hidden=true;document.body.style.overflow='';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
 
- function rules(){openSheet('Le hasard, à deux.','<div class="oa-rule"><b>D6</b><div><h3>Une catégorie parmi six.</h3><p>Complicité, détente, projets, attentions, bouffe ou intimité.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>Une carte parmi quatre.</h3><p>Tu peux la proposer directement. L’autre peut accepter, adapter, choisir un autre moment ou passer.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Tenter d’écarter.</h3><p>Deux jets au maximum : leur total doit atteindre les PV affichés sur la carte. Plus le seuil est élevé, plus il est difficile à atteindre.</p></div></div><p>Si la personne qui tire échoue à ses deux jets, la carte est proposée automatiquement à l’autre, qui garde la possibilité de passer. Un résultat de dé ne vaut jamais accord ; chacun peut arrêter ou passer.</p><div class="oa-actions">'+btn('C’est parti','close')+'</div><p>Pour tester les deux côtés, change de profil en haut. Les notifications sont simulées sur cet appareil.</p>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D6</b><div><h3>La catégorie.</h3><p>Six catégories · une chance sur six chacune.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>La carte.</h3><p>Quatre cartes cachées · une chance sur quatre. Les derniers tirages sont évités.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-odds-table"><span>PV</span><span>Chance sur 2 jets</span>'+[10,15,20,25,30,35].map(pv=>'<b>'+pv+'</b><span>'+percent(pv)+'</span>').join('')+'</div><div class="oa-rule"><b>∞</b><div><h3>Pas de quota quotidien.</h3><p>Une manche à la fois. Les rôles alternent à chaque tour.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Une carte partagée, un point.</h3><p>Le score est commun. Les cartes passées ou écartées ne comptent pas.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
- function showAdapt(){const c=card();openSheet('Proposer une variante','<p>Cette proposition devra être acceptée par '+h(name(G.otherPlayer(state.activePlayer)))+'.</p><label class="oa-field">Ta variante<textarea id="oa-adapt-text" aria-label="Ta variante" maxlength="300">'+h(state.round.adapted?state.round.proposal:c.variant)+'</textarea></label><div class="oa-actions">'+btn('Envoyer la variante','confirm-adapt')+'</div>');}
- function showLater(){openSheet('Trouver le bon moment','<p>Propose un créneau à '+h(name(G.otherPlayer(state.activePlayer)))+'. Le moment sera confirmé à deux.</p><label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
+ function showAdapt(){const c=card();openSheet('Proposer une variante','<label class="oa-field">Ta variante<textarea id="oa-adapt-text" aria-label="Ta variante" maxlength="300">'+h(state.round.adapted?state.round.proposal:c.variant)+'</textarea></label><div class="oa-actions">'+btn('Envoyer la variante','confirm-adapt')+'</div>');}
+ function showLater(){openSheet('Trouver le bon moment','<label class="oa-field">Quand ?<select id="oa-schedule"><option>Ce soir, quand nous sommes disponibles</option><option>Demain</option><option>Ce week-end</option><option>À convenir ensemble</option></select></label><div class="oa-actions">'+btn('Proposer ce moment','confirm-later')+'</div>');}
 
- function details(id){const c=G.getCard(id);if(!c)return;openSheet(c.title,playingCard(c,true)+source(c)+'<div class="oa-detail-variant"><p class="oa-eyebrow">UNE VARIANTE</p><p>'+h(c.variant)+'</p></div>'+(Number.isFinite(c.hp)?'<p class="oa-detail-odds">'+c.hp+' PV · '+percent(c.hp)+' de chance d’atteindre le seuil en deux jets de D20.</p>':'')+'<p class="oa-note">Le dé ne vaut pas accord. Chacun peut passer ou arrêter.</p>','oa-card-sheet');}
  root.addEventListener('click',event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
   if(busy&&action!=='pass'&&action!=='close')return;
   if(action==='roll'){roll();return;}
-  if(action==='deck-prev'||action==='deck-next'){moveDeck(action==='deck-next'?1:-1);return;}
-  if(action==='tab'){tab=el.dataset.tab;render();return;}
-  if(action==='profile'){dispatch({type:'SWITCH_PLAYER',player:el.dataset.player});tab='play';render();announce('Profil : '+name(state.activePlayer));return;}
-  if(action==='send'){dispatch({type:'SEND'});toast('Invitation pour '+name(state.round.to)+' · simulée dans la démo');return;}
+  if(action==='tab'){tab=el.dataset.tab==='us'?'us':'play';render();return;}
+  if(action==='profile'){tab='play';dispatch({type:'SWITCH_PLAYER',player:el.dataset.player});announce('Profil : '+name(state.activePlayer));return;}
+  if(action==='send'){dispatch({type:'SEND'});toast('Proposée à '+name(state.round.to));return;}
   if(action==='challenge-draft'){dispatch({type:'CHALLENGE_DRAFT'});return;}
   if(action==='challenge'){dispatch({type:'CHALLENGE'});return;}
   if(action==='accept'){dispatch({type:'ACCEPT'});announce(state.phase==='accepted'?'Proposition acceptée à deux.':'Accord reçu. Confirmation de '+name(state.round.awaiting)+' attendue.');return;}
@@ -210,18 +191,14 @@
   if(action==='later'){showLater();return;}
   if(action==='confirm-later'){const schedule=root.querySelector('#oa-schedule').value;closeSheet();dispatch({type:'LATER',schedule});return;}
   if(action==='complete'){if(dispatch({type:'COMPLETE'})){announce('Moment partagé. Un point ajouté au score de votre duo.');toast('+1 point pour votre duo.');celebrate();}return;}
-  if(action==='new'){dispatch({type:'NEW_ROUND'});tab='play';render();return;}
-  if(action==='favorite'){const selectedId=el.dataset.card;dispatch({type:'TOGGLE_FAVORITE',cardId:selectedId});if(!systemReduce)root.querySelectorAll('[data-action="favorite"][data-card="'+selectedId+'"]').forEach(b=>b.animate([{transform:'scale(.75)'},{transform:'scale(1.18)',offset:.55},{transform:'scale(1)'}],{duration:340,easing:'ease-out'}));if(!sheet.hidden){const pressed=state.favorites.includes(el.dataset.card);sheet.querySelectorAll('[data-action="favorite"]').forEach(b=>{b.setAttribute('aria-pressed',String(pressed));b.textContent=pressed?'♥':'♡';});}return;}
-  if(action==='catalog'){catalog=el.dataset.category;favoritesOnly=false;render();return;}
-  if(action==='filter'){favoritesOnly=el.dataset.favorites==='true';render();return;}
-  if(action==='card-detail'){details(el.dataset.card);return;}
+  if(action==='new'){gaugeFrames.clear();tab='play';dispatch({type:'NEW_ROUND'});return;}
   if(action==='rules'){rules();return;}
   if(action==='close'){closeSheet();return;}
   if(action==='reminder'){openSheet('Aperçu du rappel','<div class="oa-notification"><span class="oa-notification-logo">ON</span><div><small>ONDE · RAPPEL</small><p>'+h(state.prefs.discreet?'Votre moment à deux vous attend.':card().title)+'</p></div></div><p>Ceci est un aperçu dans la démo. Aucun rappel système n’est programmé.</p><div class="oa-actions">'+btn('Fermer l’aperçu','close')+'</div>');return;}
   if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
-  if(action==='reset'){closeSheet();dispatch({type:'RESET'});tab='play';catalog='detente';favoritesOnly=false;render();toast('La démonstration repart de zéro.');return;}
+  if(action==='reset'){closeSheet();tab='play';gaugeFrames.clear();dispatch({type:'RESET'});toast('La démonstration repart de zéro.');return;}
  });
- if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());if(tab==='cards')initDeck();});
+ if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
  root.addEventListener('change',event=>{const el=event.target;if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});

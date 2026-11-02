@@ -106,3 +106,16 @@ Le correctif complémentaire a été publié sur `main` et `codex/onde-v030-hand
 - **26 cartes** ont un repère chiffré contextualisé et sourcé ; **31** ont un texte honnête sans statistique. Aucun chiffre n’a été ajouté sans source pertinente.
 - Les tests finaux passent : **366 assertions** du parcours D20, **43** du score et QA des dés. La compilation Xcode 27.2 pour simulateur iOS passe ; l’app a été lancée sur iPhone 18 Pro simulé. La page GitHub Pages et le ZIP ont été reconstruits et déployés.
 - Il reste à observer chaque parcours interactif dans l’interface et la fluidité du rendu sur un iPhone physique. Le simulateur ne permet pas de conclure sur les performances GPU réelles.
+
+
+## Révision build 5 — 2 novembre 2026
+
+La demande récente conserve le modèle visuel, renforce la matière suédine/rubber et supprime les textes superflus et le catalogue qui dévoilait les cartes. L’état actuel et les défauts corrigés sont détaillés dans `AUDIT_BUILD5.md`.
+
+- Six catégories et 88 cartes ; Projets est la face 3 du D6. Quatre cartes cachées avant le D4.
+- Jauge D20 rétablie avec PV restants, deux jets, probabilité conditionnelle et état final zéro.
+- 88 résultats distincts dans `data/card-evidence.json` : le générateur injecte les données dans le HTML, sans réseau. L’unicité porte sur la mesure scientifique, pas uniquement sur sa valeur arrondie. Les repères indirects sont contextualisés.
+- Moteur : alternance des tireurs, une manche active, aucun quota journalier, protection des anciennes sauvegardes, PV figés par manche, réduction des répétitions.
+- L’UI ne propose plus de jets au mauvais profil et préserve le focus. Les descriptions et rappels génériques ont été retirés ; les actions restent disponibles. Favoris historiques conservés en données mais contrôles retirés avec le catalogue.
+- 470 assertions moteur passent ; le nouveau contrôle statistique couvre les 88 cartes. QA du dé, syntaxe, compilation iOS simulateur, HTML identiques et ZIP contrôlés.
+- Sources canoniques dans `dev/src`, recherche dans `dev/data/card-evidence.json`. `build.py --release` produit les livrables 0.3.0 build 5.

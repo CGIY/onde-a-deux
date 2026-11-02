@@ -5,13 +5,29 @@ from pathlib import Path
 import argparse
 import shutil
 import zipfile
+import json
+import re
 
 root = Path(__file__).resolve().parent
 args = argparse.ArgumentParser(description=__doc__)
 args.add_argument('--release', action='store_true')
 release = args.parse_args().release
 source = root / 'src'
+evidence = json.loads((root / 'data/card-evidence.json').read_text())['activeEvidence']
+rows_source = (source / 'onde-app-core.js').read_text().split('const catalogRows = [', 1)[1].split('];', 1)[0]
+card_ids = set(re.findall(r"id:'([^']+)'", rows_source))
+if set(fact['cardId'] for fact in evidence) != card_ids or len(evidence) != len(card_ids):
+    raise SystemExit('Evidence must cover every active card exactly once.')
+for field in ['statKey', 'detail']:
+    if len({fact[field] for fact in evidence}) != len(evidence):
+        raise SystemExit('Duplicate evidence result: ' + field)
+for fact in evidence:
+    if any(not fact.get(field) for field in ['metric', 'headline', 'detail', 'scope', 'limitations', 'year', 'sourceTitle', 'url']):
+        raise SystemExit('Incomplete evidence: ' + fact['cardId'])
+    if not fact['url'].startswith('https://'):
+        raise SystemExit('Invalid source URL: ' + fact['cardId'])
 html = (source / 'onde-app-ui.html').read_text()
+html += '\n<script>window.OndeEvidenceData=' + json.dumps(evidence, ensure_ascii=False).replace('<', '\\u003c') + ';</script>\n'
 for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-evidence.js', 'onde-app-ui.js']:
     html += '\n<script>\n' + (source / filename).read_text() + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')

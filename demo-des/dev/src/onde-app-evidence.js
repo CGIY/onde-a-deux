@@ -1,5 +1,6 @@
 /* ONDE — contextual evidence for cards. Plain text only; no UI or network effects.
- * Sources and calculations: onde-evidence-research.json.
+ * Active results: dev/data/card-evidence.json, injected by build.py.
+ * Remaining facts only support older saved cards.
  * An interest survey is neither a measure of practice nor a recommendation.
  */
 (function (scope) {
@@ -141,94 +142,6 @@
 
   // Deliberate ID mapping: a category alone never selects a statistic.
   const factByCard = Object.freeze({
-    'new-complicite-02': 'kissing',
-    'new-complicite-03': 'cuddling',
-    'new-bouffe-01': 'meal',
-    'new-bouffe-02': 'meal',
-    'new-bouffe-03': 'meal',
-    'new-bouffe-04': 'meal',
-    'new-bouffe-11': 'meal',
-    'new-bouffe-12': 'meal',
-    'new-intimite-03': 'massage',
-    'new-complicite-04': 'sharedActivity',
-    'new-complicite-01': 'sharedActivity',
-    'new-complicite-05': 'sharedActivity',
-    'new-complicite-06': 'cuddling',
-    'new-complicite-07': 'sharedActivity',
-    'new-complicite-08': 'sharedActivity',
-    'new-complicite-09': 'sharedActivity',
-    'new-complicite-10': 'sharedActivity',
-    'new-complicite-11': 'sharedActivity',
-    'new-detente-09': 'faceCare',
-    'new-detente-10': 'faceCare',
-    'new-detente-01': 'mutualMassage',
-    'new-detente-02': 'mutualMassage',
-    'new-detente-03': 'mutualMassage',
-    'new-detente-04': 'mutualMassage',
-    'new-detente-05': 'mutualMassage',
-    'new-detente-06': 'mutualMassage',
-    'new-detente-07': 'mutualMassage',
-    'new-detente-08': 'mutualMassage',
-    'new-projets-01': 'sharedActivity',
-    'new-projets-02': 'sharedActivity',
-    'new-projets-03': 'sharedActivity',
-    'new-projets-04': 'sharedActivity',
-    'new-projets-05': 'sharedActivity',
-    'new-projets-06': 'sharedActivity',
-    'new-projets-07': 'sharedActivity',
-    'new-projets-08': 'sharedActivity',
-    'new-projets-09': 'sharedActivity',
-    'new-projets-10': 'sharedActivity',
-    'new-projets-11': 'sharedActivity',
-    'new-projets-12': 'sharedActivity',
-    'new-projets-13': 'sharedActivity',
-    'new-projets-14': 'sharedActivity',
-    'new-projets-15': 'sharedActivity',
-    'new-projets-16': 'sharedActivity',
-    'new-projets-17': 'sharedActivity',
-    'new-projets-18': 'sharedActivity',
-    'new-intimite-01': 'sexualConversation',
-    'new-intimite-02': 'sexualConversation',
-    'new-intimite-04': 'sexualConversation',
-    'new-intimite-05': 'sexualConversation',
-    'new-intimite-06': 'sexualConversation',
-    'new-intimite-07': 'sexualConversation',
-    'new-intimite-08': 'sexualConversation',
-    'new-intimite-09': 'sexualConversation',
-    'new-intimite-10': 'sexualConversation',
-    'new-intimite-11': 'sexualConversation',
-    'new-intimite-12': 'sexualConversation',
-    'new-intimite-13': 'sexualConversation',
-    'new-intimite-14': 'sexualConversation',
-    'new-intimite-15': 'sexualConversation',
-    'new-intimite-16': 'sexualConversation',
-    'new-intimite-17': 'sexualConversation',
-    'new-intimite-18': 'sexualConversation',
-    'new-intimite-19': 'sexualConversation',
-    'new-intimite-20': 'sexualConversation',
-    'new-intimite-21': 'sexualConversation',
-    'new-intimite-22': 'sexualConversation',
-    'new-attention-01': 'thoughtfulPurchase',
-    'new-attention-02': 'thoughtfulPurchase',
-    'new-attention-03': 'thoughtfulPurchase',
-    'new-attention-04': 'thoughtfulPurchase',
-    'new-attention-05': 'thoughtfulPurchase',
-    'new-attention-06': 'thoughtfulPurchase',
-    'new-attention-07': 'thoughtfulPurchase',
-    'new-attention-08': 'thoughtfulPurchase',
-    'new-attention-09': 'thoughtfulPurchase',
-    'new-attention-10': 'thoughtfulPurchase',
-    'new-attention-11': 'thoughtfulPurchase',
-    'new-attention-12': 'thoughtfulPurchase',
-    'new-attention-13': 'thoughtfulPurchase',
-    'new-attention-14': 'thoughtfulPurchase',
-    'new-attention-15': 'thoughtfulPurchase',
-    'new-bouffe-05': 'meal',
-    'new-bouffe-06': 'meal',
-    'new-bouffe-07': 'meal',
-    'new-bouffe-08': 'meal',
-    'new-bouffe-09': 'meal',
-    'new-bouffe-10': 'meal',
     'comp-2': 'memories',
     'comp-4': 'memories',
     'det-1': 'massage',
@@ -329,8 +242,11 @@
     return Object.prototype.hasOwnProperty.call(object, key) ? object[key] : null;
   }
 
+  const active = new Map((scope.OndeEvidenceData || []).map(fact => [fact.cardId, Object.freeze(fact)]));
+
   function forCard(card) {
     const id = card && typeof card.id === 'string' ? card.id : '';
+    if (active.has(id)) return Object.assign({}, active.get(id));
     const factKey = ownValue(factByCard, id);
     if (factKey) return Object.assign({}, facts[factKey]);
 
