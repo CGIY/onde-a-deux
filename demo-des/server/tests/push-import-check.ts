@@ -1,0 +1,16 @@
+import * as webpush from 'npm:web-push@3.6.7';
+import {pushPayload} from '../functions/desir-game/push-helpers.mjs';
+const pair=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
+const encoded=(buffer:ArrayBuffer)=>btoa(String.fromCharCode(...new Uint8Array(buffer))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+const publicKey=encoded(await crypto.subtle.exportKey('raw',pair.publicKey));
+const auth=encoded(crypto.getRandomValues(new Uint8Array(16)).buffer);
+const subscription={endpoint:'https://web.push.apple.com/Qfixture',keys:{p256dh:publicKey,auth}};
+const vapid=webpush.generateVAPIDKeys();
+const payload=pushPayload({id:'c4c8ba63-2aae-4a58-85a7-979cf3d877c6',kind:'invitation',revision:7});
+const request=webpush.generateRequestDetails(subscription,payload,{vapidDetails:{subject:'https://cgiy.github.io/onde-a-deux/demo-des/',publicKey:vapid.publicKey,privateKey:vapid.privateKey},contentEncoding:'aes128gcm',TTL:86400});
+if(request.endpoint!==subscription.endpoint||request.method!=='POST')throw Error('Invalid push request');
+if(request.headers['Content-Encoding']!=='aes128gcm')throw Error('Missing encryption');
+if(!String(request.headers.Authorization).startsWith('vapid '))throw Error('Missing VAPID signature');
+if(new TextDecoder().decode(request.body).includes('desir-state-refresh'))throw Error('Plaintext notification');
+if(request.body.length<=payload.length)throw Error('Invalid encrypted payload');
+console.log('Dés·ir Web Push: pinned library imports, VAPID signing and AES128GCM payload generation pass. No notification sent.');

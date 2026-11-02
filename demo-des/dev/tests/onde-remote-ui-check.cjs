@@ -1,0 +1,91 @@
+// Run the actual UI against a controlled authenticated transport and DOM shell.
+const fs=require('node:fs');
+const vm=require('node:vm');
+const assert=require('node:assert/strict');
+const G=require('../src/onde-app-core.js');
+const code=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-ui.js'),'utf8');
+const copy=x=>JSON.parse(JSON.stringify(x));
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+let checks=0;const check=fn=>{fn();checks++;};
+const roomId='b98c371d-6355-4d37-a9bc-18f1228fd386';
+function initial(actor='a'){const s=G.createState();s.activePlayer=actor;s.players=[{id:'a',name:'Personne A'},{id:'b',name:'Personne B'}];return s;}
+function snap(state,revision=1,remaining=1){return {roomId,state:copy(state),revision,actor:state.activePlayer,paired:true,quota:{remaining,window:'2026-11-02T06:00',label:'6 h – 12 h',nextAt:'2026-11-02T11:00:00.000Z'},serverTime:new Date().toISOString()};}
+function mockRemote(restored=null){
+ let listener=null,current=restored,identity=restored?{roomId,actor:restored.actor}:null,authenticated=!!restored;
+ const calls=[],r={enabled:true,status:{phase:restored?'connected':'disconnected',message:'',errorCode:null},notificationStatus:{supported:true,permission:'default',subscribed:false,message:''},calls,get connection(){return identity;},get authenticated(){return authenticated;},get snapshot(){return current&&copy(current);},subscribeToChanges(fn){listener=fn;return()=>listener=null;},start(){calls.push({method:'start'});},restore:async()=>current&&copy(current),refresh:async()=>current&&copy(current),async login(username,password){calls.push({method:'login',username,password});const next=await (r.loginImpl?r.loginImpl(username,password):snap(initial()));identity={roomId,actor:next.actor};authenticated=true;r.status={phase:'connected',message:'',errorCode:null};r.emit(next);return copy(next);},async action(action){calls.push({method:'action',action:copy(action)});const next=await r.actionImpl(action);r.emit({...next,roll:undefined});return copy(next);},async enableNotifications(){calls.push({method:'notifications'});r.notificationStatus={...r.notificationStatus,permission:'granted',subscribed:true};r.emit();return r.notificationStatus;},emit(next){if(next)current=copy(next);if(listener)listener({snapshot:current&&copy(current),status:{...r.status},notificationStatus:{...r.notificationStatus}});},revoke(){authenticated=false;r.status={phase:'error',message:'Reconnecte cet appareil.',errorCode:'unauthorized'};r.emit();}};
+ return r;
+}
+function shell(remote,{mode=true,delayedDie=false}={}){
+ const values=new Map(),handlers={},windowHandlers={},timers=[],intervals=[];let mainHTML='',writes=0,rngCalls=0,dieRunning=false,interrupted=0,resolveDie=null;
+ let document;
+ function node(dataset={}){const classes=new Set();return {dataset,hidden:false,disabled:false,inert:false,isConnected:true,innerHTML:'',textContent:'',value:'',checked:false,children:[],classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),toggle(x,v){if(v)classes.add(x);else classes.delete(x);},contains:x=>classes.has(x)},style:{setProperty(){}},setAttribute(k,v){this[k]=String(v);},removeAttribute(k){delete this[k];},focus(){document.activeElement=this;},matches(){return false;},addEventListener(){},querySelector(){return null;},querySelectorAll(){return[];},append(x){this.children.push(x);},prepend(x){x.parentElement=this;},removeChild(x){x.parentElement=null;},scrollIntoView(){}};}
+ const root=node(),main=node(),sheet=node(),persona=node(),navigation=node(),toast=node(),announcement=node(),help=node(),count=node(),incoming=node(),title=node(),username=node(),password=node(),rollButton=node({action:'roll'}),shellNode=node();
+ sheet.hidden=true;persona.innerHTML='DEMO-PROFILE-CONTROLS';
+ const navButtons=['play','tasks','us'].map(tab=>node({action:'tab',tab}));
+ const profileButtons=['a','b'].map(player=>node({action:'profile',player}));
+ const controls=[...navButtons,...profileButtons,help,rollButton];
+ Object.defineProperty(main,'innerHTML',{get:()=>mainHTML,set:value=>{mainHTML=value;writes++;if(value.includes('id="oa-username"')){username.value=(value.match(/id="oa-username"[^>]*value="([^"]*)"/)||[])[1]||'';password.value='';}}});
+ main.querySelector=selector=>{
+  if(selector==='h1')return mainHTML.includes('<h1')?title:null;
+  if(selector==='[data-stage]'){const match=mainHTML.match(/data-stage data-kind="(\d+)" data-value="([^"]*)"/);if(!match)return null;const holder=node({kind:match[1],value:match[2]});return holder;}
+  if(selector==='[data-action="roll"]')return mainHTML.includes('data-action="roll"')?rollButton:null;
+  return null;
+ };
+ main.contains=el=>[title,username,password].includes(el);
+ root.contains=()=>true;root.getAnimations=()=>[];
+ root.addEventListener=(type,handler)=>{handlers[type]=handler;};
+ root.querySelector=selector=>({'#oa-main':main,'#oa-sheet':sheet,'.oa-persona':persona,'.oa-nav':navigation,'#oa-toast':toast,'#oa-announcement':announcement,'[data-action="rules"]':help,'.oa-task-count':count,'.oa-incoming-dot':incoming,'.oa-shell':shellNode,'#oa-username':username,'#oa-password':password}[selector]||null);
+ root.querySelectorAll=selector=>selector==='.oa-nav button'?navButtons:selector==='.oa-switch [data-action="profile"]'?profileButtons:controls;
+ shellNode.children=[persona,main,navigation,toast,sheet,announcement];
+ document={activeElement:null,hidden:false,body:{style:{}},getElementById:id=>id==='onde-app-v1'?root:null,createElement:()=>node(),addEventListener(){}};
+ const die={setKind(){if(dieRunning)interrupted++;},setReducedMotion(){},async roll(value){die.calls.push(value);dieRunning=true;if(delayedDie)await new Promise(resolve=>resolveDie=resolve);dieRunning=false;},calls:[]};
+ const ctx={console,Date,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,randomInt(n){rngCalls++;return G.randomInt(n);}},OndeDice:{create:()=>die},OndeEvidence:{forCard:()=>null},OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:()=>({matches:false,addEventListener(){}}),setTimeout(fn,ms){timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;}};
+ ctx.window=ctx;
+ vm.runInNewContext(code,ctx,{filename:'onde-app-ui.js'});
+ function event(target){return {target,preventDefault(){}};}
+ return {root,main,sheet,persona,navigation,username,password,die,timers,values,announcement,toast,get html(){return mainHTML;},get writes(){return writes;},get rngCalls(){return rngCalls;},get interrupted(){return interrupted;},finishDie(){resolveDie();},async click(action,extra={}){const el=node({action,...extra});el.closest=()=>el;await handlers.click(event(el));return el;},async submit(user,secret){username.value=user;password.value=secret;const form=node();form.matches=selector=>selector==='[data-login-form]';return handlers.submit(event(form));},async taskCheck(id,checked){const label=node(),article=node(),input=node({taskCheck:id,player:'a'});input.checked=checked;input.closest=selector=>selector==='label'?label:article;const promise=handlers.change(event(input));return {input,label,promise};}};
+}
+(async()=>{
+ // No local game or private identity is rendered while the login is required.
+ {
+  const remote=mockRemote(),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(!ui.html.includes('Lancer le D6')));check(()=>assert.ok(!ui.html.includes('Personne A')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assert.equal(ui.persona.innerHTML,''));check(()=>assert.equal(ui.navigation.hidden,true));
+  let finish;remote.loginImpl=()=>new Promise(resolve=>finish=resolve);const work=ui.submit('fixture-user','fixture-password');await tick();check(()=>assert.equal(ui.password.value,''));check(()=>assert.ok(!Array.from(ui.values.values()).join('').includes('fixture-password')));check(()=>assert.ok(ui.html.includes('Connexion…')));finish(snap(initial()));await work;check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.ok(ui.persona.innerHTML.includes('Personne A')));check(()=>assert.ok(!ui.persona.innerHTML.includes('<button')));check(()=>assert.equal(ui.navigation.hidden,false));await ui.click('profile',{player:'b'});check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne A')));
+ }
+ // The server's face is used, and its new state is hidden until the die settles.
+ {
+  const remote=mockRemote(snap(initial())),ui=shell(remote,{delayedDie:true});await tick();
+  let next=G.reduce(initial(),{type:'ROLL_CATEGORY',value:2,hand:G.cards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id)});
+  remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',roundId:'onde-1'}));return {...snap(next,2,0),roll:{kind:6,value:2}};};
+  const before=ui.writes,work=ui.click('roll');await tick();check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('Un peu de hasard.')));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Détente.')));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.interrupted,0));
+ }
+ // A newer projection received during the animation wins when it finishes.
+ {
+  const remote=mockRemote(snap(initial())),ui=shell(remote,{delayedDie:true});await tick();
+  let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:3,hand:G.cards.filter(c=>c.categoryId==='projets').slice(0,4).map(c=>c.id)});
+  remote.actionImpl=async()=>({...snap(game,2,0),roll:{kind:6,value:3}});const work=ui.click('roll');await tick();const before=ui.writes;
+  game=G.reduce(game,{type:'ROLL_CARD',value:1});remote.emit(snap(game,3,0));check(()=>assert.equal(ui.writes,before));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Ta prochaine')));check(()=>assert.ok(!ui.html.includes('Lancer le D4')));
+ }
+ // Quota exhaustion affects only the D6 action and does not open another server request.
+ {
+  const remote=mockRemote(snap(initial(),1,0)),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('Prochain tirage')));check(()=>assert.ok(!ui.html.includes('data-action="roll"')));await ui.click('roll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));remote.emit(snap(initial(),1,1));check(()=>assert.ok(ui.html.includes('Lancer le D6')));await ui.click('rules');check(()=>assert.ok(!ui.sheet.innerHTML.includes('oa-odds-table')));check(()=>assert.ok(!ui.sheet.innerHTML.includes('quota')));check(()=>assert.ok(!ui.sheet.innerHTML.includes('77,25')));
+ }
+ // Personal settings and notification permissions remain on this device.
+ {
+  const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});check(()=>assert.ok(!ui.html.includes('À notre')));check(()=>assert.ok(!ui.html.includes('reset-confirm')));check(()=>assert.ok(ui.html.includes('Activer les notifications')));await ui.click('enable-notifications');check(()=>assert.equal(remote.calls.filter(c=>c.method==='notifications').length,1));check(()=>assert.ok(ui.html.includes('Activées sur cet appareil.')));
+ }
+ // The native checkbox waits for server acknowledgement before the wave starts.
+ {
+  const at=new Date().toISOString();let game=initial();game=G.reduce(game,{type:'ROLL_CATEGORY',value:1,hand:G.cards.filter(c=>c.categoryId==='complicite').slice(0,4).map(c=>c.id)});game=G.reduce(game,{type:'ROLL_CARD',value:1});game=G.reduce(game,{type:'SEND',at});game=G.reduce(game,{type:'SWITCH_PLAYER',player:'b'});game=G.reduce(game,{type:'ACCEPT',at});game.activePlayer='a';
+  const remote=mockRemote(snap(game)),ui=shell(remote);await tick();await ui.click('tab',{tab:'tasks'});let resolveAction;remote.actionImpl=action=>{check(()=>assert.equal(action.type,'TOGGLE_TASK_CHECK'));check(()=>assert.equal(action.checked,true));return new Promise(resolve=>resolveAction=()=>{game=G.reduce(game,{...action,at:new Date().toISOString()});resolve(snap(game,2));});};
+  const before=ui.writes,change=await ui.taskCheck(game.tasks[0].id,true);await tick();check(()=>assert.equal(change.input.checked,false));check(()=>assert.equal(change.input.disabled,true));check(()=>assert.equal(ui.writes,before));resolveAction();await change.promise;check(()=>assert.equal(change.input.checked,true));check(()=>assert.equal(change.label.classList.contains('is-waving'),true));check(()=>assert.equal(game.stats.totalCompleted,0));const settle=ui.timers.find(t=>t.ms===640);check(()=>assert.ok(settle));settle.fn();check(()=>assert.ok(ui.html.includes('Les choses')));
+ }
+ // Revocation hides the previous private screen rather than falling back to the demo.
+ {
+  const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('Lancer le D6')));remote.revoke();check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(!ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assert.equal(ui.persona.innerHTML,''));
+ }
+ // The unconfigured local demo remains usable without the remote connection.
+ {
+  const ui=shell(mockRemote(),{mode:false});await tick();check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.navigation.hidden,false));check(()=>assert.ok(ui.values.has('onde-couple-prototype-v1')));
+ }
+ console.log(`Dés·ir remote UI: ${checks} targeted checks passed.`);
+})().catch(error=>{console.error(error);process.exitCode=1;});

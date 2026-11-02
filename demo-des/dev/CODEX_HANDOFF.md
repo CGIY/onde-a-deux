@@ -1,5 +1,35 @@
 # ONDE — passage de relais à Codex
 
+## État courant — essai web connecté, 2 novembre 2026
+
+Cette section remplace les consignes historiques qui suivent lorsqu’elles divergent. Le nom visible est **Dés·ir**. L’utilisateur a mis Xcode de côté pour tester l’application web sur deux téléphones pendant quelques semaines, avec Supabase et GitHub Pages.
+
+- Deux comptes précréés : connexion par identifiant et mot de passe, sans inscription ni code d’association. Noms et empreintes de mot de passe dans la base privée uniquement ; aucun identifiant personnel dans les sources publiques. Le navigateur conserve un jeton d’appareil, jamais le mot de passe.
+- Chaque compte reste dans son propre monde ; changer de profil est réservé à la démo locale. Avant l’envoi, le serveur filtre le tirage et son historique privé. L’invitation reste disponible jusqu’à la réponse.
+- Serveur autoritaire : identité issue du jeton, hasard et horodatages côté serveur, révisions monotones, requêtes d’action idempotentes. Pas de partie locale de secours lorsqu’une connexion échoue.
+- Un D6 puis D4 par compte et par plage **Europe/Paris : 6–12 h, 12–18 h, 18–6 h**. Le D6 réussi consomme seul le ticket ; D4 et D20 restent utilisables ensuite. La disponibilité suivante apparaît seulement sur l’écran D6 après consommation. Aucune table de quotas ou de probabilités dans l’aide `?`.
+- Une seule manche active ; les rôles alternent. Les tâches validées restent six heures et les deux coches valent exactement un point commun. Le service tranche les expirations. Passer/Plus tard/Adapter et le catalogue ne sont pas affichés.
+- Notifications activées volontairement dans **Nous**, jamais au chargement. Sur iOS/iPadOS 16.4+, ajout à l’écran d’accueil requis. Le service worker ne cache que les ressources publiques ; les notifications ne révèlent aucun titre de carte.
+- L’intégration distante se trouve dans `src/onde-app-remote.js`, avant l’interface. Les animations de dé attendent la face confirmée par le serveur ; les mises à jour concurrentes sont différées pendant leur déroulement. Une coche attend la confirmation serveur avant la vague.
+
+Construction depuis la racine :
+
+```sh
+python3 demo-des/dev/build.py              # aperçu local sans comptes, dans dev/dist
+python3 demo-des/dev/build.py --connected  # aperçu avec service distant
+python3 demo-des/dev/build.py --release    # publication web connectée uniquement
+python3 demo-des/dev/tests/onde-build-check.py
+node demo-des/dev/tests/onde-remote-check.cjs
+node demo-des/dev/tests/onde-remote-ui-check.cjs
+node demo-des/dev/tests/onde-visibility-check.cjs
+```
+
+`config.js` ne contient que `endpoint` et `publishableKey`, incorporés au HTML connecté. S’il est absent ou invalide, le build connecté échoue avant d’écrire les livrables. Le build copie le moteur canonique vers `server/functions/desir-game/core.js`. Configuration du service, contrôles de concurrence et notifications : voir `../server/README.md`.
+
+**Xcode et ZIP : archive build 7 conservée à l’identique depuis `325eba7`.** Ne plus synchroniser l’HTML web connecté dans l’archive ni régénérer le ZIP pendant cet essai. Les publications web ne reconstruisent plus Xcode. Les mesures sur matériel physique et la livraison de notifications sur les deux téléphones restent à vérifier ; les tests automatisés ne les remplacent pas.
+
+## Historique de conception et de publication
+
 ## Objectif et dépôt
 
 - Dépôt : **CGIY/onde-a-deux** ; démo : `demo-des/`.
@@ -137,3 +167,5 @@ Moteur : `tasks`, `TOGGLE_TASK_CHECK`, `EXPIRE_TASKS`, `rules.taskLifetimeMs`. `
 ## Build 7 — cartes masquées
 
 Le monogramme ON avant le D4 est remplacé par une composition miniature floutée de la carte : formes rubber, pigments et lignes abstraites. Aucun titre réel ni donnée de carte n’est placé dans le DOM de l’aperçu ; les quatre numéros restent nets et accessibles. Le flou reste actif avec la réduction du mouvement. Les ressources publiques, Xcode et ZIP sont régénérées.
+
+Palette : Projets utilise désormais le bleu ardoise `#8198b4`, distinct du mauve Intimité `#c49bc9`. La couleur centrale est reprise dans tous les écrans.

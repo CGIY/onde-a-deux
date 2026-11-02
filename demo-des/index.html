@@ -2,6 +2,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#181d1c"><meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.3.0">
+<meta name="application-name" content="Dés·ir"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Dés·ir">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/desir-192.png">
 <title>Dés·ir — À deux</title>
 <style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
 </head><body><div id="onde-app-v1" class="viz-dotted-background" lang="fr">
@@ -20,7 +24,7 @@
     </div>
     <main id="oa-main" class="oa-main"></main>
     <nav class="oa-nav" aria-label="Navigation principale">
-      <button type="button" data-action="tab" data-tab="play" class="cursor-interaction" aria-current="page"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M14.5 8.5h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V13a2 2 0 0 0-2-2h-3"/></svg>Jouer</button>
+      <button type="button" data-action="tab" data-tab="play" class="cursor-interaction" aria-current="page"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M14.5 8.5h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V13a2 2 0 0 0-2-2h-3"/></svg><span>Jouer<i class="oa-incoming-dot" aria-label="Invitation en attente" hidden></i></span></button>
       <button type="button" data-action="tab" data-tab="tasks" class="cursor-interaction"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8 12 2.5 2.5L16 9"/></svg><span>À faire <b class="oa-task-count" hidden></b></span></button>
       <button type="button" data-action="tab" data-tab="us" class="cursor-interaction"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 9c0 4.8-8.5 10-8.5 10S3.5 13.8 3.5 9A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8.5 2Z"/></svg>Nous</button>
     </nav>
@@ -433,9 +437,35 @@
 #onde-app-v1 .oa-ghost-title,#onde-app-v1 .oa-ghost-line{display:block;height:9px;margin:6px 18px 0;border-radius:5px;background:#d4d7c4}
 #onde-app-v1 .oa-ghost-title{width:var(--ghost-title);max-width:calc(100% - 36px);opacity:.6}
 #onde-app-v1 .oa-ghost-line{width:58%;height:4px;opacity:.35}
+/* Separate perspectives: a quiet home until an invitation is sent. */
+#onde-app-v1 .oa-quiet-home{display:grid;place-items:center;gap:15px;min-height:245px;color:#b9c4b0}
+#onde-app-v1 .oa-quiet-home>span{font-size:47px;line-height:1;color:#9aaf9d}
+#onde-app-v1 .oa-quiet-home p{font-size:13px}
+#onde-app-v1 .oa-invitation{display:flex;align-items:center;gap:13px;text-align:left;width:100%;margin-top:30px;padding:21px 18px;border:1px solid #adb89a66;border-radius:22px;background:linear-gradient(140deg,#4b574755,#2e3a32aa);color:#e9e8db;box-shadow:inset 0 1px #ffffff1c;cursor:pointer}
+#onde-app-v1 .oa-invitation b{display:block;font-size:15px;font-weight:500;line-height:1.35}
+#onde-app-v1 .oa-invitation small{display:block;font-size:12px;color:#c1c8b8;margin-top:5px}
+#onde-app-v1 .oa-invitation-dot{display:block;width:9px;height:9px;flex:none;border-radius:50%;background:#d6b896;box-shadow:0 0 0 5px #d6b89612}
+#onde-app-v1 .oa-invitation-arrow{margin-left:auto;font-size:22px;color:#d6c5ab}
+#onde-app-v1 .oa-incoming-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#d6b896;margin-left:5px;vertical-align:middle}
+/* Equal breathing room above and below the profile bar. */
+#onde-app-v1 .oa-persona{padding-top:16px;padding-bottom:16px;border-top:1px solid var(--oa-line);border-bottom:1px solid var(--oa-line);margin-bottom:20px}
+/* Connection belongs to this device; player identities are no longer controls. */
+#onde-app-v1 .oa-identities{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:4px;padding:4px;border-radius:23px;background:#101512}
+#onde-app-v1 .oa-person-name{display:flex;align-items:center;justify-content:center;gap:3px;min-height:42px;padding:8px 10px;border-radius:19px;font-size:13px;line-height:1.3;text-align:center;color:#aeb7a6;overflow-wrap:anywhere}
+#onde-app-v1 .oa-person-name.is-me{background:linear-gradient(145deg,#5d6b56,#465244);color:#edf1e2;box-shadow:inset 0 1px #ffffff20,0 1px 3px #0003}
+#onde-app-v1 .oa-login{margin:30px 0 45px}
+#onde-app-v1 .oa-login .oa-field{font-size:13px}
+#onde-app-v1 .oa-login .oa-field input{font-size:16px;min-height:50px;border-radius:15px;background:#162019b3;border-color:#79887366}
+#onde-app-v1 .oa-login-wait{min-height:260px;display:grid;place-items:center;color:#bdc7b4;font-size:13px}
+#onde-app-v1 .oa-form-error{margin-top:17px;font-size:12px;line-height:1.5;color:#ddbcaa}
+#onde-app-v1 .oa-next-draw{padding:16px;margin-top:0;border:1px solid #b0bba344;border-radius:17px;color:#bac6b2;font-size:13px;text-align:center;background:#2c38294d}
+#onde-app-v1 .oa-next-draw strong{font-weight:500;color:#e8d7ba;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-notification-setting{margin-top:20px}
 </style>
 
 <script>window.OndeEvidenceData=[{"cardId": "new-attention-01", "metric": "56 %", "headline": "Prendre soin de ce qui circule", "detail": "Des vendeurs disent mieux prendre soin de leurs articles en pensant aux futurs acheteurs.", "scope": "Enquête Vinted · activité 2025, plus de 64 000 membres.", "limitations": "Déclaration de vendeurs ; ne mesure ni un bénéfice personnel ni un prix d’achat.", "year": 2025, "sourceTitle": "Vinted · Impact Report 2025", "url": "https://company.vinted.com/sustainability", "statKey": "vinted2025:sellers-better-care"}, {"cardId": "new-attention-02", "metric": "76 %", "headline": "Une seconde vie plutôt que du neuf", "detail": "Part des commandes Vinted qui auraient évité l’achat d’un article neuf.", "scope": "Enquête Vinted · activité 2025.", "limitations": "Déclarations et modèle de la plateforme ; aucun gain garanti pour un achat précis.", "year": 2025, "sourceTitle": "Vinted · Impact Report 2025", "url": "https://company.vinted.com/sustainability", "statKey": "vinted2025:replacement-rate"}, {"cardId": "new-attention-03", "metric": "89 %", "headline": "Une petite attention compte", "detail": "Des répondants disaient que faire preuve de gentillesse envers quelqu’un les faisait se sentir mieux, même un peu.", "scope": "APA–Morning Consult · 2 210 adultes américains, octobre 2023.", "limitations": "Ressenti déclaré sur les gestes de gentillesse ; pas une mesure du café ni de Columbus.", "year": 2023, "sourceTitle": "American Psychiatric Association · Healthy Minds Poll", "url": "https://www.psychiatry.org/News-room/News-Releases/New-Poll-Small-Acts-of-Kindness-Benefits", "statKey": "apa2023:giving-kindness-feel-better"}, {"cardId": "new-attention-04", "metric": "15 %", "headline": "S’évader dans une histoire", "detail": "Des lecteurs citent l’évasion et l’imagination comme leur plaisir préféré de la lecture.", "scope": "Pew Research Center · États-Unis, lecteurs de livres de 16 ans et plus, enquête 2011.", "limitations": "Réponse spontanée sur le plaisir préféré ; ni taux d’efficacité ni effet d’un roman précis.", "year": 2012, "sourceTitle": "Pew Research Center · The joy of reading", "url": "https://www.pewresearch.org/internet/2012/04/04/part-2-the-general-reading-habits-of-americans/", "statKey": "pew2012:reading-escape-favorite"}, {"cardId": "new-attention-05", "metric": "68 %", "headline": "Jouer pour souffler", "detail": "Des joueurs adultes disent jouer aux jeux vidéo pour se détendre.", "scope": "ESA–YouGov · États-Unis, rapport 2024 ; enquête de 5 000 répondants.", "limitations": "Motivation déclarée par les joueurs adultes ; enquête sectorielle, pas un effet thérapeutique.", "year": 2024, "sourceTitle": "ESA · Essential Facts 2024", "url": "https://www.theesa.com/video-games-remain-lifelong-source-of-entertainment-for-190-6-million-americans/", "statKey": "esa2024:adult-players-relax-motivation"}, {"cardId": "new-attention-06", "metric": "12 %", "headline": "Un moment calme pour soi", "detail": "Des lecteurs citent la détente et le calme comme leur plaisir préféré de la lecture.", "scope": "Pew Research Center · États-Unis, lecteurs de livres de 16 ans et plus, enquête 2011.", "limitations": "Réponse spontanée ; romans graphiques non isolés, sans effet de santé mesuré.", "year": 2012, "sourceTitle": "Pew Research Center · The joy of reading", "url": "https://www.pewresearch.org/internet/2012/04/04/part-2-the-general-reading-habits-of-americans/", "statKey": "pew2012:reading-relaxation-favorite"}, {"cardId": "new-attention-07", "metric": "26 %", "headline": "Découvrir d’autres univers", "detail": "Des lecteurs citent l’apprentissage et la découverte comme leur plaisir préféré de la lecture.", "scope": "Pew Research Center · États-Unis, lecteurs de livres de 16 ans et plus, enquête 2011.", "limitations": "Réponse spontanée ; mangas non isolés, aucun gain cognitif chiffré dans cette question.", "year": 2012, "sourceTitle": "Pew Research Center · The joy of reading", "url": "https://www.pewresearch.org/internet/2012/04/04/part-2-the-general-reading-habits-of-americans/", "statKey": "pew2012:reading-learning-favorite"}, {"cardId": "new-attention-08", "metric": "32,2 %", "headline": "Un plaisir qui traverse les âges", "detail": "Dans une cohorte française, près d’un tiers des participants jouaient régulièrement à des jeux de société.", "scope": "PAQUID · 3 675 personnes de 65 ans et plus.", "limitations": "Fréquence déclarée ; cartes et plateaux regroupés, sans bénéfice individuel promis.", "year": 2013, "sourceTitle": "Dartigues et al. · BMJ Open", "url": "https://bmjopen.bmj.com/content/bmjopen/3/8/e002998.full.pdf", "statKey": "dartigues2013:regular-playing-prevalence"}, {"cardId": "new-attention-09", "metric": "67 %", "headline": "Le plaisir d’offrir", "detail": "Des adultes interrogés avaient davantage apprécié offrir des cadeaux qu’en recevoir pendant les fêtes.", "scope": "YouGov · 5 302 adultes américains, 4 janvier 2018.", "limitations": "Préférence déclarée pendant les fêtes ; aucun jeu de plateau ni budget précis étudiés.", "year": 2018, "sourceTitle": "YouGov · Giving or receiving presents", "url": "https://yougov.com/en-us/daily-results/20180104-c4904-1", "statKey": "yougov2018:enjoyed-giving-more-than-receiving"}, {"cardId": "new-attention-10", "metric": "44,9 %", "headline": "La curiosité pour les jouets", "detail": "L’usage d’un vibromasseur ou dildo était assez ou très attirant pour 44,9 % des répondants.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Attrait déclaré ; aucune marque ni taille de budget étudiée.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-vibrator"}, {"cardId": "new-attention-11", "metric": "35,8 %", "headline": "Trouver son mouvement", "detail": "Des femmes avaient utilisé un jouet avec un mouvement de frottement clitoridien pour augmenter leur plaisir pendant la pénétration.", "scope": "États-Unis · 2 844 réponses adultes à cet item.", "limitations": "Technique déclarée ; aucune marque, aucun budget ni bénéfice universel étudiés.", "year": 2021, "sourceTitle": "Hensel et al. · PLOS ONE", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8046227/", "statKey": "hensel2021:rocking-sex-toy"}, {"cardId": "new-attention-12", "metric": "59,8 %", "headline": "Se sentir désirable à sa façon", "detail": "La lingerie était assez ou très attirante pour 59,8 % des répondants.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Attrait déclaré ; aucun bénéfice attribué à Rouge Gorge.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-lingerie"}, {"cardId": "new-attention-13", "metric": "90 %", "headline": "Recevoir une attention fait du bien", "detail": "Des répondants disaient que recevoir un geste de gentillesse les faisait se sentir mieux, même un peu.", "scope": "APA–Morning Consult · 2 210 adultes américains, octobre 2023.", "limitations": "Ressenti déclaré ; ni effet causal ni bénéfice spécifique d’un achat chez Monoprix.", "year": 2023, "sourceTitle": "American Psychiatric Association · Healthy Minds Poll", "url": "https://www.psychiatry.org/News-room/News-Releases/New-Poll-Small-Acts-of-Kindness-Benefits", "statKey": "apa2023:receiving-kindness-feel-better"}, {"cardId": "new-attention-14", "metric": "78 %", "headline": "Le plaisir d’être généreux", "detail": "Des adultes disaient que penser à l’échange des cadeaux de fêtes les faisait se sentir généreux.", "scope": "Pew Research Center · 1 507 adultes américains, décembre 2014.", "limitations": "Sentiment anticipé ; aucun bénéfice démontré d’une marque ou d’un montant d’achat.", "year": 2014, "sourceTitle": "Pew Research Center · Feelings about gift-giving", "url": "https://www.pewresearch.org/religion/2014/12/15/most-say-religious-holiday-displays-should-be-allowed-on-public-property/", "statKey": "pew2014:gifting-generosity"}, {"cardId": "new-attention-15", "metric": "86 %", "headline": "L’attention dépasse le prix", "detail": "Des adultes estimaient qu’un cadeau peut avoir du sens sans être cher.", "scope": "Empower · 2 202 adultes américains, août 2025, enquête pondérée.", "limitations": "Opinion déclarée dans une enquête commanditée ; aucun budget idéal ni bénéfice propre à Monoprix.", "year": 2025, "sourceTitle": "Empower · Going Rate study", "url": "https://www.empower.com/the-currency/money/going-rate-research", "statKey": "empower2025:meaningful-gifts-not-expensive"}, {"cardId": "new-bouffe-01", "metric": "76,4 %", "headline": "Un repas rapproche", "detail": "Le repas partagé était vu comme un bon moyen de rapprocher les gens.", "scope": "Royaume-Uni · 2 000 adultes.", "limitations": "Opinion déclarée ; ne porte pas spécifiquement sur le burger.", "year": 2017, "sourceTitle": "Dunbar · Breaking Bread", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/", "statKey": "dunbar2017:meal-brings-closer"}, {"cardId": "new-bouffe-02", "metric": "93 %", "headline": "Le plaisir de manger ensemble", "detail": "Les répondants partageaient au moins parfois un repas avec famille ou amis.", "scope": "Royaume-Uni · 2 000 adultes.", "limitations": "Pratique déclarée ; ne mesure pas l’effet de la pizza.", "year": 2017, "sourceTitle": "Dunbar · Breaking Bread", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/", "statKey": "dunbar2017:social-meal-prevalence"}, {"cardId": "new-bouffe-03", "metric": "51,5 %", "headline": "Les souvenirs à table", "detail": "Des derniers dîners rapportés comprenaient des souvenirs partagés, associés à davantage de proximité ressentie.", "scope": "Royaume-Uni · enquête auprès de 2 000 adultes, tableau 2.", "limitations": "Le taux décrit les souvenirs dans ces dîners ; ce n’est pas un bénéfice du sushi.", "year": 2017, "sourceTitle": "Dunbar · Breaking Bread", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/", "statKey": "dunbar2017:dinner-reminiscence-frequency"}, {"cardId": "new-bouffe-04", "metric": "67,9 %", "headline": "Un repas avec des rires", "detail": "Des derniers dîners rapportés comportaient des rires, associés à davantage de proximité ressentie.", "scope": "Royaume-Uni · enquête auprès de 2 000 adultes, tableau 2.", "limitations": "Le taux décrit la présence de rires ; aucune efficacité du kebab n’a été mesurée.", "year": 2017, "sourceTitle": "Dunbar · Breaking Bread", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/", "statKey": "dunbar2017:dinner-laughter-frequency"}, {"cardId": "new-bouffe-05", "metric": "58 %", "headline": "Le plaisir de cuisiner", "detail": "Dans le monde, 58 % des personnes interrogées disaient avoir apprécié cuisiner durant la semaine écoulée.", "scope": "Gallup–Ajinomoto · World Poll 2022, personnes de 15 ans et plus.", "limitations": "Plaisir déclaré ; aucune recette mexicaine isolée, pas un taux de bénéfice.", "year": 2023, "sourceTitle": "Gallup–Ajinomoto · Wellbeing Through Cooking", "url": "https://www.gallup.com/analytics/544376/cooking-enjoyment-communal-wellbeing.aspx", "statKey": "gallup2022:enjoyed-cooking-past-week"}, {"cardId": "new-bouffe-06", "metric": "92 %", "headline": "Prendre goût au fait maison", "detail": "Des personnes ayant terminé un programme de cuisine déclaraient cuisiner davantage.", "scope": "Bags of Taste · rapport d’impact 2024–2025, retours des personnes ayant terminé.", "limitations": "Bilan associatif autodéclaré sans témoin ; aucune recette asiatique isolée, pas un effet garanti d’un repas.", "year": 2025, "sourceTitle": "Bags of Taste · Impact Report 2024–2025", "url": "https://bagsoftaste.org/wp-content/uploads/2025/11/Bags-of-Taste-Impact-Report-2024-2025.pdf", "statKey": "bagsoftaste2025:completers-cook-more"}, {"cardId": "new-bouffe-07", "metric": "93 %", "headline": "Cuisiner avec son budget", "detail": "Des personnes ayant terminé le programme avaient identifié des façons de réduire leurs dépenses alimentaires.", "scope": "Bags of Taste · rapport d’impact 2024–2025, retours des personnes ayant terminé.", "limitations": "Bilan associatif sans témoin ; porte sur des ateliers de cuisine à petit budget, pas sur un pays choisi.", "year": 2025, "sourceTitle": "Bags of Taste · Impact Report 2024–2025", "url": "https://bagsoftaste.org/wp-content/uploads/2025/11/Bags-of-Taste-Impact-Report-2024-2025.pdf", "statKey": "bagsoftaste2025:completers-reduce-spending"}, {"cardId": "new-bouffe-08", "metric": "91 %", "headline": "On peut prendre confiance", "detail": "Des personnes ayant terminé le programme se disaient plus confiantes en cuisine.", "scope": "Bags of Taste · rapport d’impact 2024–2025, retours des personnes ayant terminé.", "limitations": "Bilan associatif sans témoin ; programme accompagné, pas l’effet d’une seule recette de crêpes.", "year": 2025, "sourceTitle": "Bags of Taste · Impact Report 2024–2025", "url": "https://bagsoftaste.org/wp-content/uploads/2025/11/Bags-of-Taste-Impact-Report-2024-2025.pdf", "statKey": "bagsoftaste2025:completers-more-confident"}, {"cardId": "new-bouffe-09", "metric": "3,27 → 3,98 / 5", "headline": "Le plaisir de réussir", "detail": "La confiance dans la réussite de ses plats progressait après le programme.", "scope": "Australie · programme de sept semaines.", "limitations": "Étude non randomisée ; cookies non isolés.", "year": 2022, "sourceTitle": "Rees et al. · Frontiers in Nutrition", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8970183/", "statKey": "rees2022:turn-out-well-confidence"}, {"cardId": "new-bouffe-10", "metric": "63 %", "headline": "Apprendre et partager en cuisine", "detail": "Des participants citaient la confiance, la socialisation ou de nouvelles astuces parmi les apports de leurs ateliers.", "scope": "Écosse · évaluation du programme Eat Better Feel Better de six semaines.", "limitations": "Thème de réponses ouvertes ; petit échantillon sans témoin, ni pâtisserie ni effet causal isolés.", "year": 2017, "sourceTitle": "Evaluation of the Eat Better Feel Better Cooking Programme", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5409581/", "statKey": "garcia2017:confidence-socialising-tips-theme"}, {"cardId": "new-bouffe-11", "metric": "75 %", "headline": "Se retrouver autour d’une table", "detail": "Trois quarts des répondants estimaient que partager un repas était une bonne façon de revoir quelqu’un.", "scope": "Royaume-Uni · 2 000 adultes.", "limitations": "Opinion déclarée ; aucune boisson alcoolisée nécessaire.", "year": 2017, "sourceTitle": "Dunbar · Breaking Bread", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/", "statKey": "dunbar2017:meal-best-way-to-meet"}, {"cardId": "new-bouffe-12", "metric": "+17 mots", "headline": "Une pause chocolat et mémoire", "detail": "Le groupe chocolat noir rappelait 17 mots de plus au total sur sept essais que le groupe chocolat blanc.", "scope": "98 adultes de 18–24 ans · 35 g à 70 %, test après deux heures.", "limitations": "Résultat ponctuel sur la mémoire ; pas sur le chocolat chaud ni l’humeur.", "year": 2020, "sourceTitle": "Lamport et al. · Nutrients", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7071338/", "statKey": "lamport2020:verbal-recall-seven-trials"}, {"cardId": "new-complicite-01", "metric": "66 %", "headline": "Une image qui rapproche", "detail": "Des personnes interrogées disent partager des photos pour se sentir plus proches de leurs proches.", "scope": "Sondage Fujifilm / MarketVision · 2 014 adultes aux États-Unis, novembre–décembre 2024.", "limitations": "Enquête commandée par une marque photo ; usage déclaré, sans mesure causale ni étude particulière des selfies à deux.", "year": 2025, "sourceTitle": "Fujifilm / MarketVision · Frame of Mind", "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx", "statKey": "fujifilm2025-photo-sharing-closeness"}, {"cardId": "new-complicite-02", "metric": "86,4 %", "headline": "L’envie de s’embrasser", "detail": "86,4 % des répondants jugeaient assez ou très attirant de s’embrasser davantage pendant les rapports.", "scope": "Enquête américaine représentative d’adultes ; 1 959 réponses à cet item.", "limitations": "Intérêt déclaré dans un contexte sexuel, pas bénéfice ni préférence de votre partenaire ; la technique de baiser n’est pas précisée.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017-kissing-appeal"}, {"cardId": "new-complicite-03", "metric": "87,8 %", "headline": "La place des câlins", "detail": "Se câliner plus souvent était jugé assez ou très attirant par 87,8 % des répondants.", "scope": "Enquête américaine représentative d’adultes ; 1 966 réponses à cet item.", "limitations": "Intérêt déclaré, pas fréquence de pratique ni effet mesuré ; ce chiffre ne présume pas des envies de votre partenaire.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017-cuddling-appeal"}, {"cardId": "new-complicite-04", "metric": "79,6 % → 87 %", "headline": "Faire une place aux mercis", "detail": "Dans le groupe ayant prévu de remercier davantage son partenaire, la part des journées avec un remerciement déclaré est passée de 79,6 % à 87 %.", "scope": "Chang et al. · essai randomisé, 125 couples suivis pendant 5 semaines.", "limitations": "Plan de gratitude répété ; pas un mot caché isolé. Le groupe témoin est passé de 81,9 % à 85,8 %, sans changement significatif.", "year": 2022, "sourceTitle": "Scientific Reports · Implementation intentions to express gratitude", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/", "statKey": "chang2022-gratitude-thanking-days"}, {"cardId": "new-complicite-05", "metric": "η²p = 0,05", "headline": "Le plaisir d’une manucure", "detail": "Les émotions positives déclarées étaient plus élevées après une manucure en salon qu’après un soin des ongles réalisé soi-même.", "scope": "334 femmes japonaises ; enquête sur les effets ressentis ; effet de groupe η²p = 0,05.", "limitations": "Association entre groupes, pas essai randomisé ni mesure d’une pose de vernis à deux. η²p exprime une taille d’effet, pas 5 % de bonheur en plus.", "year": 2023, "sourceTitle": "Kawakubo & Oguchi · Frontiers in Psychology", "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1112110/full", "statKey": "kawakubo2023-nail-positive-emotions"}, {"cardId": "new-complicite-06", "metric": "53 %", "headline": "Un toucher accueilli positivement", "detail": "Après le programme de massage à deux, 53 % des participants se disaient nettement positifs à l’idée d’échanger ces massages.", "scope": "18 réponses « definitely positive » sur 34 ; trois semaines de programme.", "limitations": "Opinion après une formation, pas effet d’une caresse sous un plaid ; petit échantillon. Les autres réponses étaient probablement positives ou indécises.", "year": 2019, "sourceTitle": "Naruse & Moss · acceptabilité", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/", "statKey": "naruse2019-definitely-positive"}, {"cardId": "new-complicite-07", "metric": "≈ −55 %", "headline": "Du temps retrouvé hors écran", "detail": "Le groupe de réduction du smartphone a diminué son temps d’écran d’environ 55 % par rapport au départ.", "scope": "58 étudiants dans le groupe intervention ; trois semaines, objectif ≤ 2 h par jour.", "limitations": "Calcul sur des durées mesurées : baisse moyenne de 155,25 min rapportée aux 284,71 min initiales. Ce n’est pas un pourcentage de bonheur ni l’effet d’une seule heure sans téléphone ; les usages remontaient après.", "year": 2025, "sourceTitle": "Pieh et al. · tableau 1 et résultats", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11846175/", "statKey": "pieh2025-screen-time-relative-reduction"}, {"cardId": "new-complicite-08", "metric": "55 %", "headline": "Le plaisir d’une partie ensemble", "detail": "Des adultes interrogés préfèrent une partie de cartes à n’importe quel jeu vidéo.", "scope": "1 057 adultes en France, échantillon représentatif par quotas · novembre 2025.", "limitations": "Préférence déclarée dans un sondage commandé par Uno ; concerne les jeux de cartes, pas tous les jeux de société.", "year": 2025, "sourceTitle": "Sondage OpinionWay pour Uno · Les Français et les jeux de cartes", "url": "https://www.opinion-way.com/wp-content/uploads/2025/12/OpinionWay-pour-Uno-Les-Francais-et-les-jeux-de-cartes-Novembre-2025.pdf", "statKey": "opinionway2025-uno-prefer-cards-videogames"}, {"cardId": "new-complicite-09", "metric": "89 % contre 76 %", "headline": "Un film, puis une conversation", "detail": "À trois ans, environ 89 % des couples ayant terminé un programme relationnel étaient toujours ensemble, contre 76 % dans le groupe sans programme.", "scope": "174 couples au départ ; programmes incluant un groupe de films avec discussion ; analyse des participants ayant terminé.", "limitations": "Résultat regroupant trois programmes, pas effet isolé d’un film. Les taux sont les compléments de 11 % et 24 % de séparations ; l’analyse globale était moins concluante.", "year": 2013, "sourceTitle": "Rogge et al. · Journal of Consulting and Clinical Psychology", "url": "https://couples-research.com/wp-content/uploads/2017/06/Rogge2013.pdf", "statKey": "rogge2013-completers-dissolution"}, {"cardId": "new-complicite-10", "metric": "r = 0,35", "headline": "Un univers à partager", "detail": "Le partage de films, séries et livres était positivement lié au sentiment personnel de proximité avec son partenaire : r = 0,35.", "scope": "259 étudiants en relation exclusive ; tableau 1, étude 1.", "limitations": "Corrélation, pas preuve que regarder une série crée de la proximité ; la mesure regroupait plusieurs médias partagés.", "year": 2017, "sourceTitle": "Gomillion et al. · Let’s stay home and watch TV", "url": "https://doi.org/10.1177/0265407516660388", "statKey": "gomillion2017-media-own-closeness"}, {"cardId": "new-complicite-11", "metric": "75 % contre 47 %", "headline": "Retrouver du bien-être hors ligne", "detail": "Après deux semaines, 75 % du groupe invité à bloquer internet sur son téléphone avaient un meilleur score de bien-être, contre 47 % du groupe en attente.", "scope": "Castelo et al. · essai randomisé, 467 inscrits, 313 participants aux trois enquêtes.", "limitations": "Toute hausse du score compte. Blocage d’internet pendant 2 semaines, pas 5 heures sans téléphone ; appels/SMS autorisés et faible respect complet du protocole.", "year": 2025, "sourceTitle": "PNAS Nexus · Blocking mobile internet on smartphones", "url": "https://doi.org/10.1093/pnasnexus/pgaf017", "statKey": "castelo2025-wellbeing-improvers-t1t2"}, {"cardId": "new-detente-01", "metric": "≈ −37 %", "headline": "Un repère sur le massage de la tête", "detail": "Dans le groupe de massages de 25 minutes, le cortisol sanguin moyen est passé de 24,2 à 15,3, soit environ 37 % de moins.", "scope": "34 employées de bureau ; 11 dans ce groupe ; deux séances par semaine pendant dix semaines.", "limitations": "Pourcentage calculé sur des concentrations : (24,2 − 15,3) ÷ 24,2. Très petit essai ; résultat avant/après, pas promesse pour un massage isolé ni mesure du plaisir.", "year": 2016, "sourceTitle": "Kim et al. · Journal of Physical Therapy Science · tableau 3", "url": "https://www.jstage.jst.go.jp/article/jpts/28/10/28_jpts-2016-230/_pdf", "statKey": "kim2016-scalp25-cortisol"}, {"cardId": "new-detente-02", "metric": "55 % contre 25 %", "headline": "Un massage pour le confort du cou", "detail": "À dix semaines, 55 % du groupe massage avaient une amélioration importante de la gêne liée à leur douleur cervicale, contre 25 % du groupe livret de conseils.", "scope": "Essai randomisé de 64 adultes souffrant de douleurs cervicales chroniques ; jusqu’à dix séances.", "limitations": "Résultat clinique de massages professionnels, non spécifique aux épaules. Une amélioration importante était définie à l’avance comme une baisse de gêne supérieure à 30 % ; une carte ne remplace pas un soin.", "year": 2009, "sourceTitle": "Sherman et al. · Clinical Journal of Pain", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2664516/", "statKey": "sherman2009-neck-bothersomeness-responders"}, {"cardId": "new-detente-03", "metric": "73,5 %", "headline": "L’envie de renouveler ce moment", "detail": "Après le programme, 73,5 % des participants souhaitaient continuer à échanger des massages à domicile.", "scope": "25 personnes sur 34 ; programme de massage réciproque de trois semaines.", "limitations": "Intention déclarée, pas poursuite vérifiée ni bénéfice spécifique au massage des pieds. Petit échantillon.", "year": 2019, "sourceTitle": "Naruse & Moss · intention de continuer", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/", "statKey": "naruse2019-intend-continue"}, {"cardId": "new-detente-04", "metric": "g = 0,53", "headline": "Une détente mesurée", "detail": "Les interventions de toucher ont réduit le cortisol, un marqueur physiologique du stress ; taille d’effet moyenne : 0,53.", "scope": "Méta-analyse ; résultats hors nouveau-nés ; figure 3.", "limitations": "Touchers, populations et protocoles variés ; aucune efficacité spécifique à cette zone du corps n’est établie ici. g est une différence standardisée, pas un pourcentage.", "year": 2024, "sourceTitle": "Packheiser et al. · Nature Human Behaviour · figure 3", "url": "https://doi.org/10.1038/s41562-024-01841-8", "statKey": "packheiser2024-cortisol"}, {"cardId": "new-detente-05", "metric": "94 %", "headline": "Un moment que l’on recommande", "detail": "94 % des participants ont indiqué qu’ils recommanderaient le programme de massage à leurs proches.", "scope": "32 personnes sur 34 après trois semaines de massage réciproque.", "limitations": "Recommandation déclarée, pas taux d’efficacité ; le protocole ne portait pas spécifiquement sur les oreilles. Petit échantillon.", "year": 2019, "sourceTitle": "Naruse & Moss · recommandation", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/", "statKey": "naruse2019-recommend-programme"}, {"cardId": "new-detente-06", "metric": "+42 % · relaxation cérébrale", "headline": "Le visage, un temps de détente", "detail": "Après un soin du visage complet, l’indicateur de relaxation cérébrale était 42 % plus élevé qu’après un temps de repos de même durée.", "scope": "63 femmes de 25 à 47 ans ; 32 soins professionnels d’une heure, 31 temps de repos.", "limitations": "Étude courte liée à l’industrie cosmétique. Mesure EEG ; pas 42 % de bonheur, et pas effet isolé d’un massage du visage à domicile.", "year": 2023, "sourceTitle": "Bouhout et al. · International Journal of Cosmetic Science", "url": "https://doi.org/10.1111/ics.12855", "statKey": "bouhout2023-cerebral-relaxation"}, {"cardId": "new-detente-07", "metric": "39,4 % contre 3,8 %", "headline": "Retrouver du confort dans le dos", "detail": "À dix semaines, 39,4 % du groupe massage relaxant jugeaient leur douleur lombaire nettement améliorée ou disparue, contre 3,8 % avec les soins habituels.", "scope": "Essai randomisé de 401 adultes avec lombalgie chronique ; dix séances professionnelles.", "limitations": "Pourcentages ajustés, tableau 4. Contexte clinique, pas effet d’un massage de couple isolé ni garantie de disparition de la douleur.", "year": 2011, "sourceTitle": "Cherkin et al. · Annals of Internal Medicine · tableau 4", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3570565/", "statKey": "cherkin2011-relaxation-global-improvement10weeks"}, {"cardId": "new-detente-08", "metric": "73,7 %", "headline": "Un rituel qui se poursuit", "detail": "Trois semaines après la fin du programme, 73,7 % des participants suivis échangeaient encore des massages, en donnant et en recevant.", "scope": "14 personnes sur 19 au suivi du groupe initial ; massage réciproque à domicile.", "limitations": "Poursuite déclarée dans un petit groupe après formation ; ce taux ne mesure pas un bénéfice individuel et ne porte pas sur une zone précise.", "year": 2019, "sourceTitle": "Naruse & Moss · pratique au suivi", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/", "statKey": "naruse2019-continued-exchange"}, {"cardId": "new-detente-09", "metric": "+13 % · relaxation cardiaque", "headline": "Un repère sur le soin du visage", "detail": "L’indicateur de relaxation cardiaque était 13 % plus élevé après un soin du visage complet qu’après une heure de repos.", "scope": "63 femmes de 25 à 47 ans ; 32 soins professionnels, 31 temps de repos.", "limitations": "Résultat sur un protocole complet, pas sur un masque seul. Étude courte liée à l’industrie cosmétique ; ce chiffre concerne un indicateur physiologique.", "year": 2023, "sourceTitle": "Bouhout et al. · International Journal of Cosmetic Science", "url": "https://doi.org/10.1111/ics.12855", "statKey": "bouhout2023-cardiac-relaxation"}, {"cardId": "new-detente-10", "metric": "+17 % · relaxation musculaire", "headline": "Un soin qui relâche les tensions", "detail": "L’indicateur de relaxation musculaire était 17 % plus élevé après le soin du visage qu’après le repos de même durée.", "scope": "63 femmes de 25 à 47 ans ; soin professionnel d’une heure, comparé au repos.", "limitations": "Étude courte liée à l’industrie cosmétique ; résultat d’électromyographie, pas un gain garanti pour un soin à domicile.", "year": 2023, "sourceTitle": "Bouhout et al. · International Journal of Cosmetic Science", "url": "https://doi.org/10.1111/ics.12855", "statKey": "bouhout2023-muscular-relaxation"}, {"cardId": "new-intimite-01", "metric": "78,7 %", "headline": "La place du plaisir oral", "detail": "Recevoir du sexe oral était assez ou très attirant pour 78,7 % des répondants.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait déclaré ; aucune envie individuelle ni pratique précise garantie.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-receiving-oral"}, {"cardId": "new-intimite-02", "metric": "66,8 %", "headline": "Donner du plaisir", "detail": "Donner du sexe oral était assez ou très attirant pour 66,8 % des répondants.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait pour le sexe oral ; aucune posture particulière évaluée.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-giving-oral"}, {"cardId": "new-intimite-03", "metric": "79,3 %", "headline": "Le toucher dans l’intimité", "detail": "Donner ou recevoir un massage avant un rapport était assez ou très attirant pour 79,3 %.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait déclaré ; le massage Nuru n’était pas étudié.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-presex-massage"}, {"cardId": "new-intimite-04", "metric": "48,1 % → 15,1 %", "headline": "Explorer le confort", "detail": "Après trois mois de vibration, les participantes rapportant une douleur sexuelle étaient moins nombreuses.", "scope": "Étude pilote · 53 participantes au suivi.", "limitations": "Pilote sans groupe témoin ; suivi médical, pas efficacité spécifique de Lovense.", "year": 2024, "sourceTitle": "Dubinskaya et al. · International Urogynecology Journal", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11150285/", "statKey": "dubinskaya2024:sexual-pain"}, {"cardId": "new-intimite-05", "metric": "76,3 %", "headline": "Donner du plaisir peut être satisfaisant", "detail": "Des participantes jugeaient donner du sexe oral assez ou très satisfaisant.", "scope": "Espagne · femmes adultes de 18 à 50 ans, enquête SSCI, tableau 4.", "limitations": "Somme des catégories 36,8 % et 39,5 %. Échantillon volontaire ; fellation et cunnilingus regroupés, sans préférence individuelle prédite.", "year": 2022, "sourceTitle": "Ogallar-Blanco et al. · Sexual Satisfaction Comprehensive Index", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9408228/", "statKey": "ogallar2022:giving-oral-quite-very-satisfactory"}, {"cardId": "new-intimite-06", "metric": "r = 0,16", "headline": "Parler de ses envies", "detail": "La communication sexuelle était positivement liée au désir.", "scope": "Méta-analyse · 48 études.", "limitations": "Association, pas causalité ; repère sur la communication, pas l’acte de cette carte.", "year": 2019, "sourceTitle": "Mallory et al. · Sexual communication and function", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/", "statKey": "mallory2019:desire"}, {"cardId": "new-intimite-07", "metric": "r = 0,21", "headline": "Guider l’excitation", "detail": "La communication sexuelle était positivement liée à l’excitation.", "scope": "Méta-analyse · 48 études.", "limitations": "Association, pas causalité ; repère sur la communication, pas l’acte de cette carte.", "year": 2019, "sourceTitle": "Mallory et al. · Sexual communication and function", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/", "statKey": "mallory2019:arousal"}, {"cardId": "new-intimite-08", "metric": "r = 0,35", "headline": "Trouver son langage intime", "detail": "La communication était positivement liée au fonctionnement sexuel global.", "scope": "Méta-analyse · 48 études.", "limitations": "Association, pas causalité ; repère sur la communication, pas l’acte de cette carte.", "year": 2019, "sourceTitle": "Mallory et al. · Sexual communication and function", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/", "statKey": "mallory2019:overall-function"}, {"cardId": "new-intimite-09", "metric": "53,5 %", "headline": "Partager une curiosité", "detail": "Regarder des vidéos érotiques était assez ou très attirant pour 53,5 % des répondants.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Attrait pour regarder ; aucune étude sur la reproduction 1:1 ni preuve de bénéfice.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-pornography"}, {"cardId": "new-intimite-10", "metric": "24,4 %", "headline": "Une envie parmi d’autres", "detail": "Le sexe anal était assez ou très attirant pour 24,4 % des répondants.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Attrait déclaré, pas recommandation ni envie du partenaire ; aucun bénéfice mesuré.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-anal-sex"}, {"cardId": "new-intimite-11", "metric": "r = 0,31", "headline": "Garder le dialogue ouvert", "detail": "La fréquence des conversations sexuelles était positivement liée à la satisfaction sexuelle.", "scope": "Méta-analyse · 93 études.", "limitations": "Association ; repère connexe, aucune preuve sur l’acte précis de cette carte.", "year": 2022, "sourceTitle": "Mallory · Sexual communication and satisfaction", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9153093/", "statKey": "mallory2022:frequency-sexual-satisfaction"}, {"cardId": "new-intimite-12", "metric": "69,7 %", "headline": "Plusieurs sensations, à son rythme", "detail": "Des femmes avaient déjà associé stimulation clitoridienne et pénétration pour augmenter leur plaisir.", "scope": "États-Unis · 2 877 réponses adultes à cet item.", "limitations": "Technique vaginale et clitoridienne ; aucune donnée sur la double pénétration.", "year": 2021, "sourceTitle": "Hensel et al. · PLOS ONE", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8046227/", "statKey": "hensel2021:pairing"}, {"cardId": "new-intimite-13", "metric": "16,1 %", "headline": "L’image intime a ses curieux", "detail": "Se filmer pendant la masturbation ou un rapport était assez ou très attirant pour 16,1 %.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Repère sur l’image intime ; ni publication sur Reddit ni exposition des seins étudiées.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-sexual-video-recording"}, {"cardId": "new-intimite-14", "metric": "27,3 %", "headline": "Des envies d’exposition différentes", "detail": "Avoir un rapport où l’on pourrait être vu était assez ou très attirant pour 27,3 %.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Repère connexe sur l’exposition ; aucune publication en ligne ni bénéfice de Reddit étudiés.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-being-seen"}, {"cardId": "new-intimite-15", "metric": "r = 0,17", "headline": "Écouter les sensations", "detail": "La communication sexuelle était positivement liée à la lubrification.", "scope": "Méta-analyse · 48 études.", "limitations": "Association ; repère sur l’écoute corporelle, aucune mesure de Reddit.", "year": 2019, "sourceTitle": "Mallory et al. · Sexual communication and function", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/", "statKey": "mallory2019:lubrication"}, {"cardId": "new-intimite-16", "metric": "13,8 %", "headline": "L’intimité à distance existe", "detail": "Le sexe par FaceTime ou Skype était assez ou très attirant pour 13,8 %.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Échanges entre partenaires ; aucun bénéfice démontré d’un show public.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-video-sex"}, {"cardId": "new-intimite-17", "metric": "79,1 %", "headline": "Le regard du partenaire", "detail": "Regarder son partenaire se déshabiller était assez ou très attirant pour 79,1 %.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait privé entre partenaires ; webcam publique non étudiée.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-undressing"}, {"cardId": "new-intimite-18", "metric": "37,6 %", "headline": "Partager son plaisir avec son partenaire", "detail": "Se masturber devant son partenaire était assez ou très attirant pour 37,6 % des répondants.", "scope": "États-Unis · enquête adultes 2015, tableau 5.", "limitations": "Échange privé entre partenaires ; aucune webcam publique ni bénéfice de diffusion évalués.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-masturbation-front-partner"}, {"cardId": "new-intimite-19", "metric": "r = 0,43", "headline": "Parler nourrit la satisfaction", "detail": "La communication sexuelle globale était positivement liée à la satisfaction sexuelle.", "scope": "Méta-analyse · 93 études.", "limitations": "Association entre partenaires ; aucun effet démontré d’un partage sur Reddit.", "year": 2022, "sourceTitle": "Mallory · Sexual communication and satisfaction", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9153093/", "statKey": "mallory2022:overall-sexual-satisfaction"}, {"cardId": "new-intimite-20", "metric": "29,3 %", "headline": "Des jeux de rôles choisis", "detail": "Attacher son partenaire ou être attaché était assez ou très attirant pour 29,3 %.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait déclaré pour les attaches ; pas pour une heure de soumission entière.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-tying"}, {"cardId": "new-intimite-21", "metric": "28,4 %", "headline": "Le plaisir du jeu", "detail": "Donner ou recevoir une fessée sexuelle était assez ou très attirant pour 28,4 %.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait déclaré ; aucune envie individuelle ni pratique précise garantie.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-spanking"}, {"cardId": "new-intimite-22", "metric": "32,4 %", "headline": "Une image pour votre duo", "detail": "Prendre ou partager des photos dénudées avec son partenaire était assez ou très attirant pour 32,4 %.", "scope": "États-Unis · adultes, enquête 2015.", "limitations": "Attrait déclaré ; photos privées entre partenaires, pas publication publique.", "year": 2017, "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5", "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198", "statKey": "herbenick2017:appeal-partner-nude-photos"}, {"cardId": "new-projets-01", "metric": "≈ +60 %", "headline": "Marcher fait venir des idées", "detail": "Dans une expérience, les participants ont produit environ 60 % d’idées créatives de plus en marchant qu’en restant assis.", "scope": "Expériences de pensée divergente ; marche sur tapis ou dehors ; Oppezzo & Schwartz.", "limitations": "Le résultat porte sur une tâche de créativité, pas sur toutes les capacités cognitives. Le décor urbain n’est pas un bénéfice mesuré séparément.", "year": 2014, "sourceTitle": "Oppezzo & Schwartz · Give your ideas some legs", "url": "https://aaalab.stanford.edu/assets/papers/2014/Give_your_ideas_some_legs.pdf", "statKey": "oppezzo2014-creative-output-exp1"}, {"cardId": "new-projets-02", "metric": "−15,8 %", "headline": "La forêt et le calme physiologique", "detail": "Après la marche, le cortisol salivaire moyen était 15,8 % plus bas en forêt qu’en ville.", "scope": "Expériences croisées au Japon ; jeunes hommes ; marches d’environ quinze minutes ; 74 mesures pour cette comparaison.", "limitations": "Différence de concentration hormonale entre environnements, pas 15,8 % de stress ressenti en moins. Effet immédiat dans une population spécifique, pas preuve d’un traitement durable.", "year": 2010, "sourceTitle": "Park et al. · Environmental Health and Preventive Medicine · figure 2", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2793346/", "statKey": "park2010-walking-cortisol"}, {"cardId": "new-projets-03", "metric": "95 %", "headline": "La culture fait du bien", "detail": "Des répondants estimaient, au moins en partie, que visiter un lieu culturel était bon pour leur bien-être.", "scope": "Sokka et al. · 834 répondants à Jyväskylä, Finlande, enquête de 2019 publiée en 2023.", "limitations": "Opinion, pas un effet clinique mesuré. Échantillon surtout féminin et déjà amateur de culture ; musées, théâtre et orchestre réunis.", "year": 2023, "sourceTitle": "EJCMP · Value of art and culture institutions: Jyväskylä", "url": "https://doi.org/10.3389/ejcmp.2023.11618", "statKey": "sokka2023-culture-wellbeing-agreement"}, {"cardId": "new-projets-04", "metric": "≈ 75 %", "headline": "Créer pour faire une pause", "detail": "Le cortisol a baissé chez environ 75 % des participants après une séance de création artistique libre.", "scope": "39 adultes ; 45 minutes ; dessin, collage et modelage possibles.", "limitations": "Petite étude avant/après sans témoin ; pas effet spécifique de l’aquarelle, ni preuve que chaque séance réduise le stress.", "year": 2016, "sourceTitle": "Kaimal et al. · Art Therapy", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5004743/", "statKey": "kaimal2016-cortisol-responders"}, {"cardId": "new-projets-05", "metric": "37 %", "headline": "L’envie de créer de ses mains", "detail": "Des adultes interrogés aimeraient pratiquer davantage une activité créative et manuelle, s’ils en avaient la possibilité.", "scope": "1 026 adultes en France, échantillon représentatif par quotas · juillet 2024.", "limitations": "Envie déclarée, sans mesure de bénéfice ; catégorie créative et manuelle plus large que la poterie seule.", "year": 2024, "sourceTitle": "Sondage OpinionWay pour WeCanDoo · Les Français et les loisirs", "url": "https://www.opinion-way.com/wp-content/uploads/2025/04/OpinionWay-pour-Wecandoo-Les-Francais-et-les-loisirs-Juillet-2024.pdf", "statKey": "opinionway2024-wecandoo-want-more-manual-creative"}, {"cardId": "new-projets-06", "metric": "71 %", "headline": "Capturer le plaisir du moment", "detail": "Des personnes interrogées estiment que prendre des photos rend une activité plus agréable.", "scope": "Sondage Fujifilm / MarketVision · 2 014 adultes aux États-Unis, novembre–décembre 2024.", "limitations": "Enquête commandée par une marque photo ; opinion, pas un effet expérimental. Les sorties photo dehors ne sont pas isolées.", "year": 2025, "sourceTitle": "Fujifilm / MarketVision · Frame of Mind", "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx", "statKey": "fujifilm2025-photo-taking-activity-enjoyment"}, {"cardId": "new-projets-07", "metric": "−6 %", "headline": "Une pause devant la nature", "detail": "Pendant les observations assises, le pouls moyen était 6 % plus bas dans le paysage forestier que dans le paysage urbain.", "scope": "Expériences au Japon ; jeunes hommes ; observations d’environ quinze minutes.", "limitations": "Résultat physiologique immédiat comparant deux milieux, pas effet du repas ni du pique-nique à deux ; aucune baisse de fréquence cardiaque à rechercher personnellement.", "year": 2010, "sourceTitle": "Park et al. · Environmental Health and Preventive Medicine · figure 3", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2793346/", "statKey": "park2010-viewing-pulse"}, {"cardId": "new-projets-08", "metric": "d = 0,47", "headline": "Bouger pour retrouver de l’élan", "detail": "Une méta-analyse rapporte une amélioration de l’affect positif activé après une séance d’exercice aérobie : taille d’effet moyenne de 0,47.", "scope": "158 études, 13 101 participants ; émotions positives avec énergie.", "limitations": "Repère connexe sur le mouvement, pas sur la pluie ni une promenade précise ; intensités et protocoles variés. d n’est pas un pourcentage.", "year": 2006, "sourceTitle": "Reed & Ones · Psychology of Sport and Exercise", "url": "https://doi.org/10.1016/j.psychsport.2005.11.003", "statKey": "reed2006-acute-positive-affect"}, {"cardId": "new-projets-09", "metric": "+1,3 point de %", "headline": "Le soir peut aussi être actif", "detail": "Les études de cette synthèse observent une part de sommeil profond supérieure de 1,3 point après de l’exercice en soirée, par rapport à une soirée sans exercice.", "scope": "Méta-analyse de 23 études chez des adultes en bonne santé.", "limitations": "Exercices variés, pas promenade nocturne isolée. L’exercice intense finissant dans l’heure avant le coucher peut au contraire perturber certains paramètres.", "year": 2019, "sourceTitle": "Stutz et al. · Sports Medicine", "url": "https://pubmed.ncbi.nlm.nih.gov/30374942/", "statKey": "stutz2019-evening-slow-wave-sleep"}, {"cardId": "new-projets-10", "metric": "71 %", "headline": "Un projet qui donne de l’élan", "detail": "Des répondants disaient se sentir plus énergiques en sachant qu’un voyage était prévu dans les six mois.", "scope": "Institute for Applied Positive Research · enquête en ligne, 263 adultes aux États-Unis, août 2020.", "limitations": "Sondage commandé par l’industrie du voyage durant la pandémie ; ressenti déclaré, pas un gain d’énergie mesuré ni un week-end étudié séparément.", "year": 2020, "sourceTitle": "U.S. Travel / IAPR · Planning Travel Creates Happiness", "url": "https://www.ustravel.org/sites/default/files/media_root/document/PlanningTravel_MichelleGielan.pdf", "statKey": "iapr2020-planned-travel-energy"}, {"cardId": "new-projets-11", "metric": "97 %", "headline": "Le plaisir de se projeter", "detail": "Des répondants déclaraient qu’avoir un voyage prévu les rendait plus heureux.", "scope": "Institute for Applied Positive Research · enquête en ligne, 263 adultes aux États-Unis, août 2020.", "limitations": "Petit sondage commandé par l’industrie du voyage durant la pandémie ; opinion déclarée, pas un effet causal garanti.", "year": 2020, "sourceTitle": "U.S. Travel / IAPR · Planning Travel Creates Happiness", "url": "https://www.ustravel.org/sites/default/files/media_root/document/PlanningTravel_MichelleGielan.pdf", "statKey": "iapr2020-planned-travel-happiness"}, {"cardId": "new-projets-12", "metric": "64 %", "headline": "Se réapproprier son chez-soi", "detail": "Après leurs travaux, 64 % des répondants disaient avoir davantage envie de passer du temps chez eux.", "scope": "Enquête américaine auprès de 806 personnes ayant réalisé des travaux ; NAR 2025.", "limitations": "Sondage volontaire d’une organisation du secteur immobilier ; types de travaux variés. Ne mesure pas un simple déplacement de meubles.", "year": 2025, "sourceTitle": "NAR / NARI · Remodeling Impact Report", "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf", "statKey": "nar2025-desire-home"}, {"cardId": "new-projets-13", "metric": "r = −0,490", "headline": "Un espace qui laisse respirer", "detail": "Se sentir moins gêné par l’encombrement allait de pair avec une plus grande satisfaction de vie ; corrélation inverse de −0,490.", "scope": "450 adultes américains de 23 à 84 ans ; corrélation contrôlant la désirabilité sociale.", "limitations": "Étude observationnelle recrutée via une association sur la désorganisation ; 94 % de femmes. Ne mesure pas l’effet de jeter trois objets.", "year": 2022, "sourceTitle": "Swanson & Ferrari · Behavioral Sciences · tableau 2", "url": "https://doi.org/10.3390/bs12050132", "statKey": "swanson2022-clutter-lifesatisfaction"}, {"cardId": "new-projets-14", "metric": "r = −0,375", "headline": "Faire de la place à son refuge", "detail": "Une moindre gêne liée à l’encombrement allait de pair avec un sentiment plus fort de « chez-soi » ; corrélation inverse de −0,375.", "scope": "450 adultes américains ; sentiment d’attachement et de refuge ; corrélation contrôlée.", "limitations": "Association, pas preuve qu’enlever un objet crée ce bénéfice ; recrutement particulier et échantillon majoritairement féminin.", "year": 2022, "sourceTitle": "Swanson & Ferrari · Behavioral Sciences · tableau 2", "url": "https://doi.org/10.3390/bs12050132", "statKey": "swanson2022-clutter-psychologicalhome"}, {"cardId": "new-projets-15", "metric": "≈ 93 %", "headline": "Une pièce repeinte, du plaisir retrouvé", "detail": "Pour une pièce intérieure repeinte, environ 93 % des répondants étaient heureux ou satisfaits du résultat.", "scope": "Rapport NAR / NARI 2025 ; 806 répondants tous projets confondus ; résultat du sous-groupe peinture.", "limitations": "Pourcentage déduit de la définition du rapport : le Joy Score de 9,3 correspond à la part « heureux » + « satisfaits », divisée par dix. Sondage volontaire du secteur immobilier ; effectif du sous-groupe non précisé.", "year": 2025, "sourceTitle": "NAR / NARI · Remodeling Impact Report · pages 7 et 27", "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf", "statKey": "nar2025-paintroom-happy-satisfied"}, {"cardId": "new-projets-16", "metric": "55 %", "headline": "La fierté d’avoir réalisé un projet", "detail": "55 % des répondants ressentaient un fort sentiment d’accomplissement en pensant à leurs travaux terminés.", "scope": "Enquête américaine de 806 personnes ayant rénové ; travaux de tailles diverses.", "limitations": "Sondage volontaire du secteur immobilier ; l’ampleur du chantier n’est pas une garantie de satisfaction.", "year": 2025, "sourceTitle": "NAR / NARI · Remodeling Impact Report", "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf", "statKey": "nar2025-major-accomplishment"}, {"cardId": "new-projets-17", "metric": "d = 0,34", "headline": "Nommer ses envies aide à agir", "detail": "La fixation d’objectifs avait un effet positif moyen sur le passage à l’action : d = 0,34, par rapport aux interventions sans cet élément.", "scope": "141 articles, 16 523 participants ; méta-analyse d’essais randomisés.", "limitations": "Comportements et contextes variés ; ne mesure pas une bucket list de couple. d décrit une différence standardisée, pas 34 % de réussite supplémentaire.", "year": 2017, "sourceTitle": "Epton, Currie & Armitage · Journal of Consulting and Clinical Psychology", "url": "https://www.stir.ac.uk/research/hub/publication/883299", "statKey": "epton2017-goalsetting-behavior"}, {"cardId": "new-projets-18", "metric": "6,77 contre 6,06", "headline": "Comparer ce qu’on aime", "detail": "Les participants appréciaient davantage une personne partageant leurs goûts positifs que leurs dégoûts : 6,77 contre 6,06 en moyenne.", "scope": "Étude 1 ; 100 participants ; goûts concernant films, musique, activités, aliments et autres thèmes.", "limitations": "Jugements sur des personnes hypothétiques, pas effet d’une tier list ni preuve de compatibilité d’un couple.", "year": 2022, "sourceTitle": "Zorn, Mata & Alves · Journal of Experimental Social Psychology", "url": "https://doi.org/10.1016/j.jesp.2021.104281", "statKey": "alves2022-sharedlikes-liking"}];</script>
+
+<script>window.DesirConfig=Object.freeze({"endpoint": "https://rdsritcfhwcobqdjcndm.supabase.co/functions/v1/desir-game", "publishableKey": "sb_publishable_1pg0Vcz1GyGCeNXwAJPlfg_JVSz9uQn"});</script>
 
 <script>
 /* ONDE — local prototype rules. No networking, storage, or UI side effects. */
@@ -445,7 +475,7 @@
   const categories = [
     { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
     { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
-    { id: 'projets', number: 3, label: 'Projets', color: '#d0a6c1', icon: 'map', description: 'Imaginer et faire ensemble.' },
+    { id: 'projets', number: 3, label: 'Projets', color: '#8198b4', icon: 'map', description: 'Imaginer et faire ensemble.' },
     { id: 'attention', number: 4, label: 'Attentions', color: '#e3bd8b', icon: 'gift', description: 'Choisir une attention.' },
     { id: 'bouffe', number: 5, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
     { id: 'intimite', number: 6, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
@@ -604,7 +634,7 @@
     bouffe:'Choisissez ensemble ce qui vous fait envie et le budget qui vous convient.',
     intimite:'À réserver à des adultes consentants. Définissez ensemble les limites, le cadre et les conditions de sécurité ; chacun peut dire non ou arrêter à tout moment.'
   };
-  // First-pass discard resistance estimates selected with Clément. Higher PV
+  // First-pass discard resistance estimates selected with the user. Higher PV
   // makes an action harder to discard; these values are independent of consent.
   const resistanceByCard = Object.freeze({
     'new-complicite-01':35,'new-complicite-02':35,'new-complicite-03':35,'new-complicite-04':35,'new-complicite-05':35,'new-complicite-06':35,'new-complicite-07':30,'new-complicite-08':30,'new-complicite-09':35,'new-complicite-10':35,'new-complicite-11':20,
@@ -841,6 +871,20 @@
     return ['pending','challenge','challenge_failed','sender_confirmation'].includes(s.phase) && s.activePlayer===s.round.awaiting;
   }
 
+  // A private draw becomes visible to its recipient only after it was sent.
+  // Older saves can lack sentAt, so their response/accepted phases and the
+  // recipient's own rolls also provide evidence that the invitation existed.
+  function canSeeRound(state, player=state&&state.activePlayer) {
+    if(!state || !state.round || !['a','b'].includes(player)) return false;
+    const round=state.round;
+    if(!['a','b'].includes(round.from) || round.to!==otherPlayer(round.from)) return false;
+    if(player===round.from) return true;
+    if(typeof round.sentAt==='string' && round.sentAt.length>0) return true;
+    if(['pending','challenge','challenge_failed','sender_confirmation','accepted'].includes(state.phase)) return true;
+    if(state.phase==='resolved' && ['completed','expired'].includes(round.status)) return true;
+    return Array.isArray(round.rolls) && round.rolls.length>0;
+  }
+
   const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && Number.isFinite(getCard(s.round.cardId)?.hp);
   const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
@@ -1028,7 +1072,7 @@
     }
   }
 
-  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canChallengeDraft,canRollDraftDefense};
+  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -1631,12 +1675,221 @@ void main(){
 </script>
 
 <script>
+/* Dés·ir — device-bound connection to the authoritative game service. */
+(function(scope){
+ 'use strict';
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+ const TOKEN=/^[A-Za-z0-9_-]{43}$/;
+ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+ const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
+ function failure(code,message,status=0,snapshot=null){const error=new Error(message);error.code=code;error.status=status;error.isDesirRemoteError=true;if(snapshot)error.snapshot=clone(snapshot);return error;}
+ function create(config={},environment={}){
+  const G=environment.game||scope.OndeGame,fetcher=environment.fetch||scope.fetch?.bind(scope);
+  let storage=environment.storage;try{if(storage===undefined)storage=scope.localStorage;}catch(_){storage=null;}
+  const nav=environment.navigator||scope.navigator||{},doc=environment.document||scope.document,location=environment.location||scope.location;
+  const crypto=environment.crypto||scope.crypto,Notification=environment.Notification||scope.Notification;
+  const later=environment.setTimeout||scope.setTimeout?.bind(scope),cancel=environment.clearTimeout||scope.clearTimeout?.bind(scope);
+  const every=environment.setInterval||scope.setInterval?.bind(scope),cancelEvery=environment.clearInterval||scope.clearInterval?.bind(scope);
+  const controller=environment.AbortController||scope.AbortController;
+  const storageKey=config.storageKey||'desir-connection-v1',registrationKey=storageKey+'-registration',actionKey=storageKey+'-action';
+  let endpoint='';try{const url=new URL(config.endpoint);if(url.protocol==='https:'||(url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))endpoint=url.href;}catch(_){}
+  const enabled=!!(endpoint&&G&&fetcher&&crypto?.getRandomValues);
+  let connection=null,snapshot=null,refreshing=null,restoring=null,queue=Promise.resolve(),started=false,pollTimer=null,registration=null,preparing=null,vapidKey=null,authFailed=false;
+  let status={phase:enabled?'disconnected':'unconfigured',message:'',lastUpdated:null,errorCode:null};
+  let notificationStatus={supported:false,permission:'unsupported',subscribed:false,reason:null,message:''};
+  const listeners=new Set();
+  function emit(){const event={snapshot:clone(snapshot),status:{...status},notificationStatus:{...notificationStatus}};for(const listener of listeners){try{listener(event);}catch(_){}}}
+  function setStatus(phase,message='',errorCode=null){status={...status,phase,message,errorCode};emit();}
+  function setNotification(patch){notificationStatus={...notificationStatus,...patch};emit();}
+  function read(key){try{return storage?.getItem(key)||null;}catch(_){return null;}}
+  function write(key,value){try{if(!storage)throw Error();storage.setItem(key,JSON.stringify(value));}catch(_){throw failure('storage','Cet appareil ne peut pas conserver votre accès. Autorise le stockage de ce site avant de continuer.');}}
+  function remove(key){try{storage?.removeItem(key);}catch(_){}}
+  function parsed(key){const raw=read(key);if(!raw)return null;try{return JSON.parse(raw);}catch(_){throw failure('invalid_access','L’accès enregistré sur cet appareil est illisible.');}}
+  function bytesToBase64(bytes){let text='';for(const byte of bytes)text+=String.fromCharCode(byte);return (environment.btoa||scope.btoa)(text).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  function randomToken(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return bytesToBase64(bytes);}
+  function requestId(){if(crypto.randomUUID)return crypto.randomUUID();const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}
+  function serial(task){const next=queue.then(task,task);queue=next.catch(()=>{});return next;}
+  function requireEnabled(){if(!enabled)throw failure('unconfigured','La connexion à votre duo n’est pas encore disponible.');}
+  function requireConnection(){requireEnabled();if(!connection)throw failure('not_connected','Connecte-toi pour continuer.');}
+  function normalizedConnection(raw,expectedToken){
+   if(!raw||!TOKEN.test(raw.token||'')||!UUID.test(raw.roomId||'')||!['a','b'].includes(raw.actor)||(expectedToken&&raw.token!==expectedToken))throw failure('invalid_response','La connexion reçue est invalide. Réessaie.');
+   return {version:1,endpoint,token:raw.token,roomId:raw.roomId,actor:raw.actor,pairingCode:typeof raw.pairingCode==='string'?raw.pairingCode:null};
+  }
+  function checkStored(raw){if(!raw||raw.version!==1||raw.endpoint!==endpoint)throw failure('invalid_access','Cet accès appartient à une autre version du duo.');return normalizedConnection(raw);}
+  function validateSnapshot(raw,identity=connection){
+   if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
+   const state=G.normalizeState(raw.state);
+   if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
+   const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
+   let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>1||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
+   let roll;
+   if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
+   const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime},roll};
+  }
+  function acceptSnapshot(raw,identity=connection){
+   const checked=validateSnapshot(raw,identity);
+   if(!snapshot||checked.base.revision>=snapshot.revision){
+    const changed=!snapshot||JSON.stringify(checked.base)!==JSON.stringify(snapshot),statusChanged=status.phase!=='connected'||!!status.message;
+    snapshot=clone(checked.base);
+    if(connection&&connection.pairingCode!==snapshot.pairingCode){connection.pairingCode=snapshot.pairingCode;try{write(storageKey,connection);}catch(_){}}
+    authFailed=false;status={phase:'connected',message:'',lastUpdated:new Date().toISOString(),errorCode:null};
+    if(changed||statusChanged)emit();
+   }
+   return {...clone(snapshot),...(checked.roll?{roll:checked.roll}:{})};
+  }
+  function remoteError(response,body){
+   const code=body?.error?.code||body?.code;
+   const messages={conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
+   let updated=null;if(body?.state&&connection){try{updated=acceptSnapshot(body);}catch(_){}}
+   return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
+  }
+  async function request(payload,token,attempts=2){
+   requireEnabled();
+   const headers={'Content-Type':'application/json'};
+   if(config.publishableKey)headers.apikey=config.publishableKey;
+   if(token)headers.Authorization='Bearer '+token;
+   let last;
+   for(let attempt=0;attempt<attempts;attempt++){
+    const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
+    try{
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify(payload),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
+     let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
+     if(!response.ok){const error=remoteError(response,body);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
+     return body;
+    }catch(error){
+     if(error?.isDesirRemoteError)throw error;
+     last=failure('offline','Connexion interrompue. Réessaie quand le réseau est revenu.');
+     if(attempt+1>=attempts)throw last;
+    }finally{if(timer)cancel(timer);}
+   }
+   throw last||failure('offline','La connexion au duo est indisponible.');
+  }
+  function markFailure(error){if(error.status===401)authFailed=true;const expected=connection&&['conflict','quota_exhausted','not_allowed','invalid_action','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
+  function pendingLogin(){
+   const previous=parsed(registrationKey);
+   if(previous&&previous.version===1&&previous.endpoint===endpoint&&previous.op==='login'&&TOKEN.test(previous.token||'')&&UUID.test(previous.requestId||''))return previous;
+   const pending={version:1,endpoint,op:'login',token:randomToken(),requestId:requestId()};write(registrationKey,pending);return pending;
+  }
+  async function finishLogin(raw,pending){
+   const received=raw.connection||{token:pending.token,roomId:raw.roomId,actor:raw.actor};
+   const identity=normalizedConnection({...received,token:received.token||pending.token},pending.token);identity.pairingCode=typeof raw.pairingCode==='string'?raw.pairingCode:null;
+   validateSnapshot(raw,identity);write(storageKey,identity);if(snapshot&&(snapshot.roomId!==identity.roomId||snapshot.actor!==identity.actor))snapshot=null;connection=identity;remove(registrationKey);let pendingAction=null;try{pendingAction=parsed(actionKey);}catch(_){}if(pendingAction&&(pendingAction.roomId!==identity.roomId||pendingAction.actor!==identity.actor))remove(actionKey);
+   const value=acceptSnapshot(raw);prepareNotifications().catch(()=>{});return value;
+  }
+  function login(username,password){
+   const user=String(username||'').trim();
+   if(!user||user.length>80||typeof password!=='string'||!password||password.length>256)return Promise.reject(failure('invalid_credentials','Renseigne ton identifiant et ton mot de passe.'));
+   return serial(async()=>{requireEnabled();if(connection&&!authFailed)return fetchState();setStatus('connecting');try{const pending=pendingLogin();const raw=await request({op:'login',requestId:pending.requestId,username:user,password},pending.token);return await finishLogin(raw,pending);}catch(error){markFailure(error);throw error;}});
+  }
+  function cleanAction(action){
+   if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
+   const value={type:action.type};
+   if(typeof action.roundId==='string'&&/^onde-[1-9]\d*$/.test(action.roundId))value.roundId=action.roundId;
+   if(action.type==='TOGGLE_TASK_CHECK'){
+    if(typeof action.taskId!=='string'||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
+    value.taskId=action.taskId;value.checked=action.checked;
+   }else if(!value.roundId)throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
+   return value;
+  }
+  function storedAction(){const value=parsed(actionKey);if(!value)return null;if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
+  async function sendAction(pending){
+   try{
+    const raw=await request({op:'action',requestId:pending.requestId,action:pending.action},connection.token);
+    const value=acceptSnapshot(raw);remove(actionKey);return value;
+   }catch(error){if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
+  }
+  async function fetchState(){requireConnection();const raw=await request({op:'state'},connection.token);return acceptSnapshot(raw);}
+  function action(value){
+   return serial(async()=>{requireConnection();try{
+    const cleaned=cleanAction(value),pending=storedAction();
+    if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
+    const next=pending||{version:1,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    write(actionKey,next);return await sendAction(next);
+   }catch(error){markFailure(error);throw error;}});
+  }
+  function refresh(){
+   if(!connection)return Promise.resolve(null);
+   if(refreshing)return refreshing;
+   refreshing=Promise.resolve().then(async()=>{try{const pending=storedAction();if(pending)await serial(()=>sendAction(pending));return await fetchState();}catch(error){markFailure(error);throw error;}finally{refreshing=null;}});
+   return refreshing;
+  }
+  function restore(){
+   if(restoring)return restoring;
+   restoring=Promise.resolve().then(async()=>{requireEnabled();setStatus('connecting');try{
+    const pending=parsed(registrationKey);
+    if(pending){
+     if(pending.version!==1||pending.endpoint!==endpoint||!TOKEN.test(pending.token||'')||pending.op!=='login')throw failure('invalid_access','La connexion en cours ne peut pas être reprise.');
+     try{const raw=await request({op:'state'},pending.token,1);return await finishLogin(raw,pending);}catch(error){if(error.status!==401)throw error;}
+    }
+    const saved=parsed(storageKey);
+    if(saved){connection=checkStored(saved);const value=await refresh();prepareNotifications().catch(()=>{});return value;}
+    setStatus('disconnected');return null;
+   }catch(error){markFailure(error);throw error;}finally{restoring=null;}});return restoring;
+  }
+  function iosInstallRequired(){const ua=nav.userAgent||'',ios=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&nav.maxTouchPoints>1);let standalone=nav.standalone===true;try{standalone=standalone||!!scope.matchMedia?.('(display-mode: standalone)').matches;}catch(_){}return ios&&!standalone;}
+  function inspectNotifications(){
+   const install=iosInstallRequired(),supported=!!(Notification&&nav.serviceWorker&&(environment.PushManager||scope.PushManager));
+   const permission=Notification?.permission||'unsupported';
+   setNotification({supported:supported&&!install,permission,reason:install?'install_required':!supported?'unsupported':permission==='denied'?'denied':null,message:install?'Ajoute Dés·ir à l’écran d’accueil pour activer les notifications.':!supported?'Ce navigateur ne prend pas en charge les notifications.':permission==='denied'?'Les notifications sont désactivées dans les réglages du navigateur.':''});
+   return notificationStatus;
+  }
+  async function serviceWorker(){
+   if(registration?.active)return registration;
+   const script=location?new URL('./sw.js',location.href).href:'./sw.js';
+   registration=await nav.serviceWorker.register(script,{scope:location?new URL('./',location.href).pathname:'./',updateViaCache:'none'});
+   if(registration.active)return registration;
+   const worker=registration.installing||registration.waiting;
+   if(!worker){registration=await nav.serviceWorker.ready;return registration;}
+   await new Promise((resolve,reject)=>{const timer=later(()=>{worker.removeEventListener?.('statechange',changed);reject(failure('notifications_unavailable','Le système de notifications n’est pas encore prêt. Réessaie.'));},10000);function changed(){if(worker.state==='activated'){cancel(timer);worker.removeEventListener?.('statechange',changed);resolve();}else if(worker.state==='redundant'){cancel(timer);worker.removeEventListener?.('statechange',changed);reject(failure('notifications_unavailable','Le système de notifications n’a pas pu démarrer.'));}}worker.addEventListener('statechange',changed);changed();});
+   return registration;
+  }
+  function decodePublicKey(value){if(typeof value!=='string'||!/^[-_A-Za-z0-9]+$/.test(value))throw failure('notifications_unavailable','La configuration des notifications est indisponible.');const raw=(environment.atob||scope.atob)(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4));const bytes=Uint8Array.from(raw,x=>x.charCodeAt(0));if(bytes.length!==65||bytes[0]!==4)throw failure('notifications_unavailable','La configuration des notifications est invalide.');return bytes;}
+  function prepareNotifications(){
+   if(preparing)return preparing;
+   const support=inspectNotifications();if(!connection||!support.supported)return Promise.resolve(null);
+   preparing=(async()=>{try{const [reg,configResponse]=await Promise.all([serviceWorker(),request({op:'push_config'},connection.token)]);vapidKey=decodePublicKey(configResponse.vapidPublicKey||configResponse.publicKey);const existing=await reg.pushManager.getSubscription();if(existing&&Notification.permission==='granted'){await request({op:'subscribe',subscription:existing.toJSON()},connection.token);setNotification({subscribed:true,permission:'granted',message:''});}return reg;}finally{preparing=null;}})();return preparing;
+  }
+  async function enableNotifications(){
+   requireConnection();const support=inspectNotifications();if(!support.supported)throw failure(support.reason||'notifications_unsupported',support.message);
+   if(Notification.permission==='denied')throw failure('notifications_denied',support.message);
+   // Request synchronously on the original click, before any network or SW await.
+   try{
+    const permissionRequest=Notification.permission==='granted'?Promise.resolve('granted'):Notification.requestPermission();
+    const permission=await permissionRequest;setNotification({permission});if(permission!=='granted')throw failure('notifications_denied','Les notifications restent désactivées.');
+    const reg=await prepareNotifications();if(!reg||!vapidKey)throw failure('notifications_unavailable','Les notifications ne sont pas encore disponibles. Réessaie.');
+    const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidKey});
+    await request({op:'subscribe',subscription:sub.toJSON()},connection.token);setNotification({permission:'granted',subscribed:true,reason:null,message:''});return {...notificationStatus};
+   }catch(error){const known=error?.isDesirRemoteError?error:failure('notifications_unavailable','Les notifications n’ont pas pu être activées sur cet appareil.');setNotification({subscribed:false,message:known.message,reason:known.code});throw known;}
+  }
+  function refreshQuietly(){if(connection&&(!doc||!doc.hidden))refresh().catch(()=>{});}
+  function visible(){if(!doc?.hidden)refreshQuietly();}
+  function pushMessage(event){if(event.data?.type==='desir-state-refresh')refreshQuietly();}
+  function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
+  function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
+  inspectNotifications();
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+ }
+ const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+
+<script>
 (function(){
  'use strict';
  const root=document.getElementById('onde-app-v1');
  if(!root || !window.OndeGame || !window.OndeDice)return;
  const G=window.OndeGame, main=root.querySelector('#oa-main'), sheet=root.querySelector('#oa-sheet');
  const storageKey='onde-public-demo-v010';
+ const remote=window.OndeRemote&&window.OndeRemote.create(window.DesirConfig||{});
+ const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
+ const persona=root.querySelector('.oa-persona'),navigation=root.querySelector('.oa-nav');
+ let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
+ let localPrefs={sound:false};try{const saved=JSON.parse(localStorage.getItem('desir-preferences-v1')||'{}');if(typeof saved.sound==='boolean')localPrefs.sound=saved.sound;}catch(_){}
+
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
  let systemReduce=!!(motionQuery&&motionQuery.matches);
  let state=G.createState(), tab='play', busy=false, toastTimer, lastFocus=null, animationSerial=0;
@@ -1645,12 +1898,18 @@ void main(){
  const gaugeFrames=new Map();
  const pendingChecks=new Set();
  let taskExpiryTimer;
- let visibleCardId=null;
+ let visibleCardId=null, openedInvitation=null, viewPlayer='a', sharedSnapshot=null;
+ if(!remoteMode){
  try{
   const raw=localStorage.getItem(storageKey);
   if(raw){let saved=null;try{saved=G.normalizeState(JSON.parse(raw),{at:new Date().toISOString()});}catch(_){}if(saved)state=saved;else{localStorage.setItem(storageKey+'-recovery',raw);recovery=true;}}
   localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;
  }catch(_){canPersist=false;persisted=false;}
+ viewPlayer=state.activePlayer;
+ try{const savedView=sessionStorage.getItem(storageKey+'-profile');if(['a','b'].includes(savedView))viewPlayer=savedView;}catch(_){}
+ state={...state,activePlayer:viewPlayer};
+ try{sharedSnapshot=localStorage.getItem(storageKey);}catch(_){}
+ }
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
  const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,onRelease:()=>{if(tab==='play'&&!busy)roll();}});
@@ -1664,9 +1923,60 @@ void main(){
  const sum=()=>shownRolls().reduce((a,b)=>a+b,0);
  const canDraw=()=>state.activePlayer===state.round.from;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
- function save(){if(!canPersist)return;try{localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;}catch(_){persisted=false;}}
+ function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(state);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
+ function receiveShared(raw){
+  if(remoteMode||!raw||raw===sharedSnapshot)return false;
+  let incoming;try{incoming=G.normalizeState(JSON.parse(raw),{at:now()});}catch(_){return false;}
+  if(!incoming)return false;
+  sharedSnapshot=raw;state={...incoming,activePlayer:viewPlayer};return true;
+ }
+ function pullShared(){if(remoteMode||!canPersist)return false;try{return receiveShared(localStorage.getItem(storageKey));}catch(_){return false;}}
+ function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;state={...state,activePlayer:player};openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
+ function awaitingPlayer(player){return ['pending','sender_confirmation','challenge','challenge_failed'].includes(state.phase)&&state.round.awaiting===player;}
+ function invitationKey(){return state.round.id+'-'+state.round.awaiting;}
+
  function announce(text){root.querySelector('#oa-announcement').textContent=text;}
- function dispatch(action,doRender=true){const next=G.reduce(state,{at:now(),...action});const changed=next!==state;state=next;if(changed)save();if(doRender)render();return changed;}
+ function serverNow(){return Date.now()+serverOffset;}
+ function applyRemote(value,renderNow=true){
+  if(!value||!value.state||!['a','b'].includes(value.actor))return false;
+  if(remoteSnapshot&&value.roomId===remoteSnapshot.roomId&&value.revision<remoteSnapshot.revision)return false;
+  const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
+  if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
+  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired});
+  const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
+  state={...normalized,prefs:{...normalized.prefs,...localPrefs}};viewPlayer=value.actor;remoteReady=true;authBusy=false;loginError='';
+  if(renderNow&&changed)render();return changed;
+ }
+ function receiveRemote(value){
+  if(!value)return false;
+  if(busy||operationBusy||pendingChecks.size){if(!deferredSnapshot||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;return false;}
+  return applyRemote(value);
+ }
+ function flushRemote(value,renderNow=false){
+  let chosen=value;if(deferredSnapshot&&(!chosen||deferredSnapshot.revision>=chosen.revision))chosen=deferredSnapshot;
+  deferredSnapshot=null;return chosen?applyRemote(chosen,renderNow):false;
+ }
+ function remoteError(error){
+  if(error&&error.snapshot)flushRemote(error.snapshot,false);
+  const message=error&&error.isDesirRemoteError?error.message:'La connexion au duo est momentanément indisponible.';
+  if(remote&&remote.connection&&!remote.authenticated){remoteReady=false;loginError=message;}
+  toast(message);return false;
+ }
+ async function dispatch(action,doRender=true){
+  if(remoteMode){
+   if(action.type==='SET_PREFS'){
+    if(typeof action.patch?.sound==='boolean'){localPrefs.sound=action.patch.sound;state={...state,prefs:{...state.prefs,...localPrefs}};try{localStorage.setItem('desir-preferences-v1',JSON.stringify(localPrefs));}catch(_){}if(doRender)render();return true;}return false;
+   }
+   if(!remoteReady||!remote?.enabled)return false;
+   if(action.type==='RESET'||action.type==='SWITCH_PLAYER')return false;
+   operationBusy=true;root.classList.add('is-busy');
+   try{const value=action.type==='EXPIRE_TASKS'?await remote.refresh():await remote.action({...action,roundId:action.roundId||state.round.id});return flushRemote(value,false);}
+   catch(error){return remoteError(error);}
+   finally{operationBusy=false;root.classList.toggle('is-busy',busy);if(doRender)render();}
+  }
+  const roundId=state.round.id;pullShared();const next=G.reduce(state,{at:now(),roundId,...action});const changed=next!==state;state=next;if(changed)save();if(doRender)render();return changed;
+ }
+
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
  function btn(label,action,style='',extra=''){return '<button type="button" class="oa-button cursor-interaction '+style+'" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function textBtn(label,action,extra=''){return '<button type="button" class="oa-text-button cursor-interaction" data-action="'+action+'" '+extra+'>'+label+'</button>';}
@@ -1690,14 +2000,32 @@ void main(){
  }
  function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+cardFact(c)+'</article>';}
 
+ function renderLogin(){
+  if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
+  return heading('Votre<br><em>espace.</em>',null,null)+'<form class="oa-login" data-login-form><label class="oa-field">Identifiant<input id="oa-username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="80" value="'+h(loginUsername)+'"></label><label class="oa-field">Mot de passe<input id="oa-password" name="password" type="password" autocomplete="current-password" required maxlength="256"></label>'+(loginError?'<p class="oa-form-error" role="alert">'+h(loginError)+'</p>':'')+'<div class="oa-actions"><button type="submit" class="oa-button cursor-interaction" '+(!remote?.enabled?'disabled':'')+'>Se connecter <span class="oa-arrow">↗</span></button></div></form>';
+ }
+ function renderPersona(){
+  persona.hidden=remoteMode&&!remoteReady;navigation.hidden=remoteMode&&!remoteReady;const help=root.querySelector('[data-action="rules"]');if(help)help.hidden=remoteMode&&!remoteReady;
+  if(!remoteMode)return;
+  if(!remoteReady){persona.innerHTML='';return;}
+  persona.innerHTML='<div class="oa-identities" role="group" aria-label="Votre duo">'+['a','b'].map(id=>'<span class="oa-person-name '+(id===viewPlayer?'is-me':'')+'" '+(id===viewPlayer?'aria-current="true"':'')+'>'+h(name(id))+(awaitingPlayer(id)?'<i class="oa-unread" aria-label="Invitation en attente"></i>':'')+'</span>').join('')+'</div>';
+ }
+ function d6Action(){
+  if(remoteMode&&remoteSnapshot?.quota?.remaining===0){const at=remoteSnapshot.quota.nextAt;let time='';try{time=new Date(at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Paris'});}catch(_){}return '<div class="oa-next-draw" role="status">Prochain tirage'+(time?' à <strong>'+h(time)+'</strong>':' à la prochaine plage')+'</div>';}
+  return btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll');
+ }
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
  function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'</div>';}
 
+ function privateHome(incoming=false){
+  const r=state.round;
+  return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+(state.phase==='sender_confirmation'?'Une réponse t’attend':'Une invitation t’attend')+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
+ }
  function renderPlay(){const r=state.round,c=card();
-  if(state.phase==='category'&&!canDraw())return heading('Au tour de<br><em>'+h(name(r.from))+'.</em>',null,null)+switchButton(r.from,'Jouer côté '+h(name(r.from)));
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll')+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
+  if(!G.canSeeRound(state))return privateHome();
+  if(['pending','sender_confirmation'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+d6Action()+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
-   if(!canDraw())return heading(h(name(r.from))+' prépare<br><em>une invitation.</em>',null,'UN TOUR EN COURS')+steps(2)+statusStrip(h(category().label))+'<div class="oa-actions">'+switchButton(r.from,'Revenir côté '+h(name(r.from)))+'</div>';
    return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',null,null)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
   }
   if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
@@ -1708,13 +2036,13 @@ void main(){
    const automatic=r.autoProposed&&r.status==='pending';
    let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
    let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Proposée par le D20.':h(name(r.from))+' te propose…'):'Réponse attendue : '+h(name(r.awaiting))+'.';
-   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'<div class="oa-actions">'+switchButton(r.awaiting,'Répondre côté '+h(name(r.awaiting)))+'</div>');
+   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'');
   }
   if(state.phase==='sender_confirmation'){
    const responds=G.canRespond(state);
-   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'</div>':'<div class="oa-actions">'+switchButton(r.from,'Confirmer côté '+h(name(r.from)))+'</div>');
+   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'</div>':'');
   }
-  if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+switchButton(r.to);
+  if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+statusStrip('Réponse en attente.');
   if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('to')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll');
   if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+healthGauge('to')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+'</div>');
   if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
@@ -1725,7 +2053,7 @@ void main(){
   return '';
  }
 
- function timeLeft(task){const minutes=Math.max(0,Math.ceil((Date.parse(task.expiresAt)-Date.now())/60000));return Math.floor(minutes/60)+' h '+String(minutes%60).padStart(2,'0');}
+ function timeLeft(task){const minutes=Math.max(0,Math.ceil((Date.parse(task.expiresAt)-serverNow())/60000));return Math.floor(minutes/60)+' h '+String(minutes%60).padStart(2,'0');}
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
   const tasks=state.tasks||[];
@@ -1736,28 +2064,36 @@ void main(){
   const stats=state.stats,total=stats.totalCompleted;
   return '<section class="oa-shared-score" aria-label="Score commun"><p class="oa-eyebrow">VOTRE SCORE À DEUX</p><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section><div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
  }
- function renderUs(){return heading('À notre<br><em>rythme.</em>',null,null)+sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Revoir les règles','rules')+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>';}
+ function notificationSetting(){
+  const n=remote.notificationStatus;
+  return '<section class="oa-notification-setting"><div class="oa-section-head"><h2>Les notifications</h2></div>'+(n.subscribed?'<p class="oa-note">Activées sur cet appareil.</p>':n.supported&&n.permission!=='denied'?btn('Activer les notifications','enable-notifications','oa-secondary'):'')+(n.message?'<p class="oa-note">'+h(n.message)+'</p>':'')+'</section>';
+ }
+ function renderUs(){return sharedScore()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>');}
+
 
  function scheduleExpiry(){
-  clearTimeout(taskExpiryTimer);if(!state.tasks.length)return;
-  const delay=Math.max(0,Math.min(...state.tasks.map(task=>Date.parse(task.expiresAt)))-Date.now());
-  taskExpiryTimer=setTimeout(()=>{const changed=dispatch({type:'EXPIRE_TASKS'},false);if(changed&&!busy&&!pendingChecks.size)render();else scheduleExpiry();},delay);
+  clearTimeout(taskExpiryTimer);if(!state.tasks.length||remoteMode&&!remoteReady)return;
+  const until=Math.min(...state.tasks.map(task=>Date.parse(task.expiresAt)))-serverNow();
+  const delay=remoteMode&&until<=0?10000:Math.max(0,until);
+  taskExpiryTimer=setTimeout(async()=>{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed&&!busy&&!operationBusy&&!pendingChecks.size)render();else scheduleExpiry();},delay);
  }
  function render(){
-  const fresh=G.reduce(state,{type:'EXPIRE_TASKS',at:now()});if(fresh!==state){state=fresh;save();}
+  if(!remoteMode){const fresh=G.reduce(state,{type:'EXPIRE_TASKS',at:now()});if(fresh!==state){state=fresh;save();}}
   const focused=document.activeElement,focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const previousKey=renderKey;
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
-  const key=[tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer].join('|');
+  renderPersona();
+  const key=[remoteMode&&!remoteReady?'login':tab,state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,state.activePlayer].join('|');
   const animate=key!==renderKey;renderKey=key;
-  root.style.setProperty('--oa-accent',(category()||G.categories[1]).color);
-  main.innerHTML=tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
-  root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!(['pending','sender_confirmation'].includes(state.phase)&&state.round.awaiting===el.dataset.player&&state.activePlayer!==el.dataset.player);});
+  root.style.setProperty('--oa-accent',(G.canSeeRound(state)?category():null)?.color||G.categories[1].color);
+  main.innerHTML=remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
+  root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
+  const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
   const holder=main.querySelector('[data-stage]');
   if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(systemReduce);}
-  root.classList.toggle('is-busy',busy);
+  root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   if(animate&&!systemReduce&&main.animate){
    const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
@@ -1789,72 +2125,111 @@ void main(){
  }
  let audioContext;
  function softSound(){if(!state.prefs.sound)return;try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();audioContext.resume();[0,.44,.83].forEach((delay,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),t=audioContext.currentTime+delay;osc.type='sine';osc.frequency.setValueAtTime(155-i*18,t);osc.frequency.exponentialRampToValueAtTime(48,t+.1);gain.gain.setValueAtTime(.055/(i+1),t);gain.gain.exponentialRampToValueAtTime(.001,t+.13);osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+.14);});}catch(_){}}
+ function setControlsBusy(value){
+  root.classList.toggle('is-busy',value);root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"],[data-action="send"],[data-action="challenge"],[data-action="challenge-draft"],[data-action="new"]').forEach(el=>{el.disabled=value;});
+ }
  async function roll(){
-  if(busy||tab!=='play')return;
+  if(busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
+  const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
-  let sides,action,faceValue;
-  if(phase==='category'&&canDraw()){
-   sides=6;faceValue=G.randomInt(6);
-   action={type:'ROLL_CATEGORY',value:faceValue,hand:G.drawHand(state,faceValue)};
-  }
-  else if(phase==='card'&&canDraw()){sides=4;faceValue=G.randomInt(4);action={type:'ROLL_CARD',value:faceValue};}
-  else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;faceValue=G.randomInt(20);action={type:'ROLL_DRAFT_DEFENSE',value:faceValue,token:roundId+'-draft-'+(state.round.draftRolls.length+1)};}
-  else if(phase==='challenge'&&G.canRespond(state)){sides=20;faceValue=G.randomInt(20);action={type:'ROLL_DEFENSE',value:faceValue,token:roundId+'-'+(state.round.rolls.length+1)};}
+  let sides,action,faceValue,next,resultLabel;
+  if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
+  if(phase==='category'&&canDraw()){sides=6;action={type:'ROLL_CATEGORY'};}
+  else if(phase==='card'&&canDraw()){sides=4;action={type:'ROLL_CARD'};}
+  else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;action={type:'ROLL_DRAFT_DEFENSE'};}
+  else if(phase==='challenge'&&G.canRespond(state)){sides=20;action={type:'ROLL_DEFENSE'};}
   else return;
-  const serial=++animationSerial;
-  const next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
-  busy=true;root.classList.add('is-busy');
-  root.querySelectorAll('[data-action="roll"],[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=true;});
-  const button=main.querySelector('[data-action="roll"]');if(button)button.textContent='Le dé roule…';if(button)button.setAttribute('aria-busy','true');
-  state=next;save();softSound();
-  try{await die.roll(faceValue,{duration:systemReduce?0:1650});}catch(error){lastError=String(error);}
-  if(serial!==animationSerial)return;
-  busy=false;
-  root.querySelectorAll('[data-action="profile"],[data-action="tab"],[data-action="rules"],[data-action="accept"]').forEach(el=>{el.disabled=false;});
-  root.classList.remove('is-busy');render();
-  announce('D'+sides+' : '+faceValue+'. '+(sides===6?'Catégorie '+category().label:sides===4?card().title:'Lancer terminé.'));
+  const serial=++animationSerial;busy=true;setControlsBusy(true);
+  const button=main.querySelector('[data-action="roll"]');if(button){button.textContent='Le dé roule…';button.setAttribute('aria-busy','true');}
+  try{
+   if(remoteMode){
+    const value=await remote.action({...action,roundId});
+    if(!value.roll||value.roll.kind!==sides)throw Error('Unconfirmed roll');
+    faceValue=value.roll.value;next=value.state;
+    if(!deferredSnapshot||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
+   }else{
+    faceValue=G.randomInt(sides);action.value=faceValue;
+    if(sides===6)action.hand=G.drawHand(state,faceValue);
+    if(action.type==='ROLL_DRAFT_DEFENSE')action.token=roundId+'-draft-'+(state.round.draftRolls.length+1);
+    if(action.type==='ROLL_DEFENSE')action.token=roundId+'-'+(state.round.rolls.length+1);
+    next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
+    state=next;save();
+   }
+   resultLabel=sides===6?'Catégorie '+(G.getCategory(next.round.categoryId)?.label||G.categories.find(c=>c.number===faceValue)?.label||'tirée') : sides===4?(G.getCard(next.round.cardId)?.title||'Carte tirée.'):'Lancer terminé.';
+   softSound();await die.roll(faceValue,{duration:systemReduce?0:1650});
+   if(serial===animationSerial)announce('D'+sides+' : '+faceValue+'. '+resultLabel);
+  }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
+  finally{if(serial===animationSerial){busy=false;setControlsBusy(false);if(remoteMode)flushRemote(null,false);render();}}
  }
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;document.body.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const top=sheet.querySelector('button');top&&top.focus();}
  function closeSheet(){sheet.hidden=true;document.body.style.overflow='';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected)lastFocus.focus();lastFocus=null;}
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D6</b><div><h3>La catégorie.</h3><p>Six catégories · une chance sur six chacune.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>La carte.</h3><p>Quatre cartes cachées · une chance sur quatre. Les derniers tirages sont évités.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-odds-table"><span>PV</span><span>Chance sur 2 jets</span>'+[10,15,20,25,30,35].map(pv=>'<b>'+pv+'</b><span>'+percent(pv)+'</span>').join('')+'</div><div class="oa-rule"><b>∞</b><div><h3>Pas de quota quotidien.</h3><p>Une manche à la fois. Les rôles alternent à chaque tour.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent six heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration. Le score est commun.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D6</b><div><h3>La catégorie.</h3><p>Le dé choisit une des six catégories.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>La carte.</h3><p>Le dé révèle une des quatre cartes cachées.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent six heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
- root.addEventListener('click',event=>{
+ root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
+ root.addEventListener('submit',async event=>{
+  if(!event.target.matches('[data-login-form]'))return;event.preventDefault();if(authBusy||!remote?.enabled)return;
+  const username=root.querySelector('#oa-username'),field=root.querySelector('#oa-password');loginUsername=username.value.trim();const password=field.value;field.value='';authBusy=true;loginError='';render();
+  try{const value=await remote.login(loginUsername,password);flushRemote(value,false);tab='play';}
+  catch(error){loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';}
+  finally{authBusy=false;render();}
+ });
+ root.addEventListener('click',async event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
-  if(busy&&action!=='close')return;
-  if(action==='roll'){roll();return;}
+  if((busy||operationBusy)&&action!=='close')return;
+  if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
+  if(action==='roll'){await roll();return;}
   if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();root.scrollIntoView({block:'start',behavior:systemReduce?'instant':'smooth'});return;}
-  if(action==='profile'){tab=tab==='tasks'?'tasks':'play';dispatch({type:'SWITCH_PLAYER',player:el.dataset.player});announce('Profil : '+name(state.activePlayer));return;}
-  if(action==='send'){dispatch({type:'SEND'});toast('Proposée à '+name(state.round.to));return;}
-  if(action==='challenge-draft'){dispatch({type:'CHALLENGE_DRAFT'});return;}
-  if(action==='challenge'){dispatch({type:'CHALLENGE'});return;}
-  if(action==='accept'){dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();announce(state.phase==='accepted'?'Proposition acceptée à deux.':'Accord reçu. Confirmation de '+name(state.round.awaiting)+' attendue.');return;}
-  if(action==='new'){gaugeFrames.clear();tab='play';dispatch({type:'NEW_ROUND'});return;}
+  if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
+  if(action==='open-invitation'){if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
+  if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
+  if(action==='challenge-draft'){await dispatch({type:'CHALLENGE_DRAFT'});return;}
+  if(action==='challenge'){await dispatch({type:'CHALLENGE'});return;}
+  if(action==='accept'){const changed=await dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();if(changed)announce(state.phase==='accepted'?'Proposition ajoutée aux choses à faire.':'Confirmation attendue.');return;}
+  if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
+  if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}
   if(action==='rules'){rules();return;}
   if(action==='close'){closeSheet();return;}
-  if(action==='reset-confirm'){openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
-  if(action==='reset'){closeSheet();tab='play';gaugeFrames.clear();dispatch({type:'RESET'});toast('La démonstration repart de zéro.');return;}
+  if(action==='reset-confirm'){if(remoteMode)return;openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
+  if(action==='reset'){if(remoteMode)return;closeSheet();tab='play';gaugeFrames.clear();await dispatch({type:'RESET'});state={...state,activePlayer:viewPlayer};toast('La démonstration repart de zéro.');return;}
  });
  if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
- root.addEventListener('change',event=>{
+ root.addEventListener('change',async event=>{
   const el=event.target;
   if(el.dataset.taskCheck){
-   const id=el.dataset.taskCheck;if(pendingChecks.has(id)){render();return;}
-   const before=state.stats.totalCompleted,changed=dispatch({type:'TOGGLE_TASK_CHECK',taskId:id,checked:el.checked},false);
-   if(!changed){render();return;}
-   pendingChecks.add(id);el.disabled=true;const label=el.closest('label');label.classList.add('is-waving');
-   const completed=state.stats.totalCompleted>before,article=el.closest('.oa-task');
+   const id=el.dataset.taskCheck;if(pendingChecks.has(id)||operationBusy){render();return;}
+   const before=state.stats.totalCompleted,desired=el.checked,task=state.tasks.find(item=>item.id===id);if(!task){render();return;}
+   el.checked=task.checks[viewPlayer];pendingChecks.add(id);el.disabled=true;
+   const changed=await dispatch({type:'TOGGLE_TASK_CHECK',taskId:id,checked:desired},false);
+   if(!changed){pendingChecks.delete(id);flushRemote(null,false);render();return;}
+   const completed=state.stats.totalCompleted>before;
+   if(!completed&&!state.tasks.some(item=>item.id===id)){pendingChecks.delete(id);flushRemote(null,false);render();return;}
+   el.checked=desired;const label=el.closest('label');label.classList.add('is-waving');const article=el.closest('.oa-task');
    if(completed&&!systemReduce&&article.animate)article.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-7px)'}],{duration:180,delay:440,fill:'forwards',easing:'ease-out'});
-   setTimeout(()=>{pendingChecks.delete(id);render();if(completed){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}},systemReduce?0:640);
+   setTimeout(()=>{pendingChecks.delete(id);if(remoteMode)flushRemote(null,false);render();if(completed){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}},systemReduce?0:640);
    return;
   }
-  if(el.dataset.pref){dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
+  if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
- setInterval(()=>{if(!document.hidden&&!busy&&!pendingChecks.size){const changed=dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}},30000);
- document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!busy&&!pendingChecks.size)render();});
+ setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}}},30000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}});
+ window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
  render();
+ if(remoteMode){
+  if(!remote?.enabled){authBusy=false;loginError='La connexion à votre espace n’est pas encore disponible.';render();}
+  else{
+   remote.subscribeToChanges(event=>{
+    if(remote.connection&&!remote.authenticated){remoteReady=false;authBusy=false;loginError=event.status.message;render();return;}
+    if(event.snapshot)receiveRemote(event.snapshot);
+    else if(!authBusy&&!remoteReady&&event.status.message){loginError=event.status.message;render();}
+    if(remoteReady&&tab==='us'&&!busy&&!operationBusy&&!pendingChecks.size)render();
+   });
+   remote.start();
+   remote.restore().then(value=>{if(value)flushRemote(value,false);else remoteReady=false;authBusy=false;render();}).catch(error=>{remoteReady=false;authBusy=false;loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';render();});
+  }
+ }
  root.dataset.ready='true';
 })();
 

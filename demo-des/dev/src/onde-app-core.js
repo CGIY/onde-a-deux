@@ -5,7 +5,7 @@
   const categories = [
     { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
     { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
-    { id: 'projets', number: 3, label: 'Projets', color: '#d0a6c1', icon: 'map', description: 'Imaginer et faire ensemble.' },
+    { id: 'projets', number: 3, label: 'Projets', color: '#8198b4', icon: 'map', description: 'Imaginer et faire ensemble.' },
     { id: 'attention', number: 4, label: 'Attentions', color: '#e3bd8b', icon: 'gift', description: 'Choisir une attention.' },
     { id: 'bouffe', number: 5, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
     { id: 'intimite', number: 6, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
@@ -164,7 +164,7 @@
     bouffe:'Choisissez ensemble ce qui vous fait envie et le budget qui vous convient.',
     intimite:'À réserver à des adultes consentants. Définissez ensemble les limites, le cadre et les conditions de sécurité ; chacun peut dire non ou arrêter à tout moment.'
   };
-  // First-pass discard resistance estimates selected with Clément. Higher PV
+  // First-pass discard resistance estimates selected with the user. Higher PV
   // makes an action harder to discard; these values are independent of consent.
   const resistanceByCard = Object.freeze({
     'new-complicite-01':35,'new-complicite-02':35,'new-complicite-03':35,'new-complicite-04':35,'new-complicite-05':35,'new-complicite-06':35,'new-complicite-07':30,'new-complicite-08':30,'new-complicite-09':35,'new-complicite-10':35,'new-complicite-11':20,
@@ -401,6 +401,20 @@
     return ['pending','challenge','challenge_failed','sender_confirmation'].includes(s.phase) && s.activePlayer===s.round.awaiting;
   }
 
+  // A private draw becomes visible to its recipient only after it was sent.
+  // Older saves can lack sentAt, so their response/accepted phases and the
+  // recipient's own rolls also provide evidence that the invitation existed.
+  function canSeeRound(state, player=state&&state.activePlayer) {
+    if(!state || !state.round || !['a','b'].includes(player)) return false;
+    const round=state.round;
+    if(!['a','b'].includes(round.from) || round.to!==otherPlayer(round.from)) return false;
+    if(player===round.from) return true;
+    if(typeof round.sentAt==='string' && round.sentAt.length>0) return true;
+    if(['pending','challenge','challenge_failed','sender_confirmation','accepted'].includes(state.phase)) return true;
+    if(state.phase==='resolved' && ['completed','expired'].includes(round.status)) return true;
+    return Array.isArray(round.rolls) && round.rolls.length>0;
+  }
+
   const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && Number.isFinite(getCard(s.round.cardId)?.hp);
   const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
@@ -588,7 +602,7 @@
     }
   }
 
-  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canChallengeDraft,canRollDraftDefense};
+  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Dés·ir — à deux",
+  "short_name": "Dés·ir",
+  "description": "Un peu de hasard. Un moment à deux.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#222a24",
+  "theme_color": "#29332b",
+  "icons": [
+    {"src": "./icons/desir-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./icons/desir-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

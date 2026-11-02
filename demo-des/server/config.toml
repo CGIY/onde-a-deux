@@ -1,0 +1,4 @@
+# Opaque 256-bit application sessions are checked inside the handler. They are
+# not Supabase Auth JWTs, so the platform JWT gate must not reject them first.
+[functions.desir-game]
+verify_jwt = false

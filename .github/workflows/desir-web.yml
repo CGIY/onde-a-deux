@@ -1,0 +1,41 @@
+name: Dés·ir — web checks
+
+on:
+  push:
+    paths:
+      - 'demo-des/**'
+      - '.github/workflows/desir-web.yml'
+  pull_request:
+    paths:
+      - 'demo-des/**'
+      - '.github/workflows/desir-web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  game-and-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Game, private worlds, transport and notifications
+        run: |
+          set -e
+          for test in demo-des/dev/tests/*.cjs; do node "$test"; done
+          node demo-des/server/tests/backend-check.mjs
+          node demo-des/server/tests/push-check.mjs
+      - name: Rebuild the connected web release
+        run: |
+          python3 demo-des/dev/tests/onde-build-check.py
+          python3 demo-des/dev/build.py --release
+          git diff --exit-code -- demo-des/index.html demo-des/server/functions/desir-game/core.js
