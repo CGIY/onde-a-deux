@@ -1,0 +1,509 @@
+{
+  "source": {
+    "repository": "CGIY/stck",
+    "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+    "sourcePath": "src/catalog.json",
+    "collectionsPath": "src/collections.json",
+    "url": "https://github.com/CGIY/stck/blob/98119ed48b8af6e868582eeeed0912214e007e9c/src/catalog.json",
+    "adaptationNote": "Les titres et identifiants viennent de STCK. Les descriptions, variantes, durées et PV sont des adaptations ONDE ; STCK ne fournit pas ces champs.",
+    "durationsEstimated": true,
+    "hpProvisional": true,
+    "durationUnit": "minutes"
+  },
+  "existingLinks": [
+    {
+      "ondeId": "det-1",
+      "sourceId": "1-02",
+      "title": "Massage de la tête",
+      "collectionId": "12",
+      "collectionTitle": "Massage",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-02",
+        "title": "Massage de la tête",
+        "collectionId": "12",
+        "collectionTitle": "Massage",
+        "activeInSource": true
+      }
+    },
+    {
+      "ondeId": "tend-1",
+      "sourceId": "5-02",
+      "title": "Câlin (accolade)",
+      "collectionId": "11",
+      "collectionTitle": "Amour",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "5-02",
+        "title": "Câlin (accolade)",
+        "collectionId": "11",
+        "collectionTitle": "Amour",
+        "activeInSource": true
+      }
+    },
+    {
+      "ondeId": "att-1",
+      "sourceId": "1-05",
+      "title": "Mot doux à cacher",
+      "collectionId": "11",
+      "collectionTitle": "Amour",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-05",
+        "title": "Mot doux à cacher",
+        "collectionId": "11",
+        "collectionTitle": "Amour",
+        "activeInSource": true
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "stck-5-01",
+      "categoryId": "intimite",
+      "title": "Bisou avec la langue",
+      "description": "Propose ce baiser et prenez un instant pour choisir ensemble le moment qui vous convient.",
+      "duration": 2,
+      "hp": 18,
+      "variant": "Proposez-vous un baiser bref, à votre rythme.",
+      "variantDuration": 1,
+      "sourceId": "5-01",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "5-01",
+        "title": "Bisou avec la langue",
+        "collectionId": "11",
+        "collectionTitle": "Amour",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-5-03",
+      "categoryId": "complicite",
+      "title": "Message d’amour sincère",
+      "description": "Écris à l’autre quelques phrases sincères sur ce que tu apprécies dans votre relation, puis partage ton message.",
+      "duration": 5,
+      "hp": 21,
+      "variant": "Dis ou écris une seule phrase qui te tient à cœur.",
+      "variantDuration": 1,
+      "sourceId": "5-03",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "5-03",
+        "title": "Message d’amour sincère",
+        "collectionId": "11",
+        "collectionTitle": "Amour",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-1-03",
+      "categoryId": "detente",
+      "title": "Massage des épaules",
+      "description": "Propose un massage des épaules pendant dix minutes. La personne qui le reçoit indique les gestes et la pression qui lui conviennent.",
+      "duration": 10,
+      "hp": 25,
+      "variant": "Masse les épaules pendant trois minutes, avec la pression choisie ensemble.",
+      "variantDuration": 3,
+      "sourceId": "1-03",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-03",
+        "title": "Massage des épaules",
+        "collectionId": "12",
+        "collectionTitle": "Massage",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-1-04",
+      "categoryId": "detente",
+      "title": "Massage des cuisses",
+      "description": "Propose un massage des cuisses. Choisissez une installation confortable et ajustez les gestes et la pression aux préférences de la personne qui reçoit.",
+      "duration": 8,
+      "hp": 25,
+      "variant": "Propose un massage de trois minutes sur une zone choisie ensemble.",
+      "variantDuration": 3,
+      "sourceId": "1-04",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-04",
+        "title": "Massage des cuisses",
+        "collectionId": "12",
+        "collectionTitle": "Massage",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-1-07",
+      "categoryId": "detente",
+      "title": "Massage total",
+      "description": "Propose vingt minutes de massage en passant entre les zones choisies ensemble. La personne qui reçoit guide la pression et peut demander une pause.",
+      "duration": 20,
+      "hp": 35,
+      "variant": "Choisissez une seule zone confortable pour cinq minutes de massage.",
+      "variantDuration": 5,
+      "sourceId": "1-07",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-07",
+        "title": "Massage total",
+        "collectionId": "12",
+        "collectionTitle": "Massage",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-9-01",
+      "categoryId": "attention",
+      "title": "Pose de vernis",
+      "description": "Propose de poser du vernis à l’autre. Choisissez une couleur parmi celles disponibles et installez-vous confortablement pour prendre votre temps.",
+      "duration": 20,
+      "hp": 25,
+      "variant": "Choisissez ensemble une couleur pour une prochaine pose.",
+      "variantDuration": 3,
+      "sourceId": "9-01",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "9-01",
+        "title": "Pose de vernis",
+        "collectionId": "13",
+        "collectionTitle": "Soin",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-9-02",
+      "categoryId": "detente",
+      "title": "Masque (soin)",
+      "description": "Prévoyez une pause avec un masque de soin que vous utilisez déjà. Installez-vous ensemble et suivez le temps indiqué sur le produit.",
+      "duration": 15,
+      "hp": 21,
+      "variant": "Prenez cinq minutes pour un soin habituel, sans ajouter de produit nouveau.",
+      "variantDuration": 5,
+      "sourceId": "9-02",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "9-02",
+        "title": "Masque (soin)",
+        "collectionId": "13",
+        "collectionTitle": "Soin",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-1-06",
+      "categoryId": "attention",
+      "title": "Soin complet du visage",
+      "description": "Prépare un moment de soin du visage avec les produits habituels de l’autre. Laisse la personne choisir les étapes et propose ton aide.",
+      "duration": 20,
+      "hp": 30,
+      "variant": "Propose ton aide pour une seule étape de son soin habituel.",
+      "variantDuration": 5,
+      "sourceId": "1-06",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-06",
+        "title": "Soin complet du visage",
+        "collectionId": "13",
+        "collectionTitle": "Soin",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-1-08",
+      "categoryId": "tendresse",
+      "title": "Soirée complète de soin",
+      "description": "Prévoyez une soirée de soin à deux avec ce que vous avez déjà : visage, mains ou vernis. Choisissez vos soins et prenez soin l’un de l’autre.",
+      "duration": 45,
+      "hp": 35,
+      "variant": "Choisissez un seul soin à partager pendant dix minutes.",
+      "variantDuration": 10,
+      "sourceId": "1-08",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "1-08",
+        "title": "Soirée complète de soin",
+        "collectionId": "13",
+        "collectionTitle": "Soin",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-02",
+      "categoryId": "complicite",
+      "title": "Burger",
+      "description": "Prévoyez un repas burger à deux. Choisissez ensemble les garnitures et le moment, puis partagez le repas tranquillement.",
+      "duration": 30,
+      "hp": 25,
+      "variant": "Choisissez les garnitures et une date pour ce repas.",
+      "variantDuration": 3,
+      "sourceId": "2-02",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-02",
+        "title": "Burger",
+        "collectionId": "14",
+        "collectionTitle": "Fast Food",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-09",
+      "categoryId": "complicite",
+      "title": "Pizza",
+      "description": "Prévoyez un repas pizza à deux. Choisissez une garniture commune ou chacun la sienne, puis installez-vous pour partager ce moment.",
+      "duration": 30,
+      "hp": 25,
+      "variant": "Choisissez ensemble la garniture de votre prochaine pizza.",
+      "variantDuration": 3,
+      "sourceId": "2-09",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-09",
+        "title": "Pizza",
+        "collectionId": "14",
+        "collectionTitle": "Fast Food",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-10",
+      "categoryId": "decouverte",
+      "title": "Sushi",
+      "description": "Prévoyez un repas sushi à deux. Choisissez ensemble ce que vous aimeriez goûter et prenez le temps de découvrir vos préférences.",
+      "duration": 30,
+      "hp": 25,
+      "variant": "Choisissez chacun une saveur pour un prochain repas sushi.",
+      "variantDuration": 3,
+      "sourceId": "2-10",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-10",
+        "title": "Sushi",
+        "collectionId": "14",
+        "collectionTitle": "Fast Food",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-11",
+      "categoryId": "complicite",
+      "title": "Kébab",
+      "description": "Prévoyez une pause kébab à deux. Choisissez ensemble le moment et profitez du repas pour vous retrouver.",
+      "duration": 25,
+      "hp": 21,
+      "variant": "Choisissez un moment pour votre prochaine pause kébab.",
+      "variantDuration": 2,
+      "sourceId": "2-11",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-11",
+        "title": "Kébab",
+        "collectionId": "14",
+        "collectionTitle": "Fast Food",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-03",
+      "categoryId": "decouverte",
+      "title": "Faire un cake",
+      "description": "Préparez un cake ensemble avec une recette choisie à deux. Répartissez les étapes et gardez un moment pour le goûter une fois prêt.",
+      "duration": 60,
+      "hp": 30,
+      "variant": "Choisissez une recette de cake et répartissez les étapes pour une autre fois.",
+      "variantDuration": 5,
+      "sourceId": "2-03",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-03",
+        "title": "Faire un cake",
+        "collectionId": "15",
+        "collectionTitle": "Pâtissier",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-12",
+      "categoryId": "decouverte",
+      "title": "Faire des cookies",
+      "description": "Préparez une petite fournée de cookies ensemble. Choisissez les ajouts, partagez les étapes et goûtez votre préparation une fois prête.",
+      "duration": 30,
+      "hp": 25,
+      "variant": "Choisissez une recette et les ajouts de votre prochaine fournée.",
+      "variantDuration": 3,
+      "sourceId": "2-12",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-12",
+        "title": "Faire des cookies",
+        "collectionId": "15",
+        "collectionTitle": "Pâtissier",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-13",
+      "categoryId": "decouverte",
+      "title": "Faire des crêpes",
+      "description": "Préparez des crêpes à deux. Alternez les étapes et choisissez chacun une garniture à faire découvrir à l’autre.",
+      "duration": 30,
+      "hp": 25,
+      "variant": "Choisissez chacun une garniture pour une prochaine tournée de crêpes.",
+      "variantDuration": 3,
+      "sourceId": "2-13",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-13",
+        "title": "Faire des crêpes",
+        "collectionId": "15",
+        "collectionTitle": "Pâtissier",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-9-03",
+      "categoryId": "decouverte",
+      "title": "Faire une tarte",
+      "description": "Préparez une tarte ensemble avec les ingrédients disponibles. Choisissez la recette et répartissez la préparation.",
+      "duration": 50,
+      "hp": 30,
+      "variant": "Choisissez la recette de votre prochaine tarte et notez les ingrédients nécessaires.",
+      "variantDuration": 5,
+      "sourceId": "9-03",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "9-03",
+        "title": "Faire une tarte",
+        "collectionId": "15",
+        "collectionTitle": "Pâtissier",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-05",
+      "categoryId": "attention",
+      "title": "Petit-déjeuner sur canapé",
+      "description": "Prépare un petit-déjeuner à partager sur le canapé, avec ce que vous aimez et ce que vous avez déjà. Convenez du matin qui vous convient.",
+      "duration": 20,
+      "hp": 21,
+      "variant": "Apporte une boisson et partagez cinq minutes sur le canapé.",
+      "variantDuration": 5,
+      "sourceId": "2-05",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-05",
+        "title": "Petit-déjeuner sur canapé",
+        "collectionId": "16",
+        "collectionTitle": "Canapé",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-9-04",
+      "categoryId": "attention",
+      "title": "Petit goûter sur canapé",
+      "description": "Prépare un petit goûter à partager sur le canapé. Choisissez une collation disponible et faites une pause ensemble.",
+      "duration": 15,
+      "hp": 18,
+      "variant": "Partagez une petite collation pendant cinq minutes.",
+      "variantDuration": 5,
+      "sourceId": "9-04",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "9-04",
+        "title": "Petit goûter sur canapé",
+        "collectionId": "16",
+        "collectionTitle": "Canapé",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-04",
+      "categoryId": "tendresse",
+      "title": "Chocolat du soir et canapé",
+      "description": "Préparez votre chocolat du soir et installez-vous ensemble sur le canapé pour une pause tranquille.",
+      "duration": 15,
+      "hp": 18,
+      "variant": "Partagez cinq minutes sur le canapé avec votre boisson du soir.",
+      "variantDuration": 5,
+      "sourceId": "2-04",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-04",
+        "title": "Chocolat du soir et canapé",
+        "collectionId": "16",
+        "collectionTitle": "Canapé",
+        "activeInSource": true
+      }
+    },
+    {
+      "id": "stck-2-06",
+      "categoryId": "complicite",
+      "title": "Apéro sur canapé",
+      "description": "Prévoyez un apéro sur le canapé avec une boisson de votre choix et de quoi grignoter. Prenez le temps de vous retrouver.",
+      "duration": 20,
+      "hp": 21,
+      "variant": "Partagez une boisson et une courte pause sur le canapé.",
+      "variantDuration": 5,
+      "sourceId": "2-06",
+      "source": {
+        "repository": "CGIY/stck",
+        "commit": "98119ed48b8af6e868582eeeed0912214e007e9c",
+        "sourcePath": "src/catalog.json",
+        "sourceId": "2-06",
+        "title": "Apéro sur canapé",
+        "collectionId": "16",
+        "collectionTitle": "Canapé",
+        "activeInSource": true
+      }
+    }
+  ]
+}
