@@ -455,7 +455,7 @@
 #onde-app-v1 .oa-card-grid.is-revealing .oa-card-back{height:104px;min-height:104px}
 #onde-app-v1 .oa-card-back.oa-card-revealed{border-style:solid;border-color:var(--oa-accent);background:linear-gradient(145deg,color-mix(in srgb,var(--oa-accent) 27%,#2a302b),#2b302d);box-shadow:inset 0 1px #ffffff35,inset 0 -2px 5px #0002}
 #onde-app-v1 .oa-card-revealed .oa-mini-number{background:var(--oa-accent);color:#23332d}
-#onde-app-v1 .oa-reveal-content{position:absolute;inset:0;padding:34px 10px 8px;pointer-events:none;animation:oa-slot-unblur .38s cubic-bezier(.22,1,.36,1) both}
+#onde-app-v1 .oa-reveal-content{position:absolute;inset:0;padding:38px 10px 8px;pointer-events:none;animation:oa-slot-unblur .38s cubic-bezier(.22,1,.36,1) both}
 #onde-app-v1 .oa-reveal-content h3{margin:0;font-size:11px;font-weight:500;line-height:1.3;color:#f8eedf;overflow-wrap:anywhere}
 #onde-app-v1 .oa-reveal-category{display:none}
 #onde-app-v1 .oa-reveal-art{position:absolute;top:6px;right:10px;display:flex;align-items:center;gap:3px;height:23px}
@@ -559,8 +559,8 @@
  #onde-app-v1 .oa-category-label{min-width:0;font-size:11px;line-height:1.25}
  #onde-app-v1 .oa-card-grid{gap:8px;margin-top:8px}
  #onde-app-v1 .oa-card-grid>.oa-mini-card{animation:none}
- #onde-app-v1 .oa-card-back,#onde-app-v1 .oa-card-grid.is-revealing .oa-card-back,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-back{height:clamp(80px,10dvh,104px);min-height:clamp(80px,10dvh,104px);padding:10px}
- #onde-app-v1 .oa-reveal-content,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-discarded{padding:28px 10px 6px}
+ #onde-app-v1 .oa-card-back,#onde-app-v1 .oa-card-grid.is-revealing .oa-card-back,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-back{height:clamp(90px,10dvh,104px);min-height:clamp(90px,10dvh,104px);padding:10px}
+ #onde-app-v1 .oa-reveal-content,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-discarded{padding:38px 10px 6px}
  #onde-app-v1 .oa-card-stage{padding:10px 0 0}
  #onde-app-v1 .oa-playing-card{padding:16px;border-radius:22px}
  #onde-app-v1 .oa-playing-card:before{border-radius:17px}
@@ -597,6 +597,11 @@
  #onde-app-v1 .oa-title{font-size:24px;margin-bottom:6px}
  #onde-app-v1 .oa-section-head{margin-top:12px;margin-bottom:7px}
  #onde-app-v1 .oa-card-illustration{height:30px;margin-bottom:5px}
+ #onde-app-v1 .oa-main:has(>.oa-card-grid){padding-bottom:4px}
+ #onde-app-v1 .oa-main:has(>.oa-card-grid)>.oa-title{font-size:18px;line-height:1.15;margin-bottom:6px}
+ #onde-app-v1 .oa-main:has(>.oa-card-grid)>.oa-dice-section{min-height:260px}
+ #onde-app-v1 .oa-main:has(>.oa-card-grid) .oa-die-caption{min-height:22px}
+ #onde-app-v1 .oa-main:has(>.oa-card-grid)>.oa-card-grid{gap:6px;margin-top:6px}
 }
 </style>
 
