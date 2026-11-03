@@ -282,6 +282,7 @@
 #onde-app-v1 .oa-card-fact>strong{font-size:clamp(22px,6vw,31px);line-height:1.05;letter-spacing:-.05em;color:#f2dfc3;font-variant-numeric:tabular-nums}
 #onde-app-v1 .oa-card-fact b{display:block;font-size:11px;font-weight:600;color:#f0eee7}
 #onde-app-v1 .oa-card-fact p{margin-top:4px;font-size:10px;line-height:1.4;color:#d0d2c9}
+#onde-app-v1 .oa-card-fact>div>p:first-child{margin-top:0}
 #onde-app-v1 .oa-card-fact small{display:block;margin-top:6px;font-size:8px;line-height:1.35;color:#b6bcb0}
 #onde-app-v1 .oa-card-fact a{color:#d4c5a6;text-decoration:underline;text-underline-offset:2px}
 #onde-app-v1 .oa-category-number{color:#f0e8d7}
@@ -462,6 +463,18 @@
 #onde-app-v1 .oa-ghost-title,#onde-app-v1 .oa-ghost-line{display:block;height:9px;margin:6px 18px 0;border-radius:5px;background:#d4d7c4}
 #onde-app-v1 .oa-ghost-title{width:var(--ghost-title);max-width:calc(100% - 36px);opacity:.6}
 #onde-app-v1 .oa-ghost-line{width:58%;height:4px;opacity:.35}
+/* Reveal the chosen slot before leaving the D4 screen. Hidden slots never contain titles. */
+#onde-app-v1 .oa-card-grid.is-revealing .oa-card-back{height:104px;min-height:104px}
+#onde-app-v1 .oa-card-back.oa-card-revealed{border-style:solid;border-color:var(--oa-accent);background:linear-gradient(145deg,color-mix(in srgb,var(--oa-accent) 27%,#2a302b),#2b302d);box-shadow:inset 0 1px #ffffff35,inset 0 -2px 5px #0002}
+#onde-app-v1 .oa-card-revealed .oa-mini-number{background:var(--oa-accent);color:#23332d}
+#onde-app-v1 .oa-reveal-content{position:absolute;inset:0;padding:34px 10px 8px;pointer-events:none;animation:oa-slot-unblur .38s cubic-bezier(.22,1,.36,1) both}
+#onde-app-v1 .oa-reveal-content h3{margin:0;font-size:11px;font-weight:500;line-height:1.3;color:#f8eedf;overflow-wrap:anywhere}
+#onde-app-v1 .oa-reveal-category{display:none}
+#onde-app-v1 .oa-reveal-art{position:absolute;top:6px;right:10px;display:flex;align-items:center;gap:3px;height:23px}
+#onde-app-v1 .oa-reveal-art i{display:block;width:10px;height:15px;border-radius:6px;background:var(--oa-accent);transform:rotate(-22deg);box-shadow:inset 0 1px #ffffff30}
+#onde-app-v1 .oa-reveal-art i:nth-child(2){width:16px;height:22px;background:#d3bba0;transform:rotate(16deg)}
+#onde-app-v1 .oa-reveal-art i:nth-child(3){width:12px;height:18px;transform:rotate(-8deg)}
+@keyframes oa-slot-unblur{from{filter:blur(10px);opacity:.15;transform:scale(1.025)}to{filter:blur(0);opacity:1;transform:scale(1)}}
 /* Separate perspectives: a quiet home until an invitation is sent. */
 #onde-app-v1 .oa-quiet-home{display:grid;place-items:center;gap:15px;min-height:245px;color:#b9c4b0}
 #onde-app-v1 .oa-quiet-home>span{font-size:47px;line-height:1;color:#9aaf9d}
@@ -497,9 +510,12 @@
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-welcome{animation:none}}
 /* Phone app: a bounded screen, one scrolling content area, persistent navigation. */
 @media(max-width:480px),(max-width:1000px) and (max-height:500px){
- html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
+ html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#282725}
  body{padding:0}
  #onde-app-v1{height:100vh;height:var(--oa-viewport-height,100dvh);min-height:0;padding:0;overflow:hidden}
+ /* Installed iOS may report a visual viewport shorter than the full CSS screen. */
+ #onde-app-v1.oa-installed{height:100vh}
+ #onde-app-v1.oa-installed.oa-keyboard{height:var(--oa-viewport-height,100vh)}
  #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 2px max(18px,env(safe-area-inset-left));gap:12px;background:transparent}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
@@ -510,10 +526,11 @@
  #onde-app-v1 .oa-person-name{min-height:28px;padding:4px 10px;font-size:12px;border-radius:16px}
  #onde-app-v1 .oa-switch button{min-height:44px}
  #onde-app-v1 .oa-main{flex:1 1 0;min-height:0;padding:0 max(18px,env(safe-area-inset-right)) 10px max(18px,env(safe-area-inset-left));overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scroll-padding-block:12px;scrollbar-width:thin}
- #onde-app-v1 .oa-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0;padding:3px max(14px,env(safe-area-inset-right)) calc(3px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border-top:1px solid #96938a55;background:#232422;z-index:3}
- #onde-app-v1 .oa-nav button{width:100%;min-width:0;min-height:48px;padding:4px;gap:4px;font-size:11px}
- #onde-app-v1 .oa-nav-icon{width:20px;height:20px}
- #onde-app-v1 .oa-toast{bottom:calc(72px + env(safe-area-inset-bottom));max-width:calc(100% - 32px)}
+ #onde-app-v1 .oa-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0;padding:6px max(14px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border-top:1px solid #96938a55;background:#282725;z-index:3}
+ #onde-app-v1 .oa-nav button{width:100%;min-width:0;min-height:60px;padding:5px 4px;gap:3px;font-size:12px;line-height:1.3;color:#b8beb4}
+ #onde-app-v1 .oa-nav-icon{width:32px;height:32px;stroke-width:1.65;opacity:.85}
+ #onde-app-v1 .oa-nav button[aria-current=page]{color:#e0b8a5}
+ #onde-app-v1 .oa-toast{bottom:calc(86px + env(safe-area-inset-bottom));max-width:calc(100% - 32px)}
  #onde-app-v1 .oa-title{font-size:26px;line-height:1.12;margin:3px 0 8px;letter-spacing:-.035em}
  #onde-app-v1 .oa-subtitle{font-size:12px;line-height:1.45}
  #onde-app-v1 .oa-eyebrow{font-size:9px;line-height:1.45}
@@ -523,6 +540,7 @@
  #onde-app-v1 .oa-stage{height:clamp(238px,30dvh,272px);margin:0 -8px}
  #onde-app-v1 .oa-stage[data-kind="6"]{height:clamp(272px,35dvh,320px)}
  #onde-app-v1 .oa-roll-status{font-size:12px;line-height:1.4;text-align:center;color:var(--oa-muted);margin:2px 0 8px}
+ #onde-app-v1 .oa-roll-status.is-first-reveal{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-eyebrow{margin-bottom:8px}
  #onde-app-v1 .oa-main:has(>.oa-dice-section):not(:has(>.oa-hp))>.oa-title{font-size:20px;line-height:1.2;margin:2px 0 8px}

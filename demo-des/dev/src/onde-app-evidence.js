@@ -242,17 +242,48 @@
     return Object.prototype.hasOwnProperty.call(object, key) ? object[key] : null;
   }
 
-  const active = new Map((scope.OndeEvidenceData || []).map(fact => [fact.cardId, Object.freeze(fact)]));
+  const data = scope.OndeEvidenceData || [];
+  const entries = Array.isArray(data) ? data : data.activeEvidence || [];
+  const unavailable = new Set((data.unavailableEvidence || []).map(entry => entry.cardId));
+  const active = new Map(entries.map(entry => {
+    // Snapshot the injected data: neither a caller nor another script can change a lookup.
+    const variants = (entry.variants || [entry]).map(value => {
+      const flat = Object.assign({}, value, { cardId: entry.cardId });
+      delete flat.variants;
+      return Object.freeze(flat);
+    });
+    return [entry.cardId, Object.freeze(variants)];
+  }));
 
-  function forCard(card) {
+  function variantIndex(context, count) {
+    if (context === '' || context === null || context === undefined) return 0;
+    const value = String(context);
+    const numbered = /^(.*?)(\d+)$/.exec(value);
+    const prefix = numbered ? numbered[1] : value;
+    let hash = 0;
+    for (let i = 0; i < prefix.length; i++) hash = (Math.imul(hash, 31) + prefix.charCodeAt(i)) >>> 0;
+    // Hash the shared context, with a numeric suffix as a round counter. This also
+    // rotates consecutive rounds across digit boundaries (onde-9, onde-10, ...).
+    const counter = numbered ? [...numbered[2]].reduce((n, digit) => (n * 10 + Number(digit)) % count, 0) : 0;
+    return ((hash % count) + counter) % count;
+  }
+
+  function forCard(card, context = '') {
     const id = card && typeof card.id === 'string' ? card.id : '';
-    if (active.has(id)) return Object.assign({}, active.get(id));
+    if (unavailable.has(id)) return null;
+    if (active.has(id)) {
+      const variants = active.get(id);
+      return Object.freeze(Object.assign({}, variants[variantIndex(context, variants.length)]));
+    }
+    // A curated document is an allowlist, including when an old saved card is read.
+    // Flat legacy data keeps its historical compatibility outside curated mode.
+    if (!Array.isArray(data) || id.startsWith('new-')) return null;
     const factKey = ownValue(factByCard, id);
-    if (factKey) return Object.assign({}, facts[factKey]);
+    if (factKey) return Object.freeze(Object.assign({}, facts[factKey]));
 
     const categoryId = card && typeof card.categoryId === 'string' ? card.categoryId : '';
     const fallbackKey = ownValue(fallbackByCard, id) || ownValue(fallbackByCategory, categoryId) || 'general';
-    return {
+    return Object.freeze({
       metric: null,
       headline: 'Un moment à votre façon',
       detail: fallbackText[fallbackKey],
@@ -261,7 +292,7 @@
       sourceTitle: 'Repère ONDE',
       url: null,
       limitations: 'Aucun chiffre spécifique vérifié pour cette proposition.'
-    };
+    });
   }
 
   scope.OndeEvidence = Object.freeze({ forCard });

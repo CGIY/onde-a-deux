@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b201f">
+  <meta name="robots" content="noindex">
+  <title>Les statistiques · Dés·ir</title>
+  <style>
+    :root{color-scheme:dark;--bg:#1b201f;--panel:#252b29;--line:#4e5751;--text:#ede8df;--muted:#b0b5af;--coral:#c59a8b;--slate:#a3b3c5;--noise:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.75' d='M0 0h180v180H0z'/%3E%3C/svg%3E");font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    *{box-sizing:border-box}
+    body{margin:0;min-width:280px;background:radial-gradient(ellipse at 0 0,#4d39312e,transparent 45%),radial-gradient(ellipse at 100% 40%,#38465224,transparent 50%)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:var(--noise);opacity:.12;mix-blend-mode:soft-light;z-index:2}
+    [hidden]{display:none!important}
+    button,input,select{font:inherit}
+    button,a,input,select,summary{touch-action:manipulation}
+    button,a,input,select,summary:focus-visible{outline-offset:4px}
+    :focus-visible{outline:2px solid #e0c0a9;outline-offset:4px}
+    button{cursor:pointer}
+    a{color:#c6d4df;text-underline-offset:4px;overflow-wrap:anywhere}
+    button:disabled,input:disabled,select:disabled{cursor:default;opacity:.5}
+    h1,h2,h3,p{margin:0}
+    .wrap{width:min(1060px,100%);margin:0 auto;padding:40px max(22px,env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+    .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px}
+    .eyebrow{font-size:11px;line-height:1.6;letter-spacing:.15em;color:#c2a295;text-transform:uppercase;margin-bottom:9px}
+    h1{font-size:clamp(27px,4.8vw,40px);font-weight:480;letter-spacing:-1px;line-height:1.15}
+    .intro{max-width:610px;font-size:13px;line-height:1.6;color:var(--muted);margin-top:11px}
+    .review-mark{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:14px;border:1px solid #6b6058;background:#39312d;color:#dbc5b5;box-shadow:inset 0 1px #ffffff12}
+    .review-mark svg{width:22px;height:22px}
+    .overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:22px}
+    .metric{min-width:0;padding:15px 16px;border:1px solid #424c46;border-radius:16px;background:#252c28}
+    .metric strong{display:block;font-size:24px;font-weight:520;font-variant-numeric:tabular-nums;line-height:1.1;color:#e6ddd0}
+    .metric span{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:5px}
+    .metric:last-child{background:#343331;border-color:#555d64}
+    .metric:last-child strong{color:#c5d2df}
+    .filters{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr) minmax(0,1fr);gap:12px;padding:18px;border:1px solid #48514a;border-radius:19px;background:#252b28;box-shadow:inset 0 1px #ffffff08}
+    .field{display:flex;flex-direction:column;gap:7px;min-width:0}
+    .field label{font-size:12px;line-height:1.3;color:#c8c9bf}
+    input[type=search],select{width:100%;min-height:44px;border:1px solid #6c7770;border-radius:11px;background:#1b221e;color:var(--text);padding:10px 12px;font-size:14px}
+    input[type=search]::placeholder{color:#a5aca5;opacity:1}
+    select{padding-right:24px}
+    .result-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 2px;color:var(--muted);font-size:12px;line-height:1.5}
+    .text-button{border:0;border-radius:9px;padding:10px 3px;min-height:44px;background:transparent;color:#d6c1b4;text-decoration:underline;text-underline-offset:4px;font-size:12px}
+    .category{margin-top:17px}
+    .category-heading{display:flex;align-items:baseline;gap:12px;margin:0 1px 13px}
+    .category-heading h2{font-size:17px;font-weight:520;letter-spacing:-.2px;line-height:1.4}
+    .category-heading span{color:var(--muted);font-size:12px}
+    .cards{display:grid;gap:14px}
+    .card{position:relative;overflow:hidden;border:1px solid #48514b;border-radius:21px;background:var(--panel);box-shadow:inset 0 1px #ffffff08}
+    .card:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:var(--noise);opacity:.09;mix-blend-mode:soft-light}
+    .card>*{position:relative}
+    .card-head{padding:20px 20px 16px;border-bottom:1px solid #465048;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+    .card-name{min-width:0}
+    .card h3{font-size:17px;line-height:1.4;font-weight:520;letter-spacing:-.2px;overflow-wrap:anywhere}
+    .card-id{font:10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);margin-top:4px}
+    .availability{flex:none;border:1px solid #626d76;border-radius:20px;background:#303b43;color:#d0dae2;padding:5px 9px;font-size:11px;line-height:1.3;white-space:nowrap}
+    .availability.partial{background:#3d342e;border-color:#7b6251;color:#e1c5ae}
+    .availability.missing{background:#303531;border-color:#647166;color:#cbd3c9}
+    .variant{padding:17px 20px;border-bottom:1px solid #414b44}
+    .variant:last-child{border-bottom:0}
+    .variant.is-discarded .stat-text{color:#b3b6af}
+    .variant.is-discarded .stat-text strong{color:#c0b7ac}
+    .variant-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:10px}
+    .variant-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:11px;color:#aeb9c1}
+    .variant-number{font-variant-numeric:tabular-nums;color:var(--muted)}
+    .keep{display:inline-flex;align-items:center;justify-content:flex-end;gap:9px;min-height:44px;min-width:90px;padding:8px 0 8px 8px;cursor:pointer;color:#dfc5b7;font-size:12px;white-space:nowrap}
+    .keep input{margin:0;width:20px;height:20px;flex:none;accent-color:#c69d8a;cursor:pointer}
+    .stat-text{font-size:16px;line-height:1.65;letter-spacing:-.12px;overflow-wrap:anywhere;color:#f0e9dc;transition:color .15s}
+    .stat-text strong{font-size:23px;font-weight:560;color:#e3b9a4;line-height:1.2;font-variant-numeric:tabular-nums}
+    details{margin-top:11px}
+    summary{cursor:pointer;min-height:44px;padding:12px 0;font-size:12px;color:#c2ced6;line-height:1.6;list-style-position:inside}
+    summary::marker{color:#a0adb9;font-size:10px}
+    .source-body{border-left:2px solid #657c8d;margin:4px 0 2px 3px;padding:3px 0 6px 14px;font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+    .source-body dl{margin:0;display:grid;grid-template-columns:90px minmax(0,1fr);column-gap:14px;row-gap:7px}
+    .source-body dt{color:var(--muted)}
+    .source-body dd{margin:0;color:#deded3;min-width:0}
+    .source-link{display:inline-block;padding:12px 0 4px;min-height:44px}
+    .card-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px;background:#1c242033;color:var(--muted);font-size:11px;line-height:1.5}
+    .card-footer .count{color:#c5ced6;font-variant-numeric:tabular-nums}
+    .missing-body{padding:18px 20px;color:#c6cdc3;font-size:13px;line-height:1.7}
+    .missing-body details{margin-top:8px}
+    .source-list{margin:0;padding-left:18px;color:var(--muted)}
+    .source-list li{padding:5px 0;overflow-wrap:anywhere}
+    .source-list a{display:inline-block;padding:5px 0;min-height:32px}
+    .reason-list{margin:2px 0 8px;padding-left:18px;color:#bac0b7}
+    .reason-list li{margin:6px 0;overflow-wrap:anywhere}
+    .empty,.error{padding:30px 22px;margin:10px 0;border:1px solid #4f5c52;border-radius:18px;background:#252d27;line-height:1.65;color:#c4cbc1;font-size:14px;text-align:center}
+    .error{background:#382f2a;border-color:#8d6a56;color:#e2c7b3}
+    .empty h2,.error h2{font-size:17px;font-weight:500;color:var(--text);margin-bottom:7px}
+    .error .button{display:inline-flex;width:auto;margin-top:15px}
+    .export-bar{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#1b211ff5;border-top:1px solid #556058;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 22px #141a1833}
+    .export-inner{max-width:1060px;margin:0 auto;padding:12px max(22px,env(safe-area-inset-right)) 12px max(22px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .export-count{font-size:13px;line-height:1.45;color:#d1d7d1;font-variant-numeric:tabular-nums}
+    .export-count small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:12px;border:1px solid #c4a38d;background:#c39a85;color:#25221f;padding:12px 16px;font-size:13px;font-weight:550;box-shadow:inset 0 1px #ffffff38;transition:transform .15s,background .15s;text-align:center}
+    .button svg{width:16px;height:16px;flex:none}
+    .button:not(:disabled):active{transform:translateY(1px)}
+    .notice{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom));z-index:6;width:max-content;max-width:calc(100% - 32px);border:1px solid #708078;border-radius:13px;padding:12px 16px;background:#303d35;color:#eeeade;box-shadow:0 8px 24px #0003;font-size:13px;line-height:1.5;text-align:center}
+    .skip{position:fixed;top:8px;left:8px;z-index:10;padding:12px 16px;background:#e4d7bf;color:#23271f;border-radius:8px;transform:translateY(-150%)}
+    .skip:focus{transform:none}
+    .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(min-width:780px){.variant{display:grid;grid-template-columns:150px minmax(0,1fr);column-gap:20px}.variant-head{grid-row:span 2;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:6px;margin:0}.keep{padding-left:0;justify-content:flex-start}.stat-text{padding-top:6px}details{grid-column:2}.category{margin-top:26px}}
+    @media(max-width:620px){input[type=search],select{font-size:16px}.wrap{padding-top:26px}.overview{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{padding:13px 14px}.metric strong{font-size:23px}.filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px;gap:12px}.field:first-child{grid-column:1/-1}.page-head{gap:14px}.review-mark{width:36px;height:36px;border-radius:12px}.card-head{padding:17px 16px 14px}.card h3{font-size:16px}.variant{padding:12px 16px 15px}.stat-text{font-size:15px}.stat-text strong{font-size:22px}.variant-head{margin-bottom:6px}.card-footer,.missing-body{padding-left:16px;padding-right:16px}.source-body dl{grid-template-columns:1fr;gap:2px}.source-body dd{margin-bottom:6px}.source-body{padding-left:11px}.export-inner{gap:10px}.export-count{font-size:12px}.export-count small{font-size:10px}.button{padding:11px 13px;font-size:12px}.export-count{max-width:145px}.intro{font-size:12px}.result-bar{align-items:flex-start}.availability{font-size:10px;padding:5px 8px}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#results">Aller aux cartes</a>
+  <div class="wrap">
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Dés·ir · revue des sources</p>
+        <h1>Les statistiques</h1>
+        <p class="intro">Les absences concernent les sources consultées, sans prouver qu’aucune statistique n’existe ; aucun chiffre de substitution.</p>
+      </div>
+      <div class="review-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="4"/><path d="m8 12 2.5 2.5L16 9"/></svg></div>
+    </header>
+    <section class="overview" aria-label="Ensemble des statistiques">
+      <div class="metric"><strong id="total-cards">—</strong><span>cartes au total</span></div>
+      <div class="metric"><strong id="total-variants">—</strong><span>statistiques disponibles</span></div>
+      <div class="metric"><strong id="incomplete-cards">—</strong><span>cartes à compléter</span></div>
+      <div class="metric"><strong id="kept-variants">—</strong><span>statistiques gardées</span></div>
+    </section>
+    <section class="filters" aria-label="Filtrer les cartes">
+      <div class="field"><label for="search">Rechercher</label><input id="search" type="search" placeholder="Une carte, un sujet, une source…" autocomplete="off" disabled></div>
+      <div class="field"><label for="category">Catégorie</label><select id="category" disabled><option value="">Toutes</option></select></div>
+      <div class="field"><label for="status">État des sources</label><select id="status" disabled><option value="">Tous</option><option value="OK">Complètes · 3 variantes</option><option value="PARTIEL">Partielles · 1–2 variantes</option><option value="INTROUVABLE">Sans statistique</option></select></div>
+    </section>
+    <div class="result-bar"><p id="result-count" role="status">Chargement des sources…</p><button class="text-button" id="clear-filters" type="button" hidden>Effacer les filtres</button></div>
+    <main id="results" aria-busy="true" tabindex="-1"></main>
+    <noscript><p class="error">Active JavaScript pour consulter les sources et enregistrer tes choix.</p></noscript>
+  </div>
+  <footer class="export-bar">
+    <div class="export-inner">
+      <p class="export-count"><span id="export-count">Chargement…</span><small id="save-status">Choix sur cet appareil</small></p>
+      <button class="button" id="export" type="button" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v9m-3-3 3 3 3-3M4 12v3.5h12V12"/></svg>Exporter les choix</button>
+    </div>
+  </footer>
+  <p id="notice" class="notice" role="status" hidden></p>
+  <script>
+  (() => {
+    'use strict';
+    const STORAGE_KEY = 'desir-statistics-review-v1';
+    const DATA_URL = './statistiques.json';
+    const $ = id => document.getElementById(id);
+    const node = (tag, className, text) => {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text !== undefined) el.textContent = String(text);
+      return el;
+    };
+    const fold = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const labels = {complicite:'Complicité',detente:'Détente',projets:'Projets',attention:'Attentions',attentions:'Attentions',bouffe:'Bouffe',intimite:'Intimité'};
+    const categoryOrder = ['Complicité','Détente','Projets','Attentions','Bouffe','Intimité'];
+    const categoryColors = {'Complicité':'#94adb4','Détente':'#a8b899','Projets':'#9eafc5','Attentions':'#ceb28e','Bouffe':'#cfa18d','Intimité':'#b9a1bf'};
+    const angles = {pratique:'Pratique',appreciation:'Appréciation',benefice:'Bénéfice',envie:'Envie'};
+    const countLabel = (n, singular, plural) => `${n} ${n === 1 ? singular : plural}`;
+    let cards = [], loaded = false, storageAvailable = true, noticeTimer;
+    let choices = new Map();
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+        choices = new Map(Object.entries(stored).filter(([,value]) => typeof value === 'boolean'));
+      }
+    } catch (_) { storageAvailable = false; }
+    if (!storageAvailable) $('save-status').textContent = 'Choix pour cette session';
+
+    function safeLink(value) {
+      try {
+        const url = new URL(String(value));
+        return /^https?:$/.test(url.protocol) ? url.href : null;
+      } catch (_) { return null; }
+    }
+    function link(title, value, className) {
+      const href = safeLink(value);
+      if (!href) return node('span', className, title || 'Lien indisponible');
+      const anchor = node('a', className, title || 'Consulter la source');
+      anchor.href = href;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      return anchor;
+    }
+    function normalize(data) {
+      if (!Array.isArray(data)) throw new Error('invalid-data');
+      const cardIds = new Set(), statKeys = new Set();
+      return data.map((row, index) => {
+        if (!row || typeof row !== 'object' || typeof row.cardId !== 'string' || !row.cardId || cardIds.has(row.cardId) || typeof row.challenge !== 'string' || !Array.isArray(row.variantes)) throw new Error('invalid-data');
+        cardIds.add(row.cardId);
+        const variantes = row.variantes.map(variant => {
+          if (!variant || typeof variant !== 'object' || typeof variant.statKey !== 'string' || !variant.statKey || statKeys.has(variant.statKey) || typeof variant.texte !== 'string') throw new Error('invalid-data');
+          statKeys.add(variant.statKey);
+          return variant;
+        });
+        const categoryRaw = String(row.category || 'Autres');
+        const category = labels[fold(categoryRaw).replace(/^(la |les |l[’'])/, '')] || categoryRaw;
+        const statut = variantes.length === 0 ? 'INTROUVABLE' : variantes.length < 3 ? 'PARTIEL' : 'OK';
+        return {...row, category, variantes, statut, index, searchText:fold([row.challenge,category,...variantes.flatMap(v => [v.texte,v.source,v.population])].join(' '))};
+      });
+    }
+    const isKept = key => choices.get(key) !== false;
+    function saveChoices() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(choices))); }
+      catch (_) {
+        storageAvailable = false;
+        $('save-status').textContent = 'Choix pour cette session';
+      }
+    }
+    function selectedCount(card) { return card.variantes.filter(v => isKept(v.statKey)).length; }
+    function updateCounts() {
+      const available = cards.reduce((n,card) => n + card.variantes.length,0);
+      const kept = cards.reduce((n,card) => n + selectedCount(card),0);
+      $('total-cards').textContent = cards.length;
+      $('total-variants').textContent = available;
+      $('incomplete-cards').textContent = cards.filter(card => card.variantes.length < 3).length;
+      $('kept-variants').textContent = kept;
+      $('export-count').textContent = countLabel(kept,'statistique gardée','statistiques gardées');
+    }
+    function sourceDetails(variant) {
+      const details = node('details');
+      details.append(node('summary', '', 'Source et méthode'));
+      const body = node('div', 'source-body'), list = node('dl');
+      const fields = [['Source',variant.source],['Année',variant.year],['Population',variant.population],['Confiance',variant.confiance],['Précision',variant.note]];
+      fields.forEach(([label,value]) => {
+        if (value === undefined || value === null || value === '') return;
+        list.append(node('dt','',label),node('dd','',value));
+      });
+      body.append(list,link('Consulter la source ↗',variant.url,'source-link'));
+      details.append(body);
+      return details;
+    }
+    function statText(text) {
+      const paragraph = node('p','stat-text');
+      const match = text.match(/\d+(?:[.,]\d+)?\s*%/);
+      if (!match) { paragraph.textContent = text; return paragraph; }
+      paragraph.append(document.createTextNode(text.slice(0,match.index)),node('strong','',match[0]),document.createTextNode(text.slice(match.index + match[0].length)));
+      return paragraph;
+    }
+    function exclusions(card) {
+      if (!Array.isArray(card.exclusionReasons) || !card.exclusionReasons.length) return null;
+      const details = node('details');
+      details.append(node('summary','','Pistes écartées'));
+      const list = node('ul','reason-list');
+      card.exclusionReasons.forEach(reason => {
+        const text = typeof reason === 'string' ? reason : reason && (reason.reason || reason.message || reason.note);
+        if (text) list.append(node('li','',text));
+      });
+      details.append(list);
+      return details;
+    }
+    function renderCard(card) {
+      const article = node('article','card');
+      const headingId = `card-${card.index}`;
+      article.setAttribute('aria-labelledby',headingId);
+      const head = node('header','card-head'), name = node('div','card-name');
+      const title = node('h3','',card.challenge);
+      title.id = headingId;
+      title.style.color = categoryColors[card.category] || '#d1c5b5';
+      name.append(title,node('p','card-id',card.cardId));
+      const badge = node('span',`availability ${card.statut === 'PARTIEL' ? 'partial' : card.statut === 'INTROUVABLE' ? 'missing' : ''}`,card.statut === 'INTROUVABLE' ? 'Sans statistique' : `${card.variantes.length}/3 variantes`);
+      head.append(name,badge);
+      article.append(head);
+      if (!card.variantes.length) {
+        const body = node('div','missing-body');
+        body.append(node('p','',card.reason || 'Aucun chiffre suffisamment solide dans les sources consultées.'));
+        const sources = Array.isArray(card.sources_consultees_si_introuvable) ? card.sources_consultees_si_introuvable : [];
+        if (sources.length) {
+          const details = node('details'), list = node('ul','source-list');
+          details.append(node('summary','',countLabel(sources.length,'source consultée','sources consultées')));
+          sources.forEach(source => {
+            const item = node('li');
+            item.append(link(source.title || 'Source consultée',source.url));
+            list.append(item);
+          });
+          details.append(list);
+          body.append(details);
+        }
+        const excluded = exclusions(card);
+        if (excluded) body.append(excluded);
+        article.append(body);
+        return article;
+      }
+      const variants = node('div','variants');
+      const footerCount = node('span','count');
+      const refreshCardCount = () => { footerCount.textContent = `${selectedCount(card)} gardée${selectedCount(card) > 1 ? 's' : ''} / ${card.variantes.length}`; };
+      card.variantes.forEach((variant,index) => {
+        const item = node('section',`variant${isKept(variant.statKey) ? '' : ' is-discarded'}`);
+        item.setAttribute('aria-label',`Variante ${index + 1}`);
+        const top = node('div','variant-head'), meta = node('div','variant-meta');
+        meta.append(node('span','variant-number',`Variante ${index + 1}`),node('span','',angles[variant.angle] || variant.angle || 'Statistique'));
+        const keep = node('label','keep'), checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = isKept(variant.statKey);
+        checkbox.setAttribute('aria-label',`Garder la variante ${index + 1} : ${card.challenge}`);
+        checkbox.addEventListener('change',() => {
+          choices.set(variant.statKey,checkbox.checked);
+          item.classList.toggle('is-discarded',!checkbox.checked);
+          saveChoices();
+          refreshCardCount();
+          updateCounts();
+        });
+        keep.append(checkbox,node('span','','Garder'));
+        top.append(meta,keep);
+        item.append(top,statText(variant.texte),sourceDetails(variant));
+        variants.append(item);
+      });
+      article.append(variants);
+      const footer = node('div','card-footer');
+      footer.append(node('span','',card.variantes.length < 3 ? `${3 - card.variantes.length} variante${card.variantes.length === 1 ? 's' : ''} manquante${card.variantes.length === 1 ? 's' : ''}` : countLabel(card.variantes.length,'statistique disponible','statistiques disponibles')),footerCount);
+      refreshCardCount();
+      article.append(footer);
+      const excluded = exclusions(card);
+      if (excluded) {
+        const body = node('div','missing-body');
+        body.append(excluded);
+        article.append(body);
+      }
+      return article;
+    }
+    function render() {
+      if (!loaded) return;
+      const query = fold($('search').value).trim(), category = $('category').value, status = $('status').value;
+      const visible = cards.filter(card => (!query || card.searchText.includes(query)) && (!category || card.category === category) && (!status || card.statut === status));
+      const fragment = document.createDocumentFragment();
+      const groups = new Map();
+      visible.forEach(card => {
+        if (!groups.has(card.category)) groups.set(card.category,[]);
+        groups.get(card.category).push(card);
+      });
+      [...groups].sort(([a],[b]) => {
+        const ai = categoryOrder.indexOf(a), bi = categoryOrder.indexOf(b);
+        return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b,'fr');
+      }).forEach(([category,rows]) => {
+        const section = node('section','category'), head = node('div','category-heading');
+        const title = node('h2','',category);
+        title.id = `category-${rows[0].index}`;
+        section.setAttribute('aria-labelledby',title.id);
+        head.append(title,node('span','',countLabel(rows.length,'carte','cartes')));
+        const list = node('div','cards');
+        rows.forEach(card => list.append(renderCard(card)));
+        section.append(head,list);
+        fragment.append(section);
+      });
+      if (!visible.length) {
+        const empty = node('section','empty');
+        empty.append(node('h2','',cards.length ? 'Aucune carte ne correspond.' : 'Aucune carte à examiner.'),node('p','',cards.length ? 'Ajuste la recherche ou les filtres.' : 'Le fichier des statistiques est vide.'));
+        fragment.append(empty);
+      }
+      $('results').replaceChildren(fragment);
+      const total = visible.reduce((n,card) => n + card.variantes.length,0);
+      $('result-count').textContent = `${countLabel(visible.length,'carte affichée','cartes affichées')} · ${countLabel(total,'statistique disponible','statistiques disponibles')}`;
+      $('clear-filters').hidden = !query && !category && !status;
+    }
+    async function loadData() {
+      loaded = false;
+      $('results').setAttribute('aria-busy','true');
+      $('result-count').textContent = 'Chargement des sources…';
+      $('results').replaceChildren();
+      $('export').disabled = true;
+      [$('search'),$('category'),$('status')].forEach(control => { control.disabled = true; });
+      try {
+        const response = await fetch(DATA_URL,{cache:'no-store',credentials:'omit'});
+        if (!response.ok) throw new Error('unavailable');
+        cards = normalize(await response.json());
+        const options = new Set(cards.map(card => card.category));
+        $('category').replaceChildren(new Option('Toutes',''));
+        [...options].sort((a,b) => a.localeCompare(b,'fr')).forEach(category => $('category').append(new Option(category,category)));
+        loaded = true;
+        [$('search'),$('category'),$('status'),$('export')].forEach(control => { control.disabled = false; });
+        updateCounts();
+        render();
+      } catch (_) {
+        const error = node('section','error');
+        error.append(node('h2','','Les statistiques ne sont pas disponibles.'),node('p','','Le fichier des sources n’a pas pu être chargé.'));
+        const retry = node('button','button','Réessayer');
+        retry.type = 'button';
+        retry.addEventListener('click',loadData,{once:true});
+        error.append(retry);
+        $('results').replaceChildren(error);
+        $('result-count').textContent = 'Sources indisponibles';
+        $('export-count').textContent = 'Sources indisponibles';
+      } finally {
+        $('results').setAttribute('aria-busy','false');
+      }
+    }
+    function exportChoices() {
+      if (!loaded) return;
+      const allChoices = cards.flatMap(card => card.variantes.map(variant => ({cardId:card.cardId,statKey:variant.statKey,garder:isKept(variant.statKey)})));
+      const payload = {
+        schemaVersion:1,
+        exportedAt:new Date().toISOString(),
+        summary:{cards:cards.length,available:allChoices.length,kept:allChoices.filter(choice => choice.garder).length},
+        choices:allChoices
+      };
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2) + '\n'],{type:'application/json;charset=utf-8'}));
+      const anchor = node('a');
+      anchor.href = url;
+      anchor.download = `desir-statistiques-choix-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url),1000);
+      clearTimeout(noticeTimer);
+      $('notice').textContent = 'Choix exportés.';
+      $('notice').hidden = false;
+      noticeTimer = setTimeout(() => { $('notice').hidden = true; },3000);
+    }
+    $('search').addEventListener('input',render);
+    $('category').addEventListener('change',render);
+    $('status').addEventListener('change',render);
+    $('clear-filters').addEventListener('click',() => { $('search').value = ''; $('category').value = ''; $('status').value = ''; render(); });
+    $('export').addEventListener('click',exportChoices);
+    loadData();
+  })();
+  </script>
+</body>
+</html>

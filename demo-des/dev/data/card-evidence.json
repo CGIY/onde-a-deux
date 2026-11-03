@@ -1,1062 +1,2482 @@
 {
-  "version": "2026-11-02-build6",
-  "purpose": "88 résultats distincts. Les métriques décrivent le résultat de la source; les limites précisent quand le lien avec la carte est indirect.",
+  "version": "2026-11-03-curation-1",
+  "purpose": "Repères directement liés à l’activité, sans substitution thématique ; une à trois variantes vérifiées ou absence documentée. Une couverture partielle reste partielle.",
   "activeEvidence": [
     {
-      "cardId": "new-attention-01",
-      "metric": "56 %",
-      "headline": "Prendre soin de ce qui circule",
-      "detail": "Des vendeurs disent mieux prendre soin de leurs articles en pensant aux futurs acheteurs.",
-      "scope": "Enquête Vinted · activité 2025, plus de 64 000 membres.",
-      "limitations": "Déclaration de vendeurs ; ne mesure ni un bénéfice personnel ni un prix d’achat.",
-      "year": 2025,
-      "sourceTitle": "Vinted · Impact Report 2025",
-      "url": "https://company.vinted.com/sustainability",
-      "statKey": "vinted2025:sellers-better-care"
-    },
-    {
-      "cardId": "new-attention-02",
-      "metric": "76 %",
-      "headline": "Une seconde vie plutôt que du neuf",
-      "detail": "Part des commandes Vinted qui auraient évité l’achat d’un article neuf.",
-      "scope": "Enquête Vinted · activité 2025.",
-      "limitations": "Déclarations et modèle de la plateforme ; aucun gain garanti pour un achat précis.",
-      "year": 2025,
-      "sourceTitle": "Vinted · Impact Report 2025",
-      "url": "https://company.vinted.com/sustainability",
-      "statKey": "vinted2025:replacement-rate"
-    },
-    {
-      "cardId": "new-attention-03",
-      "metric": "89 %",
-      "headline": "Une petite attention compte",
-      "detail": "Des répondants disaient que faire preuve de gentillesse envers quelqu’un les faisait se sentir mieux, même un peu.",
-      "scope": "APA–Morning Consult · 2 210 adultes américains, octobre 2023.",
-      "limitations": "Ressenti déclaré sur les gestes de gentillesse ; pas une mesure du café ni de Columbus.",
-      "year": 2023,
-      "sourceTitle": "American Psychiatric Association · Healthy Minds Poll",
-      "url": "https://www.psychiatry.org/News-room/News-Releases/New-Poll-Small-Acts-of-Kindness-Benefits",
-      "statKey": "apa2023:giving-kindness-feel-better"
-    },
-    {
-      "cardId": "new-attention-04",
-      "metric": "15 %",
-      "headline": "S’évader dans une histoire",
-      "detail": "Des lecteurs citent l’évasion et l’imagination comme leur plaisir préféré de la lecture.",
-      "scope": "Pew Research Center · États-Unis, lecteurs de livres de 16 ans et plus, enquête 2011.",
-      "limitations": "Réponse spontanée sur le plaisir préféré ; ni taux d’efficacité ni effet d’un roman précis.",
-      "year": 2012,
-      "sourceTitle": "Pew Research Center · The joy of reading",
-      "url": "https://www.pewresearch.org/internet/2012/04/04/part-2-the-general-reading-habits-of-americans/",
-      "statKey": "pew2012:reading-escape-favorite"
-    },
-    {
-      "cardId": "new-attention-05",
-      "metric": "68 %",
-      "headline": "Jouer pour souffler",
-      "detail": "Des joueurs adultes disent jouer aux jeux vidéo pour se détendre.",
-      "scope": "ESA–YouGov · États-Unis, rapport 2024 ; enquête de 5 000 répondants.",
-      "limitations": "Motivation déclarée par les joueurs adultes ; enquête sectorielle, pas un effet thérapeutique.",
-      "year": 2024,
-      "sourceTitle": "ESA · Essential Facts 2024",
-      "url": "https://www.theesa.com/video-games-remain-lifelong-source-of-entertainment-for-190-6-million-americans/",
-      "statKey": "esa2024:adult-players-relax-motivation"
-    },
-    {
-      "cardId": "new-attention-06",
-      "metric": "12 %",
-      "headline": "Un moment calme pour soi",
-      "detail": "Des lecteurs citent la détente et le calme comme leur plaisir préféré de la lecture.",
-      "scope": "Pew Research Center · États-Unis, lecteurs de livres de 16 ans et plus, enquête 2011.",
-      "limitations": "Réponse spontanée ; romans graphiques non isolés, sans effet de santé mesuré.",
-      "year": 2012,
-      "sourceTitle": "Pew Research Center · The joy of reading",
-      "url": "https://www.pewresearch.org/internet/2012/04/04/part-2-the-general-reading-habits-of-americans/",
-      "statKey": "pew2012:reading-relaxation-favorite"
-    },
-    {
-      "cardId": "new-attention-07",
-      "metric": "26 %",
-      "headline": "Découvrir d’autres univers",
-      "detail": "Des lecteurs citent l’apprentissage et la découverte comme leur plaisir préféré de la lecture.",
-      "scope": "Pew Research Center · États-Unis, lecteurs de livres de 16 ans et plus, enquête 2011.",
-      "limitations": "Réponse spontanée ; mangas non isolés, aucun gain cognitif chiffré dans cette question.",
-      "year": 2012,
-      "sourceTitle": "Pew Research Center · The joy of reading",
-      "url": "https://www.pewresearch.org/internet/2012/04/04/part-2-the-general-reading-habits-of-americans/",
-      "statKey": "pew2012:reading-learning-favorite"
-    },
-    {
-      "cardId": "new-attention-08",
-      "metric": "32,2 %",
-      "headline": "Un plaisir qui traverse les âges",
-      "detail": "Dans une cohorte française, près d’un tiers des participants jouaient régulièrement à des jeux de société.",
-      "scope": "PAQUID · 3 675 personnes de 65 ans et plus.",
-      "limitations": "Fréquence déclarée ; cartes et plateaux regroupés, sans bénéfice individuel promis.",
-      "year": 2013,
-      "sourceTitle": "Dartigues et al. · BMJ Open",
-      "url": "https://bmjopen.bmj.com/content/bmjopen/3/8/e002998.full.pdf",
-      "statKey": "dartigues2013:regular-playing-prevalence"
-    },
-    {
-      "cardId": "new-attention-09",
-      "metric": "67 %",
-      "headline": "Le plaisir d’offrir",
-      "detail": "Des adultes interrogés avaient davantage apprécié offrir des cadeaux qu’en recevoir pendant les fêtes.",
-      "scope": "YouGov · 5 302 adultes américains, 4 janvier 2018.",
-      "limitations": "Préférence déclarée pendant les fêtes ; aucun jeu de plateau ni budget précis étudiés.",
-      "year": 2018,
-      "sourceTitle": "YouGov · Giving or receiving presents",
-      "url": "https://yougov.com/en-us/daily-results/20180104-c4904-1",
-      "statKey": "yougov2018:enjoyed-giving-more-than-receiving"
-    },
-    {
-      "cardId": "new-attention-10",
-      "metric": "44,9 %",
-      "headline": "La curiosité pour les jouets",
-      "detail": "L’usage d’un vibromasseur ou dildo était assez ou très attirant pour 44,9 % des répondants.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Attrait déclaré ; aucune marque ni taille de budget étudiée.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-vibrator"
-    },
-    {
-      "cardId": "new-attention-11",
-      "metric": "35,8 %",
-      "headline": "Trouver son mouvement",
-      "detail": "Des femmes avaient utilisé un jouet avec un mouvement de frottement clitoridien pour augmenter leur plaisir pendant la pénétration.",
-      "scope": "États-Unis · 2 844 réponses adultes à cet item.",
-      "limitations": "Technique déclarée ; aucune marque, aucun budget ni bénéfice universel étudiés.",
-      "year": 2021,
-      "sourceTitle": "Hensel et al. · PLOS ONE",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8046227/",
-      "statKey": "hensel2021:rocking-sex-toy"
-    },
-    {
-      "cardId": "new-attention-12",
-      "metric": "59,8 %",
-      "headline": "Se sentir désirable à sa façon",
-      "detail": "La lingerie était assez ou très attirante pour 59,8 % des répondants.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Attrait déclaré ; aucun bénéfice attribué à Rouge Gorge.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-lingerie"
-    },
-    {
-      "cardId": "new-attention-13",
-      "metric": "90 %",
-      "headline": "Recevoir une attention fait du bien",
-      "detail": "Des répondants disaient que recevoir un geste de gentillesse les faisait se sentir mieux, même un peu.",
-      "scope": "APA–Morning Consult · 2 210 adultes américains, octobre 2023.",
-      "limitations": "Ressenti déclaré ; ni effet causal ni bénéfice spécifique d’un achat chez Monoprix.",
-      "year": 2023,
-      "sourceTitle": "American Psychiatric Association · Healthy Minds Poll",
-      "url": "https://www.psychiatry.org/News-room/News-Releases/New-Poll-Small-Acts-of-Kindness-Benefits",
-      "statKey": "apa2023:receiving-kindness-feel-better"
-    },
-    {
-      "cardId": "new-attention-14",
-      "metric": "78 %",
-      "headline": "Le plaisir d’être généreux",
-      "detail": "Des adultes disaient que penser à l’échange des cadeaux de fêtes les faisait se sentir généreux.",
-      "scope": "Pew Research Center · 1 507 adultes américains, décembre 2014.",
-      "limitations": "Sentiment anticipé ; aucun bénéfice démontré d’une marque ou d’un montant d’achat.",
-      "year": 2014,
-      "sourceTitle": "Pew Research Center · Feelings about gift-giving",
-      "url": "https://www.pewresearch.org/religion/2014/12/15/most-say-religious-holiday-displays-should-be-allowed-on-public-property/",
-      "statKey": "pew2014:gifting-generosity"
-    },
-    {
-      "cardId": "new-attention-15",
-      "metric": "86 %",
-      "headline": "L’attention dépasse le prix",
-      "detail": "Des adultes estimaient qu’un cadeau peut avoir du sens sans être cher.",
-      "scope": "Empower · 2 202 adultes américains, août 2025, enquête pondérée.",
-      "limitations": "Opinion déclarée dans une enquête commanditée ; aucun budget idéal ni bénéfice propre à Monoprix.",
-      "year": 2025,
-      "sourceTitle": "Empower · Going Rate study",
-      "url": "https://www.empower.com/the-currency/money/going-rate-research",
-      "statKey": "empower2025:meaningful-gifts-not-expensive"
-    },
-    {
-      "cardId": "new-bouffe-01",
-      "metric": "76,4 %",
-      "headline": "Un repas rapproche",
-      "detail": "Le repas partagé était vu comme un bon moyen de rapprocher les gens.",
-      "scope": "Royaume-Uni · 2 000 adultes.",
-      "limitations": "Opinion déclarée ; ne porte pas spécifiquement sur le burger.",
-      "year": 2017,
-      "sourceTitle": "Dunbar · Breaking Bread",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
-      "statKey": "dunbar2017:meal-brings-closer"
-    },
-    {
-      "cardId": "new-bouffe-02",
-      "metric": "93 %",
-      "headline": "Le plaisir de manger ensemble",
-      "detail": "Les répondants partageaient au moins parfois un repas avec famille ou amis.",
-      "scope": "Royaume-Uni · 2 000 adultes.",
-      "limitations": "Pratique déclarée ; ne mesure pas l’effet de la pizza.",
-      "year": 2017,
-      "sourceTitle": "Dunbar · Breaking Bread",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
-      "statKey": "dunbar2017:social-meal-prevalence"
-    },
-    {
-      "cardId": "new-bouffe-03",
-      "metric": "51,5 %",
-      "headline": "Les souvenirs à table",
-      "detail": "Des derniers dîners rapportés comprenaient des souvenirs partagés, associés à davantage de proximité ressentie.",
-      "scope": "Royaume-Uni · enquête auprès de 2 000 adultes, tableau 2.",
-      "limitations": "Le taux décrit les souvenirs dans ces dîners ; ce n’est pas un bénéfice du sushi.",
-      "year": 2017,
-      "sourceTitle": "Dunbar · Breaking Bread",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
-      "statKey": "dunbar2017:dinner-reminiscence-frequency"
-    },
-    {
-      "cardId": "new-bouffe-04",
-      "metric": "67,9 %",
-      "headline": "Un repas avec des rires",
-      "detail": "Des derniers dîners rapportés comportaient des rires, associés à davantage de proximité ressentie.",
-      "scope": "Royaume-Uni · enquête auprès de 2 000 adultes, tableau 2.",
-      "limitations": "Le taux décrit la présence de rires ; aucune efficacité du kebab n’a été mesurée.",
-      "year": 2017,
-      "sourceTitle": "Dunbar · Breaking Bread",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
-      "statKey": "dunbar2017:dinner-laughter-frequency"
-    },
-    {
-      "cardId": "new-bouffe-05",
-      "metric": "58 %",
-      "headline": "Le plaisir de cuisiner",
-      "detail": "Dans le monde, 58 % des personnes interrogées disaient avoir apprécié cuisiner durant la semaine écoulée.",
-      "scope": "Gallup–Ajinomoto · World Poll 2022, personnes de 15 ans et plus.",
-      "limitations": "Plaisir déclaré ; aucune recette mexicaine isolée, pas un taux de bénéfice.",
-      "year": 2023,
-      "sourceTitle": "Gallup–Ajinomoto · Wellbeing Through Cooking",
-      "url": "https://www.gallup.com/analytics/544376/cooking-enjoyment-communal-wellbeing.aspx",
-      "statKey": "gallup2022:enjoyed-cooking-past-week"
-    },
-    {
-      "cardId": "new-bouffe-06",
-      "metric": "92 %",
-      "headline": "Prendre goût au fait maison",
-      "detail": "Des personnes ayant terminé un programme de cuisine déclaraient cuisiner davantage.",
-      "scope": "Bags of Taste · rapport d’impact 2024–2025, retours des personnes ayant terminé.",
-      "limitations": "Bilan associatif autodéclaré sans témoin ; aucune recette asiatique isolée, pas un effet garanti d’un repas.",
-      "year": 2025,
-      "sourceTitle": "Bags of Taste · Impact Report 2024–2025",
-      "url": "https://bagsoftaste.org/wp-content/uploads/2025/11/Bags-of-Taste-Impact-Report-2024-2025.pdf",
-      "statKey": "bagsoftaste2025:completers-cook-more"
-    },
-    {
-      "cardId": "new-bouffe-07",
-      "metric": "93 %",
-      "headline": "Cuisiner avec son budget",
-      "detail": "Des personnes ayant terminé le programme avaient identifié des façons de réduire leurs dépenses alimentaires.",
-      "scope": "Bags of Taste · rapport d’impact 2024–2025, retours des personnes ayant terminé.",
-      "limitations": "Bilan associatif sans témoin ; porte sur des ateliers de cuisine à petit budget, pas sur un pays choisi.",
-      "year": 2025,
-      "sourceTitle": "Bags of Taste · Impact Report 2024–2025",
-      "url": "https://bagsoftaste.org/wp-content/uploads/2025/11/Bags-of-Taste-Impact-Report-2024-2025.pdf",
-      "statKey": "bagsoftaste2025:completers-reduce-spending"
-    },
-    {
-      "cardId": "new-bouffe-08",
-      "metric": "91 %",
-      "headline": "On peut prendre confiance",
-      "detail": "Des personnes ayant terminé le programme se disaient plus confiantes en cuisine.",
-      "scope": "Bags of Taste · rapport d’impact 2024–2025, retours des personnes ayant terminé.",
-      "limitations": "Bilan associatif sans témoin ; programme accompagné, pas l’effet d’une seule recette de crêpes.",
-      "year": 2025,
-      "sourceTitle": "Bags of Taste · Impact Report 2024–2025",
-      "url": "https://bagsoftaste.org/wp-content/uploads/2025/11/Bags-of-Taste-Impact-Report-2024-2025.pdf",
-      "statKey": "bagsoftaste2025:completers-more-confident"
-    },
-    {
-      "cardId": "new-bouffe-09",
-      "metric": "3,27 → 3,98 / 5",
-      "headline": "Le plaisir de réussir",
-      "detail": "La confiance dans la réussite de ses plats progressait après le programme.",
-      "scope": "Australie · programme de sept semaines.",
-      "limitations": "Étude non randomisée ; cookies non isolés.",
-      "year": 2022,
-      "sourceTitle": "Rees et al. · Frontiers in Nutrition",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8970183/",
-      "statKey": "rees2022:turn-out-well-confidence"
-    },
-    {
-      "cardId": "new-bouffe-10",
-      "metric": "63 %",
-      "headline": "Apprendre et partager en cuisine",
-      "detail": "Des participants citaient la confiance, la socialisation ou de nouvelles astuces parmi les apports de leurs ateliers.",
-      "scope": "Écosse · évaluation du programme Eat Better Feel Better de six semaines.",
-      "limitations": "Thème de réponses ouvertes ; petit échantillon sans témoin, ni pâtisserie ni effet causal isolés.",
-      "year": 2017,
-      "sourceTitle": "Evaluation of the Eat Better Feel Better Cooking Programme",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5409581/",
-      "statKey": "garcia2017:confidence-socialising-tips-theme"
-    },
-    {
-      "cardId": "new-bouffe-11",
-      "metric": "75 %",
-      "headline": "Se retrouver autour d’une table",
-      "detail": "Trois quarts des répondants estimaient que partager un repas était une bonne façon de revoir quelqu’un.",
-      "scope": "Royaume-Uni · 2 000 adultes.",
-      "limitations": "Opinion déclarée ; aucune boisson alcoolisée nécessaire.",
-      "year": 2017,
-      "sourceTitle": "Dunbar · Breaking Bread",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6979515/",
-      "statKey": "dunbar2017:meal-best-way-to-meet"
-    },
-    {
-      "cardId": "new-bouffe-12",
-      "metric": "+17 mots",
-      "headline": "Une pause chocolat et mémoire",
-      "detail": "Le groupe chocolat noir rappelait 17 mots de plus au total sur sept essais que le groupe chocolat blanc.",
-      "scope": "98 adultes de 18–24 ans · 35 g à 70 %, test après deux heures.",
-      "limitations": "Résultat ponctuel sur la mémoire ; pas sur le chocolat chaud ni l’humeur.",
-      "year": 2020,
-      "sourceTitle": "Lamport et al. · Nutrients",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7071338/",
-      "statKey": "lamport2020:verbal-recall-seven-trials"
-    },
-    {
-      "cardId": "new-complicite-01",
-      "metric": "66 %",
-      "headline": "Une image qui rapproche",
-      "detail": "Des personnes interrogées disent partager des photos pour se sentir plus proches de leurs proches.",
-      "scope": "Sondage Fujifilm / MarketVision · 2 014 adultes aux États-Unis, novembre–décembre 2024.",
-      "limitations": "Enquête commandée par une marque photo ; usage déclaré, sans mesure causale ni étude particulière des selfies à deux.",
-      "year": 2025,
-      "sourceTitle": "Fujifilm / MarketVision · Frame of Mind",
-      "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx",
-      "statKey": "fujifilm2025-photo-sharing-closeness"
-    },
-    {
-      "cardId": "new-complicite-02",
-      "metric": "86,4 %",
-      "headline": "L’envie de s’embrasser",
-      "detail": "86,4 % des répondants jugeaient assez ou très attirant de s’embrasser davantage pendant les rapports.",
-      "scope": "Enquête américaine représentative d’adultes ; 1 959 réponses à cet item.",
-      "limitations": "Intérêt déclaré dans un contexte sexuel, pas bénéfice ni préférence de votre partenaire ; la technique de baiser n’est pas précisée.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017-kissing-appeal"
-    },
-    {
       "cardId": "new-complicite-03",
-      "metric": "87,8 %",
-      "headline": "La place des câlins",
-      "detail": "Se câliner plus souvent était jugé assez ou très attirant par 87,8 % des répondants.",
-      "scope": "Enquête américaine représentative d’adultes ; 1 966 réponses à cet item.",
-      "limitations": "Intérêt déclaré, pas fréquence de pratique ni effet mesuré ; ce chiffre ne présume pas des envies de votre partenaire.",
+      "metric": "52,8 %",
+      "headline": "Câlin",
+      "detail": "52,8 % des adultes interrogés trouvaient très attirante l’idée de faire des câlins plus souvent.",
+      "scope": "Enquête nationale américaine de 2015, adultes de 18 ans ou plus ; 1 966 réponses à cet item.",
+      "limitations": "Attrait déclaré, pas effet causal ; catégorie très attirant seule, sans addition de réponses.",
       "year": 2017,
       "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017-cuddling-appeal"
-    },
-    {
-      "cardId": "new-complicite-04",
-      "metric": "79,6 % → 87 %",
-      "headline": "Faire une place aux mercis",
-      "detail": "Dans le groupe ayant prévu de remercier davantage son partenaire, la part des journées avec un remerciement déclaré est passée de 79,6 % à 87 %.",
-      "scope": "Chang et al. · essai randomisé, 125 couples suivis pendant 5 semaines.",
-      "limitations": "Plan de gratitude répété ; pas un mot caché isolé. Le groupe témoin est passé de 81,9 % à 85,8 %, sans changement significatif.",
-      "year": 2022,
-      "sourceTitle": "Scientific Reports · Implementation intentions to express gratitude",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/",
-      "statKey": "chang2022-gratitude-thanking-days"
-    },
-    {
-      "cardId": "new-complicite-05",
-      "metric": "η²p = 0,05",
-      "headline": "Le plaisir d’une manucure",
-      "detail": "Les émotions positives déclarées étaient plus élevées après une manucure en salon qu’après un soin des ongles réalisé soi-même.",
-      "scope": "334 femmes japonaises ; enquête sur les effets ressentis ; effet de groupe η²p = 0,05.",
-      "limitations": "Association entre groupes, pas essai randomisé ni mesure d’une pose de vernis à deux. η²p exprime une taille d’effet, pas 5 % de bonheur en plus.",
-      "year": 2023,
-      "sourceTitle": "Kawakubo & Oguchi · Frontiers in Psychology",
-      "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1112110/full",
-      "statKey": "kawakubo2023-nail-positive-emotions"
-    },
-    {
-      "cardId": "new-complicite-06",
-      "metric": "53 %",
-      "headline": "Un toucher accueilli positivement",
-      "detail": "Après le programme de massage à deux, 53 % des participants se disaient nettement positifs à l’idée d’échanger ces massages.",
-      "scope": "18 réponses « definitely positive » sur 34 ; trois semaines de programme.",
-      "limitations": "Opinion après une formation, pas effet d’une caresse sous un plaid ; petit échantillon. Les autres réponses étaient probablement positives ou indécises.",
-      "year": 2019,
-      "sourceTitle": "Naruse & Moss · acceptabilité",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/",
-      "statKey": "naruse2019-definitely-positive"
+      "statKey": "herbenick2017-cuddling-veryappealing-total-52.8",
+      "sourceValue": 52.8,
+      "angle": "envie",
+      "confidence": "moyenne — source primaire vérifiée ; population et limites précisées.",
+      "variants": [
+        {
+          "metric": "52,8 %",
+          "headline": "Câlin",
+          "detail": "52,8 % des adultes interrogés trouvaient très attirante l’idée de faire des câlins plus souvent.",
+          "scope": "Enquête nationale américaine de 2015, adultes de 18 ans ou plus ; 1 966 réponses à cet item.",
+          "limitations": "Attrait déclaré, pas effet causal ; catégorie très attirant seule, sans addition de réponses.",
+          "year": 2017,
+          "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+          "statKey": "herbenick2017-cuddling-veryappealing-total-52.8",
+          "sourceValue": 52.8,
+          "angle": "envie",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        }
+      ]
     },
     {
       "cardId": "new-complicite-07",
-      "metric": "≈ −55 %",
-      "headline": "Du temps retrouvé hors écran",
-      "detail": "Le groupe de réduction du smartphone a diminué son temps d’écran d’environ 55 % par rapport au départ.",
-      "scope": "58 étudiants dans le groupe intervention ; trois semaines, objectif ≤ 2 h par jour.",
-      "limitations": "Calcul sur des durées mesurées : baisse moyenne de 155,25 min rapportée aux 284,71 min initiales. Ce n’est pas un pourcentage de bonheur ni l’effet d’une seule heure sans téléphone ; les usages remontaient après.",
+      "metric": "39 %",
+      "headline": "Une heure sans téléphone",
+      "detail": "39 % des adultes interrogés disent prendre souvent une pause de téléphone pour se consacrer à d’autres activités.",
+      "scope": "YouGov, 1 129 citoyens américains adultes, 23–26 mai 2025 ; 1 128 réponses à cet item.",
+      "limitations": "Pause de téléphone directement mesurée, mais pas sa durée : ne démontre aucun effet propre à une heure ni à une activité de couple. Recouvrement avec la carte cinq heures : même enquête, population et angle de pratique ; ici prise fréquente de pauses, là réservation de plages sans téléphone.",
       "year": 2025,
-      "sourceTitle": "Pieh et al. · tableau 1 et résultats",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11846175/",
-      "statKey": "pieh2025-screen-time-relative-reduction"
-    },
-    {
-      "cardId": "new-complicite-08",
-      "metric": "55 %",
-      "headline": "Le plaisir d’une partie ensemble",
-      "detail": "Des adultes interrogés préfèrent une partie de cartes à n’importe quel jeu vidéo.",
-      "scope": "1 057 adultes en France, échantillon représentatif par quotas · novembre 2025.",
-      "limitations": "Préférence déclarée dans un sondage commandé par Uno ; concerne les jeux de cartes, pas tous les jeux de société.",
-      "year": 2025,
-      "sourceTitle": "Sondage OpinionWay pour Uno · Les Français et les jeux de cartes",
-      "url": "https://www.opinion-way.com/wp-content/uploads/2025/12/OpinionWay-pour-Uno-Les-Francais-et-les-jeux-de-cartes-Novembre-2025.pdf",
-      "statKey": "opinionway2025-uno-prefer-cards-videogames"
-    },
-    {
-      "cardId": "new-complicite-09",
-      "metric": "89 % contre 76 %",
-      "headline": "Un film, puis une conversation",
-      "detail": "À trois ans, environ 89 % des couples ayant terminé un programme relationnel étaient toujours ensemble, contre 76 % dans le groupe sans programme.",
-      "scope": "174 couples au départ ; programmes incluant un groupe de films avec discussion ; analyse des participants ayant terminé.",
-      "limitations": "Résultat regroupant trois programmes, pas effet isolé d’un film. Les taux sont les compléments de 11 % et 24 % de séparations ; l’analyse globale était moins concluante.",
-      "year": 2013,
-      "sourceTitle": "Rogge et al. · Journal of Consulting and Clinical Psychology",
-      "url": "https://couples-research.com/wp-content/uploads/2017/06/Rogge2013.pdf",
-      "statKey": "rogge2013-completers-dissolution"
-    },
-    {
-      "cardId": "new-complicite-10",
-      "metric": "r = 0,35",
-      "headline": "Un univers à partager",
-      "detail": "Le partage de films, séries et livres était positivement lié au sentiment personnel de proximité avec son partenaire : r = 0,35.",
-      "scope": "259 étudiants en relation exclusive ; tableau 1, étude 1.",
-      "limitations": "Corrélation, pas preuve que regarder une série crée de la proximité ; la mesure regroupait plusieurs médias partagés.",
-      "year": 2017,
-      "sourceTitle": "Gomillion et al. · Let’s stay home and watch TV",
-      "url": "https://doi.org/10.1177/0265407516660388",
-      "statKey": "gomillion2017-media-own-closeness"
+      "sourceTitle": "YouGov · Phone Use · question 7",
+      "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/Phone_Use_poll_results.pdf",
+      "statKey": "yougov2025-phonebreak-often-39",
+      "sourceValue": 39.0,
+      "angle": "pratique",
+      "confidence": "moyenne — source primaire vérifiée ; population et limites précisées.",
+      "variants": [
+        {
+          "metric": "39 %",
+          "headline": "Une heure sans téléphone",
+          "detail": "39 % des adultes interrogés disent prendre souvent une pause de téléphone pour se consacrer à d’autres activités.",
+          "scope": "YouGov, 1 129 citoyens américains adultes, 23–26 mai 2025 ; 1 128 réponses à cet item.",
+          "limitations": "Pause de téléphone directement mesurée, mais pas sa durée : ne démontre aucun effet propre à une heure ni à une activité de couple. Recouvrement avec la carte cinq heures : même enquête, population et angle de pratique ; ici prise fréquente de pauses, là réservation de plages sans téléphone.",
+          "year": 2025,
+          "sourceTitle": "YouGov · Phone Use · question 7",
+          "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/Phone_Use_poll_results.pdf",
+          "statKey": "yougov2025-phonebreak-often-39",
+          "sourceValue": 39.0,
+          "angle": "pratique",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        }
+      ]
     },
     {
       "cardId": "new-complicite-11",
-      "metric": "75 % contre 47 %",
-      "headline": "Retrouver du bien-être hors ligne",
-      "detail": "Après deux semaines, 75 % du groupe invité à bloquer internet sur son téléphone avaient un meilleur score de bien-être, contre 47 % du groupe en attente.",
-      "scope": "Castelo et al. · essai randomisé, 467 inscrits, 313 participants aux trois enquêtes.",
-      "limitations": "Toute hausse du score compte. Blocage d’internet pendant 2 semaines, pas 5 heures sans téléphone ; appels/SMS autorisés et faible respect complet du protocole.",
+      "metric": "15 %",
+      "headline": "Cinq heures sans téléphone",
+      "detail": "15 % des adultes interrogés ont déjà réservé des plages de la journée sans téléphone.",
+      "scope": "YouGov, 1 129 citoyens américains adultes, 23–26 mai 2025 ; question à choix multiples.",
+      "limitations": "La durée des plages n’est pas mesurée : ne démontre aucun effet propre à cinq heures ; pratique déclarée, pas résultat causal. Recouvrement avec la carte une heure : même enquête, population et angle de pratique ; la mesure porte ici sur des plages réservées, pas sur la fréquence générale des pauses.",
       "year": 2025,
-      "sourceTitle": "PNAS Nexus · Blocking mobile internet on smartphones",
-      "url": "https://doi.org/10.1093/pnasnexus/pgaf017",
-      "statKey": "castelo2025-wellbeing-improvers-t1t2"
+      "sourceTitle": "YouGov · Phone Use · question 10",
+      "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/Phone_Use_poll_results.pdf",
+      "statKey": "yougov2025-phonefree-timeofday-15",
+      "sourceValue": 15.0,
+      "angle": "pratique",
+      "confidence": "moyenne — source primaire vérifiée ; population et limites précisées.",
+      "variants": [
+        {
+          "metric": "15 %",
+          "headline": "Cinq heures sans téléphone",
+          "detail": "15 % des adultes interrogés ont déjà réservé des plages de la journée sans téléphone.",
+          "scope": "YouGov, 1 129 citoyens américains adultes, 23–26 mai 2025 ; question à choix multiples.",
+          "limitations": "La durée des plages n’est pas mesurée : ne démontre aucun effet propre à cinq heures ; pratique déclarée, pas résultat causal. Recouvrement avec la carte une heure : même enquête, population et angle de pratique ; la mesure porte ici sur des plages réservées, pas sur la fréquence générale des pauses.",
+          "year": 2025,
+          "sourceTitle": "YouGov · Phone Use · question 10",
+          "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/Phone_Use_poll_results.pdf",
+          "statKey": "yougov2025-phonefree-timeofday-15",
+          "sourceValue": 15.0,
+          "angle": "pratique",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-08",
+      "metric": "21 %",
+      "headline": "Un jeu de société",
+      "detail": "21 % des adultes interrogés disent adorer jouer aux jeux de société.",
+      "scope": "YouGov, 1 131 citoyens américains adultes ; enquête du 6 au 10 mai 2026.",
+      "limitations": "Catégorie love seule, sans addition aux 44 % like ; préférence déclarée aux États-Unis, pas bénéfice causal ni résultat spécifique aux couples.",
+      "year": 2026,
+      "sourceTitle": "YouGov · What Americans think about board games",
+      "url": "https://yougov.com/en-us/articles/54943-what-americans-think-about-board-games",
+      "statKey": "yougov2026-boardgames-love-21",
+      "sourceValue": 21.0,
+      "angle": "appreciation",
+      "confidence": "moyenne — source primaire vérifiée ; population et limites précisées.",
+      "variants": [
+        {
+          "metric": "21 %",
+          "headline": "Un jeu de société",
+          "detail": "21 % des adultes interrogés disent adorer jouer aux jeux de société.",
+          "scope": "YouGov, 1 131 citoyens américains adultes ; enquête du 6 au 10 mai 2026.",
+          "limitations": "Catégorie love seule, sans addition aux 44 % like ; préférence déclarée aux États-Unis, pas bénéfice causal ni résultat spécifique aux couples.",
+          "year": 2026,
+          "sourceTitle": "YouGov · What Americans think about board games",
+          "url": "https://yougov.com/en-us/articles/54943-what-americans-think-about-board-games",
+          "statKey": "yougov2026-boardgames-love-21",
+          "sourceValue": 21.0,
+          "angle": "appreciation",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-09",
+      "metric": "30 %",
+      "headline": "Regarder un film",
+      "detail": "30 % des amateurs de films qui préfèrent le streaming disent aimer regarder des films à plusieurs chez eux.",
+      "scope": "YouGov, Grande-Bretagne, 3–4 mars 2020 : 1 639 adultes 18 ans ou plus, sous-groupe de 360 préférant le streaming.",
+      "limitations": "Motif de préférence à choix multiples dans un sous-groupe ; ne concerne pas tous les adultes ni spécifiquement les couples ; pas effet causal.",
+      "year": 2020,
+      "sourceTitle": "YouGov · Films and Streaming · tableau page 2",
+      "url": "https://d3nkl3psvxxpe9.cloudfront.net/documents/YouGov_-_Films_and_Streaming_Results.pdf",
+      "statKey": "yougov2020-film-streaming-social-home-30",
+      "sourceValue": 30.0,
+      "angle": "appreciation",
+      "confidence": "moyenne — source primaire vérifiée ; population et limites précisées.",
+      "variants": [
+        {
+          "metric": "30 %",
+          "headline": "Regarder un film",
+          "detail": "30 % des amateurs de films qui préfèrent le streaming disent aimer regarder des films à plusieurs chez eux.",
+          "scope": "YouGov, Grande-Bretagne, 3–4 mars 2020 : 1 639 adultes 18 ans ou plus, sous-groupe de 360 préférant le streaming.",
+          "limitations": "Motif de préférence à choix multiples dans un sous-groupe ; ne concerne pas tous les adultes ni spécifiquement les couples ; pas effet causal.",
+          "year": 2020,
+          "sourceTitle": "YouGov · Films and Streaming · tableau page 2",
+          "url": "https://d3nkl3psvxxpe9.cloudfront.net/documents/YouGov_-_Films_and_Streaming_Results.pdf",
+          "statKey": "yougov2020-film-streaming-social-home-30",
+          "sourceValue": 30.0,
+          "angle": "appreciation",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-10",
+      "metric": "79 %",
+      "headline": "Regarder une série",
+      "detail": "79 % des spectateurs interrogés jugent une série plus agréable lorsqu’ils regardent plusieurs épisodes à la suite.",
+      "scope": "Harris Interactive pour Netflix, États-Unis, 25–27 novembre 2013 : 1 496 adultes 18 ans ou plus regardant des séries en streaming au moins chaque semaine.",
+      "limitations": "Sondage commercial et ancien ; porte sur plusieurs épisodes consécutifs, pas sur un épisode isolé ; ne prouve pas un bénéfice de santé.",
+      "year": 2013,
+      "sourceTitle": "Netflix / Harris Interactive · Netflix Declares Binge Watching is the New Normal",
+      "url": "https://www.prnewswire.com/news-releases/netflix-declares-binge-watching-is-the-new-normal-235713431.html",
+      "statKey": "harris2013-netflix-multiepisode-moreenjoyable-79",
+      "sourceValue": 79.0,
+      "angle": "appreciation",
+      "confidence": "moyenne — source primaire vérifiée ; population et limites précisées.",
+      "variants": [
+        {
+          "metric": "79 %",
+          "headline": "Regarder une série",
+          "detail": "79 % des spectateurs interrogés jugent une série plus agréable lorsqu’ils regardent plusieurs épisodes à la suite.",
+          "scope": "Harris Interactive pour Netflix, États-Unis, 25–27 novembre 2013 : 1 496 adultes 18 ans ou plus regardant des séries en streaming au moins chaque semaine.",
+          "limitations": "Sondage commercial et ancien ; porte sur plusieurs épisodes consécutifs, pas sur un épisode isolé ; ne prouve pas un bénéfice de santé.",
+          "year": 2013,
+          "sourceTitle": "Netflix / Harris Interactive · Netflix Declares Binge Watching is the New Normal",
+          "url": "https://www.prnewswire.com/news-releases/netflix-declares-binge-watching-is-the-new-normal-235713431.html",
+          "statKey": "harris2013-netflix-multiepisode-moreenjoyable-79",
+          "sourceValue": 79.0,
+          "angle": "appreciation",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        },
+        {
+          "metric": "61 %",
+          "headline": "Regarder une série",
+          "detail": "61 % des spectateurs interrogés regardaient régulièrement plusieurs épisodes d’une série à la suite.",
+          "scope": "Harris Interactive pour Netflix, États-Unis, 25–27 novembre 2013 : 1 496 adultes 18 ans ou plus regardant des séries en streaming au moins chaque semaine.",
+          "limitations": "Régulièrement signifie 2–3 épisodes au moins toutes les quelques semaines ; sondage commercial, ancien ; pas recommandation de durée.",
+          "year": 2013,
+          "sourceTitle": "Netflix / Harris Interactive · Netflix Declares Binge Watching is the New Normal",
+          "url": "https://www.prnewswire.com/news-releases/netflix-declares-binge-watching-is-the-new-normal-235713431.html",
+          "statKey": "harris2013-netflix-bingeregular-61",
+          "sourceValue": 61.0,
+          "angle": "pratique",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        },
+        {
+          "metric": "76 %",
+          "headline": "Regarder une série",
+          "detail": "76 % des spectateurs interrogés voyaient plusieurs épisodes d’une bonne série comme une pause bienvenue dans leur quotidien chargé.",
+          "scope": "Harris Interactive pour Netflix, États-Unis, 25–27 novembre 2013 : 1 496 adultes 18 ans ou plus regardant des séries en streaming au moins chaque semaine.",
+          "limitations": "Perception déclarée dans un sondage commercial ancien ; plusieurs épisodes, pas un épisode isolé ; aucun bénéfice clinique établi.",
+          "year": 2013,
+          "sourceTitle": "Netflix / Harris Interactive · Netflix Declares Binge Watching is the New Normal",
+          "url": "https://www.prnewswire.com/news-releases/netflix-declares-binge-watching-is-the-new-normal-235713431.html",
+          "statKey": "harris2013-netflix-welcome-refuge-76",
+          "sourceValue": 76.0,
+          "angle": "benefice",
+          "confidence": "moyenne — source primaire vérifiée ; population et limites précisées."
+        }
+      ]
     },
     {
       "cardId": "new-detente-01",
-      "metric": "≈ −37 %",
-      "headline": "Un repère sur le massage de la tête",
-      "detail": "Dans le groupe de massages de 25 minutes, le cortisol sanguin moyen est passé de 24,2 à 15,3, soit environ 37 % de moins.",
-      "scope": "34 employées de bureau ; 11 dans ce groupe ; deux séances par semaine pendant dix semaines.",
-      "limitations": "Pourcentage calculé sur des concentrations : (24,2 − 15,3) ÷ 24,2. Très petit essai ; résultat avant/après, pas promesse pour un massage isolé ni mesure du plaisir.",
-      "year": 2016,
-      "sourceTitle": "Kim et al. · Journal of Physical Therapy Science · tableau 3",
-      "url": "https://www.jstage.jst.go.jp/article/jpts/28/10/28_jpts-2016-230/_pdf",
-      "statKey": "kim2016-scalp25-cortisol"
+      "metric": "48 %",
+      "headline": "Massage de la tête",
+      "detail": "48 % des femmes interrogées au cuir chevelu sensible utilisaient le massage pour atténuer leurs sensations.",
+      "scope": "Questionnaire français auprès de 134 femmes adultes avec cuir chevelu sensible, comparées à 216 avec dermatose ; publication 2026.",
+      "limitations": "Questionnaire de volontaires, majoritairement bretonnes, non représentatif ; usage déclaré pour rechercher un apaisement, sans taux d’efficacité démontré.",
+      "year": 2026,
+      "sourceTitle": "Ficheux et al. · JEADV Clinical Practice · tableau 2",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1002/jvc2.70344",
+      "statKey": "ficheux2026-scalp-massage-calming-48",
+      "sourceValue": 48.0,
+      "angle": "pratique",
+      "confidence": "moyenne — enquête académique primaire auprès de femmes adultes ; pratique déclarée, non représentative.",
+      "variants": [
+        {
+          "metric": "48 %",
+          "headline": "Massage de la tête",
+          "detail": "48 % des femmes interrogées au cuir chevelu sensible utilisaient le massage pour atténuer leurs sensations.",
+          "scope": "Questionnaire français auprès de 134 femmes adultes avec cuir chevelu sensible, comparées à 216 avec dermatose ; publication 2026.",
+          "limitations": "Questionnaire de volontaires, majoritairement bretonnes, non représentatif ; usage déclaré pour rechercher un apaisement, sans taux d’efficacité démontré.",
+          "year": 2026,
+          "sourceTitle": "Ficheux et al. · JEADV Clinical Practice · tableau 2",
+          "url": "https://onlinelibrary.wiley.com/doi/10.1002/jvc2.70344",
+          "statKey": "ficheux2026-scalp-massage-calming-48",
+          "sourceValue": 48.0,
+          "angle": "pratique",
+          "confidence": "moyenne — enquête académique primaire auprès de femmes adultes ; pratique déclarée, non représentative."
+        }
+      ]
     },
     {
       "cardId": "new-detente-02",
-      "metric": "55 % contre 25 %",
-      "headline": "Un massage pour le confort du cou",
-      "detail": "À dix semaines, 55 % du groupe massage avaient une amélioration importante de la gêne liée à leur douleur cervicale, contre 25 % du groupe livret de conseils.",
-      "scope": "Essai randomisé de 64 adultes souffrant de douleurs cervicales chroniques ; jusqu’à dix séances.",
-      "limitations": "Résultat clinique de massages professionnels, non spécifique aux épaules. Une amélioration importante était définie à l’avance comme une baisse de gêne supérieure à 30 % ; une carte ne remplace pas un soin.",
-      "year": 2009,
-      "sourceTitle": "Sherman et al. · Clinical Journal of Pain",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2664516/",
-      "statKey": "sherman2009-neck-bothersomeness-responders"
-    },
-    {
-      "cardId": "new-detente-03",
-      "metric": "73,5 %",
-      "headline": "L’envie de renouveler ce moment",
-      "detail": "Après le programme, 73,5 % des participants souhaitaient continuer à échanger des massages à domicile.",
-      "scope": "25 personnes sur 34 ; programme de massage réciproque de trois semaines.",
-      "limitations": "Intention déclarée, pas poursuite vérifiée ni bénéfice spécifique au massage des pieds. Petit échantillon.",
-      "year": 2019,
-      "sourceTitle": "Naruse & Moss · intention de continuer",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/",
-      "statKey": "naruse2019-intend-continue"
-    },
-    {
-      "cardId": "new-detente-04",
-      "metric": "g = 0,53",
-      "headline": "Une détente mesurée",
-      "detail": "Les interventions de toucher ont réduit le cortisol, un marqueur physiologique du stress ; taille d’effet moyenne : 0,53.",
-      "scope": "Méta-analyse ; résultats hors nouveau-nés ; figure 3.",
-      "limitations": "Touchers, populations et protocoles variés ; aucune efficacité spécifique à cette zone du corps n’est établie ici. g est une différence standardisée, pas un pourcentage.",
-      "year": 2024,
-      "sourceTitle": "Packheiser et al. · Nature Human Behaviour · figure 3",
-      "url": "https://doi.org/10.1038/s41562-024-01841-8",
-      "statKey": "packheiser2024-cortisol"
-    },
-    {
-      "cardId": "new-detente-05",
-      "metric": "94 %",
-      "headline": "Un moment que l’on recommande",
-      "detail": "94 % des participants ont indiqué qu’ils recommanderaient le programme de massage à leurs proches.",
-      "scope": "32 personnes sur 34 après trois semaines de massage réciproque.",
-      "limitations": "Recommandation déclarée, pas taux d’efficacité ; le protocole ne portait pas spécifiquement sur les oreilles. Petit échantillon.",
-      "year": 2019,
-      "sourceTitle": "Naruse & Moss · recommandation",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/",
-      "statKey": "naruse2019-recommend-programme"
-    },
-    {
-      "cardId": "new-detente-06",
-      "metric": "+42 % · relaxation cérébrale",
-      "headline": "Le visage, un temps de détente",
-      "detail": "Après un soin du visage complet, l’indicateur de relaxation cérébrale était 42 % plus élevé qu’après un temps de repos de même durée.",
-      "scope": "63 femmes de 25 à 47 ans ; 32 soins professionnels d’une heure, 31 temps de repos.",
-      "limitations": "Étude courte liée à l’industrie cosmétique. Mesure EEG ; pas 42 % de bonheur, et pas effet isolé d’un massage du visage à domicile.",
-      "year": 2023,
-      "sourceTitle": "Bouhout et al. · International Journal of Cosmetic Science",
-      "url": "https://doi.org/10.1111/ics.12855",
-      "statKey": "bouhout2023-cerebral-relaxation"
+      "metric": "72,4 %",
+      "headline": "Massage des épaules",
+      "detail": "72,4 % des patients ayant terminé les massages de l’épaule ont amélioré leur score fonctionnel de plus de 20 %.",
+      "scope": "Essai randomisé à Taïwan : 60 patients de 43 à 73 ans ; 29 ont terminé le groupe massage. Huit séances de 18 minutes sur quatre semaines.",
+      "limitations": "72,4 %=21/29, conversion explicite d’effectifs publiés ; proportion des participants ayant terminé, sans comparaison directe de taux avec le groupe témoin. Patients avec raideur postérieure ; pas résultat garanti à domicile.",
+      "year": 2012,
+      "sourceTitle": "Yang et al. · BMC Musculoskeletal Disorders",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3339516/",
+      "statKey": "yang2012-shoulder-flexsf-responders-21of29",
+      "sourceValue": 72.4,
+      "angle": "benefice",
+      "confidence": "moyenne — essai randomisé, petit groupe clinique ; conversion explicite de 21 répondants sur 29.",
+      "variants": [
+        {
+          "metric": "72,4 %",
+          "headline": "Massage des épaules",
+          "detail": "72,4 % des patients ayant terminé les massages de l’épaule ont amélioré leur score fonctionnel de plus de 20 %.",
+          "scope": "Essai randomisé à Taïwan : 60 patients de 43 à 73 ans ; 29 ont terminé le groupe massage. Huit séances de 18 minutes sur quatre semaines.",
+          "limitations": "72,4 %=21/29, conversion explicite d’effectifs publiés ; proportion des participants ayant terminé, sans comparaison directe de taux avec le groupe témoin. Patients avec raideur postérieure ; pas résultat garanti à domicile.",
+          "year": 2012,
+          "sourceTitle": "Yang et al. · BMC Musculoskeletal Disorders",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3339516/",
+          "statKey": "yang2012-shoulder-flexsf-responders-21of29",
+          "sourceValue": 72.4,
+          "angle": "benefice",
+          "confidence": "moyenne — essai randomisé, petit groupe clinique ; conversion explicite de 21 répondants sur 29."
+        }
+      ]
     },
     {
       "cardId": "new-detente-07",
-      "metric": "39,4 % contre 3,8 %",
-      "headline": "Retrouver du confort dans le dos",
-      "detail": "À dix semaines, 39,4 % du groupe massage relaxant jugeaient leur douleur lombaire nettement améliorée ou disparue, contre 3,8 % avec les soins habituels.",
-      "scope": "Essai randomisé de 401 adultes avec lombalgie chronique ; dix séances professionnelles.",
-      "limitations": "Pourcentages ajustés, tableau 4. Contexte clinique, pas effet d’un massage de couple isolé ni garantie de disparition de la douleur.",
+      "metric": "36,1 %",
+      "headline": "Massage du dos",
+      "detail": "36,1 % du groupe massage ciblé jugeaient leur lombalgie nettement améliorée ou disparue à dix semaines.",
+      "scope": "Essai randomisé américain de 401 adultes de 20 à 65 ans avec lombalgie chronique ; groupe massage structurel ciblé : 132 personnes, dix séances.",
+      "limitations": "Pourcentage ajusté publié, pas effectif brut ; protocole professionnel pour lombalgie, avec conseils et exercices possibles ; aucun taux garanti pour un massage à domicile.",
       "year": 2011,
       "sourceTitle": "Cherkin et al. · Annals of Internal Medicine · tableau 4",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3570565/",
-      "statKey": "cherkin2011-relaxation-global-improvement10weeks"
+      "statKey": "cherkin2011-structural-global-improvement10weeks-36.1",
+      "sourceValue": 36.1,
+      "angle": "benefice",
+      "confidence": "moyenne — essai randomisé primaire ; pourcentage ajusté et protocole clinique précis.",
+      "variants": [
+        {
+          "metric": "36,1 %",
+          "headline": "Massage du dos",
+          "detail": "36,1 % du groupe massage ciblé jugeaient leur lombalgie nettement améliorée ou disparue à dix semaines.",
+          "scope": "Essai randomisé américain de 401 adultes de 20 à 65 ans avec lombalgie chronique ; groupe massage structurel ciblé : 132 personnes, dix séances.",
+          "limitations": "Pourcentage ajusté publié, pas effectif brut ; protocole professionnel pour lombalgie, avec conseils et exercices possibles ; aucun taux garanti pour un massage à domicile.",
+          "year": 2011,
+          "sourceTitle": "Cherkin et al. · Annals of Internal Medicine · tableau 4",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3570565/",
+          "statKey": "cherkin2011-structural-global-improvement10weeks-36.1",
+          "sourceValue": 36.1,
+          "angle": "benefice",
+          "confidence": "moyenne — essai randomisé primaire ; pourcentage ajusté et protocole clinique précis."
+        }
+      ]
     },
     {
       "cardId": "new-detente-08",
-      "metric": "73,7 %",
-      "headline": "Un rituel qui se poursuit",
-      "detail": "Trois semaines après la fin du programme, 73,7 % des participants suivis échangeaient encore des massages, en donnant et en recevant.",
-      "scope": "14 personnes sur 19 au suivi du groupe initial ; massage réciproque à domicile.",
-      "limitations": "Poursuite déclarée dans un petit groupe après formation ; ce taux ne mesure pas un bénéfice individuel et ne porte pas sur une zone précise.",
-      "year": 2019,
-      "sourceTitle": "Naruse & Moss · pratique au suivi",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/",
-      "statKey": "naruse2019-continued-exchange"
-    },
-    {
-      "cardId": "new-detente-09",
-      "metric": "+13 % · relaxation cardiaque",
-      "headline": "Un repère sur le soin du visage",
-      "detail": "L’indicateur de relaxation cardiaque était 13 % plus élevé après un soin du visage complet qu’après une heure de repos.",
-      "scope": "63 femmes de 25 à 47 ans ; 32 soins professionnels, 31 temps de repos.",
-      "limitations": "Résultat sur un protocole complet, pas sur un masque seul. Étude courte liée à l’industrie cosmétique ; ce chiffre concerne un indicateur physiologique.",
-      "year": 2023,
-      "sourceTitle": "Bouhout et al. · International Journal of Cosmetic Science",
-      "url": "https://doi.org/10.1111/ics.12855",
-      "statKey": "bouhout2023-cardiac-relaxation"
-    },
-    {
-      "cardId": "new-detente-10",
-      "metric": "+17 % · relaxation musculaire",
-      "headline": "Un soin qui relâche les tensions",
-      "detail": "L’indicateur de relaxation musculaire était 17 % plus élevé après le soin du visage qu’après le repos de même durée.",
-      "scope": "63 femmes de 25 à 47 ans ; soin professionnel d’une heure, comparé au repos.",
-      "limitations": "Étude courte liée à l’industrie cosmétique ; résultat d’électromyographie, pas un gain garanti pour un soin à domicile.",
-      "year": 2023,
-      "sourceTitle": "Bouhout et al. · International Journal of Cosmetic Science",
-      "url": "https://doi.org/10.1111/ics.12855",
-      "statKey": "bouhout2023-muscular-relaxation"
-    },
-    {
-      "cardId": "new-intimite-01",
-      "metric": "78,7 %",
-      "headline": "La place du plaisir oral",
-      "detail": "Recevoir du sexe oral était assez ou très attirant pour 78,7 % des répondants.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait déclaré ; aucune envie individuelle ni pratique précise garantie.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-receiving-oral"
-    },
-    {
-      "cardId": "new-intimite-02",
-      "metric": "66,8 %",
-      "headline": "Donner du plaisir",
-      "detail": "Donner du sexe oral était assez ou très attirant pour 66,8 % des répondants.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait pour le sexe oral ; aucune posture particulière évaluée.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-giving-oral"
-    },
-    {
-      "cardId": "new-intimite-03",
-      "metric": "79,3 %",
-      "headline": "Le toucher dans l’intimité",
-      "detail": "Donner ou recevoir un massage avant un rapport était assez ou très attirant pour 79,3 %.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait déclaré ; le massage Nuru n’était pas étudié.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-presex-massage"
-    },
-    {
-      "cardId": "new-intimite-04",
-      "metric": "48,1 % → 15,1 %",
-      "headline": "Explorer le confort",
-      "detail": "Après trois mois de vibration, les participantes rapportant une douleur sexuelle étaient moins nombreuses.",
-      "scope": "Étude pilote · 53 participantes au suivi.",
-      "limitations": "Pilote sans groupe témoin ; suivi médical, pas efficacité spécifique de Lovense.",
-      "year": 2024,
-      "sourceTitle": "Dubinskaya et al. · International Urogynecology Journal",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11150285/",
-      "statKey": "dubinskaya2024:sexual-pain"
-    },
-    {
-      "cardId": "new-intimite-05",
-      "metric": "76,3 %",
-      "headline": "Donner du plaisir peut être satisfaisant",
-      "detail": "Des participantes jugeaient donner du sexe oral assez ou très satisfaisant.",
-      "scope": "Espagne · femmes adultes de 18 à 50 ans, enquête SSCI, tableau 4.",
-      "limitations": "Somme des catégories 36,8 % et 39,5 %. Échantillon volontaire ; fellation et cunnilingus regroupés, sans préférence individuelle prédite.",
-      "year": 2022,
-      "sourceTitle": "Ogallar-Blanco et al. · Sexual Satisfaction Comprehensive Index",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9408228/",
-      "statKey": "ogallar2022:giving-oral-quite-very-satisfactory"
-    },
-    {
-      "cardId": "new-intimite-06",
-      "metric": "r = 0,16",
-      "headline": "Parler de ses envies",
-      "detail": "La communication sexuelle était positivement liée au désir.",
-      "scope": "Méta-analyse · 48 études.",
-      "limitations": "Association, pas causalité ; repère sur la communication, pas l’acte de cette carte.",
-      "year": 2019,
-      "sourceTitle": "Mallory et al. · Sexual communication and function",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/",
-      "statKey": "mallory2019:desire"
-    },
-    {
-      "cardId": "new-intimite-07",
-      "metric": "r = 0,21",
-      "headline": "Guider l’excitation",
-      "detail": "La communication sexuelle était positivement liée à l’excitation.",
-      "scope": "Méta-analyse · 48 études.",
-      "limitations": "Association, pas causalité ; repère sur la communication, pas l’acte de cette carte.",
-      "year": 2019,
-      "sourceTitle": "Mallory et al. · Sexual communication and function",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/",
-      "statKey": "mallory2019:arousal"
-    },
-    {
-      "cardId": "new-intimite-08",
-      "metric": "r = 0,35",
-      "headline": "Trouver son langage intime",
-      "detail": "La communication était positivement liée au fonctionnement sexuel global.",
-      "scope": "Méta-analyse · 48 études.",
-      "limitations": "Association, pas causalité ; repère sur la communication, pas l’acte de cette carte.",
-      "year": 2019,
-      "sourceTitle": "Mallory et al. · Sexual communication and function",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/",
-      "statKey": "mallory2019:overall-function"
-    },
-    {
-      "cardId": "new-intimite-09",
-      "metric": "53,5 %",
-      "headline": "Partager une curiosité",
-      "detail": "Regarder des vidéos érotiques était assez ou très attirant pour 53,5 % des répondants.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Attrait pour regarder ; aucune étude sur la reproduction 1:1 ni preuve de bénéfice.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-pornography"
-    },
-    {
-      "cardId": "new-intimite-10",
-      "metric": "24,4 %",
-      "headline": "Une envie parmi d’autres",
-      "detail": "Le sexe anal était assez ou très attirant pour 24,4 % des répondants.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Attrait déclaré, pas recommandation ni envie du partenaire ; aucun bénéfice mesuré.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-anal-sex"
-    },
-    {
-      "cardId": "new-intimite-11",
-      "metric": "r = 0,31",
-      "headline": "Garder le dialogue ouvert",
-      "detail": "La fréquence des conversations sexuelles était positivement liée à la satisfaction sexuelle.",
-      "scope": "Méta-analyse · 93 études.",
-      "limitations": "Association ; repère connexe, aucune preuve sur l’acte précis de cette carte.",
-      "year": 2022,
-      "sourceTitle": "Mallory · Sexual communication and satisfaction",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9153093/",
-      "statKey": "mallory2022:frequency-sexual-satisfaction"
-    },
-    {
-      "cardId": "new-intimite-12",
-      "metric": "69,7 %",
-      "headline": "Plusieurs sensations, à son rythme",
-      "detail": "Des femmes avaient déjà associé stimulation clitoridienne et pénétration pour augmenter leur plaisir.",
-      "scope": "États-Unis · 2 877 réponses adultes à cet item.",
-      "limitations": "Technique vaginale et clitoridienne ; aucune donnée sur la double pénétration.",
-      "year": 2021,
-      "sourceTitle": "Hensel et al. · PLOS ONE",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8046227/",
-      "statKey": "hensel2021:pairing"
-    },
-    {
-      "cardId": "new-intimite-13",
-      "metric": "16,1 %",
-      "headline": "L’image intime a ses curieux",
-      "detail": "Se filmer pendant la masturbation ou un rapport était assez ou très attirant pour 16,1 %.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Repère sur l’image intime ; ni publication sur Reddit ni exposition des seins étudiées.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-sexual-video-recording"
-    },
-    {
-      "cardId": "new-intimite-14",
-      "metric": "27,3 %",
-      "headline": "Des envies d’exposition différentes",
-      "detail": "Avoir un rapport où l’on pourrait être vu était assez ou très attirant pour 27,3 %.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Repère connexe sur l’exposition ; aucune publication en ligne ni bénéfice de Reddit étudiés.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-being-seen"
-    },
-    {
-      "cardId": "new-intimite-15",
-      "metric": "r = 0,17",
-      "headline": "Écouter les sensations",
-      "detail": "La communication sexuelle était positivement liée à la lubrification.",
-      "scope": "Méta-analyse · 48 études.",
-      "limitations": "Association ; repère sur l’écoute corporelle, aucune mesure de Reddit.",
-      "year": 2019,
-      "sourceTitle": "Mallory et al. · Sexual communication and function",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6699928/",
-      "statKey": "mallory2019:lubrication"
-    },
-    {
-      "cardId": "new-intimite-16",
-      "metric": "13,8 %",
-      "headline": "L’intimité à distance existe",
-      "detail": "Le sexe par FaceTime ou Skype était assez ou très attirant pour 13,8 %.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Échanges entre partenaires ; aucun bénéfice démontré d’un show public.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-video-sex"
-    },
-    {
-      "cardId": "new-intimite-17",
-      "metric": "79,1 %",
-      "headline": "Le regard du partenaire",
-      "detail": "Regarder son partenaire se déshabiller était assez ou très attirant pour 79,1 %.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait privé entre partenaires ; webcam publique non étudiée.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-undressing"
-    },
-    {
-      "cardId": "new-intimite-18",
-      "metric": "37,6 %",
-      "headline": "Partager son plaisir avec son partenaire",
-      "detail": "Se masturber devant son partenaire était assez ou très attirant pour 37,6 % des répondants.",
-      "scope": "États-Unis · enquête adultes 2015, tableau 5.",
-      "limitations": "Échange privé entre partenaires ; aucune webcam publique ni bénéfice de diffusion évalués.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-masturbation-front-partner"
-    },
-    {
-      "cardId": "new-intimite-19",
-      "metric": "r = 0,43",
-      "headline": "Parler nourrit la satisfaction",
-      "detail": "La communication sexuelle globale était positivement liée à la satisfaction sexuelle.",
-      "scope": "Méta-analyse · 93 études.",
-      "limitations": "Association entre partenaires ; aucun effet démontré d’un partage sur Reddit.",
-      "year": 2022,
-      "sourceTitle": "Mallory · Sexual communication and satisfaction",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9153093/",
-      "statKey": "mallory2022:overall-sexual-satisfaction"
-    },
-    {
-      "cardId": "new-intimite-20",
-      "metric": "29,3 %",
-      "headline": "Des jeux de rôles choisis",
-      "detail": "Attacher son partenaire ou être attaché était assez ou très attirant pour 29,3 %.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait déclaré pour les attaches ; pas pour une heure de soumission entière.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-tying"
-    },
-    {
-      "cardId": "new-intimite-21",
-      "metric": "28,4 %",
-      "headline": "Le plaisir du jeu",
-      "detail": "Donner ou recevoir une fessée sexuelle était assez ou très attirant pour 28,4 %.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait déclaré ; aucune envie individuelle ni pratique précise garantie.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-spanking"
-    },
-    {
-      "cardId": "new-intimite-22",
-      "metric": "32,4 %",
-      "headline": "Une image pour votre duo",
-      "detail": "Prendre ou partager des photos dénudées avec son partenaire était assez ou très attirant pour 32,4 %.",
-      "scope": "États-Unis · adultes, enquête 2015.",
-      "limitations": "Attrait déclaré ; photos privées entre partenaires, pas publication publique.",
-      "year": 2017,
-      "sourceTitle": "Herbenick et al. · PLOS ONE, tableau 5",
-      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
-      "statKey": "herbenick2017:appeal-partner-nude-photos"
-    },
-    {
-      "cardId": "new-projets-01",
-      "metric": "≈ +60 %",
-      "headline": "Marcher fait venir des idées",
-      "detail": "Dans une expérience, les participants ont produit environ 60 % d’idées créatives de plus en marchant qu’en restant assis.",
-      "scope": "Expériences de pensée divergente ; marche sur tapis ou dehors ; Oppezzo & Schwartz.",
-      "limitations": "Le résultat porte sur une tâche de créativité, pas sur toutes les capacités cognitives. Le décor urbain n’est pas un bénéfice mesuré séparément.",
-      "year": 2014,
-      "sourceTitle": "Oppezzo & Schwartz · Give your ideas some legs",
-      "url": "https://aaalab.stanford.edu/assets/papers/2014/Give_your_ideas_some_legs.pdf",
-      "statKey": "oppezzo2014-creative-output-exp1"
+      "metric": "39,4 %",
+      "headline": "Massage total",
+      "detail": "39,4 % du groupe recevant des massages complets jugeaient leur lombalgie nettement améliorée ou disparue à dix semaines.",
+      "scope": "Essai randomisé américain de 401 adultes de 20 à 65 ans avec lombalgie chronique ; groupe relaxation : 136 personnes, dix massages complets.",
+      "limitations": "Pourcentage ajusté publié, pas effectif brut ; massages professionnels et conseils possibles pour lombalgie. Le protocole couvre tête, cou, dos, jambes, pieds et bras ; aucun taux garanti pour un massage à domicile.",
+      "year": 2011,
+      "sourceTitle": "Cherkin et al. · Annals of Internal Medicine · tableau 4, groupe relaxation",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3570565/",
+      "statKey": "cherkin2011-relaxation-global-improvement10weeks-39.4",
+      "sourceValue": 39.4,
+      "angle": "benefice",
+      "confidence": "moyenne — essai randomisé primaire ; protocole corps entier vérifié dans la publication méthodologique.",
+      "variants": [
+        {
+          "metric": "39,4 %",
+          "headline": "Massage total",
+          "detail": "39,4 % du groupe recevant des massages complets jugeaient leur lombalgie nettement améliorée ou disparue à dix semaines.",
+          "scope": "Essai randomisé américain de 401 adultes de 20 à 65 ans avec lombalgie chronique ; groupe relaxation : 136 personnes, dix massages complets.",
+          "limitations": "Pourcentage ajusté publié, pas effectif brut ; massages professionnels et conseils possibles pour lombalgie. Le protocole couvre tête, cou, dos, jambes, pieds et bras ; aucun taux garanti pour un massage à domicile.",
+          "year": 2011,
+          "sourceTitle": "Cherkin et al. · Annals of Internal Medicine · tableau 4, groupe relaxation",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3570565/",
+          "statKey": "cherkin2011-relaxation-global-improvement10weeks-39.4",
+          "sourceValue": 39.4,
+          "angle": "benefice",
+          "confidence": "moyenne — essai randomisé primaire ; protocole corps entier vérifié dans la publication méthodologique."
+        }
+      ]
     },
     {
       "cardId": "new-projets-02",
-      "metric": "−15,8 %",
-      "headline": "La forêt et le calme physiologique",
-      "detail": "Après la marche, le cortisol salivaire moyen était 15,8 % plus bas en forêt qu’en ville.",
-      "scope": "Expériences croisées au Japon ; jeunes hommes ; marches d’environ quinze minutes ; 74 mesures pour cette comparaison.",
-      "limitations": "Différence de concentration hormonale entre environnements, pas 15,8 % de stress ressenti en moins. Effet immédiat dans une population spécifique, pas preuve d’un traitement durable.",
-      "year": 2010,
-      "sourceTitle": "Park et al. · Environmental Health and Preventive Medicine · figure 2",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2793346/",
-      "statKey": "park2010-walking-cortisol"
+      "metric": "64 %",
+      "headline": "Balade en forêt",
+      "detail": "64 % des visiteurs britanniques interrogés avaient surtout marché lors de leur dernière visite estivale en forêt.",
+      "scope": "Royaume-Uni, 16 ans et plus ; enquête n=10 281, base estivale pondérée n=6 982 visiteurs de bois/forêts",
+      "limitations": "Dernière visite entre avril et septembre 2024 ; activité principale, pas fréquence de toute la population.",
+      "year": 2025,
+      "sourceTitle": "Forest Research / Survation · Public Opinion of Forestry",
+      "url": "https://cdn.forestresearch.gov.uk/2025/07/POFS_UKEngland_2025_10jul25-FINAL.v2-1.pdf",
+      "statKey": "forest2025:uk-summer-last-visit-main-walking",
+      "sourceValue": 64,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "64 %",
+          "headline": "Balade en forêt",
+          "detail": "64 % des visiteurs britanniques interrogés avaient surtout marché lors de leur dernière visite estivale en forêt.",
+          "scope": "Royaume-Uni, 16 ans et plus ; enquête n=10 281, base estivale pondérée n=6 982 visiteurs de bois/forêts",
+          "limitations": "Dernière visite entre avril et septembre 2024 ; activité principale, pas fréquence de toute la population.",
+          "year": 2025,
+          "sourceTitle": "Forest Research / Survation · Public Opinion of Forestry",
+          "url": "https://cdn.forestresearch.gov.uk/2025/07/POFS_UKEngland_2025_10jul25-FINAL.v2-1.pdf",
+          "statKey": "forest2025:uk-summer-last-visit-main-walking",
+          "sourceValue": 64,
+          "angle": "pratique",
+          "confidence": "haute"
+        }
+      ]
     },
     {
       "cardId": "new-projets-03",
-      "metric": "95 %",
-      "headline": "La culture fait du bien",
-      "detail": "Des répondants estimaient, au moins en partie, que visiter un lieu culturel était bon pour leur bien-être.",
-      "scope": "Sokka et al. · 834 répondants à Jyväskylä, Finlande, enquête de 2019 publiée en 2023.",
-      "limitations": "Opinion, pas un effet clinique mesuré. Échantillon surtout féminin et déjà amateur de culture ; musées, théâtre et orchestre réunis.",
-      "year": 2023,
-      "sourceTitle": "EJCMP · Value of art and culture institutions: Jyväskylä",
-      "url": "https://doi.org/10.3389/ejcmp.2023.11618",
-      "statKey": "sokka2023-culture-wellbeing-agreement"
+      "metric": "39 %",
+      "headline": "Musée ou visite",
+      "detail": "39 % des Français de 15 ans et plus ont visité un musée ou une exposition en 2024.",
+      "scope": "France entière, personnes de 15 ans et plus, n=3 014 ; enquête en ligne du 17 décembre 2024 au 15 janvier 2025, quotas et redressement",
+      "limitations": "Déclaration d’une visite de musée ou exposition temporaire dans les douze mois précédents ; inclut les 15–17 ans, ne pas présenter comme enquête 18+.",
+      "year": 2025,
+      "sourceTitle": "CRÉDOC / Ministère de la Culture · Visites des monuments, musées et expositions, édition 2025",
+      "url": "https://www.credoc.fr/download/pdf/Sou/Sou2025-5028.pdf",
+      "statKey": "credoc2024:museum-exhibition-year",
+      "sourceValue": 39,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "39 %",
+          "headline": "Musée ou visite",
+          "detail": "39 % des Français de 15 ans et plus ont visité un musée ou une exposition en 2024.",
+          "scope": "France entière, personnes de 15 ans et plus, n=3 014 ; enquête en ligne du 17 décembre 2024 au 15 janvier 2025, quotas et redressement",
+          "limitations": "Déclaration d’une visite de musée ou exposition temporaire dans les douze mois précédents ; inclut les 15–17 ans, ne pas présenter comme enquête 18+.",
+          "year": 2025,
+          "sourceTitle": "CRÉDOC / Ministère de la Culture · Visites des monuments, musées et expositions, édition 2025",
+          "url": "https://www.credoc.fr/download/pdf/Sou/Sou2025-5028.pdf",
+          "statKey": "credoc2024:museum-exhibition-year",
+          "sourceValue": 39,
+          "angle": "pratique",
+          "confidence": "haute"
+        },
+        {
+          "metric": "77 %",
+          "headline": "Musée ou visite",
+          "detail": "77 % des visiteurs de musées interrogés ont noté leur visite au moins 8/10.",
+          "scope": "Visiteurs des musées nationaux participants, n=7 940 ; octobre–décembre 2021, au sein d’une enquête de 10 770 répondants dans 62 musées et monuments ; âge moyen 41 ans",
+          "limitations": "Visiteurs des établissements participants, pas tous les Français ; sélection des personnes ayant effectué la visite. Publication en 2022, données de 2021 ; ne pas généraliser à tous les Français.",
+          "year": 2022,
+          "sourceTitle": "Ministère de la Culture · À l’écoute des visiteurs",
+          "url": "https://www.culture.gouv.fr/mc/content/download/314087/pdf_file/Patrimostat-2021.pdf?inLanguage=fre-FR&version=9",
+          "statKey": "alecoute2021:museum-rating-at-least-eight",
+          "sourceValue": 77,
+          "angle": "appreciation",
+          "confidence": "haute"
+        },
+        {
+          "metric": "92 %",
+          "headline": "Musée ou visite",
+          "detail": "92 % des visiteurs de musées interrogés étaient satisfaits des apports culturels de leur visite.",
+          "scope": "Visiteurs des musées nationaux participants, n=7 940 ; octobre–décembre 2021, au sein d’une enquête de 10 770 répondants dans 62 musées et monuments ; âge moyen 41 ans",
+          "limitations": "Satisfaits ou très satisfaits ; bénéfice culturel déclaré, distinct de la note globale. Publication en 2022, données de 2021 ; ne pas généraliser à tous les Français.",
+          "year": 2022,
+          "sourceTitle": "Ministère de la Culture · À l’écoute des visiteurs",
+          "url": "https://www.culture.gouv.fr/mc/content/download/314087/pdf_file/Patrimostat-2021.pdf?inLanguage=fre-FR&version=9",
+          "statKey": "alecoute2021:museum-cultural-contribution-satisfied",
+          "sourceValue": 92,
+          "angle": "benefice",
+          "confidence": "haute"
+        }
+      ]
     },
     {
       "cardId": "new-projets-04",
-      "metric": "≈ 75 %",
-      "headline": "Créer pour faire une pause",
-      "detail": "Le cortisol a baissé chez environ 75 % des participants après une séance de création artistique libre.",
-      "scope": "39 adultes ; 45 minutes ; dessin, collage et modelage possibles.",
-      "limitations": "Petite étude avant/après sans témoin ; pas effet spécifique de l’aquarelle, ni preuve que chaque séance réduise le stress.",
-      "year": 2016,
-      "sourceTitle": "Kaimal et al. · Art Therapy",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5004743/",
-      "statKey": "kaimal2016-cortisol-responders"
+      "metric": "46 %",
+      "headline": "Aquarelle",
+      "detail": "46 % des artistes américains interrogés avaient peint au moins une aquarelle dans l’année.",
+      "scope": "États-Unis, n=5 136 artistes :604 professionnels,349 étudiants et 4 183 amateurs ; enquête en ligne Hart Business Research du 3 novembre au 8 décembre 2014",
+      "limitations": "Enquête volontaire spécialisée, non représentative de tous les adultes ; au moins une aquarelle réalisée dans les douze mois précédant le terrain de 2014.",
+      "year": 2015,
+      "sourceTitle": "NAMTA · Artists & Art Materials Study, Artist Survey Results",
+      "url": "https://www.namta.org/assets/survey_docs_images/artist_survey_results_2015.pdf",
+      "statKey": "namta2015:us-watercolor-created-past-year",
+      "sourceValue": 46,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "46 %",
+          "headline": "Aquarelle",
+          "detail": "46 % des artistes américains interrogés avaient peint au moins une aquarelle dans l’année.",
+          "scope": "États-Unis, n=5 136 artistes :604 professionnels,349 étudiants et 4 183 amateurs ; enquête en ligne Hart Business Research du 3 novembre au 8 décembre 2014",
+          "limitations": "Enquête volontaire spécialisée, non représentative de tous les adultes ; au moins une aquarelle réalisée dans les douze mois précédant le terrain de 2014.",
+          "year": 2015,
+          "sourceTitle": "NAMTA · Artists & Art Materials Study, Artist Survey Results",
+          "url": "https://www.namta.org/assets/survey_docs_images/artist_survey_results_2015.pdf",
+          "statKey": "namta2015:us-watercolor-created-past-year",
+          "sourceValue": 46,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-05",
-      "metric": "37 %",
-      "headline": "L’envie de créer de ses mains",
-      "detail": "Des adultes interrogés aimeraient pratiquer davantage une activité créative et manuelle, s’ils en avaient la possibilité.",
-      "scope": "1 026 adultes en France, échantillon représentatif par quotas · juillet 2024.",
-      "limitations": "Envie déclarée, sans mesure de bénéfice ; catégorie créative et manuelle plus large que la poterie seule.",
-      "year": 2024,
-      "sourceTitle": "Sondage OpinionWay pour WeCanDoo · Les Français et les loisirs",
-      "url": "https://www.opinion-way.com/wp-content/uploads/2025/04/OpinionWay-pour-Wecandoo-Les-Francais-et-les-loisirs-Juillet-2024.pdf",
-      "statKey": "opinionway2024-wecandoo-want-more-manual-creative"
+      "metric": "6 %",
+      "headline": "Poterie",
+      "detail": "6 % des adultes britanniques interrogés pratiquent la poterie.",
+      "scope": "Grande-Bretagne, adultes ; n=5 941 au total, dont suréchantillons 1 501 personnes ayant connu des difficultés psychiques et 426 clients ; en ligne 28 avril–8 mai 2025, pondération âge/genre/région",
+      "limitations": "Poterie seule, pas art manuel général ni peinture sur poterie ; enquête commerciale pondérée avec suréchantillons. Pratique actuelle.",
+      "year": 2025,
+      "sourceTitle": "Hobbycraft / Whitestone Insight · The Power of Making",
+      "url": "https://www.hobbycraft.co.uk/on/demandware.static/-/Library-Sites-hobbycraft-uk-content/default/vfb961ab7c6fb22a746bd2ce7a9412596e9776a43/images/static-pages/2025-craft-report/Hobbycraft%20The%20Power%20of%20Making%20Report.pdf",
+      "statKey": "hobbycraft2025:pottery-current-practice",
+      "sourceValue": 6,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "6 %",
+          "headline": "Poterie",
+          "detail": "6 % des adultes britanniques interrogés pratiquent la poterie.",
+          "scope": "Grande-Bretagne, adultes ; n=5 941 au total, dont suréchantillons 1 501 personnes ayant connu des difficultés psychiques et 426 clients ; en ligne 28 avril–8 mai 2025, pondération âge/genre/région",
+          "limitations": "Poterie seule, pas art manuel général ni peinture sur poterie ; enquête commerciale pondérée avec suréchantillons. Pratique actuelle.",
+          "year": 2025,
+          "sourceTitle": "Hobbycraft / Whitestone Insight · The Power of Making",
+          "url": "https://www.hobbycraft.co.uk/on/demandware.static/-/Library-Sites-hobbycraft-uk-content/default/vfb961ab7c6fb22a746bd2ce7a9412596e9776a43/images/static-pages/2025-craft-report/Hobbycraft%20The%20Power%20of%20Making%20Report.pdf",
+          "statKey": "hobbycraft2025:pottery-current-practice",
+          "sourceValue": 6,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "15 %",
+          "headline": "Poterie",
+          "detail": "15 % des adultes britanniques interrogés aimeraient essayer la poterie.",
+          "scope": "Grande-Bretagne, adultes ; n=5 941 au total, dont suréchantillons 1 501 personnes ayant connu des difficultés psychiques et 426 clients ; en ligne 28 avril–8 mai 2025, pondération âge/genre/région",
+          "limitations": "Poterie seule, pas art manuel général ni peinture sur poterie ; enquête commerciale pondérée avec suréchantillons. Envie de commencer, pas pratique réalisée.",
+          "year": 2025,
+          "sourceTitle": "Hobbycraft / Whitestone Insight · The Power of Making",
+          "url": "https://www.hobbycraft.co.uk/on/demandware.static/-/Library-Sites-hobbycraft-uk-content/default/vfb961ab7c6fb22a746bd2ce7a9412596e9776a43/images/static-pages/2025-craft-report/Hobbycraft%20The%20Power%20of%20Making%20Report.pdf",
+          "statKey": "hobbycraft2025:pottery-would-like",
+          "sourceValue": 15,
+          "angle": "envie",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-06",
       "metric": "71 %",
-      "headline": "Capturer le plaisir du moment",
-      "detail": "Des personnes interrogées estiment que prendre des photos rend une activité plus agréable.",
-      "scope": "Sondage Fujifilm / MarketVision · 2 014 adultes aux États-Unis, novembre–décembre 2024.",
-      "limitations": "Enquête commandée par une marque photo ; opinion, pas un effet expérimental. Les sorties photo dehors ne sont pas isolées.",
+      "headline": "Faire des photos dehors",
+      "detail": "71 % des Américains interrogés estiment que prendre des photos rend une activité plus agréable.",
+      "scope": "2 014 répondants américains ; 25 novembre–4 décembre 2024, échantillon présenté comme représentatif",
+      "limitations": "Opinion déclarée, marque commanditaire ; extérieur non isolé.",
       "year": 2025,
       "sourceTitle": "Fujifilm / MarketVision · Frame of Mind",
       "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx",
-      "statKey": "fujifilm2025-photo-taking-activity-enjoyment"
+      "statKey": "fujifilm2025:photo-taking-activity-enjoyment",
+      "sourceValue": 71,
+      "angle": "benefice",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "71 %",
+          "headline": "Faire des photos dehors",
+          "detail": "71 % des Américains interrogés estiment que prendre des photos rend une activité plus agréable.",
+          "scope": "2 014 répondants américains ; 25 novembre–4 décembre 2024, échantillon présenté comme représentatif",
+          "limitations": "Opinion déclarée, marque commanditaire ; extérieur non isolé.",
+          "year": 2025,
+          "sourceTitle": "Fujifilm / MarketVision · Frame of Mind",
+          "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx",
+          "statKey": "fujifilm2025:photo-taking-activity-enjoyment",
+          "sourceValue": 71,
+          "angle": "benefice",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "74 %",
+          "headline": "Faire des photos dehors",
+          "detail": "74 % des Américains interrogés photographient les moments ordinaires pour en garder une trace.",
+          "scope": "Même enquête n=2 014",
+          "limitations": "Motif de pratique déclaré ; extérieur non isolé.",
+          "year": 2025,
+          "sourceTitle": "Fujifilm / MarketVision · Frame of Mind",
+          "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx",
+          "statKey": "fujifilm2025:photos-preserve-everyday-moments",
+          "sourceValue": 74,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-07",
-      "metric": "−6 %",
-      "headline": "Une pause devant la nature",
-      "detail": "Pendant les observations assises, le pouls moyen était 6 % plus bas dans le paysage forestier que dans le paysage urbain.",
-      "scope": "Expériences au Japon ; jeunes hommes ; observations d’environ quinze minutes.",
-      "limitations": "Résultat physiologique immédiat comparant deux milieux, pas effet du repas ni du pique-nique à deux ; aucune baisse de fréquence cardiaque à rechercher personnellement.",
-      "year": 2010,
-      "sourceTitle": "Park et al. · Environmental Health and Preventive Medicine · figure 3",
-      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2793346/",
-      "statKey": "park2010-viewing-pulse"
-    },
-    {
-      "cardId": "new-projets-08",
-      "metric": "d = 0,47",
-      "headline": "Bouger pour retrouver de l’élan",
-      "detail": "Une méta-analyse rapporte une amélioration de l’affect positif activé après une séance d’exercice aérobie : taille d’effet moyenne de 0,47.",
-      "scope": "158 études, 13 101 participants ; émotions positives avec énergie.",
-      "limitations": "Repère connexe sur le mouvement, pas sur la pluie ni une promenade précise ; intensités et protocoles variés. d n’est pas un pourcentage.",
-      "year": 2006,
-      "sourceTitle": "Reed & Ones · Psychology of Sport and Exercise",
-      "url": "https://doi.org/10.1016/j.psychsport.2005.11.003",
-      "statKey": "reed2006-acute-positive-affect"
-    },
-    {
-      "cardId": "new-projets-09",
-      "metric": "+1,3 point de %",
-      "headline": "Le soir peut aussi être actif",
-      "detail": "Les études de cette synthèse observent une part de sommeil profond supérieure de 1,3 point après de l’exercice en soirée, par rapport à une soirée sans exercice.",
-      "scope": "Méta-analyse de 23 études chez des adultes en bonne santé.",
-      "limitations": "Exercices variés, pas promenade nocturne isolée. L’exercice intense finissant dans l’heure avant le coucher peut au contraire perturber certains paramètres.",
-      "year": 2019,
-      "sourceTitle": "Stutz et al. · Sports Medicine",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/30374942/",
-      "statKey": "stutz2019-evening-slow-wave-sleep"
+      "metric": "89 %",
+      "headline": "Pique-nique",
+      "detail": "89 % des Britanniques interrogés avaient déjà pique-niqué cette année-là ou prévoyaient de le faire l’été.",
+      "scope": "341 Britanniques, enquête juin 2026 ; âge et recrutement non publiés dans le communiqué",
+      "limitations": "La source regroupe pratique déjà faite et intention ; garder ce regroupement explicite, ne pas écrire 89 % en ont fait.",
+      "year": 2026,
+      "sourceTitle": "Greencore · National Picnic Week survey",
+      "url": "https://www.greencore.com/app/uploads/2026/06/Celebrating-National-Picnic-Week-Press-Release.pdf",
+      "statKey": "greencore2026:picnic-done-or-planned",
+      "sourceValue": 89,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "89 %",
+          "headline": "Pique-nique",
+          "detail": "89 % des Britanniques interrogés avaient déjà pique-niqué cette année-là ou prévoyaient de le faire l’été.",
+          "scope": "341 Britanniques, enquête juin 2026 ; âge et recrutement non publiés dans le communiqué",
+          "limitations": "La source regroupe pratique déjà faite et intention ; garder ce regroupement explicite, ne pas écrire 89 % en ont fait.",
+          "year": 2026,
+          "sourceTitle": "Greencore · National Picnic Week survey",
+          "url": "https://www.greencore.com/app/uploads/2026/06/Celebrating-National-Picnic-Week-Press-Release.pdf",
+          "statKey": "greencore2026:picnic-done-or-planned",
+          "sourceValue": 89,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "58 %",
+          "headline": "Pique-nique",
+          "detail": "58 % des Britanniques interrogés voient le pique-nique comme une occasion de se retrouver et discuter.",
+          "scope": "Même enquête de 341 Britanniques",
+          "limitations": "Motif ou bénéfice déclaré, pas démonstration causale ; petite enquête commerciale.",
+          "year": 2026,
+          "sourceTitle": "Greencore · National Picnic Week survey",
+          "url": "https://www.greencore.com/app/uploads/2026/06/Celebrating-National-Picnic-Week-Press-Release.pdf",
+          "statKey": "greencore2026:picnic-catch-up",
+          "sourceValue": 58,
+          "angle": "benefice",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-10",
-      "metric": "71 %",
-      "headline": "Un projet qui donne de l’élan",
-      "detail": "Des répondants disaient se sentir plus énergiques en sachant qu’un voyage était prévu dans les six mois.",
-      "scope": "Institute for Applied Positive Research · enquête en ligne, 263 adultes aux États-Unis, août 2020.",
-      "limitations": "Sondage commandé par l’industrie du voyage durant la pandémie ; ressenti déclaré, pas un gain d’énergie mesuré ni un week-end étudié séparément.",
-      "year": 2020,
-      "sourceTitle": "U.S. Travel / IAPR · Planning Travel Creates Happiness",
-      "url": "https://www.ustravel.org/sites/default/files/media_root/document/PlanningTravel_MichelleGielan.pdf",
-      "statKey": "iapr2020-planned-travel-energy"
+      "metric": "60 %",
+      "headline": "Préparer un futur week-end",
+      "detail": "60 % des adultes américains interrogés prévoyaient une escapade d’un week-end à l’automne.",
+      "scope": "2 000 adultes américains, enquête en ligne représentative en juillet 2026",
+      "limitations": "Intention de voyage court, pas réalisation ni bénéfice ; communiqué du secteur voyage.",
+      "year": 2026,
+      "sourceTitle": "Airbnb / Focaldata · Fall is the season of weekending",
+      "url": "https://news.airbnb.com/fall-beats-summer-as-the-top-season-for-weekend-trips",
+      "statKey": "airbnb2026:planning-weekend-getaway-fall",
+      "sourceValue": 60,
+      "angle": "envie",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "60 %",
+          "headline": "Préparer un futur week-end",
+          "detail": "60 % des adultes américains interrogés prévoyaient une escapade d’un week-end à l’automne.",
+          "scope": "2 000 adultes américains, enquête en ligne représentative en juillet 2026",
+          "limitations": "Intention de voyage court, pas réalisation ni bénéfice ; communiqué du secteur voyage.",
+          "year": 2026,
+          "sourceTitle": "Airbnb / Focaldata · Fall is the season of weekending",
+          "url": "https://news.airbnb.com/fall-beats-summer-as-the-top-season-for-weekend-trips",
+          "statKey": "airbnb2026:planning-weekend-getaway-fall",
+          "sourceValue": 60,
+          "angle": "envie",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-11",
       "metric": "97 %",
-      "headline": "Le plaisir de se projeter",
-      "detail": "Des répondants déclaraient qu’avoir un voyage prévu les rendait plus heureux.",
-      "scope": "Institute for Applied Positive Research · enquête en ligne, 263 adultes aux États-Unis, août 2020.",
-      "limitations": "Petit sondage commandé par l’industrie du voyage durant la pandémie ; opinion déclarée, pas un effet causal garanti.",
+      "headline": "Préparer de futures vacances",
+      "detail": "97 % des adultes américains interrogés se disaient plus heureux avec un voyage prévu.",
+      "scope": "263 adultes américains 18+, enquête en ligne 21–24 août 2020",
+      "limitations": "Petit sondage commercial pendant la pandémie ; bonheur déclaré, pas effet causal.",
       "year": 2020,
-      "sourceTitle": "U.S. Travel / IAPR · Planning Travel Creates Happiness",
+      "sourceTitle": "Institute for Applied Positive Research / U.S. Travel · Planning Travel Creates Happiness",
       "url": "https://www.ustravel.org/sites/default/files/media_root/document/PlanningTravel_MichelleGielan.pdf",
-      "statKey": "iapr2020-planned-travel-happiness"
+      "statKey": "iapr2020:planned-travel-happiness",
+      "sourceValue": 97,
+      "angle": "benefice",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "97 %",
+          "headline": "Préparer de futures vacances",
+          "detail": "97 % des adultes américains interrogés se disaient plus heureux avec un voyage prévu.",
+          "scope": "263 adultes américains 18+, enquête en ligne 21–24 août 2020",
+          "limitations": "Petit sondage commercial pendant la pandémie ; bonheur déclaré, pas effet causal.",
+          "year": 2020,
+          "sourceTitle": "Institute for Applied Positive Research / U.S. Travel · Planning Travel Creates Happiness",
+          "url": "https://www.ustravel.org/sites/default/files/media_root/document/PlanningTravel_MichelleGielan.pdf",
+          "statKey": "iapr2020:planned-travel-happiness",
+          "sourceValue": 97,
+          "angle": "benefice",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-12",
-      "metric": "64 %",
-      "headline": "Se réapproprier son chez-soi",
-      "detail": "Après leurs travaux, 64 % des répondants disaient avoir davantage envie de passer du temps chez eux.",
-      "scope": "Enquête américaine auprès de 806 personnes ayant réalisé des travaux ; NAR 2025.",
-      "limitations": "Sondage volontaire d’une organisation du secteur immobilier ; types de travaux variés. Ne mesure pas un simple déplacement de meubles.",
-      "year": 2025,
-      "sourceTitle": "NAR / NARI · Remodeling Impact Report",
-      "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf",
-      "statKey": "nar2025-desire-home"
-    },
-    {
-      "cardId": "new-projets-13",
-      "metric": "r = −0,490",
-      "headline": "Un espace qui laisse respirer",
-      "detail": "Se sentir moins gêné par l’encombrement allait de pair avec une plus grande satisfaction de vie ; corrélation inverse de −0,490.",
-      "scope": "450 adultes américains de 23 à 84 ans ; corrélation contrôlant la désirabilité sociale.",
-      "limitations": "Étude observationnelle recrutée via une association sur la désorganisation ; 94 % de femmes. Ne mesure pas l’effet de jeter trois objets.",
+      "metric": "50 %",
+      "headline": "Réaménager un coin de la maison",
+      "detail": "50 % des acheteurs immobiliers américains interrogés aiment rafraîchir leur déco en déplaçant les meubles.",
+      "scope": "800 acheteurs immobiliers américains 28–74 ans intéressés par décoration/rénovation ou ayant rénové dans les deux dernières années ; septembre–octobre 2021",
+      "limitations": "Public immobilier sélectionné, pas tous les adultes ; préférence déclarée pour le réarrangement.",
       "year": 2022,
-      "sourceTitle": "Swanson & Ferrari · Behavioral Sciences · tableau 2",
-      "url": "https://doi.org/10.3390/bs12050132",
-      "statKey": "swanson2022-clutter-lifesatisfaction"
-    },
-    {
-      "cardId": "new-projets-14",
-      "metric": "r = −0,375",
-      "headline": "Faire de la place à son refuge",
-      "detail": "Une moindre gêne liée à l’encombrement allait de pair avec un sentiment plus fort de « chez-soi » ; corrélation inverse de −0,375.",
-      "scope": "450 adultes américains ; sentiment d’attachement et de refuge ; corrélation contrôlée.",
-      "limitations": "Association, pas preuve qu’enlever un objet crée ce bénéfice ; recrutement particulier et échantillon majoritairement féminin.",
-      "year": 2022,
-      "sourceTitle": "Swanson & Ferrari · Behavioral Sciences · tableau 2",
-      "url": "https://doi.org/10.3390/bs12050132",
-      "statKey": "swanson2022-clutter-psychologicalhome"
+      "sourceTitle": "Opendoor / Qualtrics · Designing a Dream Home, Decor Report",
+      "url": "https://www.opendoor.com/articles/2022-home-decor-report",
+      "statKey": "opendoor2022:freshen-decor-rearranging-furniture",
+      "sourceValue": 50,
+      "angle": "appreciation",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "50 %",
+          "headline": "Réaménager un coin de la maison",
+          "detail": "50 % des acheteurs immobiliers américains interrogés aiment rafraîchir leur déco en déplaçant les meubles.",
+          "scope": "800 acheteurs immobiliers américains 28–74 ans intéressés par décoration/rénovation ou ayant rénové dans les deux dernières années ; septembre–octobre 2021",
+          "limitations": "Public immobilier sélectionné, pas tous les adultes ; préférence déclarée pour le réarrangement.",
+          "year": 2022,
+          "sourceTitle": "Opendoor / Qualtrics · Designing a Dream Home, Decor Report",
+          "url": "https://www.opendoor.com/articles/2022-home-decor-report",
+          "statKey": "opendoor2022:freshen-decor-rearranging-furniture",
+          "sourceValue": 50,
+          "angle": "appreciation",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-15",
-      "metric": "≈ 93 %",
-      "headline": "Une pièce repeinte, du plaisir retrouvé",
-      "detail": "Pour une pièce intérieure repeinte, environ 93 % des répondants étaient heureux ou satisfaits du résultat.",
-      "scope": "Rapport NAR / NARI 2025 ; 806 répondants tous projets confondus ; résultat du sous-groupe peinture.",
-      "limitations": "Pourcentage déduit de la définition du rapport : le Joy Score de 9,3 correspond à la part « heureux » + « satisfaits », divisée par dix. Sondage volontaire du secteur immobilier ; effectif du sous-groupe non précisé.",
-      "year": 2025,
-      "sourceTitle": "NAR / NARI · Remodeling Impact Report · pages 7 et 27",
-      "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf",
-      "statKey": "nar2025-paintroom-happy-satisfied"
+      "metric": "66 %",
+      "headline": "Faire une mini rénovation",
+      "detail": "66 % des acheteurs immobiliers américains interrogés apprécient une nouvelle peinture pour rafraîchir leur décoration.",
+      "scope": "800 acheteurs immobiliers américains 28–74 ans, enquête septembre–octobre 2021",
+      "limitations": "La peinture est un exemple de mini rénovation ; préférence, pas satisfaction après travaux.",
+      "year": 2022,
+      "sourceTitle": "Opendoor / Qualtrics · Decor Report",
+      "url": "https://www.opendoor.com/articles/2022-home-decor-report",
+      "statKey": "opendoor2022:freshen-decor-fresh-paint",
+      "sourceValue": 66,
+      "angle": "appreciation",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "66 %",
+          "headline": "Faire une mini rénovation",
+          "detail": "66 % des acheteurs immobiliers américains interrogés apprécient une nouvelle peinture pour rafraîchir leur décoration.",
+          "scope": "800 acheteurs immobiliers américains 28–74 ans, enquête septembre–octobre 2021",
+          "limitations": "La peinture est un exemple de mini rénovation ; préférence, pas satisfaction après travaux.",
+          "year": 2022,
+          "sourceTitle": "Opendoor / Qualtrics · Decor Report",
+          "url": "https://www.opendoor.com/articles/2022-home-decor-report",
+          "statKey": "opendoor2022:freshen-decor-fresh-paint",
+          "sourceValue": 66,
+          "angle": "appreciation",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "64 %",
+          "headline": "Faire une mini rénovation",
+          "detail": "64 % des répondants ayant rénové avaient davantage envie de profiter de leur maison.",
+          "scope": "806 répondants ayant réalisé des travaux ; HouseLogic, hiver 2024",
+          "limitations": "Toutes tailles de chantier ; réalisation en autonomie/professionnel mélangée.",
+          "year": 2025,
+          "sourceTitle": "NAR / NARI · Remodeling Impact Report",
+          "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf",
+          "statKey": "nar2025:greater-desire-home-after-remodel",
+          "sourceValue": 64,
+          "angle": "benefice",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-16",
       "metric": "55 %",
-      "headline": "La fierté d’avoir réalisé un projet",
-      "detail": "55 % des répondants ressentaient un fort sentiment d’accomplissement en pensant à leurs travaux terminés.",
-      "scope": "Enquête américaine de 806 personnes ayant rénové ; travaux de tailles diverses.",
-      "limitations": "Sondage volontaire du secteur immobilier ; l’ampleur du chantier n’est pas une garantie de satisfaction.",
+      "headline": "Faire une grosse rénovation",
+      "detail": "55 % des répondants ayant rénové ressentaient un fort sentiment d’accomplissement.",
+      "scope": "806 répondants ayant réalisé des travaux ; HouseLogic, hiver 2024",
+      "limitations": "Taille du chantier et réalisation en autonomie / par professionnel non isolés.",
       "year": 2025,
       "sourceTitle": "NAR / NARI · Remodeling Impact Report",
       "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf",
-      "statKey": "nar2025-major-accomplishment"
+      "statKey": "nar2025:major-accomplishment-after-remodel",
+      "sourceValue": 55,
+      "angle": "benefice",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "55 %",
+          "headline": "Faire une grosse rénovation",
+          "detail": "55 % des répondants ayant rénové ressentaient un fort sentiment d’accomplissement.",
+          "scope": "806 répondants ayant réalisé des travaux ; HouseLogic, hiver 2024",
+          "limitations": "Taille du chantier et réalisation en autonomie / par professionnel non isolés.",
+          "year": 2025,
+          "sourceTitle": "NAR / NARI · Remodeling Impact Report",
+          "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf",
+          "statKey": "nar2025:major-accomplishment-after-remodel",
+          "sourceValue": 55,
+          "angle": "benefice",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "92 %",
+          "headline": "Faire une grosse rénovation",
+          "detail": "92 % des répondants ayant rénové voudraient refaire des travaux si le coût ne comptait pas.",
+          "scope": "Même enquête HouseLogic, n=806",
+          "limitations": "Envie conditionnée à l’absence de barrière de prix ; tailleduchantiernon isolée.",
+          "year": 2025,
+          "sourceTitle": "NAR / NARI · Remodeling Impact Report",
+          "url": "https://www.nar.realtor/sites/default/files/2025-04/2025-remodeling-impact-report_04-09-2025.pdf",
+          "statKey": "nar2025:would-remodel-more-if-cost-not-issue",
+          "sourceValue": 92,
+          "angle": "envie",
+          "confidence": "moyenne"
+        }
+      ]
     },
     {
       "cardId": "new-projets-17",
-      "metric": "d = 0,34",
-      "headline": "Nommer ses envies aide à agir",
-      "detail": "La fixation d’objectifs avait un effet positif moyen sur le passage à l’action : d = 0,34, par rapport aux interventions sans cet élément.",
-      "scope": "141 articles, 16 523 participants ; méta-analyse d’essais randomisés.",
-      "limitations": "Comportements et contextes variés ; ne mesure pas une bucket list de couple. d décrit une différence standardisée, pas 34 % de réussite supplémentaire.",
+      "metric": "91,2 %",
+      "headline": "Créer ou agrémenter une bucket list",
+      "detail": "91,2 % des participants de cette étude américaine déclaraient avoir une bucket list.",
+      "scope": "États-Unis, cohorte de validation n=3 016 ;2 752 déclarent avoir une bucket list ; enquête web juillet 2015–décembre 2016 ; n=3 056 avant retrait des 40 sujets de développement",
+      "limitations": "Échantillon de convenance recruté par portails Stanford et médias, anglophone et connecté ;91,2 % des participants de validation, jamais 91,2 % des Américains. Possession déclarée d’une liste, pas bénéfice ni fréquence de mise à jour.",
+      "year": 2018,
+      "sourceTitle": "Periyakoil, Neri & Kraemer · Common Items on a Bucket List",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/29415602/",
+      "statKey": "periyakoil2018:has-bucket-list-validation",
+      "sourceValue": 91.2,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "91,2 %",
+          "headline": "Créer ou agrémenter une bucket list",
+          "detail": "91,2 % des participants de cette étude américaine déclaraient avoir une bucket list.",
+          "scope": "États-Unis, cohorte de validation n=3 016 ;2 752 déclarent avoir une bucket list ; enquête web juillet 2015–décembre 2016 ; n=3 056 avant retrait des 40 sujets de développement",
+          "limitations": "Échantillon de convenance recruté par portails Stanford et médias, anglophone et connecté ;91,2 % des participants de validation, jamais 91,2 % des Américains. Possession déclarée d’une liste, pas bénéfice ni fréquence de mise à jour.",
+          "year": 2018,
+          "sourceTitle": "Periyakoil, Neri & Kraemer · Common Items on a Bucket List",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29415602/",
+          "statKey": "periyakoil2018:has-bucket-list-validation",
+          "sourceValue": 91.2,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-01",
+      "metric": "53 %",
+      "headline": "Achat Vinted à petit budget",
+      "detail": "53 % des membres Vinted adultes déclarent dépenser moins pour la mode depuis leurs achats sur la plateforme.",
+      "scope": "Membres Vinted de 18 ans et plus, huit pays européens ; enquête Vaayu de 94 400 membres.",
+      "limitations": "Économie déclarée, non mesure causale. Pas de montant ni de seuil de 20 euros isolé. Données 2023 publiées en 2024.",
+      "year": 2024,
+      "sourceTitle": "Vinted / Vaayu, Impact Report 2023",
+      "url": "https://company.vinted.com/fr/newsroom/impact-report",
+      "statKey": "vinted-impact-2023|53",
+      "sourceValue": 53,
+      "angle": "benefice",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "53 %",
+          "headline": "Achat Vinted à petit budget",
+          "detail": "53 % des membres Vinted adultes déclarent dépenser moins pour la mode depuis leurs achats sur la plateforme.",
+          "scope": "Membres Vinted de 18 ans et plus, huit pays européens ; enquête Vaayu de 94 400 membres.",
+          "limitations": "Économie déclarée, non mesure causale. Pas de montant ni de seuil de 20 euros isolé. Données 2023 publiées en 2024.",
+          "year": 2024,
+          "sourceTitle": "Vinted / Vaayu, Impact Report 2023",
+          "url": "https://company.vinted.com/fr/newsroom/impact-report",
+          "statKey": "vinted-impact-2023|53",
+          "sourceValue": 53,
+          "angle": "benefice",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-02",
+      "metric": "84 %",
+      "headline": "Achat Vinted à gros budget",
+      "detail": "84 % des acheteurs Vinted jugent la qualité au moins aussi satisfaisante que du neuf.",
+      "scope": "Acheteurs Vinted 18+, huit pays européens ; voir méthode commune du rapport 2023.",
+      "limitations": "Comparaison subjective de qualité ; budget non isolé ; rapport p 18, note 32.",
+      "year": 2024,
+      "sourceTitle": "Vinted, Impact Report 2023",
+      "url": "https://press-center-static.vinted.com/Impact_Report_EN_2023_d4e3d4399e.pdf",
+      "statKey": "vinted-impact-2023|84",
+      "sourceValue": 84,
+      "angle": "appreciation",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "84 %",
+          "headline": "Achat Vinted à gros budget",
+          "detail": "84 % des acheteurs Vinted jugent la qualité au moins aussi satisfaisante que du neuf.",
+          "scope": "Acheteurs Vinted 18+, huit pays européens ; voir méthode commune du rapport 2023.",
+          "limitations": "Comparaison subjective de qualité ; budget non isolé ; rapport p 18, note 32.",
+          "year": 2024,
+          "sourceTitle": "Vinted, Impact Report 2023",
+          "url": "https://press-center-static.vinted.com/Impact_Report_EN_2023_d4e3d4399e.pdf",
+          "statKey": "vinted-impact-2023|84",
+          "sourceValue": 84,
+          "angle": "appreciation",
+          "confidence": "haute"
+        },
+        {
+          "metric": "65 %",
+          "headline": "Achat Vinted à gros budget",
+          "detail": "65 % des acheteurs Vinted préfèrent moins d’articles, plus chers et durables.",
+          "scope": "Acheteurs Vinted 18+, huit pays européens ; voir méthode commune du rapport 2023.",
+          "limitations": "Question située sur la plateforme : quelle proposition décrit votre façon d’acheter sur Vinted ? Préférence déclarée, pas effet garanti ; budget non isolé.",
+          "year": 2024,
+          "sourceTitle": "Vinted, Impact Report 2023",
+          "url": "https://press-center-static.vinted.com/Impact_Report_EN_2023_d4e3d4399e.pdf",
+          "statKey": "vinted-impact-2023|65",
+          "sourceValue": 65,
+          "angle": "envie",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-03",
+      "metric": "81 %",
+      "headline": "Un café à Columbus",
+      "detail": "81 % des adultes français boivent un café chaque jour.",
+      "scope": "1 042 adultes de France, représentatifs des 18 ans et plus ; terrain les 18 et 19 juin 2025.",
+      "limitations": "La consommation de café est directement mesurée ; ni la marque Columbus ni l’achat en coffee shop ne sont isolés.",
+      "year": 2025,
+      "sourceTitle": "OpinionWay pour Delta Cafés",
+      "url": "https://www.opinion-way.com/wp-content/uploads/2025/10/Infographie-Etude-Delta-Cafes-oct-2025.pdf",
+      "statKey": "opinionway-delta-2025|81",
+      "sourceValue": 81,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "81 %",
+          "headline": "Un café à Columbus",
+          "detail": "81 % des adultes français boivent un café chaque jour.",
+          "scope": "1 042 adultes de France, représentatifs des 18 ans et plus ; terrain les 18 et 19 juin 2025.",
+          "limitations": "La consommation de café est directement mesurée ; ni la marque Columbus ni l’achat en coffee shop ne sont isolés.",
+          "year": 2025,
+          "sourceTitle": "OpinionWay pour Delta Cafés",
+          "url": "https://www.opinion-way.com/wp-content/uploads/2025/10/Infographie-Etude-Delta-Cafes-oct-2025.pdf",
+          "statKey": "opinionway-delta-2025|81",
+          "sourceValue": 81,
+          "angle": "pratique",
+          "confidence": "haute"
+        },
+        {
+          "metric": "82 %",
+          "headline": "Un café à Columbus",
+          "detail": "82 % des adultes français proposeraient un café plutôt qu’un verre lors d’un premier rendez-vous.",
+          "scope": "1 042 adultes de France, représentatifs des 18 ans et plus ; terrain les 18 et 19 juin 2025.",
+          "limitations": "Intention pour un premier rendez-vous, pas comportement observé ni mesure de couples établis. Columbus non isolé.",
+          "year": 2025,
+          "sourceTitle": "OpinionWay pour Delta Cafés",
+          "url": "https://www.opinion-way.com/wp-content/uploads/2025/10/Infographie-Etude-Delta-Cafes-oct-2025.pdf",
+          "statKey": "opinionway-delta-2025|82",
+          "sourceValue": 82,
+          "angle": "envie",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-05",
+      "metric": "51 %",
+      "headline": "Achat d’un jeu vidéo",
+      "detail": "51 % des joueurs américains adultes sur console préfèrent acheter sur disque ou cartouche.",
+      "scope": "États-Unis : enquête en ligne de 1 500 adultes le 5 juillet 2026 ; 471 joueurs console/PC au moins 1 h par semaine, sous-base console.",
+      "limitations": "Choix déclaré du format d’achat, pas achat observé ni appréciation après achat ; sous-base console non publiée.",
+      "year": 2026,
+      "sourceTitle": "YouGov Surveys",
+      "url": "https://yougov.com/en-us/articles/55221-as-physical-disc-production-declines-are-gamers-ready-to-embrace-digital-distribution",
+      "statKey": "yougov-gaming-formats-2026|51",
+      "sourceValue": 51,
+      "angle": "envie",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "51 %",
+          "headline": "Achat d’un jeu vidéo",
+          "detail": "51 % des joueurs américains adultes sur console préfèrent acheter sur disque ou cartouche.",
+          "scope": "États-Unis : enquête en ligne de 1 500 adultes le 5 juillet 2026 ; 471 joueurs console/PC au moins 1 h par semaine, sous-base console.",
+          "limitations": "Choix déclaré du format d’achat, pas achat observé ni appréciation après achat ; sous-base console non publiée.",
+          "year": 2026,
+          "sourceTitle": "YouGov Surveys",
+          "url": "https://yougov.com/en-us/articles/55221-as-physical-disc-production-declines-are-gamers-ready-to-embrace-digital-distribution",
+          "statKey": "yougov-gaming-formats-2026|51",
+          "sourceValue": 51,
+          "angle": "envie",
+          "confidence": "haute"
+        },
+        {
+          "metric": "54 %",
+          "headline": "Achat d’un jeu vidéo",
+          "detail": "54 % des joueurs américains adultes préférant les achats numériques citent leur accès immédiat.",
+          "scope": "États-Unis : sous-groupe des adultes joueurs console/PC préférant les jeux numériques, dans une enquête de 1 500 adultes dont 471 joueurs.",
+          "limitations": "Avantage déclaré motivant le format d’achat ; pas effet causal ; n du sous-groupe non publié.",
+          "year": 2026,
+          "sourceTitle": "YouGov Surveys",
+          "url": "https://yougov.com/en-us/articles/55221-as-physical-disc-production-declines-are-gamers-ready-to-embrace-digital-distribution",
+          "statKey": "yougov-gaming-formats-2026|54",
+          "sourceValue": 54,
+          "angle": "benefice",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-08",
+      "metric": "8,5 %",
+      "headline": "Achat d’un jeu de société de type cartes",
+      "detail": "8,5 % des Japonais interrogés de 20 ans et plus ont acheté des cartes à collectionner à l’âge adulte.",
+      "scope": "Japon :8640 répondants 20+, enquête internet 13–20 juin 2025.",
+      "limitations": "TCG uniquement ; achat à l’âge adulte, pas achat de cartes classiques ; aucune généralisation française.",
+      "year": 2025,
+      "sourceTitle": "Happinet / Fastask, Adult Demand for Trading Card Games",
+      "url": "https://prtimes.jp/main/html/rd/p/000002289.000031422.html",
+      "statKey": "happinet-fastask-tcg-2025|8.5",
+      "sourceValue": 8.5,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "8,5 %",
+          "headline": "Achat d’un jeu de société de type cartes",
+          "detail": "8,5 % des Japonais interrogés de 20 ans et plus ont acheté des cartes à collectionner à l’âge adulte.",
+          "scope": "Japon :8640 répondants 20+, enquête internet 13–20 juin 2025.",
+          "limitations": "TCG uniquement ; achat à l’âge adulte, pas achat de cartes classiques ; aucune généralisation française.",
+          "year": 2025,
+          "sourceTitle": "Happinet / Fastask, Adult Demand for Trading Card Games",
+          "url": "https://prtimes.jp/main/html/rd/p/000002289.000031422.html",
+          "statKey": "happinet-fastask-tcg-2025|8.5",
+          "sourceValue": 8.5,
+          "angle": "pratique",
+          "confidence": "haute"
+        },
+        {
+          "metric": "42,2 %",
+          "headline": "Achat d’un jeu de société de type cartes",
+          "detail": "42,2 % des acheteurs japonais interrogés achètent des cartes à collectionner pour le plaisir de les ouvrir.",
+          "scope": "Japon :450 acheteurs de TCG 20–59 ans ; sexe/âge répartis également ; enquête internet 20–23 juin 2025.",
+          "limitations": "Motif d’achat déclaré, pas test causal ; TCG uniquement, budget non isolé.",
+          "year": 2025,
+          "sourceTitle": "Happinet / Fastask, Adult Demand for Trading Card Games",
+          "url": "https://prtimes.jp/main/html/rd/p/000002289.000031422.html",
+          "statKey": "happinet-fastask-tcg-2025|42.2",
+          "sourceValue": 42.2,
+          "angle": "benefice",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-10",
+      "metric": "26 %",
+      "headline": "Petit achat sur Passage du Désir",
+      "detail": "26 % des Françaises de 18–69 ans possèdent des lubrifiants qu’elles ont achetés elles-mêmes.",
+      "scope": "Femmes 18–69 ans, France, n 1031.",
+      "limitations": "Possession actuelle avec achat propre de lubrifiant ; enseigne et budget non isolés (p 42).",
       "year": 2017,
-      "sourceTitle": "Epton, Currie & Armitage · Journal of Consulting and Clinical Psychology",
-      "url": "https://www.stir.ac.uk/research/hub/publication/883299",
-      "statKey": "epton2017-goalsetting-behavior"
+      "sourceTitle": "Ifop / Dorcelstore, 2017",
+      "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+      "statKey": "ifop-dorcelstore-2017|26",
+      "sourceValue": 26,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "26 %",
+          "headline": "Petit achat sur Passage du Désir",
+          "detail": "26 % des Françaises de 18–69 ans possèdent des lubrifiants qu’elles ont achetés elles-mêmes.",
+          "scope": "Femmes 18–69 ans, France, n 1031.",
+          "limitations": "Possession actuelle avec achat propre de lubrifiant ; enseigne et budget non isolés (p 42).",
+          "year": 2017,
+          "sourceTitle": "Ifop / Dorcelstore, 2017",
+          "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+          "statKey": "ifop-dorcelstore-2017|26",
+          "sourceValue": 26,
+          "angle": "pratique",
+          "confidence": "haute"
+        },
+        {
+          "metric": "15 %",
+          "headline": "Petit achat sur Passage du Désir",
+          "detail": "15 % des Françaises de 18–69 ans aimeraient s’acheter une huile de massage érotique.",
+          "scope": "Femmes 18–69 ans, France, n 1031.",
+          "limitations": "Intention d’achat propre d’huile érotique ; enseigne et budget non isolés (p 44).",
+          "year": 2017,
+          "sourceTitle": "Ifop / Dorcelstore, 2017",
+          "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+          "statKey": "ifop-dorcelstore-2017|15",
+          "sourceValue": 15,
+          "angle": "envie",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-11",
+      "metric": "16 %",
+      "headline": "Gros achat sur Passage du Désir",
+      "detail": "16 % des Françaises de 18–69 ans possèdent un sextoy vibrant qu’elles ont acheté elles-mêmes.",
+      "scope": "Femmes 18–69 ans, France, n 1031.",
+      "limitations": "Possession actuelle avec achat propre de vibrant ; enseigne et budget non isolés (p 41).",
+      "year": 2017,
+      "sourceTitle": "Ifop / Dorcelstore, 2017",
+      "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+      "statKey": "ifop-dorcelstore-2017|16",
+      "sourceValue": 16,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "16 %",
+          "headline": "Gros achat sur Passage du Désir",
+          "detail": "16 % des Françaises de 18–69 ans possèdent un sextoy vibrant qu’elles ont acheté elles-mêmes.",
+          "scope": "Femmes 18–69 ans, France, n 1031.",
+          "limitations": "Possession actuelle avec achat propre de vibrant ; enseigne et budget non isolés (p 41).",
+          "year": 2017,
+          "sourceTitle": "Ifop / Dorcelstore, 2017",
+          "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+          "statKey": "ifop-dorcelstore-2017|16",
+          "sourceValue": 16,
+          "angle": "pratique",
+          "confidence": "haute"
+        },
+        {
+          "metric": "10 %",
+          "headline": "Gros achat sur Passage du Désir",
+          "detail": "10 % des Français de 18–69 ans aimeraient s’acheter un sextoy vibrant.",
+          "scope": "Hommes 18–69 ans, France, n 981.",
+          "limitations": "Intention d’achat propre de vibrant ; enseigne et budget non isolés (p 43).",
+          "year": 2017,
+          "sourceTitle": "Ifop / Dorcelstore, 2017",
+          "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+          "statKey": "ifop-dorcelstore-2017|10",
+          "sourceValue": 10,
+          "angle": "envie",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-12",
+      "metric": "90 %",
+      "headline": "Achat Rouge Gorge 20 euros",
+      "detail": "90 % des Françaises adultes achètent de la lingerie pour se faire plaisir.",
+      "scope": "France, 950 personnes 18+ représentatives ; sous-groupe femmes ; CATI 20–21 juin 2003.",
+      "limitations": "La source formule neuf femmes sur dix. Motif d’achat pour le plaisir, pas bénéfice causal. Ancienneté 2003 explicite, ni RougeGorge ni 20€ isolés. Recouvrement lingerie avec carte+30€ signalé : autre motivation et autre mesure d’achat ci-dessous.",
+      "year": 2003,
+      "sourceTitle": "Ipsos pour les Galeries Lafayette, La lingerie objet de séduction",
+      "url": "https://www.ipsos.com/fr-fr/la-lingerie-objet-de-seduction",
+      "statKey": "ipsos-lingerie-2003|90",
+      "sourceValue": 90,
+      "angle": "appreciation",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "90 %",
+          "headline": "Achat Rouge Gorge 20 euros",
+          "detail": "90 % des Françaises adultes achètent de la lingerie pour se faire plaisir.",
+          "scope": "France, 950 personnes 18+ représentatives ; sous-groupe femmes ; CATI 20–21 juin 2003.",
+          "limitations": "La source formule neuf femmes sur dix. Motif d’achat pour le plaisir, pas bénéfice causal. Ancienneté 2003 explicite, ni RougeGorge ni 20€ isolés. Recouvrement lingerie avec carte+30€ signalé : autre motivation et autre mesure d’achat ci-dessous.",
+          "year": 2003,
+          "sourceTitle": "Ipsos pour les Galeries Lafayette, La lingerie objet de séduction",
+          "url": "https://www.ipsos.com/fr-fr/la-lingerie-objet-de-seduction",
+          "statKey": "ipsos-lingerie-2003|90",
+          "sourceValue": 90,
+          "angle": "appreciation",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-14",
+      "metric": "31 %",
+      "headline": "Achat Rouge Gorge +30 euros",
+      "detail": "31 % des Françaises adultes achètent de la lingerie pour séduire.",
+      "scope": "France, 950 personnes 18+ représentatives ; sous-groupe femmes ; CATI 20–21 juin 2003.",
+      "limitations": "Motif d’achat pour séduire, pas preuve d’effet. Ancienneté 2003 explicite, ni RougeGorge ni budget>30€ isolés. Même activité d’achat que carte 20€, motivation différente ; recouvrement général lingerie explicite.",
+      "year": 2003,
+      "sourceTitle": "Ipsos pour les Galeries Lafayette, La lingerie objet de séduction",
+      "url": "https://www.ipsos.com/fr-fr/la-lingerie-objet-de-seduction",
+      "statKey": "ipsos-lingerie-2003|31",
+      "sourceValue": 31,
+      "angle": "envie",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "31 %",
+          "headline": "Achat Rouge Gorge +30 euros",
+          "detail": "31 % des Françaises adultes achètent de la lingerie pour séduire.",
+          "scope": "France, 950 personnes 18+ représentatives ; sous-groupe femmes ; CATI 20–21 juin 2003.",
+          "limitations": "Motif d’achat pour séduire, pas preuve d’effet. Ancienneté 2003 explicite, ni RougeGorge ni budget>30€ isolés. Même activité d’achat que carte 20€, motivation différente ; recouvrement général lingerie explicite.",
+          "year": 2003,
+          "sourceTitle": "Ipsos pour les Galeries Lafayette, La lingerie objet de séduction",
+          "url": "https://www.ipsos.com/fr-fr/la-lingerie-objet-de-seduction",
+          "statKey": "ipsos-lingerie-2003|31",
+          "sourceValue": 31,
+          "angle": "envie",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "32 %",
+          "headline": "Achat Rouge Gorge +30 euros",
+          "detail": "32 % des Françaises de 18–69 ans possèdent de la lingerie sexy qu’elles ont achetée elles-mêmes.",
+          "scope": "Femmes 18–69 ans, France, n 1031.",
+          "limitations": "Possession actuelle avec achat propre de lingerie sexy ; enseigne et budget non isolés (p 42).",
+          "year": 2017,
+          "sourceTitle": "Ifop / Dorcelstore, 2017",
+          "url": "https://www.ifop.com/wp-content/uploads/2018/03/3648-1-study_file.pdf",
+          "statKey": "ifop-dorcelstore-2017|32",
+          "sourceValue": 32,
+          "angle": "pratique",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-01",
+      "metric": "73 %",
+      "headline": "Manger un burger",
+      "detail": "73 % des adultes américains interrogés aiment les burgers à la viande.",
+      "scope": "États-Unis, adultes 18+, n=1 179 ; panel en ligne pondéré, 18–19 mai 2020",
+      "limitations": "Agrégat positif explicitement publié ; 78 % est le sous-groupe masculin, pas la population totale ; burgers végétaux non couverts.",
+      "year": 2020,
+      "sourceTitle": "YouGov RealTime · Burgers",
+      "url": "https://docs.cdn.yougov.com/xhmcvyxq40/YouGov%20Realtime%20Burger%20results%20(May%2018-19,%202020).xlsx%20%20%5BGroup%5D.pdf",
+      "statKey": "yougov2020:us-meat-burgers-like-net",
+      "sourceValue": 73,
+      "angle": "appreciation",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "73 %",
+          "headline": "Manger un burger",
+          "detail": "73 % des adultes américains interrogés aiment les burgers à la viande.",
+          "scope": "États-Unis, adultes 18+, n=1 179 ; panel en ligne pondéré, 18–19 mai 2020",
+          "limitations": "Agrégat positif explicitement publié ; 78 % est le sous-groupe masculin, pas la population totale ; burgers végétaux non couverts.",
+          "year": 2020,
+          "sourceTitle": "YouGov RealTime · Burgers",
+          "url": "https://docs.cdn.yougov.com/xhmcvyxq40/YouGov%20Realtime%20Burger%20results%20(May%2018-19,%202020).xlsx%20%20%5BGroup%5D.pdf",
+          "statKey": "yougov2020:us-meat-burgers-like-net",
+          "sourceValue": 73,
+          "angle": "appreciation",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-02",
+      "metric": "84 %",
+      "headline": "Manger de la pizza",
+      "detail": "84 % des adultes britanniques interrogés aiment la pizza.",
+      "scope": "Grande-Bretagne, n=3 683 adultes ; 26–28 février 2017",
+      "limitations": "Agrégat positif explicitement publié ; enquête ancienne.",
+      "year": 2017,
+      "sourceTitle": "YouGov · Pizza survey",
+      "url": "https://docs.cdn.yougov.com/7ordz029w2/InternalResults_170228_Pizza_W.pdf",
+      "statKey": "yougov2017:gb-pizza-like-net",
+      "sourceValue": 84,
+      "angle": "appreciation",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "84 %",
+          "headline": "Manger de la pizza",
+          "detail": "84 % des adultes britanniques interrogés aiment la pizza.",
+          "scope": "Grande-Bretagne, n=3 683 adultes ; 26–28 février 2017",
+          "limitations": "Agrégat positif explicitement publié ; enquête ancienne.",
+          "year": 2017,
+          "sourceTitle": "YouGov · Pizza survey",
+          "url": "https://docs.cdn.yougov.com/7ordz029w2/InternalResults_170228_Pizza_W.pdf",
+          "statKey": "yougov2017:gb-pizza-like-net",
+          "sourceValue": 84,
+          "angle": "appreciation",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-03",
+      "metric": "88,7 %",
+      "headline": "Manger sushi",
+      "detail": "88,7 % des Japonais de 20 à 59 ans interrogés aiment les sushis.",
+      "scope": "Japon, 1 000 hommes et femmes de 20–59 ans ; communiqué du 24 octobre 2019",
+      "limitations": "Enquête commanditée par une enseigne ; dates de terrain et pondération absentes du texte consulté.",
+      "year": 2019,
+      "sourceTitle": "Kyotaru / Net Asia · Sushi Survey",
+      "url": "https://newscast.jp/smart/news/0120332",
+      "statKey": "kyotaru2019:japan-sushi-like",
+      "sourceValue": 88.7,
+      "angle": "appreciation",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "88,7 %",
+          "headline": "Manger sushi",
+          "detail": "88,7 % des Japonais de 20 à 59 ans interrogés aiment les sushis.",
+          "scope": "Japon, 1 000 hommes et femmes de 20–59 ans ; communiqué du 24 octobre 2019",
+          "limitations": "Enquête commanditée par une enseigne ; dates de terrain et pondération absentes du texte consulté.",
+          "year": 2019,
+          "sourceTitle": "Kyotaru / Net Asia · Sushi Survey",
+          "url": "https://newscast.jp/smart/news/0120332",
+          "statKey": "kyotaru2019:japan-sushi-like",
+          "sourceValue": 88.7,
+          "angle": "appreciation",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "31,4 %",
+          "headline": "Manger sushi",
+          "detail": "31,4 % des Japonais interrogés mangent dans un restaurant de sushis sur tapis roulant au moins une fois par mois.",
+          "scope": "Même enquête japonaise, n=1 000, 20–59 ans",
+          "limitations": "Base tous répondants ; mesure un cadre précis de consommation, pas tous les sushis.",
+          "year": 2019,
+          "sourceTitle": "Kyotaru / Net Asia · Sushi Survey",
+          "url": "https://newscast.jp/smart/news/0120332",
+          "statKey": "kyotaru2019:japan-conveyor-sushi-monthly",
+          "sourceValue": 31.4,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-04",
+      "metric": "23 %",
+      "headline": "Manger un kebab",
+      "detail": "23 % des adultes allemands interrogés mangent un döner une fois par mois.",
+      "scope": "Allemagne, 3 979 adultes interrogés le 21 mai 2025",
+      "limitations": "Une fois par mois exactement ; ne pas écrire au moins une fois. Döner avec viande ou végétarien.",
+      "year": 2025,
+      "sourceTitle": "YouGov Allemagne · Question du jour",
+      "url": "https://yougov.com/de-de/aktuelle-ergebnisse/20250521-0ed68-3",
+      "statKey": "yougov2025:de-doener-once-monthly",
+      "sourceValue": 23,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "23 %",
+          "headline": "Manger un kebab",
+          "detail": "23 % des adultes allemands interrogés mangent un döner une fois par mois.",
+          "scope": "Allemagne, 3 979 adultes interrogés le 21 mai 2025",
+          "limitations": "Une fois par mois exactement ; ne pas écrire au moins une fois. Döner avec viande ou végétarien.",
+          "year": 2025,
+          "sourceTitle": "YouGov Allemagne · Question du jour",
+          "url": "https://yougov.com/de-de/aktuelle-ergebnisse/20250521-0ed68-3",
+          "statKey": "yougov2025:de-doener-once-monthly",
+          "sourceValue": 23,
+          "angle": "pratique",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-09",
+      "metric": "44 %",
+      "headline": "Faire des cookies",
+      "detail": "44 % des pâtissiers interrogés préfèrent confectionner les cookies à les manger ou les décorer.",
+      "scope": "Plus de 6 000 pâtissiers répondants, presque tous les États américains ; enquête publiée le 11 décembre 2025",
+      "limitations": "Échantillon volontaire de lecteurs d’une marque, non représentatif des adultes ; 37 % ne choisissent pas entre les étapes.",
+      "year": 2025,
+      "sourceTitle": "King Arthur Baking · Holiday Cookie Survey",
+      "url": "https://www.kingarthurbaking.com/blog/2025/12/11/the-rules-of-holiday-cookies-according-to-over-6000-bakers",
+      "statKey": "kingarthur2025:holiday-cookie-baking-best-part",
+      "sourceValue": 44,
+      "angle": "appreciation",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "44 %",
+          "headline": "Faire des cookies",
+          "detail": "44 % des pâtissiers interrogés préfèrent confectionner les cookies à les manger ou les décorer.",
+          "scope": "Plus de 6 000 pâtissiers répondants, presque tous les États américains ; enquête publiée le 11 décembre 2025",
+          "limitations": "Échantillon volontaire de lecteurs d’une marque, non représentatif des adultes ; 37 % ne choisissent pas entre les étapes.",
+          "year": 2025,
+          "sourceTitle": "King Arthur Baking · Holiday Cookie Survey",
+          "url": "https://www.kingarthurbaking.com/blog/2025/12/11/the-rules-of-holiday-cookies-according-to-over-6000-bakers",
+          "statKey": "kingarthur2025:holiday-cookie-baking-best-part",
+          "sourceValue": 44,
+          "angle": "appreciation",
+          "confidence": "moyenne"
+        },
+        {
+          "metric": "59 %",
+          "headline": "Faire des cookies",
+          "detail": "59 % des pâtissiers interrogés préparent au moins quatre variétés de cookies pour les fêtes.",
+          "scope": "Même enquête volontaire, plus de 6 000 répondants américains",
+          "limitations": "Concerne les cookies des fêtes, pas une pratique hebdomadaire ni la population générale.",
+          "year": 2025,
+          "sourceTitle": "King Arthur Baking · Holiday Cookie Survey",
+          "url": "https://www.kingarthurbaking.com/blog/2025/12/11/the-rules-of-holiday-cookies-according-to-over-6000-bakers",
+          "statKey": "kingarthur2025:holiday-cookie-four-varieties",
+          "sourceValue": 59,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-10",
+      "metric": "23 %",
+      "headline": "Faire une tarte ou un gâteau",
+      "detail": "23 % des Britanniques interrogés préfèrent préparer un gâteau au chocolat plutôt qu’un autre gâteau.",
+      "scope": "Royaume-Uni, n=3 000 ; bilan des habitudes septembre 2023–septembre 2024, publication 25 novembre 2024",
+      "limitations": "Préférence de confection du gâteau au chocolat, pas préférence de consommation ; âge, recrutement et dates exactes de terrain non détaillés.",
+      "year": 2024,
+      "sourceTitle": "Lakeland · Trends Report",
+      "url": "https://www.lakeland.co.uk/blogs/inspiration/category-in-the-kitchen-the-top-kitchen-trends-of-2024-according-to-our-data",
+      "statKey": "lakeland2024:uk-chocolate-cake-favourite-to-bake",
+      "sourceValue": 23,
+      "angle": "appreciation",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "23 %",
+          "headline": "Faire une tarte ou un gâteau",
+          "detail": "23 % des Britanniques interrogés préfèrent préparer un gâteau au chocolat plutôt qu’un autre gâteau.",
+          "scope": "Royaume-Uni, n=3 000 ; bilan des habitudes septembre 2023–septembre 2024, publication 25 novembre 2024",
+          "limitations": "Préférence de confection du gâteau au chocolat, pas préférence de consommation ; âge, recrutement et dates exactes de terrain non détaillés.",
+          "year": 2024,
+          "sourceTitle": "Lakeland · Trends Report",
+          "url": "https://www.lakeland.co.uk/blogs/inspiration/category-in-the-kitchen-the-top-kitchen-trends-of-2024-according-to-our-data",
+          "statKey": "lakeland2024:uk-chocolate-cake-favourite-to-bake",
+          "sourceValue": 23,
+          "angle": "appreciation",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-11",
+      "metric": "22 %",
+      "headline": "Apéro sur canapé",
+      "detail": "22 % des Français interrogés prennent l’apéro devant un film ou une série.",
+      "scope": "France métropolitaine,18–75 ans, n=1 000 ; en ligne 11–19 mars 2024, quotas et redressement",
+      "limitations": "Le contexte film/série est mesuré ; le canapé lui-même n’est pas isolé.",
+      "year": 2024,
+      "sourceTitle": "L’ObSoCo / Syndicat des Apéritifs à Croquer · Les Français et l’apéritif",
+      "url": "https://lobsoco.com/wp-content/uploads/2024/05/CP-SDAAC-Marche-Mai.pdf",
+      "statKey": "obsoco2024:fr-apero-movie-series",
+      "sourceValue": 22,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "22 %",
+          "headline": "Apéro sur canapé",
+          "detail": "22 % des Français interrogés prennent l’apéro devant un film ou une série.",
+          "scope": "France métropolitaine,18–75 ans, n=1 000 ; en ligne 11–19 mars 2024, quotas et redressement",
+          "limitations": "Le contexte film/série est mesuré ; le canapé lui-même n’est pas isolé.",
+          "year": 2024,
+          "sourceTitle": "L’ObSoCo / Syndicat des Apéritifs à Croquer · Les Français et l’apéritif",
+          "url": "https://lobsoco.com/wp-content/uploads/2024/05/CP-SDAAC-Marche-Mai.pdf",
+          "statKey": "obsoco2024:fr-apero-movie-series",
+          "sourceValue": 22,
+          "angle": "pratique",
+          "confidence": "haute"
+        },
+        {
+          "metric": "84 %",
+          "headline": "Apéro sur canapé",
+          "detail": "84 % des Français interrogés jugent l’apéro chez soi plus économique qu’à l’extérieur.",
+          "scope": "Même enquête représentative n=1 000,18–75 ans",
+          "limitations": "Avantage économique déclaré, pas économie mesurée ; domicile, pas canapé isolé.",
+          "year": 2024,
+          "sourceTitle": "L’ObSoCo / Syndicat des Apéritifs à Croquer · Les Français et l’apéritif",
+          "url": "https://lobsoco.com/wp-content/uploads/2024/05/CP-SDAAC-Marche-Mai.pdf",
+          "statKey": "obsoco2024:fr-home-apero-more-affordable",
+          "sourceValue": 84,
+          "angle": "benefice",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-12",
+      "metric": "90 %",
+      "headline": "Chocolat du soir et canapé",
+      "detail": "90 % des adultes américains interrogés aiment le chocolat chaud pendant les fêtes.",
+      "scope": "États-Unis,1 000 citoyens adultes,12–16 décembre 2022 ; panel opt-in apparié et pondéré",
+      "limitations": "Agrégat positif 90 % explicitement publié ; contexte fêtes, ni soirée ni canapé isolés. La carte actuelle décrit une boisson, pas une tablette.",
+      "year": 2022,
+      "sourceTitle": "YouGov · Holiday beverages poll",
+      "url": "https://yougov.com/en-us/articles/44840-hot-chocolate-americans-favorite-holiday-beverage",
+      "statKey": "yougov2022:us-holiday-hot-chocolate-love-like",
+      "sourceValue": 90,
+      "angle": "appreciation",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "90 %",
+          "headline": "Chocolat du soir et canapé",
+          "detail": "90 % des adultes américains interrogés aiment le chocolat chaud pendant les fêtes.",
+          "scope": "États-Unis,1 000 citoyens adultes,12–16 décembre 2022 ; panel opt-in apparié et pondéré",
+          "limitations": "Agrégat positif 90 % explicitement publié ; contexte fêtes, ni soirée ni canapé isolés. La carte actuelle décrit une boisson, pas une tablette.",
+          "year": 2022,
+          "sourceTitle": "YouGov · Holiday beverages poll",
+          "url": "https://yougov.com/en-us/articles/44840-hot-chocolate-americans-favorite-holiday-beverage",
+          "statKey": "yougov2022:us-holiday-hot-chocolate-love-like",
+          "sourceValue": 90,
+          "angle": "appreciation",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-01",
+      "metric": "86,9 %",
+      "headline": "Léchage de chatte",
+      "detail": "86,9 % des Françaises de 18–69 ans ayant déjà eu un partenaire sexuel ont expérimenté le cunnilingus.",
+      "scope": "France hexagonale, femmes de 18–69 ans ayant déjà eu un·e partenaire sexuel·le ; indicateurs 2023.",
+      "limitations": "Pratique réalisée ou reçue au cours de la vie ; effectif de cet indicateur non indiqué sur la page.",
+      "year": 2024,
+      "sourceTitle": "Inserm / ANRS · CSF 2023",
+      "url": "https://csf.inserm.fr/resultats/activites-sexuelles/",
+      "statKey": "csf2023:cunnilingus-women-lifetime",
+      "sourceValue": 86.9,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "86,9 %",
+          "headline": "Léchage de chatte",
+          "detail": "86,9 % des Françaises de 18–69 ans ayant déjà eu un partenaire sexuel ont expérimenté le cunnilingus.",
+          "scope": "France hexagonale, femmes de 18–69 ans ayant déjà eu un·e partenaire sexuel·le ; indicateurs 2023.",
+          "limitations": "Pratique réalisée ou reçue au cours de la vie ; effectif de cet indicateur non indiqué sur la page.",
+          "year": 2024,
+          "sourceTitle": "Inserm / ANRS · CSF 2023",
+          "url": "https://csf.inserm.fr/resultats/activites-sexuelles/",
+          "statKey": "csf2023:cunnilingus-women-lifetime",
+          "sourceValue": 86.9,
+          "angle": "pratique",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-04",
+      "metric": "52,5 %",
+      "headline": "Lovense",
+      "detail": "52,5 % des Américaines interrogées ont déjà utilisé un vibromasseur.",
+      "scope": "États-Unis, 2 056 femmes de 18–60 ans.",
+      "limitations": "Vibromasseur, sans marque ni commande à distance isolée ; le résultat ne porte pas spécifiquement sur Lovense.",
+      "year": 2009,
+      "sourceTitle": "Herbenick et al. · Journal of Sexual Medicine",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/19453881/",
+      "statKey": "herbenick2009:vibrator-ever-52.5",
+      "sourceValue": 52.5,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "52,5 %",
+          "headline": "Lovense",
+          "detail": "52,5 % des Américaines interrogées ont déjà utilisé un vibromasseur.",
+          "scope": "États-Unis, 2 056 femmes de 18–60 ans.",
+          "limitations": "Vibromasseur, sans marque ni commande à distance isolée ; le résultat ne porte pas spécifiquement sur Lovense.",
+          "year": 2009,
+          "sourceTitle": "Herbenick et al. · Journal of Sexual Medicine",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19453881/",
+          "statKey": "herbenick2009:vibrator-ever-52.5",
+          "sourceValue": 52.5,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-05",
+      "metric": "84,4 %",
+      "headline": "Fellation",
+      "detail": "84,4 % des Françaises de 18–69 ans ayant déjà eu un partenaire sexuel ont expérimenté la fellation.",
+      "scope": "France hexagonale, femmes de 18–69 ans ayant déjà eu un·e partenaire sexuel·le ; indicateurs 2023.",
+      "limitations": "Pratique réalisée ou reçue au cours de la vie ; effectif de cet indicateur non indiqué sur la page.",
+      "year": 2024,
+      "sourceTitle": "Inserm / ANRS · CSF 2023",
+      "url": "https://csf.inserm.fr/resultats/activites-sexuelles/",
+      "statKey": "csf2023:fellation-women-lifetime",
+      "sourceValue": 84.4,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "84,4 %",
+          "headline": "Fellation",
+          "detail": "84,4 % des Françaises de 18–69 ans ayant déjà eu un partenaire sexuel ont expérimenté la fellation.",
+          "scope": "France hexagonale, femmes de 18–69 ans ayant déjà eu un·e partenaire sexuel·le ; indicateurs 2023.",
+          "limitations": "Pratique réalisée ou reçue au cours de la vie ; effectif de cet indicateur non indiqué sur la page.",
+          "year": 2024,
+          "sourceTitle": "Inserm / ANRS · CSF 2023",
+          "url": "https://csf.inserm.fr/resultats/activites-sexuelles/",
+          "statKey": "csf2023:fellation-women-lifetime",
+          "sourceValue": 84.4,
+          "angle": "pratique",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-06",
+      "metric": "26 %",
+      "headline": "Faciale",
+      "detail": "26 % des Européennes interrogées ayant eu un partenaire masculin ont déjà expérimenté une éjaculation sur le visage.",
+      "scope": "Femmes de 18–69 ans ayant eu un rapport avec un homme, cinq pays européens ; enquête totale : 5 025 femmes majeures.",
+      "limitations": "Prévalence déclarée au cours de la vie, pas satisfaction ; base de la question plus restreinte que l’échantillon total. Rapport, p. 21–22.",
+      "year": 2021,
+      "sourceTitle": "IFOP / The Poken Company · 2021",
+      "url": "https://www.ifopgroup.com/wp-content/uploads/2021/09/rapport_tpc_2021.08.31-volet-1.pdf",
+      "statKey": "ifop2021:poken-26",
+      "sourceValue": 26,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "26 %",
+          "headline": "Faciale",
+          "detail": "26 % des Européennes interrogées ayant eu un partenaire masculin ont déjà expérimenté une éjaculation sur le visage.",
+          "scope": "Femmes de 18–69 ans ayant eu un rapport avec un homme, cinq pays européens ; enquête totale : 5 025 femmes majeures.",
+          "limitations": "Prévalence déclarée au cours de la vie, pas satisfaction ; base de la question plus restreinte que l’échantillon total. Rapport, p. 21–22.",
+          "year": 2021,
+          "sourceTitle": "IFOP / The Poken Company · 2021",
+          "url": "https://www.ifopgroup.com/wp-content/uploads/2021/09/rapport_tpc_2021.08.31-volet-1.pdf",
+          "statKey": "ifop2021:poken-26",
+          "sourceValue": 26,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-07",
+      "metric": "50 %",
+      "headline": "Dans la bouche",
+      "detail": "50 % des Européennes interrogées ayant eu un partenaire masculin ont déjà expérimenté une éjaculation dans la bouche.",
+      "scope": "Femmes de 18–69 ans ayant eu un rapport avec un homme, cinq pays européens ; enquête totale : 5 025 femmes majeures.",
+      "limitations": "Prévalence déclarée au cours de la vie, pas satisfaction ; base de la question plus restreinte que l’échantillon total. Rapport, p. 21–22.",
+      "year": 2021,
+      "sourceTitle": "IFOP / The Poken Company · 2021",
+      "url": "https://www.ifopgroup.com/wp-content/uploads/2021/09/rapport_tpc_2021.08.31-volet-1.pdf",
+      "statKey": "ifop2021:poken-50",
+      "sourceValue": 50,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "50 %",
+          "headline": "Dans la bouche",
+          "detail": "50 % des Européennes interrogées ayant eu un partenaire masculin ont déjà expérimenté une éjaculation dans la bouche.",
+          "scope": "Femmes de 18–69 ans ayant eu un rapport avec un homme, cinq pays européens ; enquête totale : 5 025 femmes majeures.",
+          "limitations": "Prévalence déclarée au cours de la vie, pas satisfaction ; base de la question plus restreinte que l’échantillon total. Rapport, p. 21–22.",
+          "year": 2021,
+          "sourceTitle": "IFOP / The Poken Company · 2021",
+          "url": "https://www.ifopgroup.com/wp-content/uploads/2021/09/rapport_tpc_2021.08.31-volet-1.pdf",
+          "statKey": "ifop2021:poken-50",
+          "sourceValue": 50,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-08",
+      "metric": "40 %",
+      "headline": "Avaler le sperme",
+      "detail": "40 % des Européennes interrogées ayant eu un partenaire masculin ont déjà expérimenté l’ingestion de sperme.",
+      "scope": "Femmes de 18–69 ans ayant eu un rapport avec un homme, cinq pays européens ; enquête totale : 5 025 femmes majeures.",
+      "limitations": "Prévalence déclarée au cours de la vie, pas satisfaction ; base de la question plus restreinte que l’échantillon total. Rapport, p. 21–22.",
+      "year": 2021,
+      "sourceTitle": "IFOP / The Poken Company · 2021",
+      "url": "https://www.ifopgroup.com/wp-content/uploads/2021/09/rapport_tpc_2021.08.31-volet-1.pdf",
+      "statKey": "ifop2021:poken-40",
+      "sourceValue": 40,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "40 %",
+          "headline": "Avaler le sperme",
+          "detail": "40 % des Européennes interrogées ayant eu un partenaire masculin ont déjà expérimenté l’ingestion de sperme.",
+          "scope": "Femmes de 18–69 ans ayant eu un rapport avec un homme, cinq pays européens ; enquête totale : 5 025 femmes majeures.",
+          "limitations": "Prévalence déclarée au cours de la vie, pas satisfaction ; base de la question plus restreinte que l’échantillon total. Rapport, p. 21–22.",
+          "year": 2021,
+          "sourceTitle": "IFOP / The Poken Company · 2021",
+          "url": "https://www.ifopgroup.com/wp-content/uploads/2021/09/rapport_tpc_2021.08.31-volet-1.pdf",
+          "statKey": "ifop2021:poken-40",
+          "sourceValue": 40,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-09",
+      "metric": "42 %",
+      "headline": "Reproduction porno 1:1",
+      "detail": "42 % des adultes français ayant vu du porno et eu un rapport ont testé une scène ou position vue à l’écran.",
+      "scope": "France, adultes ayant déjà eu un rapport sexuel et vu un film X ; base annoncée : 1 313.",
+      "limitations": "Reproduction déclarée d’une scène ou position ; fidélité 1:1 non mesurée. Enquête d’avril 2023 ; dates de terrain et borne d’âge divergent dans le rapport : en-tête 18+, légende 18–69 ans.",
+      "year": 2023,
+      "sourceTitle": "IFOP / 01net · 2023",
+      "url": "https://www.ifopgroup.com/wp-content/uploads/2023/09/119984_Porno_Resultats_01net_2023.06.28.pdf",
+      "statKey": "ifop2023:01net-reproduction-42",
+      "sourceValue": 42,
+      "angle": "pratique",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "42 %",
+          "headline": "Reproduction porno 1:1",
+          "detail": "42 % des adultes français ayant vu du porno et eu un rapport ont testé une scène ou position vue à l’écran.",
+          "scope": "France, adultes ayant déjà eu un rapport sexuel et vu un film X ; base annoncée : 1 313.",
+          "limitations": "Reproduction déclarée d’une scène ou position ; fidélité 1:1 non mesurée. Enquête d’avril 2023 ; dates de terrain et borne d’âge divergent dans le rapport : en-tête 18+, légende 18–69 ans.",
+          "year": 2023,
+          "sourceTitle": "IFOP / 01net · 2023",
+          "url": "https://www.ifopgroup.com/wp-content/uploads/2023/09/119984_Porno_Resultats_01net_2023.06.28.pdf",
+          "statKey": "ifop2023:01net-reproduction-42",
+          "sourceValue": 42,
+          "angle": "pratique",
+          "confidence": "moyenne"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-10",
+      "metric": "38,9 %",
+      "headline": "Pénétration anale",
+      "detail": "38,9 % des Françaises de 18–69 ans ayant déjà eu un partenaire sexuel ont expérimenté la pénétration anale.",
+      "scope": "France hexagonale, femmes de 18–69 ans ayant déjà eu un·e partenaire sexuel·le ; indicateurs 2023.",
+      "limitations": "Pratique réalisée ou reçue au cours de la vie ; effectif de cet indicateur non indiqué sur la page.",
+      "year": 2024,
+      "sourceTitle": "Inserm / ANRS · CSF 2023",
+      "url": "https://csf.inserm.fr/resultats/activites-sexuelles/",
+      "statKey": "csf2023:anal-women-lifetime",
+      "sourceValue": 38.9,
+      "angle": "pratique",
+      "confidence": "haute",
+      "variants": [
+        {
+          "metric": "38,9 %",
+          "headline": "Pénétration anale",
+          "detail": "38,9 % des Françaises de 18–69 ans ayant déjà eu un partenaire sexuel ont expérimenté la pénétration anale.",
+          "scope": "France hexagonale, femmes de 18–69 ans ayant déjà eu un·e partenaire sexuel·le ; indicateurs 2023.",
+          "limitations": "Pratique réalisée ou reçue au cours de la vie ; effectif de cet indicateur non indiqué sur la page.",
+          "year": 2024,
+          "sourceTitle": "Inserm / ANRS · CSF 2023",
+          "url": "https://csf.inserm.fr/resultats/activites-sexuelles/",
+          "statKey": "csf2023:anal-women-lifetime",
+          "sourceValue": 38.9,
+          "angle": "pratique",
+          "confidence": "haute"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-21",
+      "metric": "8,9 %",
+      "headline": "Session fessée",
+      "detail": "8,9 % des adultes américains interrogés trouvent la fessée érotique très attirante.",
+      "scope": "États-Unis, adultes de 18 ans et plus ; 1 957 réponses à cet item dans l’enquête nationale de 2015 (2 021 participants).",
+      "limitations": "Catégorie très attirant seule ; aucune somme de catégories. Attrait, pas proportion de personnes ayant apprécié une expérience.",
+      "year": 2017,
+      "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+      "statKey": "herbenick2017:spanking-veryappealing-8.9",
+      "sourceValue": 8.9,
+      "angle": "envie",
+      "confidence": "moyenne",
+      "variants": [
+        {
+          "metric": "8,9 %",
+          "headline": "Session fessée",
+          "detail": "8,9 % des adultes américains interrogés trouvent la fessée érotique très attirante.",
+          "scope": "États-Unis, adultes de 18 ans et plus ; 1 957 réponses à cet item dans l’enquête nationale de 2015 (2 021 participants).",
+          "limitations": "Catégorie très attirant seule ; aucune somme de catégories. Attrait, pas proportion de personnes ayant apprécié une expérience.",
+          "year": 2017,
+          "sourceTitle": "Herbenick et al. · PLOS ONE · tableau 5",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198",
+          "statKey": "herbenick2017:spanking-veryappealing-8.9",
+          "sourceValue": 8.9,
+          "angle": "envie",
+          "confidence": "moyenne"
+        }
+      ]
+    }
+  ],
+  "unavailableEvidence": [
+    {
+      "cardId": "new-complicite-01",
+      "status": "INTROUVABLE",
+      "reason": "Pas de pourcentage positif vérifié mesurant spécifiquement le selfie de couple.",
+      "consultedSources": [
+        {
+          "title": "Chen et al., 2016 · Promoting Positive Affect through Smartphone Photography",
+          "url": "https://link.springer.com/article/10.1186/s13612-016-0044-4"
+        },
+        {
+          "title": "Diefenbach et Christoforakos, 2017 · The Selfie Paradox",
+          "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2017.00007/full"
+        },
+        {
+          "title": "Fujifilm 2025",
+          "url": "https://newsroom-us.fujifilm.com/press-releases/press-release-details/2025/Nearly-8-in-10-Americans-Say-Viewing-Old-Photos-Brings-Happiness-and-Calm-with-More-than-Half-Experiencing-Reduced-Anxiety-03-19-2025/default.aspx"
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-02",
+      "status": "INTROUVABLE",
+      "reason": "Les données adultes exactes identifiées sont trop restreintes ou insuffisamment documentées pour être retenues ; les autres sources mélangent les techniques ou les âges.",
+      "consultedSources": [
+        {
+          "title": "Regeer et al., 2022 · Sexuality and intimacy after head and neck cancer treatment",
+          "url": "https://dmp.umw.edu.pl/pdf/2022/59/3/323.pdf"
+        },
+        {
+          "title": "Khosropour et al., 2022/2023 · Frequency and Combination of Sequential Sexual Acts",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9717570/"
+        },
+        {
+          "title": "Zoosk 2012",
+          "url": "https://www.prnewswire.com/news-releases/zoosks-international-kissing-day-survey-reveals-that-americans-love-to-french-kiss-more-than-the-french-161425275.html"
+        },
+        {
+          "title": "Wlodarski et Dunbar, 2013 · Examining the Possible Functions of Kissing",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4487821/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-04",
+      "status": "INTROUVABLE",
+      "reason": "Pas de pourcentage vérifié avec population adulte et méthode complète sur le mot doux écrit ; cacher le mot demeure une contrainte non testée.",
+      "consultedSources": [
+        {
+          "title": "Pilot 2012 primaire",
+          "url": "https://www.prnewswire.com/news-releases/all-you-need-is-lovenotes-this-valentines-day-reveals-a-recent-survey-138846719.html"
+        },
+        {
+          "title": "UPI 2012",
+          "url": "https://www.upi.com/Odd_News/2012/01/24/Survey-Partners-want-love-notes-for-Valentines-Day/41601327425539/"
+        },
+        {
+          "title": "Chang et al., 2022 · Expression de gratitude au sein du couple",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9271060/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-05",
+      "status": "INTROUVABLE",
+      "reason": "La question décrit le choix de couleur selon son programme, pas la pratique, l’appréciation, un bénéfice ou l’envie de la pose de vernis. Les taux sur la manucure entière ne permettent pas d’isoler la pose de vernis.",
+      "consultedSources": [
+        {
+          "title": "Ipsos pour Sally Hansen, 2017 · Topline, questions sur le vernis et la manucure",
+          "url": "https://www.ipsos.com/sites/default/files/ct/news/documents/2017-11/COTY-Sally-Hansen-Topline-2017-11-20-v1.pdf"
+        },
+        {
+          "title": "Frontiers in Psychology, 2023 · Soins des ongles et émotions",
+          "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1112110/full"
+        }
+      ]
+    },
+    {
+      "cardId": "new-complicite-06",
+      "status": "INTROUVABLE",
+      "reason": "Pas de pourcentage positif vérifié combinant caresses et série ; ni massage de couple ni seul visionnage ne convient.",
+      "consultedSources": [
+        {
+          "title": "Étude, 2021 · Effects of couples positive massage programme",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8114367/"
+        },
+        {
+          "title": "Gomillion et al., 2016 · Médias partagés et qualité relationnelle",
+          "url": "https://doi.org/10.1177/0265407516660388"
+        },
+        {
+          "title": "Herbenick et al., 2017 · Sexual diversity in the United States",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        }
+      ]
+    },
+    {
+      "cardId": "new-detente-03",
+      "status": "INTROUVABLE",
+      "reason": "Études exactes disponibles, mais pas de %positif suffisamment vérifiable pour être proposé ici.",
+      "consultedSources": [
+        {
+          "title": "Alameri et al., 2020 · Efficacy of Precise Foot Massage Therapy",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31734151/"
+        },
+        {
+          "title": "Étude randomisée, 2015 · Massage thaï des pieds et neuropathie diabétique",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4416467/"
+        },
+        {
+          "title": "Egyptian Journal of Health Care, 2022 · Massage des pieds après cholécystectomie",
+          "url": "https://ejhc.journals.ekb.eg/article_254054_e8672ccea4beb6e60b12e428ae82e8aa.pdf"
+        }
+      ]
+    },
+    {
+      "cardId": "new-detente-04",
+      "status": "INTROUVABLE",
+      "reason": "Pas de pourcentage positif vérifié sur les cuisses seules.",
+      "consultedSources": [
+        {
+          "title": "Physical Therapy in Sport, 2006 · Massage des cuisses et courbatures chez des sportives",
+          "url": "https://www.sciencedirect.com/science/article/abs/pii/S1466853X05001501"
+        },
+        {
+          "title": "Étude, 2009 · Acute Effects of Pre-Event Lower Limb Massage",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3761914/"
+        },
+        {
+          "title": "Packheiser et al., 2024 · Revue des interventions par le toucher",
+          "url": "https://doi.org/10.1038/s41562-024-01841-8"
+        }
+      ]
+    },
+    {
+      "cardId": "new-detente-05",
+      "status": "INTROUVABLE",
+      "reason": "Aucun %positif adulte exploitable dans les sources consultées ; ne pas remplacer par massage générique.",
+      "consultedSources": [
+        {
+          "title": "UMIN000058844 · Registre d’étude sur le massage des oreilles",
+          "url": "https://center6.umin.ac.jp/cgi-open-bin/ctr_e/ctr_view.cgi?recptno=R000067013"
+        },
+        {
+          "title": "Jung et Kim, 2012 · Massage des oreilles et indicateurs émotionnels",
+          "url": "https://kiss.kstudy.com/Detail/Ar?key=3062982"
+        },
+        {
+          "title": "Étude, 2011 · Massage des oreilles et électroencéphalographie",
+          "url": "https://www.kci.go.kr/kciportal/ci/sereArticleSearch/ciSereArtiView.kci?sereArticleSearchBean.artiId=ART001606591"
+        }
+      ]
+    },
+    {
+      "cardId": "new-detente-06",
+      "status": "INTROUVABLE",
+      "reason": "Les résultats identifiés sont non datés ou associent massage, sérum et routine sans pouvoir isoler l’activité ; aucun candidat retenu.",
+      "consultedSources": [
+        {
+          "title": "Marque LB/GREDECO,29 adultes",
+          "url": "https://lbfacialistes.com/en/module/psbeautyblog/post?slug=the-lb-facialistes-methodc-clinically-proven-facial-massage-expertise"
+        },
+        {
+          "title": "Porcheron et al., 2024 · Routine cosmétique d’auto-massage et sommeil",
+          "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/ics.12963"
+        },
+        {
+          "title": "Bouhout et al., 2023 · Physiological benefits associated with facial skincare",
+          "url": "https://doi.org/10.1111/ics.12855"
+        }
+      ]
+    },
+    {
+      "cardId": "new-detente-09",
+      "status": "INTROUVABLE",
+      "reason": "Le souhait de réutiliser un masque après laser ou microneedling ne décrit pas l’appréciation d’un masque de routine. D’autres taux sur un masque cosmétique spécifique proviennent d’un petit test présentant des incohérences de protocole ; ils restent exclus.",
+      "consultedSources": [
+        {
+          "title": "Siperstein et al., 2024 · Masque de biocellulose après procédure esthétique",
+          "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/jocd.16241"
+        },
+        {
+          "title": "Yang et al., 2025 · Clinical Evaluation of a Multi-Component Facial Mask",
+          "url": "https://onlinelibrary.wiley.com/doi/10.1111/jocd.70355"
+        }
+      ]
+    },
+    {
+      "cardId": "new-detente-10",
+      "status": "INTROUVABLE",
+      "reason": "Le pourcentage décrit une variation de signal physiologique, pas une proportion de personnes rapportant un bénéfice. Aucun pourcentage de personnes répondant aux angles demandés n’a été vérifié pour le soin complet dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Bouhout et al., 2023 · Physiological benefits associated with facial skincare",
+          "url": "https://doi.org/10.1111/ics.12855"
+        },
+        {
+          "title": "Porcheron et al., 2024 · Routine cosmétique d’auto-massage et sommeil",
+          "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/ics.12963"
+        }
+      ]
+    },
+    {
+      "cardId": "new-projets-01",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · aaalab.stanford.edu",
+          "url": "https://aaalab.stanford.edu/assets/papers/2014/Give_your_ideas_some_legs.pdf"
+        },
+        {
+          "title": "Source consultée · www.sciencedirect.com",
+          "url": "https://www.sciencedirect.com/science/article/abs/pii/S2213078017300555"
+        },
+        {
+          "title": "Source consultée · pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11593799/"
+        },
+        {
+          "title": "Source consultée · journal.unisza.edu.my",
+          "url": "https://journal.unisza.edu.my/apj/index.php/apj/article/download/135/132/797"
+        }
+      ]
+    },
+    {
+      "cardId": "new-projets-08",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · doi.org",
+          "url": "https://doi.org/10.1016/j.psychsport.2005.11.003"
+        },
+        {
+          "title": "Source consultée · link.springer.com",
+          "url": "https://link.springer.com/article/10.1186/1479-5868-9-85"
+        },
+        {
+          "title": "Source consultée · www.ordnancesurvey.co.uk",
+          "url": "https://www.ordnancesurvey.co.uk/news/british-walkers-define-the-perfect-formula-for-a-walk"
+        }
+      ]
+    },
+    {
+      "cardId": "new-projets-09",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30374942/"
+        },
+        {
+          "title": "Source consultée · www.tandfonline.com",
+          "url": "https://www.tandfonline.com/doi/full/10.1080/13574809.2024.2351914"
+        },
+        {
+          "title": "Source consultée · prod.victoriawalks.org.au",
+          "url": "https://prod.victoriawalks.org.au/Assets/Files/Young-people-and-walking-Full-report.pdf"
+        },
+        {
+          "title": "Source consultée · www.petio.com",
+          "url": "https://www.petio.com/useful/nightwalk/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-projets-13",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · prtimes.jp",
+          "url": "https://prtimes.jp/main/html/rd/p/000001336.000026633.html"
+        },
+        {
+          "title": "Source consultée · doi.org",
+          "url": "https://doi.org/10.3390/bs12050132"
+        }
+      ]
+    },
+    {
+      "cardId": "new-projets-14",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · www.tss-tv.co.jp",
+          "url": "https://www.tss-tv.co.jp/wanpaku/kininaru/20160602.html"
+        },
+        {
+          "title": "Source consultée · www.1800gotjunk.com",
+          "url": "https://www.1800gotjunk.com/ca_en/research/full-report-the-great-junk-transfer-2026"
+        }
+      ]
     },
     {
       "cardId": "new-projets-18",
-      "metric": "6,77 contre 6,06",
-      "headline": "Comparer ce qu’on aime",
-      "detail": "Les participants appréciaient davantage une personne partageant leurs goûts positifs que leurs dégoûts : 6,77 contre 6,06 en moyenne.",
-      "scope": "Étude 1 ; 100 participants ; goûts concernant films, musique, activités, aliments et autres thèmes.",
-      "limitations": "Jugements sur des personnes hypothétiques, pas effet d’une tier list ni preuve de compatibilité d’un couple.",
-      "year": 2022,
-      "sourceTitle": "Zorn, Mata & Alves · Journal of Experimental Social Psychology",
-      "url": "https://doi.org/10.1016/j.jesp.2021.104281",
-      "statKey": "alves2022-sharedlikes-liking"
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · doi.org",
+          "url": "https://doi.org/10.1016/j.jesp.2021.104281"
+        },
+        {
+          "title": "Source consultée · tierlistmakeronline.com",
+          "url": "https://tierlistmakeronline.com/the-report/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-04",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · centrenationaldulivre.fr",
+          "url": "https://centrenationaldulivre.fr/sites/default/files/2025-04/Barom%C3%A8tre%20Les%20Fran%C3%A7ais%20et%20la%20lecture%20Rapport%20complet%202025-04-08%20OK.pdf"
+        },
+        {
+          "title": "Source consultée · www.arts.gov",
+          "url": "https://www.arts.gov/impact/research/responses-to-the-2022-SPPA/a-time-of-hope-and-worry"
+        },
+        {
+          "title": "Source consultée · yougov.com",
+          "url": "https://yougov.com/en-us/articles/43285-books-americans-read-growing-up-and-now"
+        },
+        {
+          "title": "Source consultée · rockman.com",
+          "url": "https://rockman.com/docs/downloads/BigRead.pdf"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-06",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · ygo-assets-websites-editorial-emea.yougov.net",
+          "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/2025_Reading_and_Books_poll_results.pdf"
+        },
+        {
+          "title": "Source consultée · booknetcanada.ca",
+          "url": "https://booknetcanada.ca/blog/2024/03/18/canadian-book-buyers-in-2023/"
+        },
+        {
+          "title": "Source consultée · nielseniq.com",
+          "url": "https://nielseniq.com/global/en/insights/commentary/2024/who-is-the-graphic-novel-consumer-in-the-uk/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-07",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · nielseniq.com",
+          "url": "https://nielseniq.com/global/en/insights/commentary/2024/who-is-the-graphic-novel-consumer-in-the-uk/"
+        },
+        {
+          "title": "Source consultée · centrenationaldulivre.fr",
+          "url": "https://centrenationaldulivre.fr/sites/default/files/2025-04/Barom%C3%A8tre%20Les%20Fran%C3%A7ais%20et%20la%20lecture%20Rapport%20complet%202025-04-08%20OK.pdf"
+        },
+        {
+          "title": "Source consultée · s3.eu-west-3.amazonaws.com",
+          "url": "https://s3.eu-west-3.amazonaws.com/easycash-medias-production/cms/05/barometre-manga-cp-vf-juin2025.pdf"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-09",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · asmodee.prezly.com",
+          "url": "https://asmodee.prezly.com/communique-de-presse--un-jeu-de-societe-pour-noel-1-belge-sur-2-est-interesse"
+        },
+        {
+          "title": "Source consultée · asmodee.prezly.com",
+          "url": "https://asmodee.prezly.com/persbericht-7-op-10-belgen-krijgen-graag-een-gezelschapsspel-cadeau"
+        },
+        {
+          "title": "Source consultée · www.philibertnet.com",
+          "url": "https://www.philibertnet.com/fr/blog/articles/sondage-des-jeux-de-societe-sous-le-sapin-de-noel"
+        },
+        {
+          "title": "Source consultée · openresearch.ocadu.ca",
+          "url": "https://openresearch.ocadu.ca/id/eprint/4419/1/Naghikhani_Sourena_2024_MDES_SFI_MRP.pdf"
+        },
+        {
+          "title": "Source consultée · storage.mfn.se",
+          "url": "https://storage.mfn.se/44ba9925-ce78-4dce-a8a7-13387f3f0692/the-social-power-of-board-games-the-first-board-games-barometer-by-kantar-for-asmodee.pdf"
+        },
+        {
+          "title": "Source consultée · www.opinion-way.com",
+          "url": "https://www.opinion-way.com/fr/publications/les-francais-et-les-cadeaux-de-noel-2023-16798/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-13",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · courses.monoprix.fr",
+          "url": "https://courses.monoprix.fr/content/les-avantages-de-la-livraison-avec-monoprix-courses"
+        },
+        {
+          "title": "Source consultée · www.ey.com",
+          "url": "https://www.ey.com/content/dam/ey-unified-site/ey-com/fr-fr/insights/strategy/documents/ey-etude-ey-parthenon-enseignes-preferees-des-francais-2025.pdf"
+        },
+        {
+          "title": "Source consultée · community.goodays.co",
+          "url": "https://community.goodays.co/fr/blog/infographie-chiffres-relation-client-grande-distribution"
+        }
+      ]
+    },
+    {
+      "cardId": "new-attention-15",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · courses.monoprix.fr",
+          "url": "https://courses.monoprix.fr/content/les-avantages-de-la-livraison-avec-monoprix-courses"
+        },
+        {
+          "title": "Source consultée · www.ey.com",
+          "url": "https://www.ey.com/content/dam/ey-unified-site/ey-com/fr-fr/insights/strategy/documents/ey-etude-ey-parthenon-enseignes-preferees-des-francais-2025.pdf"
+        },
+        {
+          "title": "Source consultée · www.monoprix.fr",
+          "url": "https://www.monoprix.fr/faq.html"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-05",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · www.mintel.com",
+          "url": "https://www.mintel.com/press-centre/americans-dish-on-ethnic-fare/"
+        },
+        {
+          "title": "Source consultée · www.ift.org",
+          "url": "https://www.ift.org/food-technology-magazine/the-top-ten-food-trends"
+        },
+        {
+          "title": "Source consultée · agi.alabama.gov",
+          "url": "https://agi.alabama.gov/farmersmarket/wp-content/uploads/sites/9/2021/01/PublicMarketStudy.pdf"
+        },
+        {
+          "title": "Source consultée · projectblue.blob.core.windows.net",
+          "url": "https://projectblue.blob.core.windows.net/media/Default/Consumer%20and%20Retail%20Insight%20Images/CI_DemandForHalal3668_200601_WEB.pdf"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-06",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · projectblue.blob.core.windows.net",
+          "url": "https://projectblue.blob.core.windows.net/media/Default/Consumer%20and%20Retail%20Insight%20Images/CI_DemandForHalal3668_200601_WEB.pdf"
+        },
+        {
+          "title": "Source consultée · agi.alabama.gov",
+          "url": "https://agi.alabama.gov/farmersmarket/wp-content/uploads/sites/9/2021/01/PublicMarketStudy.pdf"
+        },
+        {
+          "title": "Source consultée · www.ift.org",
+          "url": "https://www.ift.org/food-technology-magazine/the-top-ten-food-trends"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-07",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · projectblue.blob.core.windows.net",
+          "url": "https://projectblue.blob.core.windows.net/media/Default/Consumer%20and%20Retail%20Insight%20Images/CI_DemandForHalal3668_200601_WEB.pdf"
+        },
+        {
+          "title": "Source consultée · agi.alabama.gov",
+          "url": "https://agi.alabama.gov/farmersmarket/wp-content/uploads/sites/9/2021/01/PublicMarketStudy.pdf"
+        },
+        {
+          "title": "Source consultée · www.ipsos.com",
+          "url": "https://www.ipsos.com/fr-fr/etude-sur-les-gouts-ce-que-revele-le-palais-des-francais"
+        }
+      ]
+    },
+    {
+      "cardId": "new-bouffe-08",
+      "status": "INTROUVABLE",
+      "reason": "Aucun pourcentage directement lié à cette activité et répondant aux filtres du prompt dans les sources consultées.",
+      "consultedSources": [
+        {
+          "title": "Source consultée · d25d2506sfb94s.cloudfront.net",
+          "url": "https://d25d2506sfb94s.cloudfront.net/r/66/R%C3%A9sultats%20YouGov%20%28Chandeleur%202021%29%2011%2020.1.2021.pdf"
+        },
+        {
+          "title": "Source consultée · www.ipsos.com",
+          "url": "https://www.ipsos.com/fr-fr/les-francais-et-la-cuisine"
+        },
+        {
+          "title": "Source consultée · www.cultures-sucre.com",
+          "url": "https://www.cultures-sucre.com/actualites/sondage-csa-pour-cultures-sucre-la-patisserie-maison/"
+        },
+        {
+          "title": "Source consultée · yougov.com",
+          "url": "https://yougov.com/en-gb/articles/51709-majority-of-britons-celebrate-shrove-tuesday-with-pancakes-as-the-main-tradition"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-02",
+      "status": "INTROUVABLE",
+      "reason": "Les enquêtes consultées mesurent le sexe oral, sans isoler la position face-sitting.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-03",
+      "status": "INTROUVABLE",
+      "reason": "Les travaux consultés concernent le massage général ou de couple, sans isoler le massage Nuru.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-11",
+      "status": "INTROUVABLE",
+      "reason": "La source mesure des fantasmes, explicitement distincts du souhait de les réaliser ; aucun taux de pratique, d’appréciation, de bénéfice ou d’envie de cette activité vérifié.",
+      "consultedSources": [
+        {
+          "title": "Joyal et al. · What Exactly Is an Unusual Sexual Fantasy? · 2015",
+          "url": "https://oraprdnt.uqtr.uquebec.ca/portail/docs/FWG/GSC/Publication/3702/524/11026/1/341972/6/O0001238633_What_Exactly_Is_an_Unusual_Sexual_Fantasy.pdf"
+        },
+        {
+          "title": "Herbenick et al. · Sexual diversity · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-12",
+      "status": "INTROUVABLE",
+      "reason": "Les enquêtes consultées sur le sexe à plusieurs ne mesurent pas la double pénétration simultanée.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-13",
+      "status": "INTROUVABLE",
+      "reason": "Aucun résultat consulté ne distingue la publication de seins sur Reddit.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-14",
+      "status": "INTROUVABLE",
+      "reason": "Aucun résultat consulté ne distingue la publication de fesses sur Reddit.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-15",
+      "status": "INTROUVABLE",
+      "reason": "Aucun résultat consulté ne distingue la publication de vulve sur Reddit.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-16",
+      "status": "INTROUVABLE",
+      "reason": "Les enquêtes consultées sur la webcam ne distinguent pas un show de seins.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-17",
+      "status": "INTROUVABLE",
+      "reason": "Les enquêtes consultées sur la webcam ne distinguent pas un show de fesses.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-18",
+      "status": "INTROUVABLE",
+      "reason": "Les enquêtes consultées sur les échanges numériques ne distinguent pas un show webcam de masturbation.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-19",
+      "status": "INTROUVABLE",
+      "reason": "Aucun résultat consulté ne distingue la publication d’une faciale sur Reddit.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-20",
+      "status": "INTROUVABLE",
+      "reason": "La source mesure des fantasmes, explicitement distincts du souhait de les réaliser ; aucun taux de pratique, d’appréciation, de bénéfice ou d’envie de cette activité vérifié.",
+      "consultedSources": [
+        {
+          "title": "Joyal et al. · What Exactly Is an Unusual Sexual Fantasy? · 2015",
+          "url": "https://oraprdnt.uqtr.uquebec.ca/portail/docs/FWG/GSC/Publication/3702/524/11026/1/341972/6/O0001238633_What_Exactly_Is_an_Unusual_Sexual_Fantasy.pdf"
+        },
+        {
+          "title": "Herbenick et al. · Sexual diversity · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        }
+      ]
+    },
+    {
+      "cardId": "new-intimite-22",
+      "status": "INTROUVABLE",
+      "reason": "Les enquêtes consultées associent prise et partage de photos dénudées ; elles ne mesurent pas un photoshoot intime.",
+      "consultedSources": [
+        {
+          "title": "Herbenick et al. · Sexual diversity in the United States · 2017",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0181198"
+        },
+        {
+          "title": "Inserm / ANRS · CSF 2023 · Sexualités et numérique",
+          "url": "https://csf.inserm.fr/resultats/sexualites-et-numerique/"
+        }
+      ]
     }
   ]
 }

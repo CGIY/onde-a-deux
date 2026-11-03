@@ -1,5 +1,15 @@
 # Dés·ir — passage de relais à Codex
 
+## Révélation D4 et curation stricte — 3 novembre 2026 (prioritaire)
+
+- D4 : résultat confirmé → fin du lancer → défloutage de la tuile choisie (380 ms) → pause de lecture de 1 100 ms → fiche d’invitation. Même parcours en relance, ancienne carte lisible et exclue. Présentation transitoire locale uniquement ; aucune phase ou règle serveur ajoutée. Annulations et perte de session couvertes par les tests.
+- Statistiques : le nouveau prompt remplace les repères de proximité thématique. **48 cartes sourcées, 67 variantes ; 40 absences documentées**. Deux cartes ont trois variantes, quinze en ont deux, trente et une en ont une. Ne pas restaurer les anciens chiffres pour remplir les manques.
+- `data/card-evidence.json` contient `activeEvidence` (1–3 variantes, principale aplatie) et `unavailableEvidence` (raison, sources consultées). Liste autorisée stricte, y compris pour les anciennes sauvegardes. Rotation stable selon la manche partagée. `data/card-evidence-audit.json` documente les exclusions.
+- Le générateur produit `statistiques.json` depuis les mêmes données et copie `src/onde-statistics-review.html` vers `statistiques.html`, dans l’aperçu et la publication. Cette page de choix reste hors de la navigation du jeu. Coches locales + export JSON, aucune écriture dans la partie.
+- Validation avant toute écriture : 88 cartes couvertes par données ou absences, source HTTPS, pourcentage 0–100 et valeur identiques, angles distincts, déduplication globale source/chiffre et mesure. Les couvertures partielles ne sont pas étiquetées complètes.
+- Une seule phrase statistique sur la carte ; source dépliable ; aucune case vide ou texte « INTROUVABLE » dans le jeu. Le relevé conserve les manques et limites de marque/durée/budget.
+- Vérifications : 8 tests de construction, contrôle des repères, 329 contrôles UI, 28 contrôles de la page de sélection, contrôles visuels mobiles et révélation chronométrée. Détails : [AUDIT_STATISTIQUES.md](AUDIT_STATISTIQUES.md). Pas d’essai physique iPhone. Aucun compte, tirage réel ou score touché. Xcode/ZIP toujours en pause.
+
 ## Ergonomie mobile — 3 novembre 2026 (prioritaire)
 
 - Cibles initiales : **iPhone 17 Pro et iPhone 16 Pro Max**. Plein écran mobile : coquille bornée par le viewport, aucun défilement de la page ; `main` seul défile, navigation hors de cette zone et toujours accessible après connexion. Introduction et connexion conservent leur parcours propre avant les onglets.

@@ -1,5 +1,17 @@
 # Audit mobile — Dés·ir, 3 novembre 2026
 
+## Correctif après retour sur iPhone installé — 3 novembre 2026
+
+Le retour réel de l’utilisateur signale une bande noire sous le menu et des icônes trop petites. Les observations navigateur antérieures ne suffisaient pas à valider ces deux points sur appareil.
+
+- Icônes mobiles de20à32px, libellés12px, boutons d’environ61px de haut. Les trois colonnes gardent une largeur égale. Le dé conserve ses dimensions.
+- En mode installé, la hauteur de l’app utilise la hauteur CSS complète (`100vh`), au lieu d’être écrasée par une `visualViewport.height` pouvant exclure la zone de statut sur iOS. Le clavier conserve une adaptation spécifique quand un champ est actif et que la réduction dépasse150px. Le zoom ne déclenche pas ce changement.
+- Le fond de `html`, `body`, de la navigation et les couleurs du manifeste sont identiques jusqu’au bord inférieur. La zone du geste système reste protégée ; aucun second panneau noir n’est ajouté.
+- Ce diagnostic s’appuie sur la lecture du code et les signalements [WebKit254868](https://bugs.webkit.org/show_bug.cgi?id=254868) et [313800](https://bugs.webkit.org/show_bug.cgi?id=313800). Il ne prouve pas que le même défaut WebKit est présent sur cet appareil.
+- Contrôle navigateur avec un viewport visuel simulé raccourci de62px : variable812px et hauteur réelle874px (17Pro), puis894px et956px (16ProMax) ; bas du menu aligné sur le bas du cadre. Trois icônes32×32px au repos. Régression clavier et affichage installé couverte par329contrôles UI.
+
+**La disparition de la bande sur l’iPhone physique reste à confirmer après publication.** Le simulateur de dimensions ne remplace pas ce contrôle.
+
 Cette passe répond aux deux défauts signalés : des écrans inutilement longs et un menu situé après le contenu, inaccessible sans descendre. Elle intègre la correction suivante de l’utilisateur : **le dé doit conserver sa présence ; les autres modules doivent prendre moins de place**.
 
 ## Constats et corrections

@@ -17,7 +17,7 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 - Proposer directement ou tenter le D20 : deux jets maximum par personne, dont la somme doit atteindre les PV de la carte. Deux jets insuffisants de la personne qui tire envoient automatiquement la proposition à l’autre. Un envoi automatique nécessite ensuite les deux confirmations.
 - Une action validée à deux rejoint « À faire » pour six heures. Chacun coche sa propre case ; les deux coches retirent l’action et ajoutent un point commun. L’expiration ou le D20 ne rapporte aucun point. Plusieurs actions validées peuvent rester en attente pendant un nouveau tour.
 
-Maintenir le bouton charge visuellement le dé : le maximum est atteint après **1 200 ms**, avec **deux à cinq tours** selon la durée de maintien. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les PV, les points ou le quota. Le lancer animé dure entre **1 650 et 2 500 ms** ; une attente réseau est signalée séparément. Le D6 au repos est incliné pour laisser voir trois faces.
+Maintenir le bouton charge visuellement le dé : le maximum est atteint après **1 200 ms**, avec **deux à cinq tours** selon la durée de maintien. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les PV, les points ou le quota. Le lancer animé dure entre **1 650 et 2 500 ms** ; une attente réseau est signalée séparément. Le D6 au repos est incliné pour laisser voir trois faces. Après le D4, la carte sélectionnée se défloute dans la grille avant l’ouverture de la fiche ; la relance conserve l’ancienne carte écartée et les autres masquées.
 
 Les PV restent des premières estimations. La jauge montre les PV restants et les deux résultats. Les opérations sont confirmées côté serveur : une réponse répétée ne relance pas un dé et ne compte pas deux fois un point.
 
@@ -37,7 +37,7 @@ La forme de l’application est conservée : rubber, suédine, pigments minérau
 
 L’[audit UI et direction artistique](dev/AUDIT_UI_DA.md) distingue les défauts mesurables, leurs corrections et les préférences de présentation. Les contrôles visuels réels et les limites matérielles y sont consignés séparément des calculs de couleur.
 
-Les 88 cartes disposent de 88 résultats chiffrés distincts, dont 72 en pourcentage. Source, population, mesure et limites figurent dans « Source & contexte ». Plusieurs repères concernent un thème connexe : aucun bénéfice spécifique n’est attribué à une pratique sans étude correspondante. Les résultats ne sont pas des promesses individuelles. `card-evidence.json` contient leur traçabilité.
+La curation du 3 novembre retient **67 variantes en pourcentage sur 48 cartes** ; **40 cartes restent sans chiffre vérifié** dans les sources consultées. Deux cartes ont trois angles distincts ; les autres couvertures sont explicitement partielles. Aucun sujet voisin ne remplace une activité. Une seule phrase apparaît à la fois, avec population et limites dans « Source & contexte » ; la variante reste identique entre les deux joueurs et lors d’un rafraîchissement. [Page de contrôle des 88 cartes](statistiques.html), [JSON](statistiques.json) et [audit des sources et exclusions](dev/AUDIT_STATISTIQUES.md).
 
 ## Construire et vérifier
 
@@ -63,7 +63,7 @@ node demo-des/server/tests/backend-check.mjs
 node demo-des/server/tests/push-check.mjs
 ```
 
-Vérifications automatisées de cette révision : **234 contrôles UI**, **102 transport**, **790 backend** et **1 003 assertions de relance D4**, en plus des contrôles des règles, statistiques, tâches, dés et ressources PWA. Elles ne constituent pas un essai physique sur iPhone.
+Vérifications automatisées de cette révision : **329 contrôles UI**, **102 transport**, **790 backend** et **1 003 assertions de relance D4**, en plus des contrôles des règles, statistiques, tâches, dés et ressources PWA. Elles ne constituent pas un essai physique sur iPhone.
 
 Le développement Xcode est mis de côté pendant l’essai web. Le [ZIP Xcode](ONDE-Xcode.zip) et son HTML embarqué restent l’archive locale du build 7 ; `--release` ne les reconstruit plus. Cette archive ne possède ni comptes distants ni notifications. Les performances et la réception des notifications sur deux téléphones physiques restent à observer pendant l’essai.
 
