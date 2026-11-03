@@ -1,5 +1,7 @@
 # Audit UI et direction artistique — Dés·ir 0.3.0
 
+Mise à jour du 3 novembre : [audit mobile des deux formats iPhone](AUDIT_MOBILE.md), navigation permanente et grand dé conservé. Cette passe remplace les anciens choix de cadre mobile et de hauteur.
+
 État initial et contre-vérification des corrections : 2 novembre 2026. Audit des sources puis contre-vérification effective dans le navigateur, documentée en clôture. Les corrections UI et renderer sont présentes dans le livrable web. Aucun téléphone physique utilisé.
 
 ## Périmètre et méthode

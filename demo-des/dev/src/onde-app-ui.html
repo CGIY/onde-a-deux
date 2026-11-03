@@ -495,4 +495,102 @@
 #onde-app-v1 .oa-welcome .oa-actions{margin-top:33px}
 @keyframes oa-welcome-arrive{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-welcome{animation:none}}
+/* Phone app: a bounded screen, one scrolling content area, persistent navigation. */
+@media(max-width:480px),(max-width:1000px) and (max-height:500px){
+ html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
+ body{padding:0}
+ #onde-app-v1{height:100vh;height:var(--oa-viewport-height,100dvh);min-height:0;padding:0;overflow:hidden}
+ #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
+ #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 2px max(18px,env(safe-area-inset-left));gap:12px;background:transparent}
+ #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
+ #onde-app-v1 .oa-wordmark span{font-size:15px}
+ #onde-app-v1 .oa-help{width:44px;height:44px}
+ #onde-app-v1 .oa-persona{flex:none;margin:0 max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left));padding:4px 0;gap:0}
+ #onde-app-v1 .oa-identities,#onde-app-v1 .oa-switch{padding:2px;border-radius:18px}
+ #onde-app-v1 .oa-person-name{min-height:28px;padding:4px 10px;font-size:12px;border-radius:16px}
+ #onde-app-v1 .oa-switch button{min-height:44px}
+ #onde-app-v1 .oa-main{flex:1 1 0;min-height:0;padding:0 max(18px,env(safe-area-inset-right)) 10px max(18px,env(safe-area-inset-left));overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scroll-padding-block:12px;scrollbar-width:thin}
+ #onde-app-v1 .oa-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0;padding:3px max(14px,env(safe-area-inset-right)) calc(3px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border-top:1px solid #96938a55;background:#232422;z-index:3}
+ #onde-app-v1 .oa-nav button{width:100%;min-width:0;min-height:48px;padding:4px;gap:4px;font-size:11px}
+ #onde-app-v1 .oa-nav-icon{width:20px;height:20px}
+ #onde-app-v1 .oa-toast{bottom:calc(72px + env(safe-area-inset-bottom));max-width:calc(100% - 32px)}
+ #onde-app-v1 .oa-title{font-size:26px;line-height:1.12;margin:3px 0 8px;letter-spacing:-.035em}
+ #onde-app-v1 .oa-subtitle{font-size:12px;line-height:1.45}
+ #onde-app-v1 .oa-eyebrow{font-size:9px;line-height:1.45}
+ #onde-app-v1 .oa-steps{display:none}
+ #onde-app-v1 .oa-die-caption{padding-top:0}
+ #onde-app-v1 .oa-die-caption span:first-child{font-size:10px}
+ #onde-app-v1 .oa-stage{height:clamp(238px,30dvh,272px);margin:0 -8px}
+ #onde-app-v1 .oa-stage[data-kind="6"]{height:clamp(272px,35dvh,320px)}
+ #onde-app-v1 .oa-roll-status{font-size:12px;line-height:1.4;text-align:center;color:var(--oa-muted);margin:2px 0 8px}
+ #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-eyebrow{margin-bottom:8px}
+ #onde-app-v1 .oa-main:has(>.oa-dice-section):not(:has(>.oa-hp))>.oa-title{font-size:20px;line-height:1.2;margin:2px 0 8px}
+ #onde-app-v1 .oa-main:has(>.oa-dice-section):not(:has(>.oa-hp))>.oa-title br{display:none}
+ #onde-app-v1 .oa-main:has(>.oa-dice-section):not(:has(>.oa-hp))>.oa-title em{margin-left:6px}
+ #onde-app-v1 .oa-main>[data-action=roll]{position:sticky;bottom:-10px;z-index:2}
+ #onde-app-v1 .oa-button{min-height:48px;padding:11px 15px;border-radius:15px;font-size:14px}
+ #onde-app-v1 .oa-actions{gap:8px;margin-top:12px}
+ #onde-app-v1 .oa-main:has(>.oa-card-stage)>.oa-actions{position:sticky;bottom:-10px;z-index:2;padding:10px 0;background:var(--oa-bg);border-top:1px solid var(--oa-line)}
+ #onde-app-v1 .oa-actions:has(>[data-action=reroll]){grid-template-columns:repeat(2,minmax(0,1fr))}
+ #onde-app-v1 .oa-actions:has(>[data-action=reroll])>[data-action=send]{grid-column:1/-1}
+ #onde-app-v1 .oa-actions:has(>[data-action=reroll])>[data-action=challenge-draft]{padding:9px 10px;font-size:12px;line-height:1.4}
+ #onde-app-v1 .oa-text-button{min-height:44px;padding:10px 6px;font-size:12px}
+ #onde-app-v1 .oa-section-head{margin:14px 0 8px}
+ #onde-app-v1 .oa-section-head:has(+.oa-category-grid){display:none}
+ #onde-app-v1 .oa-section-head h2{font-size:11px}
+ #onde-app-v1 .oa-category-grid{gap:7px;margin-top:14px}
+ #onde-app-v1 .oa-category{display:flex;align-items:center;gap:6px;min-height:34px;padding:7px 8px;border-radius:11px}
+ #onde-app-v1 .oa-category-top{display:flex;align-items:center;gap:4px;margin:0;flex:none}
+ #onde-app-v1 .oa-category-swatch{width:5px;height:14px;border-radius:3px}
+ #onde-app-v1 .oa-category-number{font-size:9px}
+ #onde-app-v1 .oa-category-label{min-width:0;font-size:11px;line-height:1.25}
+ #onde-app-v1 .oa-card-grid{gap:8px;margin-top:8px}
+ #onde-app-v1 .oa-card-back{min-height:64px;padding:10px}
+ #onde-app-v1 .oa-card-grid.is-reroll .oa-card-back{height:104px;min-height:104px}
+ #onde-app-v1 .oa-card-grid.is-reroll .oa-card-discarded{padding:32px 10px 8px}
+ #onde-app-v1 .oa-card-stage{padding:10px 0 0}
+ #onde-app-v1 .oa-playing-card{padding:16px;border-radius:22px}
+ #onde-app-v1 .oa-playing-card:before{border-radius:17px}
+ #onde-app-v1 .oa-card-illustration{height:42px;margin:4px 0 8px}
+ #onde-app-v1 .oa-card-illustration i{scale:.65}
+ #onde-app-v1 .oa-card-title{font-size:24px;line-height:1.15;margin-top:5px}
+ #onde-app-v1 .oa-card-fact{gap:6px;margin-top:12px;padding:12px;border-radius:15px}
+ #onde-app-v1 .oa-card-fact>strong{font-size:28px;line-height:1.05}
+ #onde-app-v1 .oa-card-fact b{font-size:12px;line-height:1.35}
+ #onde-app-v1 .oa-card-fact p{font-size:12px;line-height:1.45}
+ #onde-app-v1 .oa-card-fact .oa-source{margin-top:5px}
+ #onde-app-v1 .oa-card-fact .oa-source summary{padding-top:7px;min-height:44px}
+ #onde-app-v1 .oa-hp{margin-top:10px;padding:10px;border-radius:18px}
+ #onde-app-v1 .oa-hp-top{margin-bottom:8px}
+ #onde-app-v1 .oa-hp-top strong{font-size:24px}
+ #onde-app-v1 .oa-hp-track{height:27px;padding:4px}
+ #onde-app-v1 .oa-hp-track i,#onde-app-v1 .oa-hp-track i:nth-child(n){height:19px}
+ #onde-app-v1 .oa-roll-history{margin-top:6px}
+ #onde-app-v1 .oa-hp-odds{margin-top:7px}
+ #onde-app-v1 .oa-task-list{gap:12px;margin-top:14px}
+ #onde-app-v1 .oa-task{padding:15px;border-radius:20px}
+ #onde-app-v1 .oa-task h2{font-size:19px;margin:12px 0 14px}
+ #onde-app-v1 .oa-task-checks{padding-top:10px}
+ #onde-app-v1 .oa-shared-score{margin-top:0;padding:19px;border-radius:22px}
+ #onde-app-v1 .oa-score-number{margin:10px 0 5px}
+ #onde-app-v1 .oa-score-number strong{font-size:62px}
+ #onde-app-v1 .oa-score-caption{margin-top:7px}
+ #onde-app-v1 .oa-score-rule{margin-top:13px;padding-top:12px}
+ #onde-app-v1 .oa-score-grid{gap:8px}
+ #onde-app-v1 .oa-quiet-home{min-height:180px}
+ #onde-app-v1 .oa-invitation{margin-top:20px;padding:18px 15px}
+ #onde-app-v1 .oa-welcome{padding:clamp(18px,5dvh,40px) 0 20px}
+ #onde-app-v1 .oa-welcome-icon{width:64px;height:64px;border-radius:19px;margin-bottom:22px}
+ #onde-app-v1 .oa-welcome-copy{gap:13px}
+ #onde-app-v1 .oa-welcome .oa-actions{margin-top:24px}
+ #onde-app-v1 .oa-login{margin:22px 0 24px}
+}
+@media(max-width:480px) and (max-height:780px),(max-width:1000px) and (max-height:500px){
+ #onde-app-v1 .oa-persona{margin-bottom:8px;padding-block:4px}
+ #onde-app-v1 .oa-title{font-size:24px;margin-bottom:6px}
+ #onde-app-v1 .oa-section-head{margin-top:12px;margin-bottom:7px}
+ #onde-app-v1 .oa-card-illustration{height:30px;margin-bottom:5px}
+ #onde-app-v1 .oa-card-grid.is-reroll .oa-card-back{height:100px;min-height:100px}
+}
 </style>

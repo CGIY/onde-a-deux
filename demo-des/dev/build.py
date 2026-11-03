@@ -63,7 +63,7 @@ for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-evidence.js',
     html += '\n<script>\n' + (source / filename).read_text() + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#181d1c"><meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.3.0">
 <meta name="application-name" content="Dés·ir"><meta name="apple-mobile-web-app-capable" content="yes">

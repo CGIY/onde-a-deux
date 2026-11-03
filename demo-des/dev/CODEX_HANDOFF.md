@@ -1,5 +1,14 @@
 # Dés·ir — passage de relais à Codex
 
+## Ergonomie mobile — 3 novembre 2026 (prioritaire)
+
+- Cibles initiales : **iPhone 17 Pro et iPhone 16 Pro Max**. Plein écran mobile : coquille bornée par le viewport, aucun défilement de la page ; `main` seul défile, navigation hors de cette zone et toujours accessible après connexion. Introduction et connexion conservent leur parcours propre avant les onglets.
+- `viewport-fit=cover`, insets haut/bas et latéraux ; hauteur `visualViewport` à zoom normal avec repli `100dvh`, pour le clavier et les barres Safari. Zoom conservé. Portrait et paysage étroit pris en charge.
+- **Ne pas réduire le dé pour faire tenir le contenu.** Demande explicite de l’utilisateur après un premier essai trop petit : D6 avec scène 272–320 px, D4/D20 au moins 238 px. Les catégories deviennent six bandeaux informatifs compacts ; titre introductif du D6 masqué visuellement mais conservé sémantiquement. Identités, marges et jauge resserrées ; cibles de navigation 48 px et aide 44 px.
+- Actions de carte ancrées dans main quand nécessaire ; Proposer sur toute la largeur, D20 et relance côte à côte. Aucun texte/statistique tronqué. Attente de relance sous forme de ligne d’état, pas de faux bouton désactivé. Quatre emplacements et ancienne carte exclue conservés. Les actions ancrées apparaissent en fondu sans translation sous le menu.
+- Nouvelle vue : retour en haut de main. Mise à jour de fond : position, source ouverte et focus conservés. Modale : main verrouillé puis restauré sans saut.
+- Vérification : 269 contrôles UI, 211 observations navigateur de cadres mesurés, dont 196 en portrait aux quatre configurations, 14 en paysage et une connexion à hauteur clavier. Aucun tirage réel consommé. Voir [AUDIT_MOBILE.md](AUDIT_MOBILE.md) pour le périmètre et les limites. Aucun essai physique iPhone effectué.
+
 ## État courant — essai web connecté, 2 novembre 2026
 
 Cette section remplace les consignes historiques qui suivent lorsqu’elles divergent. Le nom visible est **Dés·ir**. L’utilisateur a mis Xcode de côté pour tester l’application web sur deux téléphones pendant quelques semaines, avec Supabase et GitHub Pages.

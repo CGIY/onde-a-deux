@@ -66,3 +66,7 @@ node demo-des/server/tests/push-check.mjs
 Vérifications automatisées de cette révision : **234 contrôles UI**, **102 transport**, **790 backend** et **1 003 assertions de relance D4**, en plus des contrôles des règles, statistiques, tâches, dés et ressources PWA. Elles ne constituent pas un essai physique sur iPhone.
 
 Le développement Xcode est mis de côté pendant l’essai web. Le [ZIP Xcode](ONDE-Xcode.zip) et son HTML embarqué restent l’archive locale du build 7 ; `--release` ne les reconstruit plus. Cette archive ne possède ni comptes distants ni notifications. Les performances et la réception des notifications sur deux téléphones physiques restent à observer pendant l’essai.
+
+### Ergonomie iPhone
+
+La version web privilégie les iPhone 17 Pro et 16 Pro Max : navigation permanente, contenu seul défilant, zones sûres et clavier pris en compte. Le dé conserve sa présence ; les modules secondaires sont compacts. Détails des changements et vérifications : [audit mobile du 3 novembre](dev/AUDIT_MOBILE.md).
