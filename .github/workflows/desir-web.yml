@@ -38,4 +38,4 @@ jobs:
         run: |
           python3 demo-des/dev/tests/onde-build-check.py
           python3 demo-des/dev/build.py --release
-          git diff --exit-code -- demo-des/index.html demo-des/card-evidence.json demo-des/statistiques.json demo-des/statistiques.html demo-des/server/functions/desir-game/core.js
+          git diff --exit-code -- demo-des/index.html demo-des/server/functions/desir-game/core.js

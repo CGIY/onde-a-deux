@@ -31,13 +31,14 @@ L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l�
 
 Les notifications signalent une invitation, une réponse, un dé disponible ou une action approchant de son expiration. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
 
-## Matières et statistiques
+## Direction artistique
+
+Chaque carte affiche une phrase courte, chaleureuse et joueuse, propre à son activité. Les statistiques, leurs sources et la page de sélection ont été retirées. Le score commun, les grades et les PV restent les éléments du jeu.
 
 La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Le score commun et les accents passent au corail grisé, avec une texture propre au panneau pour rester visible. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète. Le chiffre du résultat s’éclaire progressivement en blanc ivoire brillant à la fin du lancer, y compris dans le rendu de secours.
 
 L’[audit UI et direction artistique](dev/AUDIT_UI_DA.md) distingue les défauts mesurables, leurs corrections et les préférences de présentation. Les contrôles visuels réels et les limites matérielles y sont consignés séparément des calculs de couleur.
 
-La curation du 3 novembre retient **67 variantes en pourcentage sur 48 cartes** ; **40 cartes restent sans chiffre vérifié** dans les sources consultées. Deux cartes ont trois angles distincts ; les autres couvertures sont explicitement partielles. Aucun sujet voisin ne remplace une activité. Une seule phrase apparaît à la fois, avec population et limites dans « Source & contexte » ; la variante reste identique entre les deux joueurs et lors d’un rafraîchissement. [Page de contrôle des 88 cartes](statistiques.html), [JSON](statistiques.json) et [audit des sources et exclusions](dev/AUDIT_STATISTIQUES.md).
 
 ## Construire et vérifier
 
@@ -51,7 +52,7 @@ python3 demo-des/dev/build.py --release    # aperçu connecté + index.html publ
 
 Un aperçu doit être servi par HTTP local. Les modes connectés lisent `config.js`, qui ne contient que l’URL du service et sa clé publiable. Ces paramètres sont incorporés au HTML pour éviter qu’un chargement de configuration manquant déclenche le mode démo. Une configuration manquante ou invalide bloque la construction connectée. Aucun identifiant, mot de passe ni secret serveur ne doit être ajouté à ce fichier.
 
-Le générateur contrôle la couverture et l’unicité des repères, place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La fonction Edge `desir-game` **version 3** est déployée pour cette révision.
+Le générateur place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La fonction Edge `desir-game` **version 3** est déployée pour cette révision.
 
 ```sh
 python3 demo-des/dev/tests/onde-build-check.py
@@ -63,10 +64,10 @@ node demo-des/server/tests/backend-check.mjs
 node demo-des/server/tests/push-check.mjs
 ```
 
-Vérifications automatisées de cette révision : **329 contrôles UI**, **102 transport**, **790 backend** et **1 003 assertions de relance D4**, en plus des contrôles des règles, statistiques, tâches, dés et ressources PWA. Elles ne constituent pas un essai physique sur iPhone.
+Vérifications automatisées de cette révision : **437 contrôles UI**, **102 transport**, **790 backend** et **1 003 assertions de relance D4**, en plus des contrôles des règles, tâches, dés et ressources PWA. Elles ne constituent pas un essai physique sur iPhone.
 
 Le développement Xcode est mis de côté pendant l’essai web. Le [ZIP Xcode](ONDE-Xcode.zip) et son HTML embarqué restent l’archive locale du build 7 ; `--release` ne les reconstruit plus. Cette archive ne possède ni comptes distants ni notifications. Les performances et la réception des notifications sur deux téléphones physiques restent à observer pendant l’essai.
 
 ### Ergonomie iPhone
 
-La version web privilégie les iPhone 17 Pro et 16 Pro Max : navigation permanente, contenu seul défilant, zones sûres et clavier pris en compte. Le dé conserve sa présence ; les modules secondaires sont compacts. Détails des changements et vérifications : [audit mobile du 3 novembre](dev/AUDIT_MOBILE.md).
+La version web privilégie les iPhone 17 Pro et 16 Pro Max : navigation permanente, contenu seul défilant, zones sûres et clavier pris en compte. Le dé conserve sa présence ; les modules secondaires sont compacts. La disparition de la bande sous le menu a été confirmée par l’utilisateur après relance sur iPhone 17 Pro sous iOS 27. Détails des changements et vérifications : [audit mobile du 3 novembre](dev/AUDIT_MOBILE.md).

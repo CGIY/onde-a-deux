@@ -1,5 +1,14 @@
 # Audit mobile — Dés·ir, 3 novembre 2026
 
+## Ajustements du 3 novembre — contenu et passage D6/D4
+
+- Statistiques d’étude, sources, page de sélection et anciens exports retirés. Les 88 cartes affichent chacune une phrase courte et positive ; les règles, PV, score et grades restent inchangés. Cache public renouvelé pour abandonner l’ancienne coque hors ligne.
+- Les grands espaces après les catégories et les quatre emplacements venaient de la hauteur plafonnée de la scène. Les écrans D6/D4 utilisent une colonne flexible ; la scène absorbe le surplus, avec minimums272/238px. Le `flex-basis` est nul pour que le canvas réutilisé ne conserve pas la hauteur du D6 après passage au D4.
+- Les quatre tuiles D4 gardent la même hauteur pendant le tirage, la révélation et la relance. Les animations de glissement différé des tuiles sont retirées : elles restent à leur emplacement final. Le libellé de phase passe à12px, gras et ivoire.
+- Transition confirmée D6→D4 : géométrie finale calculée d’abord, dé repositionné/recalé en360ms, grille en fondu groupé sans déplacement. Canvas clippé pendant le mouvement ; annulation au prochain rendu, prochain lancer, arrière-plan ou perte de session ; mouvement réduit respecté.
+- Contrôles navigateur : sur402×874 et440×956, ainsi que les variantes Safari402×700 et440×780, les quatre tuiles restent au-dessus du menu. Marge inférieure observée5,9–10px au lieu du grand vide. Le passage réel D6→D4 a été observé pendant le mouvement : grille sans transformation et quatre tuiles visibles.
+- Défilement réservé au contenu, menu toujours hors de cette zone ; aucun changement des règles de relance à ce stade.
+
 ## Correctif après retour sur iPhone installé — 3 novembre 2026
 
 Le retour réel de l’utilisateur signale une bande noire sous le menu et des icônes trop petites. Les observations navigateur antérieures ne suffisaient pas à valider ces deux points sur appareil.
@@ -10,7 +19,7 @@ Le retour réel de l’utilisateur signale une bande noire sous le menu et des i
 - Ce diagnostic s’appuie sur la lecture du code et les signalements [WebKit254868](https://bugs.webkit.org/show_bug.cgi?id=254868) et [313800](https://bugs.webkit.org/show_bug.cgi?id=313800). Il ne prouve pas que le même défaut WebKit est présent sur cet appareil.
 - Contrôle navigateur avec un viewport visuel simulé raccourci de62px : variable812px et hauteur réelle874px (17Pro), puis894px et956px (16ProMax) ; bas du menu aligné sur le bas du cadre. Trois icônes32×32px au repos. Régression clavier et affichage installé couverte par329contrôles UI.
 
-**La disparition de la bande sur l’iPhone physique reste à confirmer après publication.** Le simulateur de dimensions ne remplace pas ce contrôle.
+**Confirmation physique reçue après une nouvelle relance de la version publiée : bande disparue sur iPhone17Pro sous iOS27.** Le simulateur de dimensions reste distinct de ce retour utilisateur ; le16ProMax n’a pas été confirmé sur matériel.
 
 Cette passe répond aux deux défauts signalés : des écrans inutilement longs et un menu situé après le contenu, inaccessible sans descendre. Elle intègre la correction suivante de l’utilisateur : **le dé doit conserver sa présence ; les autres modules doivent prendre moins de place**.
 

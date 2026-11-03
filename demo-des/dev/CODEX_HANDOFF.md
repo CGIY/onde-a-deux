@@ -1,23 +1,29 @@
 # Dés·ir — passage de relais à Codex
 
-## Révélation D4 et curation stricte — 3 novembre 2026 (prioritaire)
+## Suppression des statistiques — 3 novembre 2026 (prioritaire)
+
+L’utilisateur abandonne les statistiques et demande leur suppression partout. Cette décision remplace toutes les demandes et consignes de recherche antérieures, y compris celles conservées plus bas à titre historique.
+
+- Retirer les phrases statistiques des cartes, « Source & contexte », les sources et la page de contrôle avec ses exports. Arrêter toute recherche, curation et rotation de variantes ; aucune reprise de ce chantier n’est demandée.
+- Les données de curation et leur audit sont retirés des sources actives. Leur dernier état, ainsi que cette documentation avant retrait, est sauvegardé localement dans `/private/tmp/desir-retired-statistics/`. Ne pas les réinjecter dans une construction ou une publication.
+- Remplacement demandé ensuite : une phrase courte et positive par carte, avec le ton joueur et affirmé accepté par l’utilisateur. `data/card-notes.json` contient 88 phrases uniques ; aucun chiffre d’étude ni source visible. Le build les incorpore, sans requête réseau. Ne pas reprendre la curation de statistiques.
+- Les **PV et la jauge D20**, les règles de jeu, le **score commun** et les **grades** sont conservés. La suppression des statistiques descriptives ne réinitialise aucune partie et ne change aucun seuil.
+- Le correctif du menu reste en place : la disparition de la bande sous le menu a été confirmée par l’utilisateur après relance sur **iPhone 17 Pro sous iOS 27**. Ne pas rouvrir ce correctif sans nouveau défaut observé.
+- Xcode et ZIP restent en pause pendant l’essai web.
+
+## Révélation D4 — 3 novembre 2026
 
 - D4 : résultat confirmé → fin du lancer → défloutage de la tuile choisie (380 ms) → pause de lecture de 1 100 ms → fiche d’invitation. Même parcours en relance, ancienne carte lisible et exclue. Présentation transitoire locale uniquement ; aucune phase ou règle serveur ajoutée. Annulations et perte de session couvertes par les tests.
-- Statistiques : le nouveau prompt remplace les repères de proximité thématique. **48 cartes sourcées, 67 variantes ; 40 absences documentées**. Deux cartes ont trois variantes, quinze en ont deux, trente et une en ont une. Ne pas restaurer les anciens chiffres pour remplir les manques.
-- `data/card-evidence.json` contient `activeEvidence` (1–3 variantes, principale aplatie) et `unavailableEvidence` (raison, sources consultées). Liste autorisée stricte, y compris pour les anciennes sauvegardes. Rotation stable selon la manche partagée. `data/card-evidence-audit.json` documente les exclusions.
-- Le générateur produit `statistiques.json` depuis les mêmes données et copie `src/onde-statistics-review.html` vers `statistiques.html`, dans l’aperçu et la publication. Cette page de choix reste hors de la navigation du jeu. Coches locales + export JSON, aucune écriture dans la partie.
-- Validation avant toute écriture : 88 cartes couvertes par données ou absences, source HTTPS, pourcentage 0–100 et valeur identiques, angles distincts, déduplication globale source/chiffre et mesure. Les couvertures partielles ne sont pas étiquetées complètes.
-- Une seule phrase statistique sur la carte ; source dépliable ; aucune case vide ou texte « INTROUVABLE » dans le jeu. Le relevé conserve les manques et limites de marque/durée/budget.
-- Vérifications : 8 tests de construction, contrôle des repères, 329 contrôles UI, 28 contrôles de la page de sélection, contrôles visuels mobiles et révélation chronométrée. Détails : [AUDIT_STATISTIQUES.md](AUDIT_STATISTIQUES.md). Pas d’essai physique iPhone. Aucun compte, tirage réel ou score touché. Xcode/ZIP toujours en pause.
+- Vérifications de la révélation : contrôles UI, contrôles visuels mobiles et révélation chronométrée. Aucun compte, tirage réel ou score touché.
 
 ## Ergonomie mobile — 3 novembre 2026 (prioritaire)
 
 - Cibles initiales : **iPhone 17 Pro et iPhone 16 Pro Max**. Plein écran mobile : coquille bornée par le viewport, aucun défilement de la page ; `main` seul défile, navigation hors de cette zone et toujours accessible après connexion. Introduction et connexion conservent leur parcours propre avant les onglets.
 - `viewport-fit=cover`, insets haut/bas et latéraux ; hauteur `visualViewport` à zoom normal avec repli `100dvh`, pour le clavier et les barres Safari. Zoom conservé. Portrait et paysage étroit pris en charge.
-- **Ne pas réduire le dé pour faire tenir le contenu.** Demande explicite de l’utilisateur après un premier essai trop petit : D6 avec scène 272–320 px, D4/D20 au moins 238 px. Les catégories deviennent six bandeaux informatifs compacts ; titre introductif du D6 masqué visuellement mais conservé sémantiquement. Identités, marges et jauge resserrées ; cibles de navigation 48 px et aide 44 px.
-- Actions de carte ancrées dans main quand nécessaire ; Proposer sur toute la largeur, D20 et relance côte à côte. Aucun texte/statistique tronqué. Attente de relance sous forme de ligne d’état, pas de faux bouton désactivé. Quatre emplacements et ancienne carte exclue conservés. Les actions ancrées apparaissent en fondu sans translation sous le menu.
-- Nouvelle vue : retour en haut de main. Mise à jour de fond : position, source ouverte et focus conservés. Modale : main verrouillé puis restauré sans saut.
-- Vérification : 269 contrôles UI, 211 observations navigateur de cadres mesurés, dont 196 en portrait aux quatre configurations, 14 en paysage et une connexion à hauteur clavier. Aucun tirage réel consommé. Voir [AUDIT_MOBILE.md](AUDIT_MOBILE.md) pour le périmètre et les limites. Aucun essai physique iPhone effectué.
+- **Ne pas réduire le dé pour faire tenir le contenu.** Demande explicite de l’utilisateur après un premier essai trop petit : D6 au moins 272 px, D4/D20 au moins 238 px. Les scènes D6 et D4 absorbent maintenant la hauteur disponible ; les grilles restent proches du menu. Les catégories deviennent six bandeaux informatifs compacts ; titre introductif du D6 masqué visuellement mais conservé sémantiquement. Identités, marges et jauge resserrées ; cibles de navigation 48 px et aide 44 px.
+- Actions de carte ancrées dans main quand nécessaire ; Proposer sur toute la largeur, D20 et relance côte à côte. Aucun texte tronqué. Attente de relance sous forme de ligne d’état, pas de faux bouton désactivé. Quatre emplacements et ancienne carte exclue conservés. Les actions ancrées apparaissent en fondu sans translation sous le menu.
+- Nouvelle vue : retour en haut de main. Mise à jour de fond : position et focus conservés. Modale : main verrouillé puis restauré sans saut.
+- Vérification initiale : 269 contrôles UI, 211 observations navigateur de cadres mesurés, dont 196 en portrait aux quatre configurations, 14 en paysage et une connexion à hauteur clavier. Aucun tirage réel consommé. Le correctif de la bande sous le menu a ensuite été confirmé physiquement par l’utilisateur sur iPhone 17 Pro sous iOS 27. Voir [AUDIT_MOBILE.md](AUDIT_MOBILE.md) pour le périmètre et les autres limites.
 
 ## État courant — essai web connecté, 2 novembre 2026
 
@@ -34,7 +40,7 @@ Cette section remplace les consignes historiques qui suivent lorsqu’elles dive
 - Finition visuelle suivante : score corail grisé, accents corail désaturés et grain statique renforcé sur les panneaux ; chiffre résultat blanc ivoire avec reflet à l’arrêt sur les trois dés et le rendu de secours. Géométrie et ombres inchangées. La relance D4 a ensuite été acceptée et activée : une seule fois avant l’envoi et avant le D20 initiateur, autre carte garantie, D20 initiateur supprimé pour cette carte, D20 destinataire conservé, aucun point retiré ni ticket supplémentaire.
 - Grades dans Nous : un seul grade atteint visible, remplacé au palier suivant. Paliers 5/8/10/12/15/20/25/30/35/40/45/50 ; noms dans `gradeLevels`. Avant 5 : aucun badge obtenu, seulement une progression discrète. Aucun nom futur dans le DOM. Déblocage depuis `stats.totalCompleted`, partagé et cumulé ; transition une fois au franchissement, jamais au poll ou à la restauration. Aucun stockage de grade supplémentaire. Le grade utilise un bleu ardoise désaturé, distinct du score commun corail.
 - Charge visuelle : maximum atteint après **1 200 ms**, **deux à cinq tours** et animation bornée entre **1 650 et 2 500 ms**. Appui court ou maintien, Espace au clavier, Entrée pour le clic natif ; scroll, annulation et perte de focus ne lancent rien. La puissance ne rejoint jamais l’API et ne modifie aucune règle. Le D6 initial est incliné et montre trois faces.
-- Audit et corrections UI : [AUDIT_UI_DA.md](AUDIT_UI_DA.md), avec mesures avant/après, matrice des états et séparation des défauts objectifs et des préférences. Les textes de carte reposent sur une surface plus sombre, les champs ont un bord lisible, les actions montrent leur attente, les toasts restent dans le viewport et les sources ont une cible de 44 px. La structure de l’application et son cadre sont conservés.
+- Audit et corrections UI : [AUDIT_UI_DA.md](AUDIT_UI_DA.md), avec mesures avant/après, matrice des états et séparation des défauts objectifs et des préférences. Les textes de carte reposent sur une surface plus sombre, les champs ont un bord lisible, les actions montrent leur attente et les toasts restent dans le viewport. La structure de l’application et son cadre sont conservés.
 - Relance : `round.cardRerolled` booléen, `G.canRerollCard`, action `REROLL_CARD` côté moteur/transport/serveur. Tirage uniforme parmi trois autres faces ; même reçu en cas de reprise réseau. Le D4 reste affiché jusqu’à la fin de l’animation, avant la révélation. Migration des anciens rounds/historiques par normalisation, aucune réinitialisation de partie.
 
 Construction depuis la racine :
@@ -60,7 +66,7 @@ node demo-des/server/tests/backend-check.mjs
 Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 3, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
 
 - 48 vérifications HTTP sur le service hébergé : deux connexions, tirages privés, résultats serveur, rejeu idempotent, deux coches et point unique, quotas et contrôle des accès.
-- Contrôles locaux : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 102 transport, 248 UI, 790 backend, 1 003 relance D4 et 68 Push/PWA ; couverture des 88 repères et quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
+- Contrôles locaux de la publication connectée : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 102 transport, 248 UI, 790 backend, 1 003 relance D4 et 68 Push/PWA ; quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
 - Navigateur publié : connexion des deux comptes (identifiant accentué compris), D6/D4, envoi, invitation différée, acceptation, tâche de six heures et coche personnelle après confirmation serveur. Aucune erreur de console observée. L'aide ne montre ni quota ni probabilités ; Nous ne contient plus le titre ou le lien de règles redondants.
 - Révocation/reconnexion : les actualisations automatiques s'arrêtent après un accès refusé ; la saisie reste stable, les erreurs se mettent à jour en place et un autre compte peut reprendre avec sa propre perspective.
 - Cron actif chaque minute, appels hébergés 202 et exécutions réussies. Les clés VAPID et le secret cron sont en base privée. Les conseillers de sécurité n'indiquent que l'information attendue « RLS sans politique » : toutes les lectures directes sont volontairement refusées aux rôles publics.
@@ -69,6 +75,8 @@ Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supa
 La livraison d'une notification sur les deux téléphones physiques reste à observer après installation et activation par chaque personne. Une seule manche est active à la fois, conformément au moteur existant ; une invitation en attente retient donc la manche suivante.
 
 ## Historique de conception et de publication
+
+Les sections suivantes décrivent d’anciens états et livraisons. Leurs demandes, listes de travaux et commandes ne sont pas des consignes de reprise. En particulier, toutes les statistiques, sources et recherches mentionnées dans cet historique sont abandonnées par la décision prioritaire du 3 novembre ci-dessus.
 
 ## Objectif et dépôt
 
@@ -98,7 +106,7 @@ Les inspirations jointes servent uniquement à comprendre des idées et une dire
 - Arrêter ou passer reste possible sans pénalité. Aucun résultat de dé ne vaut consentement ni obligation de réaliser une carte.
 - Une carte marquée **partagée** vaut **1 point commun** ; accepter seul, passer ou écarter au dé ne donne aucun point.
 
-## Les cinq demandes en cours
+## Les cinq demandes initiales — historique clos
 
 1. Remplacer le simple abandon de la carte tirée par le défi de l’initiateur, avec proposition automatique en cas d’échec et accord explicite des deux personnes.
 2. Donner davantage de couleurs à l’application.

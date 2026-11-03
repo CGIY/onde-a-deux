@@ -1,6 +1,5 @@
 """Exercise the actual builder in a disposable tree, never the published files."""
 import json
-import copy
 from pathlib import Path
 import shutil
 import subprocess
@@ -105,140 +104,45 @@ class WebBuild(BuildFixture):
         self.assert_archive_preserved()
 
 
-class CuratedEvidenceBuild(BuildFixture):
-    def curated_evidence(self):
-        """One researched card, other cards explicitly withheld, never fake fillers."""
-        current = json.loads((self.dev / 'data/card-evidence.json').read_text())
-        ids = [row['cardId'] for row in current['activeEvidence'] + current.get('unavailableEvidence', [])]
-        variants = [dict(metric=f'{value} %', sourceValue=value, headline='Une mesure vérifiée',
-                         detail=f'Observation distincte {index}.', scope='Adultes ; contexte de contrôle.',
-                         limitations='Donnée de test.', year=2026, sourceTitle='Étude de contrôle',
-                         url='https://example.test/study', statKey=f'result-{index}',
-                         angle=['pratique', 'appreciation', 'envie'][index], confidence='moyenne')
-                    for index, value in enumerate([24, 51, 78])]
-        return dict(version='test-curation', purpose='Contrôle de curation stricte',
-                    activeEvidence=[dict(cardId=ids[0], **variants[0], variants=variants)],
-                    unavailableEvidence=[dict(cardId=card_id, status='INTROUVABLE',
-                                              reason='Aucun résultat directement vérifié dans les sources consultées.',
-                                              consultedSources=[dict(title='Étude consultée', url='https://example.test/consulted')])
-                                         for card_id in ids[1:]])
-
-    def write_evidence(self, evidence):
-        (self.dev / 'data/card-evidence.json').write_text(json.dumps(evidence, ensure_ascii=False))
-
-    def test_curated_build_preserves_variants_and_documented_absences(self):
-        evidence = self.curated_evidence()
-        self.write_evidence(evidence)
+class RetiredStatisticsBuild(BuildFixture):
+    def test_release_removes_old_statistics_without_touching_game_or_archive(self):
+        retired = ['card-evidence.json', 'statistiques.json', 'statistiques.html']
+        preview = self.dev / 'dist'
+        preview.mkdir()
+        for folder in [self.demo, preview]:
+            for filename in retired:
+                (folder / filename).write_text('old-card-statistics')
         self.build('--release')
+        for folder in [self.demo, preview]:
+            for filename in retired:
+                self.assertFalse((folder / filename).exists(), str(folder / filename))
         html = self.release.read_text()
-        embedded = html.split('<script>window.OndeEvidenceData=', 1)[1].split(';</script>', 1)[0]
-        self.assertEqual(json.loads(embedded), evidence)
-        self.assertEqual(json.loads((self.demo / 'card-evidence.json').read_text()), evidence)
-        review = json.loads((self.demo / 'statistiques.json').read_text())
-        self.assertEqual(len(review), 88)
-        researched = next(row for row in review if row['cardId'] == evidence['activeEvidence'][0]['cardId'])
-        self.assertEqual(researched['statut'], 'OK')
-        self.assertEqual([item['statKey'] for item in researched['variantes']],
-                         [item['statKey'] for item in evidence['activeEvidence'][0]['variants']])
-        self.assertTrue(all(row['statut'] == 'INTROUVABLE' and not row['variantes']
-                            for row in review if row is not researched))
+        for marker in ['OndeEvidence', 'oa-card-fact', 'Source & contexte', 'statKey']:
+            self.assertNotIn(marker, html)
+        self.assertIn('VOTRE SCORE À DEUX', html)
+        self.assertIn('gradeLevels', html)
+        self.assertIn('window.DesirCardNotes=Object.freeze(', html)
+        self.assertIn('oa-card-note', html)
+        self.assertIn('Résistance de la carte', html)
         self.assert_archive_preserved()
 
-    def test_invalid_curation_never_writes_a_release(self):
-        valid = self.curated_evidence()
-        cases = {}
-        missing = copy.deepcopy(valid)
-        missing['unavailableEvidence'].pop()
-        cases['missing-card'] = missing
-        overlap = copy.deepcopy(valid)
-        overlap['unavailableEvidence'][0]['cardId'] = overlap['activeEvidence'][0]['cardId']
-        cases['overlap'] = overlap
-        undocumented = copy.deepcopy(valid)
-        undocumented['unavailableEvidence'][0]['consultedSources'] = []
-        cases['undocumented-absence'] = undocumented
-        invented_absence = copy.deepcopy(valid)
-        invented_absence['unavailableEvidence'][0]['metric'] = '99 %'
-        cases['statistic-on-unavailable-card'] = invented_absence
-        missing_variants = copy.deepcopy(valid)
-        del missing_variants['activeEvidence'][0]['variants']
-        cases['missing-variants'] = missing_variants
-        partial_schema = copy.deepcopy(valid)
-        del partial_schema['unavailableEvidence']
-        cases['partial-curated-schema'] = partial_schema
-        flattened = copy.deepcopy(partial_schema)
-        del flattened['activeEvidence'][0]['variants']
-        cases['curated-metadata-cannot-fall-back-to-legacy'] = flattened
-        wrong_primary = copy.deepcopy(valid)
-        wrong_primary['activeEvidence'][0]['metric'] = '25 %'
-        cases['stale-primary'] = wrong_primary
-        for label, evidence in cases.items():
-            with self.subTest(label=label):
-                self.write_evidence(evidence)
-                self.build('--release', ok=False)
-                self.assertEqual(self.release.read_text(), 'existing-release')
-                self.assertFalse((self.dev / 'dist').exists())
-        self.assert_archive_preserved()
+    def test_invalid_card_sentences_do_not_write_a_release(self):
+        path = self.dev / 'data/card-notes.json'
+        valid = json.loads(path.read_text())
+        first, second = list(valid)[:2]
+        for broken in [dict(list(valid.items())[1:]), {**valid, first: ''},
+                       {**valid, first: valid[second]}, {**valid, first: 'Une étude annonce 80 %.'}]:
+            path.write_text(json.dumps(broken))
+            self.build('--release', ok=False)
+            self.assertEqual(self.release.read_text(), 'existing-release')
+            self.assertFalse((self.dev / 'dist').exists())
 
-    def test_every_variant_is_checked_and_source_duplicates_cannot_hide_in_alternatives(self):
-        valid = self.curated_evidence()
-        cases = []
-        for field, value in [('metric', 'r = 0,35'), ('metric', '≈ 51 %'),
-                             ('metric', '51 % contre 20 %'), ('sourceValue', float('nan')),
-                             ('sourceValue', 50), ('year', True), ('url', 'http://example.test/study'),
-                             ('angle', ''), ('angle', 'pratique'), ('angle', 'sujet voisin'),
-                             ('confidence', ''), ('detail', '')]:
-            evidence = copy.deepcopy(valid)
-            evidence['activeEvidence'][0]['variants'][1][field] = value
-            cases.append((f'invalid-alternative-{field}-{value}', evidence))
-        for value in [-1, 101]:
-            evidence = copy.deepcopy(valid)
-            evidence['activeEvidence'][0]['variants'][1].update(metric=f'{value} %', sourceValue=value)
-            cases.append((f'invalid-proportion-{value}', evidence))
-        for count in [0, 4]:
-            evidence = copy.deepcopy(valid)
-            variants = evidence['activeEvidence'][0]['variants']
-            evidence['activeEvidence'][0]['variants'] = [] if count == 0 else variants + [dict(variants[-1])]
-            cases.append((f'variant-count-{count}', evidence))
-        # A different headline/key does not make the same study percentage a new result.
-        duplicate = copy.deepcopy(valid)
-        duplicate['activeEvidence'][0]['variants'][1].update(metric='−24 %', sourceValue=-24,
-                                                            url='https://EXAMPLE.test:443/study/#another-table')
-        cases.append(('same-source-signed-percentage', duplicate))
-        tracking = copy.deepcopy(valid)
-        tracking['activeEvidence'][0]['variants'][1].update(metric='24 %', sourceValue=24,
-                                                          url='https://example.test/study?utm_source=elsewhere#other')
-        cases.append(('same-source-tracking-url', tracking))
-        for field in ['statKey', 'detail']:
-            duplicate = copy.deepcopy(valid)
-            original = duplicate['activeEvidence'][0]['variants'][0][field]
-            duplicate['activeEvidence'][0]['variants'][2][field] = '  ' + original.upper() + '  '
-            cases.append((f'normalized-{field}-duplicate', duplicate))
-        for label, evidence in cases:
-            with self.subTest(label=label):
-                self.write_evidence(evidence)
-                self.build('--release', ok=False)
-                self.assertEqual(self.release.read_text(), 'existing-release')
-                self.assertFalse((self.dev / 'dist').exists())
-
-    def test_source_identity_preserves_query_dois_and_checks_other_cards(self):
-        evidence = self.curated_evidence()
-        primary = evidence['activeEvidence'][0]
-        # Two different PLOS papers may legitimately publish the same percentage.
-        primary['variants'][0]['url'] = 'https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0000001'
-        primary.update(primary['variants'][0])
-        primary['variants'][1].update(metric='24 %', sourceValue=24,
-                                      url='https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0000002')
-        self.write_evidence(evidence)
+    def test_local_cleanup_leaves_the_published_release_untouched(self):
+        for filename in ['card-evidence.json', 'statistiques.json', 'statistiques.html']:
+            (self.demo / filename).write_text('existing-public-artifact')
         self.build()
-        # Move an alternative to another card: the duplicate guard must remain global.
-        duplicate = copy.deepcopy(evidence)
-        record = duplicate['unavailableEvidence'].pop()
-        other = dict(duplicate['activeEvidence'][0]['variants'][0])
-        other.update(statKey='different-key', detail='Une autre formulation du même chiffre.',
-                     url='https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0000001#table2')
-        duplicate['activeEvidence'].append(dict(cardId=record['cardId'], **other, variants=[other]))
-        self.write_evidence(duplicate)
-        self.build('--release', ok=False)
+        for filename in ['card-evidence.json', 'statistiques.json', 'statistiques.html']:
+            self.assertEqual((self.demo / filename).read_text(), 'existing-public-artifact')
         self.assertEqual(self.release.read_text(), 'existing-release')
 
 

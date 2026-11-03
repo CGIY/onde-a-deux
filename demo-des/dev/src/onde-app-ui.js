@@ -3,6 +3,7 @@
  const root=document.getElementById('onde-app-v1');
  if(!root || !window.OndeGame || !window.OndeDice)return;
  const G=window.OndeGame, main=root.querySelector('#oa-main'), sheet=root.querySelector('#oa-sheet');
+ const cardNotes=Object.freeze(Object.assign({},window.DesirCardNotes||{}));
  const storageKey='onde-couple-prototype-v1';
  const remote=window.OndeRemote&&window.OndeRemote.create(window.DesirConfig||{});
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
@@ -19,6 +20,7 @@
  let charge=null,suppressedClick=null,controlsBusyState=null;
  let persisted=false, canPersist=true, recovery=false, lastError='';
  let renderKey='';
+ const contentTransitions=new Set();
  const gaugeFrames=new Map();
  const pendingChecks=new Set();
  let taskExpiryTimer;
@@ -40,7 +42,7 @@
  document.addEventListener('focusin',updateViewportHeight);
  document.addEventListener('focusout',updateViewportHeight);
  window.addEventListener('pageshow',()=>{presentationHidden=false;startViewport();});
- window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();});
+ window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();cancelContentTransitions();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();});
  if(!remoteMode){
  try{
   const raw=localStorage.getItem(storageKey);
@@ -197,14 +199,7 @@
   return '<section class="oa-hp" data-gauge="'+r.id+'-'+owner+'" data-ratio="'+ratio+'" aria-label="Résistance de la carte"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+left+' <span>/ '+r.hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+r.hp+'" aria-valuenow="'+left+'">'+Array.from({length:12},(_,i)=>'<i aria-hidden="true"><span style="transform:scaleX('+Math.max(0,Math.min(1,ratio*12-i))+')"></span></i>').join('')+'</div><div class="oa-roll-history">'+[0,1].map(i=>'<span class="oa-roll-token">Jet '+(i+1)+' <b>'+(rolls[i]||'—')+'</b></span>').join('')+'</div><p class="oa-hp-odds">'+odds+'</p></section>';
  }
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
- function cardFact(c){
-  const fact=window.OndeEvidence&&window.OndeEvidence.forCard(c,state.round.id);
-  if(!fact||!fact.metric)return '';
-  const prefix=fact.detail.match(/^([+\-−]?\d+(?:[.,]\d+)?)\s*%\s+/);
-  const sentence=prefix&&Number(prefix[1].replace('−','-').replace(',','.'))===fact.sourceValue?fact.detail.slice(prefix[0].length).replace(/^./,ch=>ch.toUpperCase()):fact.detail;
-  return '<section class="oa-card-fact"><strong>'+h(fact.metric)+'</strong><div><p>'+h(sentence)+'</p><details class="oa-source" data-source-card="'+h(c.id)+'"><summary>Source & contexte ↗</summary><p>'+h([fact.scope,fact.year].filter(Boolean).join(' · '))+'</p><p>'+h(fact.limitations)+'</p><a href="'+h(fact.url)+'" target="_blank" rel="noopener noreferrer">'+h(fact.sourceTitle)+' ↗</a></details></div></section>';
- }
- function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+cardFact(c)+'</article>';}
+ function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;const note=cardNotes[c.id];return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+'</article>';}
 
  function renderWelcome(){
   return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la ou tente de l’écarter au D20.</p><p>Deux coches dans les 6 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
@@ -344,16 +339,38 @@
    if(box.bottom>area.bottom-8)main.scrollTop+=box.bottom-area.bottom+8;else if(box.top<area.top+8)main.scrollTop=Math.max(0,main.scrollTop+box.top-area.top-8);
   }else tile.scrollIntoView({block:'nearest',behavior:'instant'});
  }
- function render(){
+ function cancelContentTransitions(){for(const animation of contentTransitions)animation.cancel();contentTransitions.clear();}
+ function playContentTransition(element,keyframes,duration,finish){
+  if(!element?.animate)return;
+  const animation=element.animate(keyframes,{duration,easing:'cubic-bezier(.22,1,.36,1)'});contentTransitions.add(animation);
+  animation.onfinish=animation.oncancel=()=>{contentTransitions.delete(animation);finish?.();};
+ }
+ function animateDiceHandoff(previousStage){
+  if(!previousStage||systemReduce||document.hidden||presentationHidden||!canvas.animate)return false;
+  const holder=main.querySelector('[data-stage]'),grid=main.querySelector('.oa-card-grid');
+  if(!holder||holder.dataset.kind!=='4'||!grid?.animate)return false;
+  const target=holder.getBoundingClientRect();if(!target.height||!previousStage.height)return false;
+  const dx=previousStage.left+previousStage.width/2-target.left-target.width/2;
+  const dy=previousStage.top+previousStage.height/2-target.top-target.height/2;
+  const scale=Math.max(.8,Math.min(1.5,previousStage.height/target.height));
+  // Layout is final before the first frame. Only the die moves; all four slots stay in place.
+  grid.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
+  const overflow=holder.style.overflow||'';holder.style.overflow='hidden';
+  playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,()=>{holder.style.overflow=overflow;});
+  playContentTransition(grid,[{opacity:.2},{opacity:1}],260);
+  playContentTransition(main.querySelector('h1'),[{opacity:.35},{opacity:1}],220);
+  return true;
+ }
+ function render(transition=null){
+  cancelContentTransitions();
   clearCharge(true,false);
   if(!remoteMode){const fresh=G.reduce(state,{type:'EXPIRE_TASKS',at:now()});if(fresh!==state){state=fresh;save();}}
   trackGrade();
   // Connection updates may restore the game behind this screen, never replace it.
   if(!welcomeDismissed&&renderKey==='welcome'){renderPersona();scheduleExpiry();return;}
-  const focused=document.activeElement,focusedSource=focused?.closest?.('details.oa-source');
-  const focusData=focused&&main.contains(focused)?{...focused.dataset,sourceCard:focusedSource?.dataset.sourceCard,sourceTag:focused.tagName}:null;
+  const focused=document.activeElement;
+  const focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const scrollTop=main.scrollTop,scrollLeft=main.scrollLeft;
-  const openSources=Array.from(main.querySelectorAll('details.oa-source')).filter(el=>el.open).map(el=>el.dataset.sourceCard);
   const previousKey=renderKey;
   const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
   renderPersona();
@@ -361,7 +378,6 @@
   const animate=key!==renderKey;renderKey=key;
   root.style.setProperty('--oa-accent',(welcomeDismissed&&G.canSeeRound(state)?category():null)?.color||G.categories[1].color);
   main.innerHTML=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
-  if(previousKey===key)for(const source of main.querySelectorAll('details.oa-source'))source.open=openSources.includes(source.dataset.sourceCard);
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
@@ -370,10 +386,11 @@
   if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(systemReduce);}
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
-  if(animate&&!systemReduce&&main.animate){
+  if(animate&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
    const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
    blocks.forEach((el,i)=>{const pinned=window.getComputedStyle?.(el)?.position==='sticky';el.animate(pinned?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,delay:Math.min(i*28,100),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'});});
-   main.querySelectorAll('.oa-category,.oa-mini-card').forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(12px) rotate(-2deg)'},{opacity:1,transform:'translateY(0) rotate(0)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
+   main.querySelectorAll('.oa-category').forEach((el,i)=>el.animate([{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'scale(1)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
+   playContentTransition(main.querySelector('.oa-card-grid'),[{opacity:.2},{opacity:1}],240);
    const revealed=main.querySelector('.oa-card-stage .oa-playing-card');
    if(revealed&&visibleCardId!==state.round.cardId)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:480,easing:'cubic-bezier(.18,.76,.2,1)'});
   }
@@ -382,12 +399,12 @@
   scheduleExpiry();
   if(focusData&&previousKey===renderKey){
    const keys=['action','pref','taskCheck','player','card','tab'];let same;
-   if(focusData.sourceCard){const source=Array.from(main.querySelectorAll('details.oa-source')).find(el=>el.dataset.sourceCard===focusData.sourceCard);same=source?.querySelector(focusData.sourceTag==='A'?'a':'summary');}
-   else if(keys.some(k=>focusData[k]))same=Array.from(main.querySelectorAll('button,input')).find(el=>keys.every(k=>(el.dataset[k]||'')===(focusData[k]||'')));
+   if(keys.some(k=>focusData[k]))same=Array.from(main.querySelectorAll('button,input')).find(el=>keys.every(k=>(el.dataset[k]||'')===(focusData[k]||'')));
    if(same)same.focus({preventScroll:true});else{const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   }
   else if(previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   main.scrollTop=previousKey===key?scrollTop:0;main.scrollLeft=previousKey===key?scrollLeft:0;
+  if(transition)animateDiceHandoff(transition);
  }
  function animateGauge(){
   const gauge=main.querySelector('[data-gauge]');if(!gauge)return;
@@ -417,7 +434,7 @@
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
   const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
-  let sides,action,faceValue,next,resultLabel;
+  let sides,action,faceValue,next,resultLabel,settled=false;
   if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
   if(reroll){if(!G.canRerollCard(state))return;sides=4;action={type:'REROLL_CARD'};}
   else if(phase==='category'&&canDraw()){sides=6;action={type:'ROLL_CATEGORY'};}
@@ -425,6 +442,7 @@
   else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;action={type:'ROLL_DRAFT_DEFENSE'};}
   else if(phase==='challenge'&&G.canRespond(state)){sides=20;action={type:'ROLL_DEFENSE'};}
   else return;
+  cancelContentTransitions();
   const serial=++animationSerial;busy=true;rerolling=reroll;if(rerolling)render();setControlsBusy(true);
   context.viewKey=renderKey;
   if(rerolling)centerStage();
@@ -448,6 +466,7 @@
    const visualPower=Number.isFinite(power)?Math.max(0,Math.min(1,power)):0;
    if(button)button.textContent='Le dé roule…';
    if(!document.hidden&&!presentationHidden){activeRollFace={kind:sides,value:faceValue};softSound();await die.roll(faceValue,{duration:systemReduce?0:1650,power:visualPower});activeRollFace=null;}else die.setKind(sides,faceValue);
+   settled=true;
    if(serial===animationSerial&&presentationValid(context)){
     if(sides===4){
      const preview={...context,reroll,face:faceValue,cardId:context.hand[faceValue-1]},latest=remoteMode?(deferredSnapshot?.state||next):state;
@@ -459,7 +478,7 @@
     if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte · sans ton D20.');
    }
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
-  finally{if(serial===animationSerial){activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render();}}}
+  finally{if(serial===animationSerial){const fromStage=settled&&sides===6&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase==='card'&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
  }
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;sheet.querySelector('button')?.focus({preventScroll:true});}
  function closeSheet(){if(sheet.hidden)return;sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;}
@@ -511,7 +530,7 @@
  window.addEventListener('blur',()=>clearCharge());
  window.addEventListener('scroll',()=>clearCharge(),{capture:true,passive:true});
  window.addEventListener('keyup',event=>{if(event.code==='Space'||event.key===' '){if(charge?.source==='keyboard')clearCharge();if(suppressedClick?.source==='keyboard')suppressedClick.until=chargeNow()+600;}});
- if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
+ if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);cancelContentTransitions();root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
  root.addEventListener('change',async event=>{
   if(!welcomeDismissed||busy)return;
   const el=event.target;
@@ -531,7 +550,7 @@
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
  setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}}},30000);
- document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}});
  window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{
