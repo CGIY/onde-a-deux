@@ -1,4 +1,4 @@
-import {HttpError,validDeviceToken,validRequestId,sha256,privateBucket,normalizeUsername,parseAction,snapshot,applyAction} from './model.mjs';
+import {HttpError,validDeviceToken,validRequestId,sha256,privateBucket,normalizeUsername,parseAction,assertClientCompatibility,snapshot,applyAction} from './model.mjs';
 
 const defaultOrigin='https://cgiy.github.io';
 function getBearer(req){const match=/^Bearer ([A-Za-z0-9_-]+)$/.exec(req.headers.get('Authorization')||'');if(!match||!validDeviceToken(match[1]))throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');return match[1];}
@@ -31,8 +31,8 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
     throw new HttpError(503,'temporarily_unavailable','La partie se met à jour. Réessaie.');
   }
   /** @returns {Promise<never>} */
-  async function conflict(tokenHash,code='conflict',message='La partie a changé. Réessaie.'){
-    const fresh=await context(tokenHash);throw new HttpError(409,code,message,snapshot(G,fresh));
+  async function conflict(tokenHash,gameVersion,code='conflict',message='La partie a changé. Réessaie.'){
+    const fresh=await context(tokenHash);throw new HttpError(409,code,message,snapshot(G,fresh,{},gameVersion));
   }
   return async function handle(req){
     const origin=req.headers.get('Origin'),allowed=!origin||allowedOrigins.includes(origin);
@@ -58,10 +58,12 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         return respond({queued:true},202);
       }
       if(!['login','state','action','push_config','subscribe'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
+      const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
+      if(![1,2].includes(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
       const ipBucket=await privateBucket(rateSecret,clientIp(req));
       if(body.op==='login'){
-        if(Object.keys(body).some(key=>!['op','username','password','requestId'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
+        if(Object.keys(body).some(key=>!['op','username','password','requestId','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
         await rate('login-ip:'+ipBucket,20,900);
         const username=normalizeUsername(body.username);
         const password=body.password;
@@ -72,13 +74,13 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         if(!result)throw new HttpError(401,'invalid_credentials','Identifiants incorrects.');
         if(result.error)throw new HttpError(409,'session_conflict','Cette session appartient à un autre compte.');
         const current=await context(tokenHash);flush(current.room.id);
-        return respond(snapshot(G,current,{connection:{token,roomId:current.room.id,actor:current.member.actor}}));
+        return respond(snapshot(G,current,{connection:{token,roomId:current.room.id,actor:current.member.actor}},gameVersion));
       }
-      if(Object.keys(body).some(key=>!['op','requestId','action','subscription'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
+      if(Object.keys(body).some(key=>!['op','requestId','action','subscription','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
       await rate('authenticated-ip:'+ipBucket,600,60);
       let current=await context(tokenHash);
       await rate('device:'+tokenHash,240,60);
-      if(body.op==='state'){flush(current.room.id);return respond(snapshot(G,current));}
+      if(body.op==='state'){flush(current.room.id);return respond(snapshot(G,current,{},gameVersion));}
       if(body.op==='push_config'){
         if(!push)throw new HttpError(503,'push_unavailable','Notifications indisponibles.');
         const config=await push.ensurePushConfig(store);return respond({vapidPublicKey:config.publicKey});
@@ -88,23 +90,26 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const result=await push.saveSubscription(store,current.member,body.subscription);return respond(result);
       }
       if(!validRequestId(body.requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
-      const action=parseAction(body.action),payloadHash=await sha256(JSON.stringify(action));
+      assertClientCompatibility(G,current.room.state,current.member.actor,gameVersion);
+      const action=parseAction(body.action);
+      const receiptPayload=gameVersion===2?{...action,gameVersion}:action;
+      const payloadHash=await sha256(JSON.stringify(receiptPayload));
       const existing=await store.rpc('desir_get_request',{p_room_id:current.room.id,p_actor:current.member.actor,p_request_id:body.requestId,p_payload_hash:payloadHash});
       if(existing.kind==='mismatch')throw new HttpError(409,'request_id_reused','Cette requête a déjà été utilisée.');
       if(existing.kind==='replayed'){flush(current.room.id);return respond(existing.response);}
       for(let attempt=0;attempt<4;attempt++){
-        if(action.type==='ROLL_CATEGORY'&&current.quota.remaining===0)await conflict(tokenHash,'quota_exhausted','Ton tirage de cette plage a déjà été utilisé.');
+        if(action.type==='ROLL_CATEGORY'&&current.quota.remaining===0)await conflict(tokenHash,gameVersion,'quota_exhausted','Ton tirage de cette plage a déjà été utilisé.');
         let result;
-        try{result=applyAction(G,current.room.state,current.member.actor,action,body.requestId,iso());}
-        catch(error){if(error instanceof HttpError&&error.status===409)await conflict(tokenHash,error.code,error.message);throw error;}
-        const reply=snapshot(G,{...current,room:{...current.room,state:result.state}},{...(result.roll?{roll:result.roll}:{})});
+        try{result=applyAction(G,current.room.state,current.member.actor,action,body.requestId,iso(),G.randomInt,gameVersion);}
+        catch(error){if(error instanceof HttpError&&error.status===409)await conflict(tokenHash,gameVersion,error.code,error.message);throw error;}
+        const reply=snapshot(G,{...current,room:{...current.room,state:result.state}},{...(result.roll?{roll:result.roll}:{})},gameVersion);
         const committed=await store.rpc('desir_commit',{p_room_id:current.room.id,p_actor:current.member.actor,p_request_id:body.requestId,p_payload_hash:payloadHash,p_expected_revision:current.room.revision,p_next_state:result.state,p_response:reply,p_consume_ticket:result.consumeTicket,p_notification:result.notification});
         if(committed.kind==='applied'||committed.kind==='replayed'){flush(current.room.id);return respond(committed.response);}
         if(committed.kind==='mismatch')throw new HttpError(409,'request_id_reused','Cette requête a déjà été utilisée.');
-        if(committed.kind==='quota_exhausted')await conflict(tokenHash,'quota_exhausted','Ton tirage de cette plage a déjà été utilisé.');
+        if(committed.kind==='quota_exhausted')await conflict(tokenHash,gameVersion,'quota_exhausted','Ton tirage de cette plage a déjà été utilisé.');
         current=await context(tokenHash);
       }
-      return await conflict(tokenHash);
+      return await conflict(tokenHash,gameVersion);
     }catch(error){
       if(error instanceof HttpError)return respond({...(error.snapshot||{}),error:{code:error.code,message:error.message}},error.status);
       // No credentials, card contents, account names or raw database errors in logs.

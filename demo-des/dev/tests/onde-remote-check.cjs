@@ -15,7 +15,7 @@ function reply(actor='a',revision=1,game=state(actor),extras={}){return {roomId,
 function response(body,status=200){return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});}
 function payload(options){return JSON.parse(options.body);}
 function loginReply(options,actor='a',revision=1,game=state(actor)){return reply(actor,revision,game,{connection:{token:options.headers.Authorization.slice(7),actor,roomId}});}
-function drawn(){let value=G.reduce(state(),{type:'ROLL_CATEGORY',value:2,hand:G.cards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id)});return value;}
+function drawn(){return G.reduce(state(),{type:'ROLL_CATEGORY',value:1,hand:G.legacyCards.filter(c=>c.categoryId==='complicite').slice(0,6).map(c=>c.id)});}
 function drafted(){return G.reduce(drawn(),{type:'ROLL_CARD',value:1});}
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 (async()=>{
@@ -60,16 +60,36 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
  }
  // Dice fields and actor supplied by a caller are stripped; the server roll wins.
  {
-  let sent;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));sent=p;return response(reply('a',2,drawn(),{roll:{kind:6,value:2}}));}));await r.login('fixture-user','fixture-password');
-  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:6,value:2}));check(()=>assert.equal(result.state.round.categoryId,'detente'));check(()=>assert.equal(r.snapshot.roll,undefined));
+  const modern=G.reduce(state(),{type:'ROLL_CATEGORY',value:1,catalogueVersion:2,hand:G.drawHand(state(),1,2)});
+  let sent;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));sent=p;return response(reply('a',2,modern,{roll:{kind:4,value:1}}));}));await r.login('fixture-user','fixture-password');
+  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,2));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
   await assert.rejects(r.action({type:'RESET',roundId:'onde-1'}),{code:'not_allowed'});
  }
- // A reroll carries only its intent; the server owns the new D4 face and state.
+ // An action saved by the previous client is replayed with its original rules.
+ {
+  const storage=memory(),actions=[];let legacy=G.reduce(state(),{type:'ROLL_CATEGORY',value:2,hand:G.drawHand(state(),2)});
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='action')actions.push(p);return response(reply('a',2,legacy));},storage));
+  await r.login('fixture-user','fixture-password');
+  const requestId=webcrypto.randomUUID();
+  storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,endpoint,roomId,actor:'a',requestId,action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
+  await r.refresh();
+  check(()=>assert.equal(actions.length,1));check(()=>assert.equal(actions[0].gameVersion,1));check(()=>assert.equal(actions[0].requestId,requestId));check(()=>assert.equal(r.snapshot.state.round.categoryId,'detente'));check(()=>assert.equal(r.snapshot.state.round.hand.length,4));
+ }
+ // The transport submits a variant intent, and uses only the returned face.
+ {
+  let game=G.reduce(state(),{type:'ROLL_CATEGORY',value:1,catalogueVersion:2,hand:G.drawHand(state(),1,2)});
+  game=G.reduce(game,{type:'ROLL_CARD',value:2});let sent;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,game));sent=p;return response(reply('a',2,G.reduce(game,{type:'ROLL_VARIANT',value:6}),{roll:{kind:6,value:6}}));}));
+  await r.login('fixture-user','fixture-password');
+  const result=await r.action({type:'ROLL_VARIANT',roundId:'onde-1',value:1,variantRoll:1});
+  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,2));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
+ }
+ // A reroll carries only its intent; the server owns the new D6 face and state.
  {
   const draft=drafted(),rerolled=G.reduce(draft,{type:'REROLL_CARD',value:2});let sent;
-  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,draft));sent=p;return response(reply('a',2,rerolled,{roll:{kind:4,value:2},quota:{remaining:0,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'}}));}));await r.login('fixture-user','fixture-password');
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,draft));sent=p;return response(reply('a',2,rerolled,{roll:{kind:6,value:2},quota:{remaining:0,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'}}));}));await r.login('fixture-user','fixture-password');
   const result=await r.action({type:'REROLL_CARD',roundId:'onde-1',value:4,actor:'b',previousCardId:'forged',cardRerolled:false,hand:['spoiler'],hp:0});
-  check(()=>assert.deepEqual(sent.action,{type:'REROLL_CARD',roundId:'onde-1'}));check(()=>assert.deepEqual(result.roll,{kind:4,value:2}));check(()=>assert.notEqual(result.state.round.cardId,draft.round.cardId));check(()=>assert.equal(result.state.round.cardRerolled,true));check(()=>assert.equal(result.quota.remaining,0));check(()=>assert.equal(r.snapshot.roll,undefined));
+  check(()=>assert.deepEqual(sent.action,{type:'REROLL_CARD',roundId:'onde-1'}));check(()=>assert.deepEqual(result.roll,{kind:6,value:2}));check(()=>assert.notEqual(result.state.round.cardId,draft.round.cardId));check(()=>assert.equal(result.state.round.cardRerolled,true));check(()=>assert.equal(result.quota.remaining,0));check(()=>assert.equal(r.snapshot.roll,undefined));
  }
  // A reroll already taken on another device integrates the new state without a connection failure.
  {
@@ -79,7 +99,7 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
  }
  // Delayed refresh cannot overwrite a more recent action response.
  {
-  let release;const delayed=new Promise(resolve=>release=resolve);const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='state'){await delayed;return response(reply('a',1));}return response(reply('a',2,drawn(),{roll:{kind:6,value:2}}));}));await r.login('fixture-user','fixture-password');const old=r.refresh();await tick();await r.action({type:'ROLL_CATEGORY',roundId:'onde-1'});release();const current=await old;check(()=>assert.equal(current.revision,2));check(()=>assert.equal(r.snapshot.state.phase,'card'));
+  let release;const delayed=new Promise(resolve=>release=resolve);const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='state'){await delayed;return response(reply('a',1));}return response(reply('a',2,drawn(),{roll:{kind:6,value:1}}));}));await r.login('fixture-user','fixture-password');const old=r.refresh();await tick();await r.action({type:'ROLL_CATEGORY',roundId:'onde-1'});release();const current=await old;check(()=>assert.equal(current.revision,2));check(()=>assert.equal(r.snapshot.state.phase,'card'));
  }
  // A conflict is integrated once, rejected to the caller, and not automatically replayed.
  {
@@ -113,7 +133,7 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
  // A committed action whose response is lost is retried with the same durable ID after reload.
  {
   const storage=memory(),ids=[],receipts=new Map();let fail=true,commits=0;
-  const fetcher=async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='action'){ids.push(p.requestId);if(!receipts.has(p.requestId)){commits++;receipts.set(p.requestId,reply('a',2,drawn(),{roll:{kind:6,value:2}}));}if(fail)throw Error('lost');return response(receipts.get(p.requestId));}return response(reply('a',2,drawn()));};
+  const fetcher=async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='action'){ids.push(p.requestId);if(!receipts.has(p.requestId)){commits++;receipts.set(p.requestId,reply('a',2,drawn(),{roll:{kind:4,value:1}}));}if(fail)throw Error('lost');return response(receipts.get(p.requestId));}return response(reply('a',2,drawn()));};
   const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{code:'offline'});check(()=>assert.ok(storage.getItem('desir-connection-v1-action')));fail=false;const next=create(config,env(fetcher,storage));await next.restore();check(()=>assert.equal(commits,1));check(()=>assert.equal(new Set(ids).size,1));check(()=>assert.equal(next.snapshot.state.phase,'card'));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));
  }
  // Losing a committed reroll response never requests a different replacement card after reload.
@@ -121,7 +141,7 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
   const storage=memory(),ids=[],receipts=new Map();let fail=true,commits=0,authoritative=drafted();
   const fetcher=async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,authoritative));if(p.op==='action'){
    ids.push(p.requestId);check(()=>assert.deepEqual(p.action,{type:'REROLL_CARD',roundId:'onde-1'}));
-   if(!receipts.has(p.requestId)){commits++;authoritative=G.reduce(authoritative,{type:'REROLL_CARD',value:3});receipts.set(p.requestId,reply('a',2,authoritative,{roll:{kind:4,value:3},quota:{remaining:0,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'}}));}
+   if(!receipts.has(p.requestId)){commits++;authoritative=G.reduce(authoritative,{type:'REROLL_CARD',value:3});receipts.set(p.requestId,reply('a',2,authoritative,{roll:{kind:6,value:3},quota:{remaining:0,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'}}));}
    if(fail)throw Error('lost reroll response');return response(receipts.get(p.requestId));
   }return response(reply('a',2,authoritative));};
   const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');await assert.rejects(r.action({type:'REROLL_CARD',roundId:'onde-1',value:4}),{code:'offline'});check(()=>assert.equal(commits,1));check(()=>assert.ok(storage.getItem('desir-connection-v1-action')));

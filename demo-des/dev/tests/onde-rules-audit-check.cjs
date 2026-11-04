@@ -4,11 +4,11 @@ const G=require('../src/onde-app-core.js');
 let checks=0;
 const check=(fn)=>{fn();checks++;};
 const clone=value=>JSON.parse(JSON.stringify(value));
-const cat=G.categories[0];
-const hand=G.cards.filter(card=>card.categoryId===cat.id).slice(0,4).map(card=>card.id);
+const cat=G.legacyCategories[0];
+const hand=G.legacyCards.filter(card=>card.categoryId===cat.id).slice(0,4).map(card=>card.id);
 function draft(){let s=G.createState();s=G.reduce(s,{type:'ROLL_CATEGORY',value:cat.number,hand});return G.reduce(s,{type:'ROLL_CARD',value:1});}
-check(()=>assert.deepEqual(G.categories.map(c=>c.number),[1,2,3,4,5,6]));
-check(()=>assert.equal(G.categories.find(c=>c.number===3).id,'projets'));
+check(()=>assert.deepEqual(G.legacyCategories.map(c=>c.number),[1,2,3,4,5,6]));
+check(()=>assert.equal(G.legacyCategories.find(c=>c.number===3).id,'projets'));
 check(()=>assert.equal(G.rules.dailyRoundLimit,null));
 check(()=>assert.equal(G.rules.activeRoundLimit,1));
 for(const [hp,chance] of [[10,.91],[15,.7725],[20,.5725],[25,.34],[30,.165],[35,.0525],[40,.0025]])check(()=>assert.equal(G.probability(hp),chance));
@@ -52,9 +52,9 @@ for(const from of ['a','b'])for(const closedBy of ['a','b']){
  check(()=>assert.equal(s.round.from,G.otherPlayer(from)));
  check(()=>assert.equal(s.activePlayer,s.round.from));
 }
-for(const category of G.categories){
+for(const category of G.legacyCategories){
  const s=G.createState();
- const available=G.cards.filter(c=>c.categoryId===category.id).map(c=>c.id);
+ const available=G.legacyCards.filter(c=>c.categoryId===category.id).map(c=>c.id);
  s.seen[category.id]=available.slice(0,8);
  const recent=s.seen[category.id].slice(0,Math.min(8,available.length-4));
  const drawn=G.drawHand(s,category.id);

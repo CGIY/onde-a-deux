@@ -9,7 +9,7 @@ function apply(s,a){const n=G.reduce(s,{at,...a});ok(G.validateState(n),'invalid
 function complete(s){const taskId=s.round.id;s=apply(s,{type:'TOGGLE_TASK_CHECK',taskId,checked:true});s=apply(s,{type:'SWITCH_PLAYER',player:G.otherPlayer(s.activePlayer)});return apply(s,{type:'TOGGLE_TASK_CHECK',taskId,checked:true});}
 function draft(from='a',cardId='det-1') {
  let s=G.createState(); if(from==='b')s=apply(s,{type:'SWITCH_PLAYER',player:'b'});
- const card=G.getCard(cardId),cat=G.getCategory(card.categoryId),hand=[card.id,...G.cards.filter(c=>c.categoryId===cat.id&&c.id!==card.id).slice(0,3).map(c=>c.id)];
+ const card=G.getCard(cardId),cat=G.getCategory(card.categoryId,1),hand=[card.id,...G.legacyCards.filter(c=>c.categoryId===cat.id&&c.id!==card.id).slice(0,3).map(c=>c.id)];
  s=apply(s,{type:'ROLL_CATEGORY',value:cat.number,hand});return apply(s,{type:'ROLL_CARD',value:1});
 }
 function failedDraft(from='a'){

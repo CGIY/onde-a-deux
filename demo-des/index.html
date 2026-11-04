@@ -91,7 +91,7 @@
 #onde-app-v1 .oa-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:23px 0 12px}
 #onde-app-v1 .oa-section-head h2{font-size:12px;font-weight:500;letter-spacing:.02em}
 #onde-app-v1 .oa-section-head span{font-size:11px;color:var(--oa-muted)}
-#onde-app-v1 .oa-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#onde-app-v1 .oa-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #onde-app-v1 .oa-category{min-width:0;position:relative;background:#252d28;border-radius:13px;border:1px solid #3b473d;padding:12px 10px 10px;min-height:73px;text-align:left;overflow:hidden;color:#d8dfd1}
 #onde-app-v1 button.oa-category[aria-pressed=true]{background:#3c4838;border-color:#a8b595}
 #onde-app-v1 .oa-category-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -451,12 +451,15 @@
 #onde-app-v1 .oa-ghost-title,#onde-app-v1 .oa-ghost-line{display:block;height:9px;margin:6px 18px 0;border-radius:5px;background:#d4d7c4}
 #onde-app-v1 .oa-ghost-title{width:var(--ghost-title);max-width:calc(100% - 36px);opacity:.6}
 #onde-app-v1 .oa-ghost-line{width:58%;height:4px;opacity:.35}
-/* Reveal the chosen slot before leaving the D4 screen. Hidden slots never contain titles. */
+/* Reveal the chosen slot before leaving the challenge screen. Hidden slots never contain titles. */
 #onde-app-v1 .oa-card-grid.is-revealing .oa-card-back{height:104px;min-height:104px}
 #onde-app-v1 .oa-card-back.oa-card-revealed{border-style:solid;border-color:var(--oa-accent);background:linear-gradient(145deg,color-mix(in srgb,var(--oa-accent) 27%,#2a302b),#2b302d);box-shadow:inset 0 1px #ffffff35,inset 0 -2px 5px #0002}
 #onde-app-v1 .oa-card-revealed .oa-mini-number{background:var(--oa-accent);color:#23332d}
 #onde-app-v1 .oa-reveal-content{position:absolute;inset:0;padding:38px 10px 8px;pointer-events:none;animation:oa-slot-unblur .38s cubic-bezier(.22,1,.36,1) both}
 #onde-app-v1 .oa-reveal-content h3{margin:0;font-size:11px;font-weight:500;line-height:1.3;color:#f8eedf;overflow-wrap:anywhere}
+#onde-app-v1 .oa-card-grid.is-six{grid-template-columns:repeat(3,minmax(0,1fr))}
+#onde-app-v1 .oa-card-grid.is-six .oa-card-back,#onde-app-v1 .oa-card-grid.is-six.is-revealing .oa-card-back,#onde-app-v1 .oa-card-grid.is-six.is-reroll .oa-card-back{height:120px;min-height:120px}
+#onde-app-v1 .oa-card-grid.is-six .oa-discarded-title{-webkit-line-clamp:unset}
 #onde-app-v1 .oa-reveal-category{display:none}
 #onde-app-v1 .oa-reveal-art{position:absolute;top:6px;right:10px;display:flex;align-items:center;gap:3px;height:23px}
 #onde-app-v1 .oa-reveal-art i{display:block;width:10px;height:15px;border-radius:6px;background:var(--oa-accent);transform:rotate(-22deg);box-shadow:inset 0 1px #ffffff30}
@@ -526,13 +529,13 @@
  #onde-app-v1 .oa-die-caption{padding-top:0;min-height:24px}
  #onde-app-v1 .oa-die-caption span:first-child{font-size:12px;font-weight:600;color:#efebdf}
  #onde-app-v1 .oa-stage{height:clamp(238px,30dvh,272px);margin:0 -8px}
- #onde-app-v1 .oa-stage[data-kind="6"]{height:clamp(272px,35dvh,320px)}
+ #onde-app-v1 .oa-stage[data-roll-role="category"]{height:clamp(272px,35dvh,320px)}
  #onde-app-v1 .oa-main:has(>.oa-category-grid),#onde-app-v1 .oa-main:has(>.oa-card-grid){display:flex;flex-direction:column}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>*,#onde-app-v1 .oa-main:has(>.oa-card-grid)>*{flex:none}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-dice-section,#onde-app-v1 .oa-main:has(>.oa-card-grid)>.oa-dice-section{flex:1 0 0;min-height:262px;display:flex;flex-direction:column}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-dice-section{min-height:296px}
  #onde-app-v1 .oa-main:has(>.oa-category-grid) .oa-stage,#onde-app-v1 .oa-main:has(>.oa-card-grid) .oa-stage{flex:1 0 0;height:0;min-height:238px}
- #onde-app-v1 .oa-main:has(>.oa-category-grid) .oa-stage[data-kind="6"]{min-height:272px}
+ #onde-app-v1 .oa-main:has(>.oa-category-grid) .oa-stage[data-roll-role="category"]{min-height:272px}
  #onde-app-v1 .oa-roll-status{font-size:12px;line-height:1.4;text-align:center;color:var(--oa-muted);margin:2px 0 8px}
  #onde-app-v1 .oa-roll-status.is-first-reveal{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -551,7 +554,7 @@
  #onde-app-v1 .oa-section-head{margin:14px 0 8px}
  #onde-app-v1 .oa-section-head:has(+.oa-category-grid){display:none}
  #onde-app-v1 .oa-section-head h2{font-size:11px}
- #onde-app-v1 .oa-category-grid{gap:7px;margin-top:14px}
+ #onde-app-v1 .oa-category-grid{gap:7px;margin-top:10px}
  #onde-app-v1 .oa-category{display:flex;align-items:center;gap:6px;min-height:34px;padding:7px 8px;border-radius:11px}
  #onde-app-v1 .oa-category-top{display:flex;align-items:center;gap:4px;margin:0;flex:none}
  #onde-app-v1 .oa-category-swatch{width:5px;height:14px;border-radius:3px}
@@ -559,7 +562,12 @@
  #onde-app-v1 .oa-category-label{min-width:0;font-size:11px;line-height:1.25}
  #onde-app-v1 .oa-card-grid{gap:8px;margin-top:8px}
  #onde-app-v1 .oa-card-grid>.oa-mini-card{animation:none}
+ #onde-app-v1 .oa-main:has(.oa-stage[data-roll-role="variant"]){display:flex;flex-direction:column}
+ #onde-app-v1 .oa-main:has(.oa-stage[data-roll-role="variant"])>.oa-dice-section{flex:1 0 auto;display:flex;flex-direction:column}
+ #onde-app-v1 .oa-stage[data-roll-role="variant"]{flex:1 0 auto;min-height:272px}
+ #onde-app-v1 .oa-main:has(.oa-stage[data-roll-role="variant"])>[data-action=roll]{flex:none}
  #onde-app-v1 .oa-card-back,#onde-app-v1 .oa-card-grid.is-revealing .oa-card-back,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-back{height:clamp(90px,10dvh,104px);min-height:clamp(90px,10dvh,104px);padding:10px}
+ #onde-app-v1 .oa-card-grid.is-six[data-catalogue-version="2"] .oa-card-back,#onde-app-v1 .oa-card-grid.is-six.is-revealing[data-catalogue-version="2"] .oa-card-back{height:clamp(84px,10dvh,104px);min-height:clamp(84px,10dvh,104px)}
  #onde-app-v1 .oa-reveal-content,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-discarded{padding:38px 10px 6px}
  #onde-app-v1 .oa-card-stage{padding:10px 0 0}
  #onde-app-v1 .oa-playing-card{padding:16px;border-radius:22px}
@@ -614,7 +622,7 @@
 (function (scope) {
   'use strict';
 
-  const categories = [
+  const legacyCategories = [
     { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
     { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
     { id: 'projets', number: 3, label: 'Projets', color: '#8198b4', icon: 'map', description: 'Imaginer et faire ensemble.' },
@@ -622,6 +630,14 @@
     { id: 'bouffe', number: 5, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
     { id: 'intimite', number: 6, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
   ];
+
+  const categories = [
+    legacyCategories[0],
+    { ...legacyCategories[3], number:2, label:'Plaisirs', description:'À offrir, à goûter, à partager.' },
+    legacyCategories[2],
+    { ...legacyCategories[5], number:4 }
+  ];
+
 
   const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
@@ -673,7 +689,7 @@
   const stckExistingLinks={"det-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-02","title":"Massage de la tête","collectionId":"12","collectionTitle":"Massage","activeInSource":true},"tend-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-02","title":"Câlin (accolade)","collectionId":"11","collectionTitle":"Amour","activeInSource":true},"att-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-05","title":"Mot doux à cacher","collectionId":"11","collectionTitle":"Amour","activeInSource":true}};
   for(const [id,source] of Object.entries(stckExistingLinks)) { const card=legacyCards.find(card=>card.id===id); if(card)card.source=source; }
 
-  // The former catalogue stays available only to validate existing saves and history.
+  // Preserve the published catalogue for cached clients and in-progress rounds.
   const legacyCategory = id => id==='tendresse'?'complicite':id==='decouverte'?'projets':id;
   const hiddenLegacyCards = legacyCards.map(card=>Object.assign({},card,{categoryId:legacyCategory(card.categoryId)}));
   const oldCardById = Object.fromEntries(hiddenLegacyCards.map(card=>[card.id,card]));
@@ -786,7 +802,7 @@
     'new-bouffe-01':35,'new-bouffe-02':35,'new-bouffe-03':30,'new-bouffe-04':35,'new-bouffe-05':30,'new-bouffe-06':30,'new-bouffe-07':30,'new-bouffe-08':35,'new-bouffe-09':35,'new-bouffe-10':30,'new-bouffe-11':35,'new-bouffe-12':35,
     'new-intimite-01':35,'new-intimite-02':20,'new-intimite-03':25,'new-intimite-04':30,'new-intimite-05':35,'new-intimite-06':25,'new-intimite-07':20,'new-intimite-08':20,'new-intimite-09':15,'new-intimite-10':15,'new-intimite-11':10,'new-intimite-12':10,'new-intimite-13':15,'new-intimite-14':15,'new-intimite-15':10,'new-intimite-16':15,'new-intimite-17':15,'new-intimite-18':10,'new-intimite-19':10,'new-intimite-20':15,'new-intimite-21':20,'new-intimite-22':35
   });
-  const cards = catalogRows.map((row,index)=>{
+  const publishedCards = catalogRows.map(row=>{
     const old=(row.legacyId&&oldCardById[row.legacyId])||sourceIdByTitle[row.title]||null;
     const prompts=categoryPrompts[row.categoryId];
     return {id:row.id,categoryId:row.categoryId,title:row.title,description:prompts,duration:null,hp:resistanceByCard[row.id],variant:'Choisissez ensemble une version plus simple ou un autre moment.',variantDuration:null,...(old&&old.source?{source:old.source}:{})};
@@ -794,15 +810,66 @@
 
   const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
 
+  const newCards = [
+    {"id":"six-complicite-petit-mot","categoryId":"complicite","title":"Cacher un mot","description":"Écris un petit mot et cache-le pour l’autre.","duration":null,"hp":35,"variants":["Un compliment","Un mot doux","Un surnom débile","Une définition au hasard","Un souvenir en une phrase","Une blague à deux"]},
+    {"id":"six-complicite-selfie","categoryId":"complicite","title":"Selfie à deux","description":"Prenez un selfie à deux avec le cadrage tiré.","duration":null,"hp":35,"variants":["Les yeux","Le nez","Les oreilles","Visages entiers","Visages et corps","Vos mains"]},
+    {"id":"six-complicite-massage","categoryId":"complicite","title":"Massage et câlins","description":"Partagez le geste tiré.","duration":null,"hp":35,"variants":["Massage de la tête","Massage des épaules","Massage des pieds","Massage du dos","Câlin","Caresses sous le plaid"]},
+    {"id":"six-complicite-soins","categoryId":"complicite","title":"Soin à deux","description":"Prépare le soin tiré.","duration":null,"hp":35,"variants":["Pose de vernis","Masque visage","Soin complet du visage","Crème sur les jambes","Crème sur le corps","Gommage"]},
+    {"id":"six-complicite-soiree","categoryId":"complicite","title":"Soirée à deux","description":"Partagez le programme tiré.","duration":null,"hp":30,"variants":["Film · comédie","Film · action ou aventure","Série · policière","Série · fantastique","Jeu de société · coopératif","Jeu de société · ambiance"]},
+    {"id":"six-complicite-telephone","categoryId":"complicite","title":"Parenthèse sans téléphone","description":"Mettez vos téléphones de côté pendant la durée tirée.","duration":null,"hp":30,"variants":["15 min en mode silence","30 min en mode avion","1 h dans un tiroir","2 h en mode avion","3 h dans un tiroir","5 h téléphone éteint"]},
+    {"id":"six-attention-cadeau","categoryId":"attention","title":"À offrir","description":"Choisis un cadeau dans la famille et le budget tirés.","duration":null,"hp":30,"variants":["Roman · 15 € max","Manga · 10 € max","Jeu vidéo · 30 € max","Jeu de société · 40 € max","Passage du Désir · 30 € max","Cadeau surprise · 20 € max"]},
+    {"id":"six-attention-vinted","categoryId":"attention","title":"Une pièce à offrir","description":"Choisis une pièce dans la sélection tirée.","duration":null,"hp":35,"variants":["Vinted · T-shirt · 10 € max","Vinted · robe · 20 € max","Vinted · chemise · 15 € max","Monoprix · haut · 20 € max","Rouge Gorge · culotte · 20 € max","Rouge Gorge · soutien-gorge · 30 € max"]},
+    {"id":"six-attention-emporter","categoryId":"attention","title":"Pause à emporter","description":"Prenez quelque chose à emporter dans le style tiré.","duration":null,"hp":35,"variants":["Burger","Pizza","Sushi","Kebab","Café à Columbus","Sandwich"]},
+    {"id":"six-attention-cuisine","categoryId":"attention","title":"Cuisine du monde","description":"Choisissez un plat de la cuisine tirée et préparez-le ensemble.","duration":null,"hp":30,"variants":["Mexique","Japon","Inde","Thaïlande","Italie","Grèce"]},
+    {"id":"six-attention-douceur","categoryId":"attention","title":"Douceur maison","description":"Préparez ensemble la douceur tirée.","duration":null,"hp":30,"variants":["Crêpes","Cookies","Tarte aux fruits","Gâteau au chocolat","Gâteau au yaourt","Gaufres"]},
+    {"id":"six-attention-petit-truc","categoryId":"attention","title":"Préparer un petit truc","description":"Prépare pour l’autre le petit moment tiré.","duration":null,"hp":35,"variants":["Café","Apéro","Goûter","Thé ou infusion","Petit-déjeuner","Chocolat et canapé"]},
+    {"id":"six-projets-balade","categoryId":"projets","title":"Balade","description":"Partez vous promener dans le cadre tiré.","duration":null,"hp":30,"variants":["Dans votre rue","En ville","En forêt","Dans un parc","À 10 minutes en voiture","À 30 minutes en voiture"]},
+    {"id":"six-projets-photo","categoryId":"projets","title":"Sortie photo","description":"Faites une sortie photo dans le cadre tiré.","duration":null,"hp":30,"variants":["Dans votre rue","En ville","En forêt","Dans un parc","À 10 minutes en voiture","À 30 minutes en voiture"]},
+    {"id":"six-projets-atelier","categoryId":"projets","title":"Atelier créatif","description":"Réalisez une petite création chacun avec le thème tiré.","duration":null,"hp":30,"variants":["Aquarelle · paysage","Aquarelle · fleur ou plante","Aquarelle · portrait de l’autre","Argile · coupelle","Argile · figurine","Argile · médaillon"]},
+    {"id":"six-projets-escapade","categoryId":"projets","title":"Préparer une escapade","description":"Esquissez ensemble le programme de la sortie tirée.","duration":null,"hp":25,"variants":["Une soirée","Une journée","Un week-end","Des vacances","Une demi-journée près de chez vous","Une nuit ailleurs"]},
+    {"id":"six-projets-amenager","categoryId":"projets","title":"Réaménager un coin","description":"Choisissez un endroit de la maison où faire le changement tiré.","duration":null,"hp":20,"variants":["Déplacer un meuble","Changer une décoration","Revoir la décoration d’un mur","Réorganiser un rangement","Réaménager un meuble","Faire une retouche de peinture"]},
+    {"id":"six-projets-trier","categoryId":"projets","title":"Désencombrer","description":"Choisissez une pièce et sortez du rangement le nombre d’objets tiré.","duration":null,"hp":25,"variants":["1 objet","2 objets","3 objets","4 objets","5 objets","6 objets"]},
+    {"id":"six-intimite-baiser","categoryId":"intimite","title":"Un baiser","description":"Retrouvez-vous pour un baiser au moment tiré.","duration":null,"hp":35,"variants":["En vous retrouvant","Au réveil","Avant de sortir","Après le dîner","Pendant une pause","Avant de dormir"]},
+    {"id":"six-intimite-fellation","categoryId":"intimite","title":"Fellation","description":"Le dé précise le lieu.","duration":null,"hp":35,"variants":["Chambre","Cuisine","Douche","Bureau","Salon","Véranda"]},
+    {"id":"six-intimite-cunnilingus","categoryId":"intimite","title":"Cunnilingus","description":"Le dé précise le lieu.","duration":null,"hp":35,"variants":["Chambre","Cuisine","Douche","Bureau","Salon","Véranda"]},
+    {"id":"six-intimite-penetration","categoryId":"intimite","title":"Pénétration","description":"Le dé précise la position.","duration":null,"hp":25,"variants":["Missionnaire","Andromaque","Andromaque inversée","Levrette","Cuillère","Position au choix"]},
+    {"id":"six-intimite-lovense","categoryId":"intimite","title":"Lovense","description":"Le dé précise la durée.","duration":null,"hp":30,"variants":["5 minutes","10 minutes","15 minutes","20 minutes","30 minutes","1 heure"]},
+    {"id":"six-intimite-photoshoot","categoryId":"intimite","title":"Photoshoot original","description":"Prenez une photo à deux sur le thème tiré.","duration":null,"hp":25,"variants":["Silhouette","Noir et blanc","Reflet","Ombres","Portrait serré","Lumière naturelle"]}
+  ];
+
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:6, cardSides:4, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
-  const cardMap = Object.fromEntries([...hiddenLegacyCards,...cards].map(card => [card.id, card]));
+  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:4, cardSides:6, variantSides:6, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
+  const legacyCardSides = 4;
+  const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards].map(card => [card.id, card]));
+  const legacyCategoryMap = Object.fromEntries(legacyCategories.map(category => [category.id, category]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
-  const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
+  const catalogueCategories = version => version===2?categories:legacyCategories;
+  const categorySides = version => catalogueCategories(version).length;
+  const mergedCategory = id => id==='detente'?'complicite':id==='bouffe'?'attention':id;
+  const phases = ['category','card','variant','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
   const prefKeys = ['reducedMotion','sound','discreet','reminder'];
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
-  const getCard = id => cardMap[id] || null;
-  const getCategory = id => categoryMap[id] || null;
+  const getCard = id => Object.prototype.hasOwnProperty.call(cardMap,id)?cardMap[id]:null;
+  const getCategory = (id,version=2) => {
+    if(version===2 && Object.prototype.hasOwnProperty.call(categoryMap,id)) return categoryMap[id];
+    return Object.prototype.hasOwnProperty.call(legacyCategoryMap,id)?legacyCategoryMap[id]:null;
+  };
+  const getVariant = round => {
+    const face=round?.variantRoll;
+    return Number.isInteger(face) && face>=1 && face<=rules.variantSides?getCard(round.cardId)?.variants?.[face-1]??null:null;
+  };
+  const validSelectedVariant = entry => getCard(entry.cardId)?.variants?getVariant(entry)!==null:entry.variantRoll===undefined;
+  const validHand = (hand, category, modern) =>
+    Array.isArray(hand) && (modern?hand.length===rules.cardSides:[legacyCardSides,rules.cardSides].includes(hand.length)) &&
+    new Set(hand).size===hand.length && Array.from(hand).every(id=>{
+      const card=getCard(id);
+      return card?.categoryId===category && Boolean(card.variants)===modern;
+    });
+  // Published four-card draws keep their original die until the next round.
+  const cardSides = stateOrRound => {
+    const round=stateOrRound&&stateOrRound.round||stateOrRound;
+    return round&&Array.isArray(round.hand)&&[4,6].includes(round.hand.length)?round.hand.length:rules.cardSides;
+  };
   const isoTime = value => typeof value==='string' && Number.isFinite(Date.parse(value)) && new Date(Date.parse(value)).toISOString()===value;
   const taskStartTime = value => isoTime(value) && Date.parse(value)<=8640000000000000-rules.taskLifetimeMs;
   const fallbackTime = '1970-01-01T00:00:00.000Z';
@@ -829,15 +896,20 @@
   }
 
   function emptyStats() {
-    return { totalCompleted:0, byCategory:Object.fromEntries(categories.map(category=>[category.id,0])) };
+    return { totalCompleted:0, byCategory:Object.fromEntries(legacyCategories.map(category=>[category.id,0])) };
   }
 
   function validStats(stats) {
     if(!stats || typeof stats!=='object' || Array.isArray(stats) || !Number.isSafeInteger(stats.totalCompleted) || stats.totalCompleted<0) return false;
     const byCategory=stats.byCategory;
-    if(!byCategory || typeof byCategory!=='object' || Array.isArray(byCategory) || Object.keys(byCategory).length!==categories.length) return false;
-    if(categories.some(category=>!Object.prototype.hasOwnProperty.call(byCategory,category.id) || !Number.isSafeInteger(byCategory[category.id]) || byCategory[category.id]<0)) return false;
-    return categories.reduce((total,category)=>total+byCategory[category.id],0)===stats.totalCompleted;
+    if(!byCategory || typeof byCategory!=='object' || Array.isArray(byCategory) || Object.keys(byCategory).length!==legacyCategories.length) return false;
+    if(legacyCategories.some(category=>!Object.prototype.hasOwnProperty.call(byCategory,category.id) || !Number.isSafeInteger(byCategory[category.id]) || byCategory[category.id]<0)) return false;
+    return legacyCategories.reduce((total,category)=>total+byCategory[category.id],0)===stats.totalCompleted;
+  }
+
+  function categoryScore(stats,id) {
+    return legacyCategories.filter(category=>mergedCategory(category.id)===id)
+      .reduce((total,category)=>total+stats.byCategory[category.id],0);
   }
 
   function createState() {
@@ -859,15 +931,17 @@
 
   function validTasks(s) {
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
-    const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'].sort().join(',');
+    const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
-      if(!task || typeof task!=='object' || Array.isArray(task) || Object.keys(task).sort().join(',')!==keys) return false;
+      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task)) return false;
+      const expectedKeys=task.variantRoll===undefined?keys:[...keys,'variantRoll'];
+      if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
       if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || Date.parse(task.expiresAt)-Date.parse(task.createdAt)!==rules.taskLifetimeMs) return false;
       if(!task.checks || typeof task.checks!=='object' || Array.isArray(task.checks) || Object.keys(task.checks).sort().join(',')!=='a,b' || ['a','b'].some(id=>typeof task.checks[id]!=='boolean') || task.checks.a&&task.checks.b) return false;
       if(task.proposal!==null && (typeof task.proposal!=='string' || !task.proposal.trim() || task.proposal.length>400)) return false;
-      if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
+      if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.variantRoll!==s.round.variantRoll || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
       return !s.history.some(round=>round&&round.id===task.id && ['completed','expired','passed','defended'].includes(round.status));
     });
   }
@@ -879,26 +953,29 @@
     if (!validTasks(s)) return false;
     if (!Array.isArray(s.favorites) || s.favorites.some(id => !getCard(id)) || !s.prefs || prefKeys.some(k => typeof s.prefs[k] !== 'boolean')) return false;
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
-    if (Object.entries(s.seen).some(([key,list]) => !getCategory(key) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
+    if (Object.entries(s.seen).some(([key,list]) => !getCategory(key,1) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
-    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item))) return false;
+    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
     const r=s.round;
     if (r.id !== 'onde-'+s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
-    if (!validCardReroll(r)) return false;
+    const modern=r.catalogueVersion===2;
+    if (!validCardReroll(r) || (modern?r.cardRerolled:r.catalogueVersion!==undefined||r.variantRoll!==undefined)) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
     const beforeCard=r.rolls.length===0 && r.draftRolls.length===0 && !r.challengeUsed && !r.draftChallengeUsed && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
-    if (s.phase === 'category') return r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
-    const cat=getCategory(r.categoryId);
-    if (!cat || r.categoryRoll !== cat.number || r.hand.length !== 4 || new Set(r.hand).size !== 4 || r.hand.some(id => !getCard(id) || getCard(id).categoryId !== cat.id)) return false;
-    if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (s.phase === 'category') return !modern && r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
+    const cat=catalogueCategories(r.catalogueVersion).find(category=>category.id===r.categoryId);
+    if (!cat || r.categoryRoll !== cat.number || !validHand(r.hand,cat.id,modern)) return false;
+    if (s.phase === 'card') return (!modern || r.variantRoll===null) && r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
     // PV belong to the round that was drawn. A later catalogue update must not
     // rewrite an in-progress challenge or invalidate an already won one.
-    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>4 || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
+    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
+    if(s.phase==='variant') return modern && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if(!validSelectedVariant(r)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(r.autoProposed && (!r.draftChallengeUsed || r.draftRolls.length!==2 || draftTotal>=r.hp)) return false;
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
@@ -932,23 +1009,51 @@
     let migrated;
     try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
     if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
+    let mergedCategories=false;
     if(migrated.stats&&migrated.stats.byCategory&&!validStats(migrated.stats)){
       const old=migrated.stats.byCategory;
       if(!old || typeof old!=='object' || Array.isArray(old)) return null;
       const keys=Object.keys(old).sort().join(',');
-      const legacyKeys=[['complicite','detente','tendresse','attention','decouverte','intimite'],['complicite','detente','attention','bouffe','intimite']];
-      // Only migrate catalogue shapes that were actually published. Do not
-      // silently drop an unknown counter or repair a damaged current save.
-      if(!legacyKeys.some(list=>list.sort().join(',')===keys) || Object.values(old).some(value=>!Number.isSafeInteger(value)||value<0)) return null;
+      const legacyKeys=['attention,complicite,decouverte,detente,intimite,tendresse','attention,bouffe,complicite,detente,intimite'];
+      mergedCategories=keys==='attention,complicite,intimite,projets';
+      if((!mergedCategories&&!legacyKeys.includes(keys)) || Object.values(old).some(value=>!Number.isSafeInteger(value)||value<0)) return null;
+      // A merged local save cannot tell how its past points were split.
+      // Keep its aggregate buckets under Complicité and Attentions.
       migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,projets:(old.projets||0)+(old.decouverte||0),attention:old.attention||0,bouffe:old.bouffe||0,intimite:old.intimite||0};
     }
-    if(migrated.round.categoryId){migrated.round.categoryId=legacyCategory(migrated.round.categoryId);const mapped=getCategory(migrated.round.categoryId);if(mapped)migrated.round.categoryRoll=mapped.number;}
+    const restoreCategory=(id,cardId)=>{
+      const canonical=legacyCategory(id), card=getCard(cardId);
+      return mergedCategories && card && mergedCategory(card.categoryId)===canonical?card.categoryId:canonical;
+    };
     if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
-    migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>legacyFavoriteMap[id]||id))):migrated.favorites;
-    if(migrated.seen&&typeof migrated.seen==='object'){
-      const seen={};for(const [id,list] of Object.entries(migrated.seen)){const key=legacyCategory(id);seen[key]=[...(seen[key]||[]),...(Array.isArray(list)?list:[])].slice(0,8);}migrated.seen=seen;
+    migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>Object.prototype.hasOwnProperty.call(legacyFavoriteMap,id)?legacyFavoriteMap[id]:id))):migrated.favorites;
+    if(migrated.seen&&typeof migrated.seen==='object'&&!Array.isArray(migrated.seen)){
+      const seen={};
+      for(const [id,list] of Object.entries(migrated.seen)){
+        if(!getCategory(legacyCategory(id))||!Array.isArray(list)) return null;
+        for(const cardId of list){
+          const key=restoreCategory(id,cardId);
+          seen[key]??=[];
+          if(seen[key].length<rules.recentCardLimit&&!seen[key].includes(cardId)) seen[key].push(cardId);
+        }
+      }
+      migrated.seen=seen;
+    }
+    // The local four-category build combined Détente with Complicité and
+    // Bouffe with Attentions. Preserve the card and its face on active draws.
+    const active=migrated.round;
+    if(mergedCategories && active.catalogueVersion===undefined && getCategory(active.categoryId) && Array.isArray(active.hand) &&
+      active.hand.every(id=>mergedCategory(getCard(id)?.categoryId)===active.categoryId)){
+      const category=restoreCategory(active.categoryId,active.cardId);
+      const replacements=publishedCards.filter(card=>card.categoryId===category&&!active.hand.includes(card.id));
+      active.hand=active.hand.map(id=>getCard(id).categoryId===category?id:replacements.shift()?.id);
     }
     function extendRound(round, phase) {
+      if(round.categoryId && round.catalogueVersion===undefined){
+        round.categoryId=restoreCategory(round.categoryId,round.cardId);
+        const mapped=getCategory(round.categoryId,1);
+        if(mapped) round.categoryRoll=mapped.number;
+      }
       const missing=key=>!Object.prototype.hasOwnProperty.call(round,key);
       if(missing('cardRerolled')) round.cardRerolled=false;
       if(missing('draftRolls')) round.draftRolls=[];
@@ -968,6 +1073,7 @@
     }
     extendRound(migrated.round,migrated.phase);
     if(Array.isArray(migrated.history)) for(const round of migrated.history) if(round && typeof round==='object') extendRound(round,'resolved');
+    if(Array.isArray(migrated.tasks)) for(const task of migrated.tasks) if(task&&typeof task==='object') task.categoryId=restoreCategory(task.categoryId,task.cardId);
     if(!has('tasks')) {
       migrated.tasks=[];
       if(migrated.phase==='accepted') {
@@ -996,16 +1102,16 @@
     return migrated;
   }
 
-  function drawHand(state, categoryId) {
-    const category=typeof categoryId==='number' ? categories.find(c=>c.number===categoryId) : getCategory(categoryId);
+  function drawHand(state, categoryId, catalogueVersion) {
+    const category=catalogueCategories(catalogueVersion).find(c=>c.number===categoryId||c.id===categoryId);
     if (!category) throw new RangeError('Unknown category.');
-    const available=cards.filter(c=>c.categoryId===category.id).map(c=>c.id);
-    // Keep enough cards for a complete D4 hand while giving recently drawn
-    // cards a rest. Small categories cycle sooner without favouring one face.
-    const recent=(state.seen[category.id] || []).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-4)));
+    const modern=catalogueVersion===2;
+    const sides=modern?rules.cardSides:legacyCardSides;
+    const available=(modern?newCards:publishedCards).filter(c=>c.categoryId===category.id).map(c=>c.id);
+    const recent=(state.seen[category.id] || []).filter(id=>available.includes(id)).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-sides)));
     const pool=available.filter(id=>!recent.includes(id));
     for(let i=pool.length-1;i>0;i--) { const j=randomInt(i+1)-1; [pool[i],pool[j]]=[pool[j],pool[i]]; }
-    return pool.slice(0,4);
+    return pool.slice(0,sides);
   }
 
   /* Exact probability of reaching HP with at most two fair, independent D20s. */
@@ -1034,7 +1140,7 @@
     return Array.isArray(round.rolls) && round.rolls.length>0;
   }
 
-  const canRerollCard=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
+  const canRerollCard=s=>s.phase==='draft' && s.round.catalogueVersion!==2 && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
   const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && !s.round.cardRerolled && Number.isFinite(getCard(s.round.cardId)?.hp);
   const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
@@ -1047,7 +1153,7 @@
     if(s.tasks.some(task=>task.id===r.id)) return;
     s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
-      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null});
+      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null,...(r.catalogueVersion===2?{variantRoll:r.variantRoll}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
 
@@ -1055,6 +1161,7 @@
     const current=s.round.id===task.id&&s.phase==='accepted';
     const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
     const ended={...base,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:2,variantRoll:task.variantRoll});
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
     s.tasks=s.tasks.filter(item=>item.id!==task.id);
@@ -1133,10 +1240,13 @@
         s.round=blankRound(s.sequence,s.activePlayer,action.at);
         return s;
       case 'ROLL_CATEGORY': {
-        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>6) return state;
-        const cat=categories.find(c=>c.number===action.value);
-        if(!cat || !Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
+        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>categorySides(action.catalogueVersion)) return state;
+        const cat=catalogueCategories(action.catalogueVersion).find(c=>c.number===action.value);
+        const modern=action.catalogueVersion===2;
+        if(action.catalogueVersion!==undefined && !modern) return state;
+        if(!cat || !validHand(action.hand,cat.id,modern)) return state;
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
+        if(modern) Object.assign(r,{catalogueVersion:2,variantRoll:null});
         s.phase='card';
         return s;
       }
@@ -1144,13 +1254,20 @@
       case 'REROLL_CARD': {
         const reroll=kind==='REROLL_CARD';
         if(reroll?!canRerollCard(s):s.phase!=='card' || actor!==r.from) return state;
-        if(!Number.isInteger(action.value) || action.value<1 || action.value>4 || reroll&&action.value===r.cardRoll) return state;
-        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp; r.status='draft';
+        if(!Number.isInteger(action.value) || action.value<1 || action.value>cardSides(r) || reroll&&action.value===r.cardRoll) return state;
+        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp;
         if(reroll) r.cardRerolled=true;
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
-        s.phase='draft';
+        s.phase=r.catalogueVersion===2?'variant':'draft';
+        r.status=s.phase==='variant'?'drawing':'draft';
         return s;
       }
+      case 'ROLL_VARIANT':
+        if(s.phase!=='variant' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>rules.variantSides) return state;
+        r.variantRoll=action.value;
+        r.status='draft';
+        s.phase='draft';
+        return s;
       case 'SEND':
         if(!['draft','draft_challenge'].includes(s.phase) || actor!==r.from) return state;
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
@@ -1193,7 +1310,7 @@
         return s;
       case 'ADAPT':
         if(!canRespond(s)) return state;
-        r.proposal=(typeof action.text==='string' && action.text.trim() ? action.text.trim() : getCard(r.cardId).variant).slice(0,400);
+        r.proposal=(typeof action.text==='string' && action.text.trim() ? action.text.trim() : (getVariant(r)||getCard(r.cardId).variant)).slice(0,400);
         r.fromConfirmed=actor===r.from; r.toConfirmed=actor===r.to;
         r.adapted=true; r.status='counterproposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
         return s;
@@ -1214,7 +1331,7 @@
       case 'CANCEL':
         // The drawer must propose the card or resolve their own D20 challenge.
         // Passing becomes available once the card reaches the other player.
-        if(s.phase==='draft' || s.phase==='draft_challenge') return state;
+        if(['variant','draft','draft_challenge'].includes(s.phase)) return state;
         if(!r.cardId || s.phase==='resolved') return state;
         closeRound(s,'passed',action);
         return s;
@@ -1227,7 +1344,7 @@
     }
   }
 
-  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
+  const api={categories,legacyCategories,categorySides,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -1591,7 +1708,7 @@ void main(){
 /* Dés·ir — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
  const TOKEN=/^[A-Za-z0-9_-]{43}$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
@@ -1653,7 +1770,7 @@ void main(){
   }
   function remoteError(response,body){
    const code=body?.error?.code||body?.code;
-   const messages={conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&connection){try{updated=acceptSnapshot(body);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -1667,7 +1784,7 @@ void main(){
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify(payload),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:2,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -1710,7 +1827,7 @@ void main(){
   function storedAction(){const value=parsed(actionKey);if(!value)return null;if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    try{
-    const raw=await request({op:'action',requestId:pending.requestId,action:pending.action},connection.token);
+    const raw=await request({op:'action',gameVersion:pending.gameVersion===2?2:1,requestId:pending.requestId,action:pending.action},connection.token);
     const value=acceptSnapshot(raw);remove(actionKey);return value;
    }catch(error){if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
   }
@@ -1719,7 +1836,7 @@ void main(){
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:2,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
   }
@@ -1849,13 +1966,13 @@ void main(){
  }
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
- const die=window.OndeDice.create(canvas,{kind:6,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,onRelease:power=>{if(tab==='play'&&!busy)return roll(false,power);}});
+ const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,onRelease:power=>{if(tab==='play'&&!busy)return roll(false,power);}});
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
  const percent=hp=>(G.probability(hp)*100).toLocaleString('fr-FR',{maximumFractionDigits:2})+' %';
  const card=()=>G.getCard(state.round.cardId);
- const category=()=>G.getCategory(state.round.categoryId);
+ const category=()=>G.getCategory(state.round.categoryId,state.round.catalogueVersion??1);
  const shownRolls=()=>state.phase==='draft_challenge'||(state.round.status==='defended'&&!state.round.rolls.length)?state.round.draftRolls:state.round.rolls;
  const sum=()=>shownRolls().reduce((a,b)=>a+b,0);
  const canDraw=()=>state.activePlayer===state.round.from;
@@ -1866,7 +1983,7 @@ void main(){
  function canCharge(button){
   if(!button||button.disabled||!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return false;
   if(button.dataset.action==='reroll')return G.canRerollCard(state);
-  return state.phase==='category'&&canDraw()&&(!remoteMode||remoteSnapshot?.quota?.remaining!==0)||state.phase==='card'&&canDraw()||state.phase==='draft_challenge'&&G.canRollDraftDefense(state)||state.phase==='challenge'&&G.canRespond(state);
+  return state.phase==='category'&&canDraw()&&(!remoteMode||remoteSnapshot?.quota?.remaining!==0)||['card','variant'].includes(state.phase)&&canDraw()||state.phase==='draft_challenge'&&G.canRollDraftDefense(state)||state.phase==='challenge'&&G.canRespond(state);
  }
  function drawCharge(){
   if(!charge)return;const power=Math.max(0,Math.min(1,(chargeNow()-charge.started)/chargeLimit));
@@ -1974,13 +2091,19 @@ void main(){
  function textBtn(label,action,extra=''){return '<button type="button" class="oa-text-button cursor-interaction" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function eyebrow(text){return '<p class="oa-eyebrow">'+h(text)+'</p>';}
  function heading(title,sub,eyebrowText){return (eyebrowText?eyebrow(eyebrowText):'')+'<h1 class="oa-title">'+title+'</h1>'+(sub?'<p class="oa-subtitle">'+sub+'</p>':'');}
- function steps(active){return '<div class="oa-steps" aria-label="Parcours du jeu"><span class="oa-step '+(active===1?'is-active':active>1?'is-done':'')+'"><b>D6</b>Catégorie</span><span class="oa-step-sep" aria-hidden="true">›</span><span class="oa-step '+(active===2?'is-active':'')+'"><b>D4</b>Carte</span></div>'; }
- function stage(type,label,value){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+'</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'"></div></section>';}
+ function challengeSides(round=state.round){return G.cardSides(round);}
+ function cardHeading(categoryId,catalogueVersion){return heading(h(G.getCategory(categoryId,catalogueVersion).label),null,null);}
+ function steps(active,sides=G.rules.cardSides,hasVariant=true){
+  const path=[[G.categorySides(hasVariant?2:1),'Catégorie'],[sides,'Carte']];
+  if(hasVariant)path.push([G.rules.variantSides,'Variante']);
+  return '<div class="oa-steps" aria-label="Parcours du jeu">'+path.map(([kind,label],i)=>'<span class="oa-step '+(active===i+1?'is-active':active>i+1?'is-done':'')+'" '+(active===i+1?'aria-current="step"':'')+'><b>D'+kind+'</b>'+label+'</span>').join('<span class="oa-step-sep" aria-hidden="true">›</span>')+'</div>';
+ }
+ function stage(type,label,value,role='defense'){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+'</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'" data-roll-role="'+role+'"></div></section>';}
  function categoriesGrid(){return '<div class="oa-category-grid">'+G.categories.map(c=>'<div class="oa-category" style="--category:'+c.color+'"><div class="oa-category-top"><span class="oa-category-swatch"></span><span class="oa-category-number">0'+c.number+'</span></div><span class="oa-category-label">'+h(c.label)+'</span></div>').join('')+'</div>';}
- function handGrid(options={}){const discarded=options.discarded||null,selected=options.selected||null,hand=options.hand||state.round.hand;return '<div class="oa-card-grid'+(discarded?' is-reroll':'')+(selected?' is-revealing':'')+'" aria-label="'+(selected?'Quatre emplacements, carte '+selected.slot+' choisie':discarded?'Quatre emplacements, une carte écartée':'Quatre cartes face cachée')+'">'+hand.map((id,i)=>{
-  const width=[68,82,74,60][i],old=discarded&&discarded.slot===i+1&&discarded.cardId===id?G.getCard(discarded.cardId):null;
+ function handGrid(options={}){const discarded=options.discarded||null,selected=options.selected||null,hand=options.hand||state.round.hand,version=options.catalogueVersion??state.round.catalogueVersion??1;const count=hand.length,words=count===6?'Six':'Quatre';return '<div class="oa-card-grid'+(count===6?' is-six':'')+(discarded?' is-reroll':'')+(selected?' is-revealing':'')+'" data-catalogue-version="'+version+'" aria-label="'+(selected?words+' emplacements, carte '+selected.slot+' choisie':discarded?words+' emplacements, une carte écartée':words+' cartes face cachée')+'">'+hand.map((id,i)=>{
+  const width=[68,82,74,60,78,64][i],old=discarded&&discarded.slot===i+1&&discarded.cardId===id?G.getCard(discarded.cardId):null;
   const chosen=selected&&selected.slot===i+1&&selected.cardId===id?G.getCard(selected.cardId):null;
-  if(chosen){const cat=G.getCategory(chosen.categoryId);return '<div class="oa-mini-card oa-card-back oa-card-revealed" data-reveal-selected aria-label="Carte '+(i+1)+' choisie" style="--category:'+h(cat.color)+'"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-reveal-content"><div class="oa-reveal-art" aria-hidden="true"><i></i><i></i><i></i></div><span class="oa-reveal-category">'+h(cat.label)+'</span><h3>'+h(chosen.title)+'</h3></div></div>';}
+  if(chosen){const cat=G.getCategory(chosen.categoryId,version);return '<div class="oa-mini-card oa-card-back oa-card-revealed" data-reveal-selected aria-label="Carte '+(i+1)+' choisie" style="--category:'+h(cat.color)+'"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-reveal-content"><div class="oa-reveal-art" aria-hidden="true"><i></i><i></i><i></i></div><span class="oa-reveal-category">'+h(cat.label)+'</span><h3>'+h(chosen.title)+'</h3></div></div>';}
   if(old)return '<div class="oa-mini-card oa-card-back oa-card-discarded" aria-label="Carte '+(i+1)+' écartée : '+h(old.title)+'"><span class="oa-mini-number">'+(i+1)+'</span><span class="oa-discarded-state">Écartée</span><h3 class="oa-discarded-title" title="'+h(old.title)+'">'+h(old.title)+'</h3></div>';
   return '<div class="oa-mini-card oa-card-back" aria-label="Carte '+(i+1)+' face cachée"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-card-ghost" aria-hidden="true" inert style="--ghost-title:'+width+'%"><div class="oa-ghost-art"><i></i><i></i><i></i></div><span class="oa-ghost-title"></span><span class="oa-ghost-line"></span></div></div>';
  }).join('')+'</div>';}
@@ -1991,8 +2114,13 @@ void main(){
   const odds=left===0?'Carte écartée':rolls.length===2?'Deux jets terminés':(chance*100).toLocaleString('fr-FR',{maximumFractionDigits:2})+' % de chance '+(rolls.length?'au dernier jet':'sur deux jets');
   return '<section class="oa-hp" data-gauge="'+r.id+'-'+owner+'" data-ratio="'+ratio+'" aria-label="Résistance de la carte"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+left+' <span>/ '+r.hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+r.hp+'" aria-valuenow="'+left+'">'+Array.from({length:12},(_,i)=>'<i aria-hidden="true"><span style="transform:scaleX('+Math.max(0,Math.min(1,ratio*12-i))+')"></span></i>').join('')+'</div><div class="oa-roll-history">'+[0,1].map(i=>'<span class="oa-roll-token">Jet '+(i+1)+' <b>'+(rolls[i]||'—')+'</b></span>').join('')+'</div><p class="oa-hp-odds">'+odds+'</p></section>';
  }
+ function defenseSubtitle(c){const detail=proposalDetail(state.round);return h(c.title)+(detail?' · '+h(detail):'');}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
- function playingCard(c,compact=false){const cat=G.getCategory(c.categoryId),r=state.round;const own=c.id===r.cardId;const adapted=own&&r.adapted;const note=cardNotes[c.id];return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(adapted?' · VARIANTE':'')+'</span>'+'</div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(adapted?'<p class="oa-card-description">'+h(r.proposal)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+'</article>';}
+ function proposalDetail(round){return G.getVariant(round)||(round.adapted?round.proposal:null);}
+ function playingCard(c,compact=false){
+  const r=state.round,cat=G.getCategory(c.categoryId,r.catalogueVersion??1),detail=proposalDetail(r),note=r.catalogueVersion===2?null:cardNotes[c.id];
+  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+'</article>';
+ }
 
  function renderWelcome(){
   return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la ou tente de l’écarter au D20.</p><p>Deux coches dans les 6 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
@@ -2008,9 +2136,9 @@ void main(){
   if(hidden){persona.innerHTML='';return;}
   persona.innerHTML='<div class="oa-identities" role="group" aria-label="Votre duo">'+['a','b'].map(id=>'<span class="oa-person-name '+(id===viewPlayer?'is-me':'')+'" '+(id===viewPlayer?'aria-current="true"':'')+'>'+h(name(id))+(awaitingPlayer(id)?'<i class="oa-unread" aria-label="Invitation en attente"></i>':'')+'</span>').join('')+'</div>';
  }
- function d6Action(){
+ function categoryAction(){
   if(remoteMode&&remoteSnapshot?.quota?.remaining===0){const at=remoteSnapshot.quota.nextAt;let time='';try{time=new Date(at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Paris'});}catch(_){}return '<div class="oa-next-draw" role="status">Prochain tirage'+(time?' à <strong>'+h(time)+'</strong>':' à la prochaine plage')+'</div>';}
-  return btn('Lancer le D6 <span class="oa-arrow">↗</span>','roll');
+  return btn('Lancer le D'+G.rules.categorySides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
  }
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
  function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'</div>';}
@@ -2021,16 +2149,18 @@ void main(){
  }
  function renderPlay(){const r=state.round,c=card();
   if(!G.canSeeRound(state))return privateHome();
-  if(cardReveal){const reveal=cardReveal;return (reveal.reroll?heading('Le D4<br><em>rejoue.</em>',null,null):heading(h(G.getCategory(reveal.categoryId).label)+'.<br><em>Laquelle pour vous ?</em>',null,null)+steps(2))+stage(4,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face)+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
+  if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
   if(['pending','sender_confirmation'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(6,'01 / LE THÈME',3)+d6Action()+'<div class="oa-section-head"><h2>Six façons de se retrouver</h2><span>'+G.cards.length+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
-   return heading(h(category().label)+'.<br><em>Laquelle pour vous ?</em>',null,null)+steps(2)+stage(4,'02 / LA CARTE',1)+btn('Lancer le D4 <span class="oa-arrow">↗</span>','roll')+handGrid();
+   const sides=challengeSides();
+   return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+handGrid();
   }
-  if(state.phase==='draft'&&rerolling)return heading('Le D4<br><em>rejoue.</em>',null,null)+stage(4,'02 / UNE AUTRE CARTE',r.cardRoll)+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canChallengeDraft(state)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+(G.canRerollCard(state)?textBtn('Relancer le D4 · sans mon D20','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
+  if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
+  if(state.phase==='draft'&&rerolling)return heading('Le D'+challengeSides()+'<br><em>rejoue.</em>',null,null)+stage(challengeSides(),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canChallengeDraft(state)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+(G.canRerollCard(state)?textBtn('Relancer le D'+challengeSides()+' · sans mon D20','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='draft_challenge'&&!canDraw())return heading('Un défi<br><em>en cours.</em>',h(name(r.from))+' tente d’écarter la carte.',null)+switchButton(r.from);
-  if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('from')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll');
+  if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',defenseSubtitle(c),null)+healthGauge('from')+stage(20,'ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll');
   if(state.phase==='pending'){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
    const automatic=r.autoProposed&&r.status==='pending';
@@ -2043,12 +2173,12 @@ void main(){
    return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'</div>':'');
   }
   if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+statusStrip('Réponse en attente.');
-  if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',h(c.title),null)+healthGauge('to')+stage(20,'03 / ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll');
+  if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',defenseSubtitle(c),null)+healthGauge('to')+stage(20,'ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll');
   if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+healthGauge('to')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+'</div>');
-  if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
+  if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed',expired=r.status==='expired';
-   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':expired?'Temps écoulé.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+(defended?healthGauge(r.rolls.length?'to':'from'):'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(G.getCategory(c.categoryId).label)+(r.adapted?' · Variante':'')+'</p></div>'+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
+   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':expired?'Temps écoulé.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+(defended?healthGauge(r.rolls.length?'to':'from'):'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+(r.adapted?' · Variante':'')+'</p></div>'+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
   }
   return '';
  }
@@ -2057,7 +2187,7 @@ void main(){
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
   const tasks=state.tasks||[];
-  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId);return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(task.proposal?'<p class="oa-task-proposal">'+h(task.proposal)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=[
@@ -2091,7 +2221,7 @@ void main(){
  }
  function sharedScore(){
   const stats=state.stats,total=stats.totalCompleted;
-  return '<section class="oa-shared-score" aria-label="Score commun"><h1 class="oa-eyebrow">VOTRE SCORE À DEUX</h1><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section>'+sharedGrade(total)+'<div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+stats.byCategory[c.id].toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
+  return '<section class="oa-shared-score" aria-label="Score commun"><h1 class="oa-eyebrow">VOTRE SCORE À DEUX</h1><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section>'+sharedGrade(total)+'<div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+G.categoryScore(stats,c.id).toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
  }
  function notificationSetting(){
   const n=remote.notificationStatus;
@@ -2124,7 +2254,7 @@ void main(){
  function finishRevealWait(){if(!revealWait)return;const wait=revealWait;revealWait=null;clearTimeout(wait.timer);wait.resolve();}
  function waitForReveal(){return new Promise(resolve=>{const wait={resolve,timer:null};revealWait=wait;wait.timer=setTimeout(()=>{if(revealWait===wait){revealWait=null;resolve();}},1100);});}
  function presentationValid(context){return context.epoch===presentationEpoch&&context.actor===viewPlayer&&(!remoteMode||remote?.authenticated&&samePerspective(context,remote.connection));}
- function revealMatches(game,reveal){return game&&game.phase==='draft'&&game.round.id===reveal.roundId&&game.round.from===reveal.actor&&game.round.cardId===reveal.cardId&&game.round.cardRoll===reveal.face;}
+ function revealMatches(game,reveal){return game&&game.phase===(reveal.hasVariant?'variant':'draft')&&game.round.id===reveal.roundId&&game.round.from===reveal.actor&&game.round.cardId===reveal.cardId&&game.round.cardRoll===reveal.face;}
  function showSelectedTile(){
   const tile=main.querySelector('[data-reveal-selected]');if(!tile)return;
   if(/^(auto|scroll)$/.test(window.getComputedStyle?.(main)?.overflowY||'')){
@@ -2141,13 +2271,13 @@ void main(){
  function animateDiceHandoff(previousStage){
   if(!previousStage||systemReduce||document.hidden||presentationHidden||!canvas.animate)return false;
   const holder=main.querySelector('[data-stage]'),grid=main.querySelector('.oa-card-grid');
-  if(!holder||holder.dataset.kind!=='4'||!grid?.animate)return false;
+  if(!holder||!['card','variant'].includes(holder.dataset.rollRole))return false;
   const target=holder.getBoundingClientRect();if(!target.height||!previousStage.height)return false;
   const dx=previousStage.left+previousStage.width/2-target.left-target.width/2;
   const dy=previousStage.top+previousStage.height/2-target.top-target.height/2;
   const scale=Math.max(.8,Math.min(1.5,previousStage.height/target.height));
-  // Layout is final before the first frame. Only the die moves; all four slots stay in place.
-  grid.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
+  // Layout is final before the first frame. Only the die moves; all card slots stay in place.
+  grid?.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
   const overflow=holder.style.overflow||'';holder.style.overflow='hidden';
   playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,()=>{holder.style.overflow=overflow;});
   playContentTransition(grid,[{opacity:.2},{opacity:1}],260);
@@ -2226,12 +2356,13 @@ void main(){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
-  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
+  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,hasVariant:state.round.catalogueVersion===2,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
   if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
-  if(reroll){if(!G.canRerollCard(state))return;sides=4;action={type:'REROLL_CARD'};}
-  else if(phase==='category'&&canDraw()){sides=6;action={type:'ROLL_CATEGORY'};}
-  else if(phase==='card'&&canDraw()){sides=4;action={type:'ROLL_CARD'};}
+  if(reroll){if(!G.canRerollCard(state))return;sides=challengeSides();action={type:'REROLL_CARD'};}
+  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:2};}
+  else if(phase==='card'&&canDraw()){sides=challengeSides();action={type:'ROLL_CARD'};}
+  else if(phase==='variant'&&canDraw()){sides=G.rules.variantSides;action={type:'ROLL_VARIANT'};}
   else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;action={type:'ROLL_DRAFT_DEFENSE'};}
   else if(phase==='challenge'&&G.canRespond(state)){sides=20;action={type:'ROLL_DEFENSE'};}
   else return;
@@ -2243,40 +2374,49 @@ void main(){
   try{
    if(remoteMode){
     const value=await remote.action({...action,roundId});
-    if(!value.roll||value.roll.kind!==sides)throw Error('Unconfirmed roll');
+    if(!value.roll||value.roll.kind!==sides){
+     const restored=action.type==='ROLL_CATEGORY'&&value.roll?.kind===G.categorySides(1)?G.normalizeState(value.state):null;
+     const oldCategory=G.legacyCategories.find(category=>category.number===value.roll?.value);
+     if(!restored||restored.phase!=='card'||restored.round.id!==roundId||restored.round.from!==actor||
+        restored.activePlayer!==actor||restored.round.catalogueVersion!==undefined||
+        !oldCategory||restored.round.categoryId!==oldCategory.id||restored.round.categoryRoll!==value.roll.value)throw Error('Unconfirmed roll');
+     // A stored v1 receipt resumes its hand without animating a D6 on the D4 stage.
+     if(presentationValid(context)&&currentPerspective(value)&&(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision))deferredSnapshot=value;
+     return;
+    }
     faceValue=value.roll.value;next=value.state;
     if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
-    const faces=reroll?[1,2,3,4].filter(value=>value!==state.round.cardRoll):null;
-    faceValue=faces?faces[G.randomInt(3)-1]:G.randomInt(sides);action.value=faceValue;
-    if(sides===6)action.hand=G.drawHand(state,faceValue);
+    const faces=reroll?Array.from({length:sides},(_,i)=>i+1).filter(value=>value!==state.round.cardRoll):null;
+    faceValue=faces?faces[G.randomInt(faces.length)-1]:G.randomInt(sides);action.value=faceValue;
+    if(action.type==='ROLL_CATEGORY')action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
     if(action.type==='ROLL_DRAFT_DEFENSE')action.token=roundId+'-draft-'+(state.round.draftRolls.length+1);
     if(action.type==='ROLL_DEFENSE')action.token=roundId+'-'+(state.round.rolls.length+1);
     next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
     state=next;save();
    }
-   resultLabel=sides===6?'Catégorie '+(G.getCategory(next.round.categoryId)?.label||G.categories.find(c=>c.number===faceValue)?.label||'tirée') : sides===4?(G.getCard(next.round.cardId)?.title||'Carte tirée.'):'Lancer terminé.';
+   resultLabel=action.type==='ROLL_CATEGORY'?'Catégorie '+(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.label||G.categories.find(c=>c.number===faceValue)?.label||'tirée') : ['ROLL_CARD','REROLL_CARD'].includes(action.type)?(G.getCard(next.round.cardId)?.title||'Carte tirée.'):action.type==='ROLL_VARIANT'?(G.getVariant(next.round)||'Variante choisie.'):'Lancer terminé.';
    const visualPower=Number.isFinite(power)?Math.max(0,Math.min(1,power)):0;
    if(button)button.textContent='Le dé roule…';
    if(!document.hidden&&!presentationHidden){activeRollFace={kind:sides,value:faceValue};softSound();await die.roll(faceValue,{duration:systemReduce?0:1650,power:visualPower});activeRollFace=null;}else die.setKind(sides,faceValue);
    settled=true;
    if(serial===animationSerial&&presentationValid(context)){
-    if(sides===4){
+    if(['ROLL_CARD','REROLL_CARD'].includes(action.type)){
      const preview={...context,reroll,face:faceValue,cardId:context.hand[faceValue-1]},latest=remoteMode?(deferredSnapshot?.state||next):state;
      if(!document.hidden&&!presentationHidden&&G.getCard(preview.cardId)&&revealMatches(latest,preview)){
       cardReveal=preview;render();setControlsBusy(true);showSelectedTile();
-      announce('D4 : '+faceValue+'. '+G.getCard(preview.cardId).title);await waitForReveal();
+      announce('D'+sides+' : '+faceValue+'. '+G.getCard(preview.cardId).title);await waitForReveal();
      }
     }else if(!document.hidden&&!presentationHidden)announce('D'+sides+' : '+faceValue+'. '+resultLabel);
     if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte · sans ton D20.');
    }
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
-  finally{if(serial===animationSerial){const fromStage=settled&&sides===6&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase==='card'&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
+  finally{if(serial===animationSerial){const targetPhase=action.type==='ROLL_CATEGORY'?'card':action.type==='ROLL_CARD'&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
  }
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;sheet.querySelector('button')?.focus({preventScroll:true});}
  function closeSheet(){if(sheet.hidden)return;sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;}
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D6</b><div><h3>La catégorie.</h3><p>Le dé choisit une des six catégories.</p></div></div><div class="oa-rule"><b>D4</b><div><h3>La carte.</h3><p>Le dé révèle une des quatre cartes cachées. Une relance possible, en échange de ton D20.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent six heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent six heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{

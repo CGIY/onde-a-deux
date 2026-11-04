@@ -10,7 +10,7 @@ function act(state,type,rest={}){const next=G.reduce(state,{type,at,...rest});ok
 function draft(from='a',value=1){
  let state=G.createState();
  if(from==='b')state=act(state,'SWITCH_PLAYER',{player:from});
- const hand=G.cards.filter(card=>card.categoryId==='complicite').slice(0,4).map(card=>card.id);
+ const hand=G.legacyCards.filter(card=>card.categoryId==='complicite').slice(0,4).map(card=>card.id);
  state=act(state,'ROLL_CATEGORY',{value:1,hand});return act(state,'ROLL_CARD',{value});
 }
 function sent(state){return act(state,'SEND');}
@@ -23,7 +23,7 @@ function complete(state){
  return act(state,'TOGGLE_TASK_CHECK',{taskId,checked:true,at:later});
 }
 
-eq(G.cards.length,88,'catalogue remains intact');
+eq(G.legacyCards.length,88,'catalogue remains intact');
 eq(G.createState().round.cardRerolled,false,'fresh rounds start without a reroll');
 // Every original D4 face has exactly three possible replacement cards, for either role.
 for(const from of ['a','b'])for(let first=1;first<=4;first++){
@@ -100,7 +100,7 @@ for(const from of ['a','b']){
 
 // Existing accepted tasks, their checks, and scores cannot be changed by a reroll.
 let existing=accepted(draft());existing=act(existing,'NEW_ROUND');
-const hand=G.cards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id);
+const hand=G.legacyCards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id);
 existing=act(existing,'ROLL_CATEGORY',{value:2,hand});existing=act(existing,'ROLL_CARD',{value:1});
 const changed=act(existing,'REROLL_CARD',{value:2});eq(changed.tasks,existing.tasks);eq(changed.stats,existing.stats);eq(changed.history,existing.history);
 

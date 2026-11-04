@@ -9,8 +9,8 @@ function action(state,type,rest={}) {
 }
 function complete(state) {const taskId=state.round.id;state=action(state,'TOGGLE_TASK_CHECK',{taskId,checked:true});state=action(state,'SWITCH_PLAYER',{player:G.otherPlayer(state.activePlayer)});return action(state,'TOGGLE_TASK_CHECK',{taskId,checked:true});}
 function draft(state,category=0) {
-  const cat=G.categories[category];
-  const hand=G.cards.filter(card=>card.categoryId===cat.id).slice(0,4).map(card=>card.id);
+  const cat=G.legacyCategories[category];
+  const hand=G.legacyCards.filter(card=>card.categoryId===cat.id).slice(0,4).map(card=>card.id);
   state=action(state,'ROLL_CATEGORY',{value:cat.number,hand});
   return action(state,'ROLL_CARD',{value:1});
 }
@@ -21,12 +21,12 @@ function accept(state,category=0) {
   return action(state,'ACCEPT');
 }
 let state=G.createState();
-check(()=>assert.deepEqual(state.stats,{totalCompleted:0,byCategory:Object.fromEntries(G.categories.map(c=>[c.id,0]))}));
+check(()=>assert.deepEqual(state.stats,{totalCompleted:0,byCategory:Object.fromEntries(G.legacyCategories.map(c=>[c.id,0]))}));
 state=accept(state);
 check(()=>assert.equal(state.stats.totalCompleted,0));
 state=complete(state);
 check(()=>assert.equal(state.stats.totalCompleted,1));
-check(()=>assert.equal(state.stats.byCategory[G.categories[0].id],1));
+check(()=>assert.equal(state.stats.byCategory[G.legacyCategories[0].id],1));
 check(()=>assert.equal(action(state,'COMPLETE'),state));
 for(let i=1;i<95;i++) {
   state=action(state,'NEW_ROUND');
@@ -35,8 +35,8 @@ for(let i=1;i<95;i++) {
 }
 check(()=>assert.equal(state.history.length,80));
 check(()=>assert.equal(state.stats.totalCompleted,95));
-check(()=>assert.equal(state.stats.byCategory[G.categories[0].id],48));
-check(()=>assert.equal(state.stats.byCategory[G.categories[1].id],47));
+check(()=>assert.equal(state.stats.byCategory[G.legacyCategories[0].id],48));
+check(()=>assert.equal(state.stats.byCategory[G.legacyCategories[1].id],47));
 const restored=G.normalizeState(JSON.parse(JSON.stringify(state)));
 check(()=>assert.deepEqual(restored,state));
 check(()=>assert.equal(restored.stats.totalCompleted,95));
@@ -54,7 +54,7 @@ check(()=>assert.deepEqual(defended.stats,state.stats));
 const legacy=JSON.parse(JSON.stringify(defended));
 delete legacy.stats;
 legacy.players[0].name='Prénom de test';
-legacy.favorites=[G.cards[0].id];
+legacy.favorites=[G.legacyCards[0].id];
 legacy.prefs.sound=true;
 const legacyBefore=JSON.stringify(legacy);
 const migrated=G.normalizeState(legacy);
@@ -76,11 +76,11 @@ check(()=>assert.equal(G.normalizeState(blankLegacy).stats.totalCompleted,0));
 for(const mutate of [
  s=>s.stats.totalCompleted=-1,
  s=>s.stats.totalCompleted=1.5,
- s=>s.stats.byCategory[G.categories[0].id]=-1,
- s=>s.stats.byCategory[G.categories[0].id]=.5,
- s=>s.stats.byCategory[G.categories[0].id]++,
+ s=>s.stats.byCategory[G.legacyCategories[0].id]=-1,
+ s=>s.stats.byCategory[G.legacyCategories[0].id]=.5,
+ s=>s.stats.byCategory[G.legacyCategories[0].id]++,
  s=>s.stats.byCategory.extra=0,
- s=>delete s.stats.byCategory[G.categories[0].id],
+ s=>delete s.stats.byCategory[G.legacyCategories[0].id],
  s=>s.stats.totalCompleted=Number.MAX_SAFE_INTEGER+1
 ]) {
  const broken=JSON.parse(JSON.stringify(state));mutate(broken);
@@ -92,5 +92,5 @@ const alreadyCompleted=complete(replay);
 replay=alreadyCompleted;
 check(()=>assert.equal(action(replay,'COMPLETE').stats.totalCompleted,1));
 check(()=>assert.equal(action(state,'RESET').stats.totalCompleted,0));
-check(()=>assert(G.categories.every(c=>action(state,'RESET').stats.byCategory[c.id]===0)));
+check(()=>assert(G.legacyCategories.every(c=>action(state,'RESET').stats.byCategory[c.id]===0)));
 console.log(`ONDE cumulative scoring: ${checks} targeted assertions passed; 95 completions persist beyond 80 history entries.`);

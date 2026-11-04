@@ -64,11 +64,13 @@ for(const request of [new Request('https://example.supabase.co/functions/v1/desi
 }
 check(()=>assert.equal(cacheTouches,0));
 const deleted=[];
-sandbox.caches.keys=async()=>['desir-shell:/onde-a-deux/demo-des/:connected-v2','desir-shell:/onde-a-deux/demo-des/:connected-v3','desir-shell:/onde-a-deux/demo-des/:connected-v4','desir-shell:/another-app/:connected-v1','root-app-cache','desir-shell-legacy'];
+const currentCache=vm.runInNewContext('CACHE_NAME',sandbox);
+const oldCaches=['connected-v2','connected-v3','connected-v4'].map(version=>'desir-shell:/onde-a-deux/demo-des/:'+version).filter(name=>name!==currentCache);
+sandbox.caches.keys=async()=>[...oldCaches,currentCache,'desir-shell:/another-app/:connected-v1','root-app-cache','desir-shell-legacy'];
 sandbox.caches.delete=async name=>{deleted.push(name);return true;};
 sandbox.self.clients.claim=async()=>{};
 await event('activate',{});
-check(()=>assert.deepEqual(deleted,['desir-shell:/onde-a-deux/demo-des/:connected-v2','desir-shell:/onde-a-deux/demo-des/:connected-v3']));
+check(()=>assert.deepEqual(deleted,oldCaches));
 const writes=[];
 sandbox.caches.open=async()=>({put:async(...args)=>writes.push(args)});
 sandbox.fetch=async()=>{const response=new Response('private',{headers:{'Cache-Control':'private,no-store'}});Object.defineProperty(response,'type',{value:'basic'});return response;};

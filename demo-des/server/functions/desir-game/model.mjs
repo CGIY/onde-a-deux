@@ -2,7 +2,7 @@ export class HttpError extends Error {
   constructor(status,code,message,snapshot){super(message);this.status=status;this.code=code;this.snapshot=snapshot;}
 }
 const copy=value=>JSON.parse(JSON.stringify(value));
-const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const validRequestId=id=>typeof id==='string'&&uuidPattern.test(id);
 export function validDeviceToken(token){
@@ -23,10 +23,18 @@ export function parseAction(input){
   }
   return action;
 }
-export function projectState(G,full,actor){
+export function assertClientCompatibility(G,full,actor,gameVersion){
+  if(gameVersion!==1)return;
+  const visibleRound=full.round.catalogueVersion===2&&G.canSeeRound(full,actor);
+  if(visibleRound||full.tasks.some(task=>task.variantRoll!=null)){
+    throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser le nouveau parcours.');
+  }
+}
+export function projectState(G,full,actor,gameVersion=2){
   if(!G.validateState(full)||!['a','b'].includes(actor))throw new Error('Invalid authoritative state');
+  assertClientCompatibility(G,full,actor,gameVersion);
   const projected=copy(full);projected.activePlayer=actor;projected.seen={};projected.favorites=[];
-  projected.history=projected.history.filter(round=>G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
+  projected.history=projected.history.filter(round=>(gameVersion===2||round.catalogueVersion!==2)&&G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
     if(round.from!==actor){delete round.hand;delete round.draftRollTokens;delete round.rollTokens;}
     return round;
   });
@@ -34,31 +42,43 @@ export function projectState(G,full,actor){
     projected.phase='category';projected.round=copy(G.createState().round);
     Object.assign(projected.round,{id:full.round.id,from:full.round.from,to:full.round.to});
   }else if(full.round.from!==actor&&projected.round.cardId){
-    // Keep the selected index valid without sending the three unrevealed IDs.
-    const selected=projected.round.cardId,decoys=G.cards.filter(c=>c.categoryId===projected.round.categoryId&&c.id!==selected).slice(0,3).map(c=>c.id);
-    let n=0;projected.round.hand=Array.from({length:4},(_,i)=>i===projected.round.cardRoll-1?selected:decoys[n++]);
+    // Keep the selected index valid without sending any unrevealed hand IDs.
+    const deck=projected.round.catalogueVersion===2?G.cards:G.legacyCards;
+    const sides=G.cardSides(projected),selected=projected.round.cardId,decoys=deck.filter(c=>c.categoryId===projected.round.categoryId&&c.id!==selected).slice(0,sides-1).map(c=>c.id);
+    let n=0;projected.round.hand=Array.from({length:sides},(_,i)=>i===projected.round.cardRoll-1?selected:decoys[n++]);
   }
   if(!G.validateState(projected))throw new Error('Invalid projected state');
   return projected;
 }
-export function snapshot(G,context,extra={}){
-  return {roomId:context.room.id,state:projectState(G,context.room.state,context.member.actor),revision:Number(context.room.revision),actor:context.member.actor,paired:context.paired===true,quota:copy(context.quota),...extra};
+export function snapshot(G,context,extra={},gameVersion=2){
+  return {roomId:context.room.id,state:projectState(G,context.room.state,context.member.actor,gameVersion),revision:Number(context.room.revision),actor:context.member.actor,paired:context.paired===true,quota:copy(context.quota),...extra};
 }
-export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt){
+export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
   const action=parseAction(input);
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
   if(action.type!=='TOGGLE_TASK_CHECK'&&action.roundId!==full.round.id)throw new HttpError(409,'stale_round','Le tour a changé.');
   if(action.type==='NEW_ROUND'&&!['accepted','resolved'].includes(full.phase))throw new HttpError(409,'invalid_phase','Le tour est déjà en cours.');
   const state=copy(full);state.activePlayer=actor;
   if(!G.validateState(state))throw new Error('Invalid authoritative state');
+  assertClientCompatibility(G,state,actor,gameVersion);
   let roll;
-  if(action.type==='ROLL_CATEGORY'){const value=randomInt(6);action.value=value;action.hand=G.drawHand(state,value);roll={kind:6,value};}
-  else if(action.type==='ROLL_CARD'){const value=randomInt(4);action.value=value;roll={kind:4,value};}
+  if(action.type==='ROLL_CATEGORY'){
+    const sides=G.categorySides(gameVersion),value=randomInt(sides);
+    action.value=value;action.hand=G.drawHand(state,value,gameVersion);
+    if(gameVersion===2)action.catalogueVersion=2;
+    roll={kind:sides,value};
+  }
+  else if(action.type==='ROLL_CARD'){const sides=G.cardSides(state),value=randomInt(sides);action.value=value;roll={kind:sides,value};}
+  else if(action.type==='ROLL_VARIANT'){
+    if(gameVersion!==2)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser le nouveau parcours.');
+    if(state.phase!=='variant'||state.round.from!==actor)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const sides=G.rules.variantSides,value=randomInt(sides);action.value=value;roll={kind:sides,value};
+  }
   else if(action.type==='REROLL_CARD'){
     if(!G.canRerollCard(state))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const alternatives=[1,2,3,4].filter(value=>value!==state.round.cardRoll),index=randomInt(3);
-    if(!Number.isInteger(index)||index<1||index>3)throw new Error('Invalid authoritative random outcome');
-    const value=alternatives[index-1];action.value=value;roll={kind:4,value};
+    const sides=G.cardSides(state),alternatives=Array.from({length:sides},(_,i)=>i+1).filter(value=>value!==state.round.cardRoll),index=randomInt(alternatives.length);
+    if(!Number.isInteger(index)||index<1||index>alternatives.length)throw new Error('Invalid authoritative random outcome');
+    const value=alternatives[index-1];action.value=value;roll={kind:sides,value};
   }
   else if(action.type==='ROLL_DRAFT_DEFENSE'||action.type==='ROLL_DEFENSE'){const value=randomInt(20);action.value=value;action.token='request:'+requestId;roll={kind:20,value};}
   const next=G.reduce(state,{...action,actor,at});

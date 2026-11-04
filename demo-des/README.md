@@ -10,14 +10,13 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 
 ## Jouer
 
-- Six catégories : Complicité, Détente, Projets, Attentions, Bouffe et Intimité. Le D6 choisit la catégorie ; le D4 révèle l’une des quatre cartes cachées. Aucun catalogue ne dévoile les cartes.
-- Avant l’envoi et avant de commencer son D20, la personne qui tire peut relancer le D4 une fois. Une autre carte de la même main est garantie. Cette relance supprime son D20 pour cette carte ; le destinataire garde le sien. Aucun point n’est retiré et aucun ticket supplémentaire n’est consommé.
-- Chaque personne dispose d’un tirage D6 puis D4 par plage de Paris : 6–12 h, 12–18 h, 18–6 h. Le ticket est consommé uniquement par le D6 réussi. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
+- **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues équiprobables. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
+- Chaque personne dispose d’un tirage complet par plage de Paris (6–12 h, 12–18 h, 18–6 h). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
 - Une seule manche active. Les rôles alternent au nouveau tour ; une invitation en attente garde sa place jusqu’à sa réponse. Les plages ne créent pas de manches parallèles.
 - Proposer directement ou tenter le D20 : deux jets maximum par personne, dont la somme doit atteindre les PV de la carte. Deux jets insuffisants de la personne qui tire envoient automatiquement la proposition à l’autre. Un envoi automatique nécessite ensuite les deux confirmations.
 - Une action validée à deux rejoint « À faire » pour six heures. Chacun coche sa propre case ; les deux coches retirent l’action et ajoutent un point commun. L’expiration ou le D20 ne rapporte aucun point. Plusieurs actions validées peuvent rester en attente pendant un nouveau tour.
 
-Maintenir le bouton charge visuellement le dé : le maximum est atteint après **1 200 ms**, avec **deux à cinq tours** selon la durée de maintien. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les PV, les points ou le quota. Le lancer animé dure entre **1 650 et 2 500 ms** ; une attente réseau est signalée séparément. Le D6 au repos est incliné pour laisser voir trois faces. Après le D4, la carte sélectionnée se défloute dans la grille avant l’ouverture de la fiche ; la relance conserve l’ancienne carte écartée et les autres masquées.
+Maintenir le bouton charge visuellement le dé : le maximum est atteint après **1 200 ms**, avec **deux à cinq tours** selon la durée de maintien. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les PV, les points ou le quota. Le lancer animé dure entre **1 650 et 2 500 ms** ; une attente réseau est signalée séparément. Les dés au repos gardent une orientation inclinée. Après le dé de challenge, la carte sélectionnée se défloute dans la grille avant le dé de variante. La variante apparaît ensuite dans l’invitation et la liste À faire.
 
 Les PV restent des premières estimations. La jauge montre les PV restants et les deux résultats. Les opérations sont confirmées côté serveur : une réponse répétée ne relance pas un dé et ne compte pas deux fois un point.
 
@@ -33,7 +32,7 @@ Les notifications signalent une invitation, une réponse, un dé disponible ou u
 
 ## Direction artistique
 
-Chaque carte affiche une phrase courte, chaleureuse et joueuse, propre à son activité. Les statistiques, leurs sources et la page de sélection ont été retirées. Le score commun, les grades et les PV restent les éléments du jeu.
+La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Les statistiques, leurs sources et la page de sélection ont été retirées. Le score commun, les grades et les PV restent les éléments du jeu.
 
 La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Le score commun et les accents passent au corail grisé, avec une texture propre au panneau pour rester visible. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète. Le chiffre du résultat s’éclaire progressivement en blanc ivoire brillant à la fin du lancer, y compris dans le rendu de secours.
 
@@ -52,7 +51,7 @@ python3 demo-des/dev/build.py --release    # aperçu connecté + index.html publ
 
 Un aperçu doit être servi par HTTP local. Les modes connectés lisent `config.js`, qui ne contient que l’URL du service et sa clé publiable. Ces paramètres sont incorporés au HTML pour éviter qu’un chargement de configuration manquant déclenche le mode démo. Une configuration manquante ou invalide bloque la construction connectée. Aucun identifiant, mot de passe ni secret serveur ne doit être ajouté à ce fichier.
 
-Le générateur place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La fonction Edge `desir-game` **version 3** est déployée pour cette révision.
+Le générateur place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 2 à la fonction Edge `desir-game`.
 
 ```sh
 python3 demo-des/dev/tests/onde-build-check.py
@@ -64,7 +63,7 @@ node demo-des/server/tests/backend-check.mjs
 node demo-des/server/tests/push-check.mjs
 ```
 
-Vérifications automatisées de cette révision : **437 contrôles UI**, **102 transport**, **790 backend** et **1 003 assertions de relance D4**, en plus des contrôles des règles, tâches, dés et ressources PWA. Elles ne constituent pas un essai physique sur iPhone.
+Les contrôles automatisés couvrent les 144 résultats, les manches antérieures, la confidentialité des tirages, le D20 et les points. Ils ne constituent pas un essai physique sur iPhone.
 
 Le développement Xcode est mis de côté pendant l’essai web. Le [ZIP Xcode](ONDE-Xcode.zip) et son HTML embarqué restent l’archive locale du build 7 ; `--release` ne les reconstruit plus. Cette archive ne possède ni comptes distants ni notifications. Les performances et la réception des notifications sur deux téléphones physiques restent à observer pendant l’essai.
 

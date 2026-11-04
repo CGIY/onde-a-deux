@@ -7,7 +7,7 @@ const after=ms=>new Date(Date.parse(at)+ms).toISOString();
 const clone=value=>JSON.parse(JSON.stringify(value));
 const check=fn=>{fn();checks++;};
 function act(state,type,rest={}){const next=G.reduce(state,{at,type,...rest});assert(G.validateState(next),type+' output must be valid');return next;}
-function accept(state=G.createState(),category=0){const cat=G.categories[category],hand=G.cards.filter(c=>c.categoryId===cat.id).slice(0,4).map(c=>c.id);state=act(state,'ROLL_CATEGORY',{value:cat.number,hand});state=act(state,'ROLL_CARD',{value:1});state=act(state,'SEND');state=act(state,'SWITCH_PLAYER',{player:state.round.to});return act(state,'ACCEPT');}
+function accept(state=G.createState(),category=0){const cat=G.legacyCategories[category],hand=G.legacyCards.filter(c=>c.categoryId===cat.id).slice(0,4).map(c=>c.id);state=act(state,'ROLL_CATEGORY',{value:cat.number,hand});state=act(state,'ROLL_CARD',{value:1});state=act(state,'SEND');state=act(state,'SWITCH_PLAYER',{player:state.round.to});return act(state,'ACCEPT');}
 function tick(state,ms=G.rules.taskLifetimeMs){return act(state,'EXPIRE_TASKS',{at:after(ms)});}
 function toggle(state,id,checked=true,time=at){return act(state,'TOGGLE_TASK_CHECK',{taskId:id,checked,at:time});}
 let state=accept();const id=state.round.id,task=state.tasks[0];

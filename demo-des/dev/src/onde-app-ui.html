@@ -81,7 +81,7 @@
 #onde-app-v1 .oa-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:23px 0 12px}
 #onde-app-v1 .oa-section-head h2{font-size:12px;font-weight:500;letter-spacing:.02em}
 #onde-app-v1 .oa-section-head span{font-size:11px;color:var(--oa-muted)}
-#onde-app-v1 .oa-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#onde-app-v1 .oa-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #onde-app-v1 .oa-category{min-width:0;position:relative;background:#252d28;border-radius:13px;border:1px solid #3b473d;padding:12px 10px 10px;min-height:73px;text-align:left;overflow:hidden;color:#d8dfd1}
 #onde-app-v1 button.oa-category[aria-pressed=true]{background:#3c4838;border-color:#a8b595}
 #onde-app-v1 .oa-category-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -441,12 +441,15 @@
 #onde-app-v1 .oa-ghost-title,#onde-app-v1 .oa-ghost-line{display:block;height:9px;margin:6px 18px 0;border-radius:5px;background:#d4d7c4}
 #onde-app-v1 .oa-ghost-title{width:var(--ghost-title);max-width:calc(100% - 36px);opacity:.6}
 #onde-app-v1 .oa-ghost-line{width:58%;height:4px;opacity:.35}
-/* Reveal the chosen slot before leaving the D4 screen. Hidden slots never contain titles. */
+/* Reveal the chosen slot before leaving the challenge screen. Hidden slots never contain titles. */
 #onde-app-v1 .oa-card-grid.is-revealing .oa-card-back{height:104px;min-height:104px}
 #onde-app-v1 .oa-card-back.oa-card-revealed{border-style:solid;border-color:var(--oa-accent);background:linear-gradient(145deg,color-mix(in srgb,var(--oa-accent) 27%,#2a302b),#2b302d);box-shadow:inset 0 1px #ffffff35,inset 0 -2px 5px #0002}
 #onde-app-v1 .oa-card-revealed .oa-mini-number{background:var(--oa-accent);color:#23332d}
 #onde-app-v1 .oa-reveal-content{position:absolute;inset:0;padding:38px 10px 8px;pointer-events:none;animation:oa-slot-unblur .38s cubic-bezier(.22,1,.36,1) both}
 #onde-app-v1 .oa-reveal-content h3{margin:0;font-size:11px;font-weight:500;line-height:1.3;color:#f8eedf;overflow-wrap:anywhere}
+#onde-app-v1 .oa-card-grid.is-six{grid-template-columns:repeat(3,minmax(0,1fr))}
+#onde-app-v1 .oa-card-grid.is-six .oa-card-back,#onde-app-v1 .oa-card-grid.is-six.is-revealing .oa-card-back,#onde-app-v1 .oa-card-grid.is-six.is-reroll .oa-card-back{height:120px;min-height:120px}
+#onde-app-v1 .oa-card-grid.is-six .oa-discarded-title{-webkit-line-clamp:unset}
 #onde-app-v1 .oa-reveal-category{display:none}
 #onde-app-v1 .oa-reveal-art{position:absolute;top:6px;right:10px;display:flex;align-items:center;gap:3px;height:23px}
 #onde-app-v1 .oa-reveal-art i{display:block;width:10px;height:15px;border-radius:6px;background:var(--oa-accent);transform:rotate(-22deg);box-shadow:inset 0 1px #ffffff30}
@@ -516,13 +519,13 @@
  #onde-app-v1 .oa-die-caption{padding-top:0;min-height:24px}
  #onde-app-v1 .oa-die-caption span:first-child{font-size:12px;font-weight:600;color:#efebdf}
  #onde-app-v1 .oa-stage{height:clamp(238px,30dvh,272px);margin:0 -8px}
- #onde-app-v1 .oa-stage[data-kind="6"]{height:clamp(272px,35dvh,320px)}
+ #onde-app-v1 .oa-stage[data-roll-role="category"]{height:clamp(272px,35dvh,320px)}
  #onde-app-v1 .oa-main:has(>.oa-category-grid),#onde-app-v1 .oa-main:has(>.oa-card-grid){display:flex;flex-direction:column}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>*,#onde-app-v1 .oa-main:has(>.oa-card-grid)>*{flex:none}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-dice-section,#onde-app-v1 .oa-main:has(>.oa-card-grid)>.oa-dice-section{flex:1 0 0;min-height:262px;display:flex;flex-direction:column}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-dice-section{min-height:296px}
  #onde-app-v1 .oa-main:has(>.oa-category-grid) .oa-stage,#onde-app-v1 .oa-main:has(>.oa-card-grid) .oa-stage{flex:1 0 0;height:0;min-height:238px}
- #onde-app-v1 .oa-main:has(>.oa-category-grid) .oa-stage[data-kind="6"]{min-height:272px}
+ #onde-app-v1 .oa-main:has(>.oa-category-grid) .oa-stage[data-roll-role="category"]{min-height:272px}
  #onde-app-v1 .oa-roll-status{font-size:12px;line-height:1.4;text-align:center;color:var(--oa-muted);margin:2px 0 8px}
  #onde-app-v1 .oa-roll-status.is-first-reveal{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0}
  #onde-app-v1 .oa-main:has(>.oa-category-grid)>.oa-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -541,7 +544,7 @@
  #onde-app-v1 .oa-section-head{margin:14px 0 8px}
  #onde-app-v1 .oa-section-head:has(+.oa-category-grid){display:none}
  #onde-app-v1 .oa-section-head h2{font-size:11px}
- #onde-app-v1 .oa-category-grid{gap:7px;margin-top:14px}
+ #onde-app-v1 .oa-category-grid{gap:7px;margin-top:10px}
  #onde-app-v1 .oa-category{display:flex;align-items:center;gap:6px;min-height:34px;padding:7px 8px;border-radius:11px}
  #onde-app-v1 .oa-category-top{display:flex;align-items:center;gap:4px;margin:0;flex:none}
  #onde-app-v1 .oa-category-swatch{width:5px;height:14px;border-radius:3px}
@@ -549,7 +552,12 @@
  #onde-app-v1 .oa-category-label{min-width:0;font-size:11px;line-height:1.25}
  #onde-app-v1 .oa-card-grid{gap:8px;margin-top:8px}
  #onde-app-v1 .oa-card-grid>.oa-mini-card{animation:none}
+ #onde-app-v1 .oa-main:has(.oa-stage[data-roll-role="variant"]){display:flex;flex-direction:column}
+ #onde-app-v1 .oa-main:has(.oa-stage[data-roll-role="variant"])>.oa-dice-section{flex:1 0 auto;display:flex;flex-direction:column}
+ #onde-app-v1 .oa-stage[data-roll-role="variant"]{flex:1 0 auto;min-height:272px}
+ #onde-app-v1 .oa-main:has(.oa-stage[data-roll-role="variant"])>[data-action=roll]{flex:none}
  #onde-app-v1 .oa-card-back,#onde-app-v1 .oa-card-grid.is-revealing .oa-card-back,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-back{height:clamp(90px,10dvh,104px);min-height:clamp(90px,10dvh,104px);padding:10px}
+ #onde-app-v1 .oa-card-grid.is-six[data-catalogue-version="2"] .oa-card-back,#onde-app-v1 .oa-card-grid.is-six.is-revealing[data-catalogue-version="2"] .oa-card-back{height:clamp(84px,10dvh,104px);min-height:clamp(84px,10dvh,104px)}
  #onde-app-v1 .oa-reveal-content,#onde-app-v1 .oa-card-grid.is-reroll .oa-card-discarded{padding:38px 10px 6px}
  #onde-app-v1 .oa-card-stage{padding:10px 0 0}
  #onde-app-v1 .oa-playing-card{padding:16px;border-radius:22px}

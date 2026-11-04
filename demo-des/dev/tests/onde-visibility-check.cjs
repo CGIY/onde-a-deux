@@ -18,7 +18,7 @@ function draft(from){
  let s=G.createState();
  if(from==='b')s=apply(s,{type:'SWITCH_PLAYER',player:from});
  visibility(s,false,'category '+from);
- const hand=G.cards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id);
+ const hand=G.legacyCards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id);
  s=apply(s,{type:'ROLL_CATEGORY',value:2,hand});
  visibility(s,false,'card '+from);
  s=apply(s,{type:'ROLL_CARD',value:1});

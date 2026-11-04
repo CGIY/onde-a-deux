@@ -2,7 +2,7 @@
 (function (scope) {
   'use strict';
 
-  const categories = [
+  const legacyCategories = [
     { id: 'complicite', number: 1, label: 'Complicité', color: '#92bdc7', icon: 'messages-square', description: 'Des moments à partager.' },
     { id: 'detente', number: 2, label: 'Détente', color: '#a9c48f', icon: 'leaf', description: 'Prendre soin du moment.' },
     { id: 'projets', number: 3, label: 'Projets', color: '#8198b4', icon: 'map', description: 'Imaginer et faire ensemble.' },
@@ -10,6 +10,14 @@
     { id: 'bouffe', number: 5, label: 'Bouffe', color: '#e0a08a', icon: 'utensils', description: 'Choisir de quoi se régaler.' },
     { id: 'intimite', number: 6, label: 'Intimité', color: '#c49bc9', icon: 'moon', description: 'À votre rythme et selon vos envies.' }
   ];
+
+  const categories = [
+    legacyCategories[0],
+    { ...legacyCategories[3], number:2, label:'Plaisirs', description:'À offrir, à goûter, à partager.' },
+    legacyCategories[2],
+    { ...legacyCategories[5], number:4 }
+  ];
+
 
   const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
@@ -61,7 +69,7 @@
   const stckExistingLinks={"det-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-02","title":"Massage de la tête","collectionId":"12","collectionTitle":"Massage","activeInSource":true},"tend-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"5-02","title":"Câlin (accolade)","collectionId":"11","collectionTitle":"Amour","activeInSource":true},"att-1":{"repository":"CGIY/stck","commit":"98119ed48b8af6e868582eeeed0912214e007e9c","sourcePath":"src/catalog.json","sourceId":"1-05","title":"Mot doux à cacher","collectionId":"11","collectionTitle":"Amour","activeInSource":true}};
   for(const [id,source] of Object.entries(stckExistingLinks)) { const card=legacyCards.find(card=>card.id===id); if(card)card.source=source; }
 
-  // The former catalogue stays available only to validate existing saves and history.
+  // Preserve the published catalogue for cached clients and in-progress rounds.
   const legacyCategory = id => id==='tendresse'?'complicite':id==='decouverte'?'projets':id;
   const hiddenLegacyCards = legacyCards.map(card=>Object.assign({},card,{categoryId:legacyCategory(card.categoryId)}));
   const oldCardById = Object.fromEntries(hiddenLegacyCards.map(card=>[card.id,card]));
@@ -174,7 +182,7 @@
     'new-bouffe-01':35,'new-bouffe-02':35,'new-bouffe-03':30,'new-bouffe-04':35,'new-bouffe-05':30,'new-bouffe-06':30,'new-bouffe-07':30,'new-bouffe-08':35,'new-bouffe-09':35,'new-bouffe-10':30,'new-bouffe-11':35,'new-bouffe-12':35,
     'new-intimite-01':35,'new-intimite-02':20,'new-intimite-03':25,'new-intimite-04':30,'new-intimite-05':35,'new-intimite-06':25,'new-intimite-07':20,'new-intimite-08':20,'new-intimite-09':15,'new-intimite-10':15,'new-intimite-11':10,'new-intimite-12':10,'new-intimite-13':15,'new-intimite-14':15,'new-intimite-15':10,'new-intimite-16':15,'new-intimite-17':15,'new-intimite-18':10,'new-intimite-19':10,'new-intimite-20':15,'new-intimite-21':20,'new-intimite-22':35
   });
-  const cards = catalogRows.map((row,index)=>{
+  const publishedCards = catalogRows.map(row=>{
     const old=(row.legacyId&&oldCardById[row.legacyId])||sourceIdByTitle[row.title]||null;
     const prompts=categoryPrompts[row.categoryId];
     return {id:row.id,categoryId:row.categoryId,title:row.title,description:prompts,duration:null,hp:resistanceByCard[row.id],variant:'Choisissez ensemble une version plus simple ou un autre moment.',variantDuration:null,...(old&&old.source?{source:old.source}:{})};
@@ -182,15 +190,66 @@
 
   const legacyFavoriteMap = Object.fromEntries(catalogRows.filter(row=>row.legacyId).map(row=>[row.legacyId,row.id]));
 
+  const newCards = [
+    {"id":"six-complicite-petit-mot","categoryId":"complicite","title":"Cacher un mot","description":"Écris un petit mot et cache-le pour l’autre.","duration":null,"hp":35,"variants":["Un compliment","Un mot doux","Un surnom débile","Une définition au hasard","Un souvenir en une phrase","Une blague à deux"]},
+    {"id":"six-complicite-selfie","categoryId":"complicite","title":"Selfie à deux","description":"Prenez un selfie à deux avec le cadrage tiré.","duration":null,"hp":35,"variants":["Les yeux","Le nez","Les oreilles","Visages entiers","Visages et corps","Vos mains"]},
+    {"id":"six-complicite-massage","categoryId":"complicite","title":"Massage et câlins","description":"Partagez le geste tiré.","duration":null,"hp":35,"variants":["Massage de la tête","Massage des épaules","Massage des pieds","Massage du dos","Câlin","Caresses sous le plaid"]},
+    {"id":"six-complicite-soins","categoryId":"complicite","title":"Soin à deux","description":"Prépare le soin tiré.","duration":null,"hp":35,"variants":["Pose de vernis","Masque visage","Soin complet du visage","Crème sur les jambes","Crème sur le corps","Gommage"]},
+    {"id":"six-complicite-soiree","categoryId":"complicite","title":"Soirée à deux","description":"Partagez le programme tiré.","duration":null,"hp":30,"variants":["Film · comédie","Film · action ou aventure","Série · policière","Série · fantastique","Jeu de société · coopératif","Jeu de société · ambiance"]},
+    {"id":"six-complicite-telephone","categoryId":"complicite","title":"Parenthèse sans téléphone","description":"Mettez vos téléphones de côté pendant la durée tirée.","duration":null,"hp":30,"variants":["15 min en mode silence","30 min en mode avion","1 h dans un tiroir","2 h en mode avion","3 h dans un tiroir","5 h téléphone éteint"]},
+    {"id":"six-attention-cadeau","categoryId":"attention","title":"À offrir","description":"Choisis un cadeau dans la famille et le budget tirés.","duration":null,"hp":30,"variants":["Roman · 15 € max","Manga · 10 € max","Jeu vidéo · 30 € max","Jeu de société · 40 € max","Passage du Désir · 30 € max","Cadeau surprise · 20 € max"]},
+    {"id":"six-attention-vinted","categoryId":"attention","title":"Une pièce à offrir","description":"Choisis une pièce dans la sélection tirée.","duration":null,"hp":35,"variants":["Vinted · T-shirt · 10 € max","Vinted · robe · 20 € max","Vinted · chemise · 15 € max","Monoprix · haut · 20 € max","Rouge Gorge · culotte · 20 € max","Rouge Gorge · soutien-gorge · 30 € max"]},
+    {"id":"six-attention-emporter","categoryId":"attention","title":"Pause à emporter","description":"Prenez quelque chose à emporter dans le style tiré.","duration":null,"hp":35,"variants":["Burger","Pizza","Sushi","Kebab","Café à Columbus","Sandwich"]},
+    {"id":"six-attention-cuisine","categoryId":"attention","title":"Cuisine du monde","description":"Choisissez un plat de la cuisine tirée et préparez-le ensemble.","duration":null,"hp":30,"variants":["Mexique","Japon","Inde","Thaïlande","Italie","Grèce"]},
+    {"id":"six-attention-douceur","categoryId":"attention","title":"Douceur maison","description":"Préparez ensemble la douceur tirée.","duration":null,"hp":30,"variants":["Crêpes","Cookies","Tarte aux fruits","Gâteau au chocolat","Gâteau au yaourt","Gaufres"]},
+    {"id":"six-attention-petit-truc","categoryId":"attention","title":"Préparer un petit truc","description":"Prépare pour l’autre le petit moment tiré.","duration":null,"hp":35,"variants":["Café","Apéro","Goûter","Thé ou infusion","Petit-déjeuner","Chocolat et canapé"]},
+    {"id":"six-projets-balade","categoryId":"projets","title":"Balade","description":"Partez vous promener dans le cadre tiré.","duration":null,"hp":30,"variants":["Dans votre rue","En ville","En forêt","Dans un parc","À 10 minutes en voiture","À 30 minutes en voiture"]},
+    {"id":"six-projets-photo","categoryId":"projets","title":"Sortie photo","description":"Faites une sortie photo dans le cadre tiré.","duration":null,"hp":30,"variants":["Dans votre rue","En ville","En forêt","Dans un parc","À 10 minutes en voiture","À 30 minutes en voiture"]},
+    {"id":"six-projets-atelier","categoryId":"projets","title":"Atelier créatif","description":"Réalisez une petite création chacun avec le thème tiré.","duration":null,"hp":30,"variants":["Aquarelle · paysage","Aquarelle · fleur ou plante","Aquarelle · portrait de l’autre","Argile · coupelle","Argile · figurine","Argile · médaillon"]},
+    {"id":"six-projets-escapade","categoryId":"projets","title":"Préparer une escapade","description":"Esquissez ensemble le programme de la sortie tirée.","duration":null,"hp":25,"variants":["Une soirée","Une journée","Un week-end","Des vacances","Une demi-journée près de chez vous","Une nuit ailleurs"]},
+    {"id":"six-projets-amenager","categoryId":"projets","title":"Réaménager un coin","description":"Choisissez un endroit de la maison où faire le changement tiré.","duration":null,"hp":20,"variants":["Déplacer un meuble","Changer une décoration","Revoir la décoration d’un mur","Réorganiser un rangement","Réaménager un meuble","Faire une retouche de peinture"]},
+    {"id":"six-projets-trier","categoryId":"projets","title":"Désencombrer","description":"Choisissez une pièce et sortez du rangement le nombre d’objets tiré.","duration":null,"hp":25,"variants":["1 objet","2 objets","3 objets","4 objets","5 objets","6 objets"]},
+    {"id":"six-intimite-baiser","categoryId":"intimite","title":"Un baiser","description":"Retrouvez-vous pour un baiser au moment tiré.","duration":null,"hp":35,"variants":["En vous retrouvant","Au réveil","Avant de sortir","Après le dîner","Pendant une pause","Avant de dormir"]},
+    {"id":"six-intimite-fellation","categoryId":"intimite","title":"Fellation","description":"Le dé précise le lieu.","duration":null,"hp":35,"variants":["Chambre","Cuisine","Douche","Bureau","Salon","Véranda"]},
+    {"id":"six-intimite-cunnilingus","categoryId":"intimite","title":"Cunnilingus","description":"Le dé précise le lieu.","duration":null,"hp":35,"variants":["Chambre","Cuisine","Douche","Bureau","Salon","Véranda"]},
+    {"id":"six-intimite-penetration","categoryId":"intimite","title":"Pénétration","description":"Le dé précise la position.","duration":null,"hp":25,"variants":["Missionnaire","Andromaque","Andromaque inversée","Levrette","Cuillère","Position au choix"]},
+    {"id":"six-intimite-lovense","categoryId":"intimite","title":"Lovense","description":"Le dé précise la durée.","duration":null,"hp":30,"variants":["5 minutes","10 minutes","15 minutes","20 minutes","30 minutes","1 heure"]},
+    {"id":"six-intimite-photoshoot","categoryId":"intimite","title":"Photoshoot original","description":"Prenez une photo à deux sur le thème tiré.","duration":null,"hp":25,"variants":["Silhouette","Noir et blanc","Reflet","Ombres","Portrait serré","Lumière naturelle"]}
+  ];
+
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:6, cardSides:4, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
-  const cardMap = Object.fromEntries([...hiddenLegacyCards,...cards].map(card => [card.id, card]));
+  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:4, cardSides:6, variantSides:6, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
+  const legacyCardSides = 4;
+  const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards].map(card => [card.id, card]));
+  const legacyCategoryMap = Object.fromEntries(legacyCategories.map(category => [category.id, category]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
-  const phases = ['category','card','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
+  const catalogueCategories = version => version===2?categories:legacyCategories;
+  const categorySides = version => catalogueCategories(version).length;
+  const mergedCategory = id => id==='detente'?'complicite':id==='bouffe'?'attention':id;
+  const phases = ['category','card','variant','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
   const prefKeys = ['reducedMotion','sound','discreet','reminder'];
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
-  const getCard = id => cardMap[id] || null;
-  const getCategory = id => categoryMap[id] || null;
+  const getCard = id => Object.prototype.hasOwnProperty.call(cardMap,id)?cardMap[id]:null;
+  const getCategory = (id,version=2) => {
+    if(version===2 && Object.prototype.hasOwnProperty.call(categoryMap,id)) return categoryMap[id];
+    return Object.prototype.hasOwnProperty.call(legacyCategoryMap,id)?legacyCategoryMap[id]:null;
+  };
+  const getVariant = round => {
+    const face=round?.variantRoll;
+    return Number.isInteger(face) && face>=1 && face<=rules.variantSides?getCard(round.cardId)?.variants?.[face-1]??null:null;
+  };
+  const validSelectedVariant = entry => getCard(entry.cardId)?.variants?getVariant(entry)!==null:entry.variantRoll===undefined;
+  const validHand = (hand, category, modern) =>
+    Array.isArray(hand) && (modern?hand.length===rules.cardSides:[legacyCardSides,rules.cardSides].includes(hand.length)) &&
+    new Set(hand).size===hand.length && Array.from(hand).every(id=>{
+      const card=getCard(id);
+      return card?.categoryId===category && Boolean(card.variants)===modern;
+    });
+  // Published four-card draws keep their original die until the next round.
+  const cardSides = stateOrRound => {
+    const round=stateOrRound&&stateOrRound.round||stateOrRound;
+    return round&&Array.isArray(round.hand)&&[4,6].includes(round.hand.length)?round.hand.length:rules.cardSides;
+  };
   const isoTime = value => typeof value==='string' && Number.isFinite(Date.parse(value)) && new Date(Date.parse(value)).toISOString()===value;
   const taskStartTime = value => isoTime(value) && Date.parse(value)<=8640000000000000-rules.taskLifetimeMs;
   const fallbackTime = '1970-01-01T00:00:00.000Z';
@@ -217,15 +276,20 @@
   }
 
   function emptyStats() {
-    return { totalCompleted:0, byCategory:Object.fromEntries(categories.map(category=>[category.id,0])) };
+    return { totalCompleted:0, byCategory:Object.fromEntries(legacyCategories.map(category=>[category.id,0])) };
   }
 
   function validStats(stats) {
     if(!stats || typeof stats!=='object' || Array.isArray(stats) || !Number.isSafeInteger(stats.totalCompleted) || stats.totalCompleted<0) return false;
     const byCategory=stats.byCategory;
-    if(!byCategory || typeof byCategory!=='object' || Array.isArray(byCategory) || Object.keys(byCategory).length!==categories.length) return false;
-    if(categories.some(category=>!Object.prototype.hasOwnProperty.call(byCategory,category.id) || !Number.isSafeInteger(byCategory[category.id]) || byCategory[category.id]<0)) return false;
-    return categories.reduce((total,category)=>total+byCategory[category.id],0)===stats.totalCompleted;
+    if(!byCategory || typeof byCategory!=='object' || Array.isArray(byCategory) || Object.keys(byCategory).length!==legacyCategories.length) return false;
+    if(legacyCategories.some(category=>!Object.prototype.hasOwnProperty.call(byCategory,category.id) || !Number.isSafeInteger(byCategory[category.id]) || byCategory[category.id]<0)) return false;
+    return legacyCategories.reduce((total,category)=>total+byCategory[category.id],0)===stats.totalCompleted;
+  }
+
+  function categoryScore(stats,id) {
+    return legacyCategories.filter(category=>mergedCategory(category.id)===id)
+      .reduce((total,category)=>total+stats.byCategory[category.id],0);
   }
 
   function createState() {
@@ -247,15 +311,17 @@
 
   function validTasks(s) {
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
-    const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'].sort().join(',');
+    const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
-      if(!task || typeof task!=='object' || Array.isArray(task) || Object.keys(task).sort().join(',')!==keys) return false;
+      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task)) return false;
+      const expectedKeys=task.variantRoll===undefined?keys:[...keys,'variantRoll'];
+      if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
       if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || Date.parse(task.expiresAt)-Date.parse(task.createdAt)!==rules.taskLifetimeMs) return false;
       if(!task.checks || typeof task.checks!=='object' || Array.isArray(task.checks) || Object.keys(task.checks).sort().join(',')!=='a,b' || ['a','b'].some(id=>typeof task.checks[id]!=='boolean') || task.checks.a&&task.checks.b) return false;
       if(task.proposal!==null && (typeof task.proposal!=='string' || !task.proposal.trim() || task.proposal.length>400)) return false;
-      if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
+      if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.variantRoll!==s.round.variantRoll || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
       return !s.history.some(round=>round&&round.id===task.id && ['completed','expired','passed','defended'].includes(round.status));
     });
   }
@@ -267,26 +333,29 @@
     if (!validTasks(s)) return false;
     if (!Array.isArray(s.favorites) || s.favorites.some(id => !getCard(id)) || !s.prefs || prefKeys.some(k => typeof s.prefs[k] !== 'boolean')) return false;
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
-    if (Object.entries(s.seen).some(([key,list]) => !getCategory(key) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
+    if (Object.entries(s.seen).some(([key,list]) => !getCategory(key,1) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
-    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item))) return false;
+    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
     const r=s.round;
     if (r.id !== 'onde-'+s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
-    if (!validCardReroll(r)) return false;
+    const modern=r.catalogueVersion===2;
+    if (!validCardReroll(r) || (modern?r.cardRerolled:r.catalogueVersion!==undefined||r.variantRoll!==undefined)) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
     const beforeCard=r.rolls.length===0 && r.draftRolls.length===0 && !r.challengeUsed && !r.draftChallengeUsed && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
-    if (s.phase === 'category') return r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
-    const cat=getCategory(r.categoryId);
-    if (!cat || r.categoryRoll !== cat.number || r.hand.length !== 4 || new Set(r.hand).size !== 4 || r.hand.some(id => !getCard(id) || getCard(id).categoryId !== cat.id)) return false;
-    if (s.phase === 'card') return r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (s.phase === 'category') return !modern && r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
+    const cat=catalogueCategories(r.catalogueVersion).find(category=>category.id===r.categoryId);
+    if (!cat || r.categoryRoll !== cat.number || !validHand(r.hand,cat.id,modern)) return false;
+    if (s.phase === 'card') return (!modern || r.variantRoll===null) && r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
     // PV belong to the round that was drawn. A later catalogue update must not
     // rewrite an in-progress challenge or invalidate an already won one.
-    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>4 || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
+    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
+    if(s.phase==='variant') return modern && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if(!validSelectedVariant(r)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(r.autoProposed && (!r.draftChallengeUsed || r.draftRolls.length!==2 || draftTotal>=r.hp)) return false;
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
@@ -320,23 +389,51 @@
     let migrated;
     try {migrated=JSON.parse(JSON.stringify(state));} catch(_) {return null;}
     if(!migrated.round || typeof migrated.round!=='object' || Array.isArray(migrated.round)) return null;
+    let mergedCategories=false;
     if(migrated.stats&&migrated.stats.byCategory&&!validStats(migrated.stats)){
       const old=migrated.stats.byCategory;
       if(!old || typeof old!=='object' || Array.isArray(old)) return null;
       const keys=Object.keys(old).sort().join(',');
-      const legacyKeys=[['complicite','detente','tendresse','attention','decouverte','intimite'],['complicite','detente','attention','bouffe','intimite']];
-      // Only migrate catalogue shapes that were actually published. Do not
-      // silently drop an unknown counter or repair a damaged current save.
-      if(!legacyKeys.some(list=>list.sort().join(',')===keys) || Object.values(old).some(value=>!Number.isSafeInteger(value)||value<0)) return null;
+      const legacyKeys=['attention,complicite,decouverte,detente,intimite,tendresse','attention,bouffe,complicite,detente,intimite'];
+      mergedCategories=keys==='attention,complicite,intimite,projets';
+      if((!mergedCategories&&!legacyKeys.includes(keys)) || Object.values(old).some(value=>!Number.isSafeInteger(value)||value<0)) return null;
+      // A merged local save cannot tell how its past points were split.
+      // Keep its aggregate buckets under Complicité and Attentions.
       migrated.stats.byCategory={complicite:(old.complicite||0)+(old.tendresse||0),detente:old.detente||0,projets:(old.projets||0)+(old.decouverte||0),attention:old.attention||0,bouffe:old.bouffe||0,intimite:old.intimite||0};
     }
-    if(migrated.round.categoryId){migrated.round.categoryId=legacyCategory(migrated.round.categoryId);const mapped=getCategory(migrated.round.categoryId);if(mapped)migrated.round.categoryRoll=mapped.number;}
+    const restoreCategory=(id,cardId)=>{
+      const canonical=legacyCategory(id), card=getCard(cardId);
+      return mergedCategories && card && mergedCategory(card.categoryId)===canonical?card.categoryId:canonical;
+    };
     if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
-    migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>legacyFavoriteMap[id]||id))):migrated.favorites;
-    if(migrated.seen&&typeof migrated.seen==='object'){
-      const seen={};for(const [id,list] of Object.entries(migrated.seen)){const key=legacyCategory(id);seen[key]=[...(seen[key]||[]),...(Array.isArray(list)?list:[])].slice(0,8);}migrated.seen=seen;
+    migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>Object.prototype.hasOwnProperty.call(legacyFavoriteMap,id)?legacyFavoriteMap[id]:id))):migrated.favorites;
+    if(migrated.seen&&typeof migrated.seen==='object'&&!Array.isArray(migrated.seen)){
+      const seen={};
+      for(const [id,list] of Object.entries(migrated.seen)){
+        if(!getCategory(legacyCategory(id))||!Array.isArray(list)) return null;
+        for(const cardId of list){
+          const key=restoreCategory(id,cardId);
+          seen[key]??=[];
+          if(seen[key].length<rules.recentCardLimit&&!seen[key].includes(cardId)) seen[key].push(cardId);
+        }
+      }
+      migrated.seen=seen;
+    }
+    // The local four-category build combined Détente with Complicité and
+    // Bouffe with Attentions. Preserve the card and its face on active draws.
+    const active=migrated.round;
+    if(mergedCategories && active.catalogueVersion===undefined && getCategory(active.categoryId) && Array.isArray(active.hand) &&
+      active.hand.every(id=>mergedCategory(getCard(id)?.categoryId)===active.categoryId)){
+      const category=restoreCategory(active.categoryId,active.cardId);
+      const replacements=publishedCards.filter(card=>card.categoryId===category&&!active.hand.includes(card.id));
+      active.hand=active.hand.map(id=>getCard(id).categoryId===category?id:replacements.shift()?.id);
     }
     function extendRound(round, phase) {
+      if(round.categoryId && round.catalogueVersion===undefined){
+        round.categoryId=restoreCategory(round.categoryId,round.cardId);
+        const mapped=getCategory(round.categoryId,1);
+        if(mapped) round.categoryRoll=mapped.number;
+      }
       const missing=key=>!Object.prototype.hasOwnProperty.call(round,key);
       if(missing('cardRerolled')) round.cardRerolled=false;
       if(missing('draftRolls')) round.draftRolls=[];
@@ -356,6 +453,7 @@
     }
     extendRound(migrated.round,migrated.phase);
     if(Array.isArray(migrated.history)) for(const round of migrated.history) if(round && typeof round==='object') extendRound(round,'resolved');
+    if(Array.isArray(migrated.tasks)) for(const task of migrated.tasks) if(task&&typeof task==='object') task.categoryId=restoreCategory(task.categoryId,task.cardId);
     if(!has('tasks')) {
       migrated.tasks=[];
       if(migrated.phase==='accepted') {
@@ -384,16 +482,16 @@
     return migrated;
   }
 
-  function drawHand(state, categoryId) {
-    const category=typeof categoryId==='number' ? categories.find(c=>c.number===categoryId) : getCategory(categoryId);
+  function drawHand(state, categoryId, catalogueVersion) {
+    const category=catalogueCategories(catalogueVersion).find(c=>c.number===categoryId||c.id===categoryId);
     if (!category) throw new RangeError('Unknown category.');
-    const available=cards.filter(c=>c.categoryId===category.id).map(c=>c.id);
-    // Keep enough cards for a complete D4 hand while giving recently drawn
-    // cards a rest. Small categories cycle sooner without favouring one face.
-    const recent=(state.seen[category.id] || []).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-4)));
+    const modern=catalogueVersion===2;
+    const sides=modern?rules.cardSides:legacyCardSides;
+    const available=(modern?newCards:publishedCards).filter(c=>c.categoryId===category.id).map(c=>c.id);
+    const recent=(state.seen[category.id] || []).filter(id=>available.includes(id)).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-sides)));
     const pool=available.filter(id=>!recent.includes(id));
     for(let i=pool.length-1;i>0;i--) { const j=randomInt(i+1)-1; [pool[i],pool[j]]=[pool[j],pool[i]]; }
-    return pool.slice(0,4);
+    return pool.slice(0,sides);
   }
 
   /* Exact probability of reaching HP with at most two fair, independent D20s. */
@@ -422,7 +520,7 @@
     return Array.isArray(round.rolls) && round.rolls.length>0;
   }
 
-  const canRerollCard=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
+  const canRerollCard=s=>s.phase==='draft' && s.round.catalogueVersion!==2 && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
   const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && !s.round.cardRerolled && Number.isFinite(getCard(s.round.cardId)?.hp);
   const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
 
@@ -435,7 +533,7 @@
     if(s.tasks.some(task=>task.id===r.id)) return;
     s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
-      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null});
+      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null,...(r.catalogueVersion===2?{variantRoll:r.variantRoll}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
 
@@ -443,6 +541,7 @@
     const current=s.round.id===task.id&&s.phase==='accepted';
     const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
     const ended={...base,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:2,variantRoll:task.variantRoll});
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
     s.tasks=s.tasks.filter(item=>item.id!==task.id);
@@ -521,10 +620,13 @@
         s.round=blankRound(s.sequence,s.activePlayer,action.at);
         return s;
       case 'ROLL_CATEGORY': {
-        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>6) return state;
-        const cat=categories.find(c=>c.number===action.value);
-        if(!cat || !Array.isArray(action.hand) || action.hand.length!==4 || new Set(action.hand).size!==4 || action.hand.some(id=>!getCard(id) || getCard(id).categoryId!==cat.id)) return state;
+        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>categorySides(action.catalogueVersion)) return state;
+        const cat=catalogueCategories(action.catalogueVersion).find(c=>c.number===action.value);
+        const modern=action.catalogueVersion===2;
+        if(action.catalogueVersion!==undefined && !modern) return state;
+        if(!cat || !validHand(action.hand,cat.id,modern)) return state;
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
+        if(modern) Object.assign(r,{catalogueVersion:2,variantRoll:null});
         s.phase='card';
         return s;
       }
@@ -532,13 +634,20 @@
       case 'REROLL_CARD': {
         const reroll=kind==='REROLL_CARD';
         if(reroll?!canRerollCard(s):s.phase!=='card' || actor!==r.from) return state;
-        if(!Number.isInteger(action.value) || action.value<1 || action.value>4 || reroll&&action.value===r.cardRoll) return state;
-        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp; r.status='draft';
+        if(!Number.isInteger(action.value) || action.value<1 || action.value>cardSides(r) || reroll&&action.value===r.cardRoll) return state;
+        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp;
         if(reroll) r.cardRerolled=true;
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
-        s.phase='draft';
+        s.phase=r.catalogueVersion===2?'variant':'draft';
+        r.status=s.phase==='variant'?'drawing':'draft';
         return s;
       }
+      case 'ROLL_VARIANT':
+        if(s.phase!=='variant' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>rules.variantSides) return state;
+        r.variantRoll=action.value;
+        r.status='draft';
+        s.phase='draft';
+        return s;
       case 'SEND':
         if(!['draft','draft_challenge'].includes(s.phase) || actor!==r.from) return state;
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
@@ -581,7 +690,7 @@
         return s;
       case 'ADAPT':
         if(!canRespond(s)) return state;
-        r.proposal=(typeof action.text==='string' && action.text.trim() ? action.text.trim() : getCard(r.cardId).variant).slice(0,400);
+        r.proposal=(typeof action.text==='string' && action.text.trim() ? action.text.trim() : (getVariant(r)||getCard(r.cardId).variant)).slice(0,400);
         r.fromConfirmed=actor===r.from; r.toConfirmed=actor===r.to;
         r.adapted=true; r.status='counterproposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
         return s;
@@ -602,7 +711,7 @@
       case 'CANCEL':
         // The drawer must propose the card or resolve their own D20 challenge.
         // Passing becomes available once the card reaches the other player.
-        if(s.phase==='draft' || s.phase==='draft_challenge') return state;
+        if(['variant','draft','draft_challenge'].includes(s.phase)) return state;
         if(!r.cardId || s.phase==='resolved') return state;
         closeRound(s,'passed',action);
         return s;
@@ -615,7 +724,7 @@
     }
   }
 
-  const api={categories,cards,players,rules,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
+  const api={categories,legacyCategories,categorySides,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
