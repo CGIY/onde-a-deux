@@ -63,7 +63,7 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   assertClientCompatibility(G,state,actor,gameVersion);
   let roll;
   if(action.type==='ROLL_CATEGORY'){
-    const sides=G.categorySides(gameVersion),value=randomInt(sides);
+    const sides=G.categorySides(gameVersion),value=G.rollCategory(gameVersion,randomInt);
     action.value=value;action.hand=G.drawHand(state,value,gameVersion);
     if(gameVersion===2)action.catalogueVersion=2;
     roll={kind:sides,value};

@@ -10,7 +10,7 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 
 ## Jouer
 
-- **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues équiprobables. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
+- **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues possibles. Le D4 donne un poids de 11 à Complicité et Intimité et de 10 à Plaisirs et Projets. Les deux D6 et le D20 restent uniformes. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
 - Chaque personne dispose d’un tirage complet par plage de Paris (6–12 h, 12–18 h, 18–6 h). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
 - Une seule manche active. Les rôles alternent au nouveau tour ; une invitation en attente garde sa place jusqu’à sa réponse. Les plages ne créent pas de manches parallèles.
 - Proposer directement ou tenter le D20 : deux jets maximum par personne, dont la somme doit atteindre les PV de la carte. Deux jets insuffisants de la personne qui tire envoient automatiquement la proposition à l’autre. Un envoi automatique nécessite ensuite les deux confirmations.

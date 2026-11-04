@@ -74,9 +74,9 @@ async function rollSession(options={}){
 (async()=>{
  // New draws expose four category labels, then six unreadable challenge slots.
  {
-  const ui=shell(mockRemote(),{mode:false,randomFace:2});
+  const ui=shell(mockRemote(),{mode:false,randomFace:12});
   check(()=>{assert.equal((ui.html.match(/class="oa-category"/g)||[]).length,4);assert.ok(ui.html.includes('Complicité'));assert.ok(ui.html.includes('Plaisirs'));assert.ok(!ui.html.includes('Détente'));assert.ok(ui.html.includes('data-kind="4" data-value="3" data-roll-role="category"'));});
-  await ui.click('roll');check(()=>{assert.deepEqual(ui.rngSides,[4]);assert.equal(ui.stage.dataset.rollRole,'card');assert.equal(ui.stage.dataset.kind,'6');assert.ok(ui.html.includes('class="oa-card-grid is-six"'));assert.ok(ui.html.includes('Six cartes face cachée'));assert.equal((ui.html.match(/aria-label="Carte [1-6] face cachée"/g)||[]).length,6);});
+  await ui.click('roll');check(()=>{assert.deepEqual(ui.rngSides,[42]);assert.deepEqual(ui.die.calls,[2]);assert.equal(ui.stage.dataset.rollRole,'card');assert.equal(ui.stage.dataset.kind,'6');assert.ok(ui.html.includes('class="oa-card-grid is-six"'));assert.ok(ui.html.includes('Six cartes face cachée'));assert.equal((ui.html.match(/aria-label="Carte [1-6] face cachée"/g)||[]).length,6);});
  }
  // The new third roll remains private, survives reload, and carries its exact detail through both worlds.
  {

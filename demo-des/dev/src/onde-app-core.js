@@ -19,6 +19,11 @@
   ];
 
 
+  // Equal base weights, with one extra ticket for the two favored themes.
+  const categoryTickets = categories.flatMap(category =>
+    Array(['complicite','intimite'].includes(category.id)?11:10).fill(category.number)
+  );
+
   const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
     { id:'comp-2', categoryId:'complicite', title:'Un souvenir à deux', description:'Racontez chacun un détail d’un moment partagé que vous aimeriez revivre.', duration:5, hp:18, variant:'Partagez simplement le nom de ce souvenir.', variantDuration:1 },
@@ -263,6 +268,10 @@
       return (sample[0] % n) + 1;
     }
     return Math.floor(Math.random() * n) + 1;
+  }
+
+  function rollCategory(version, draw=randomInt) {
+    return version===2?categoryTickets[draw(categoryTickets.length)-1]:draw(categorySides(version));
   }
 
   function blankRound(sequence, from, at) {
@@ -724,7 +733,7 @@
     }
   }
 
-  const api={categories,legacyCategories,categorySides,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

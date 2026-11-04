@@ -40,6 +40,8 @@ Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VAR
 
 Le client indique `gameVersion:2` à la racine des requêtes de jeu. Une ancienne requête, sans ce champ ou avec la valeur 1, conserve le parcours D6 / D4. Les manches déjà tirées conservent leur main, leurs PV et leur dé. Une manche au nouveau format révèle une catégorie au D4, un de ses six challenges au D6, puis l’une des six variantes de ce challenge au D6. La variante tirée reste attachée à la proposition et à la tâche. Les comptes, scores, historiques et échéances sont conservés.
 
+Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 et le D20 restent uniformes. Une ancienne requête conserve le D6 de catégorie uniforme.
+
 Une version ancienne reçoit une erreur `upgrade_required` si elle doit afficher une manche ou une tâche au nouveau format. Elle garde une vue neutre tant que le tirage de l’autre joueur est privé. Les anciennes entrées de score restent comptées et l’ancien client reçoit seulement l’historique qu’il sait lire. Le déploiement commence par la fonction Edge, puis le client web. Après le premier tirage au nouveau format, tout correctif serveur doit conserver la lecture de ce format.
 
 Chaque compte dispose d’un tirage par plage de Paris de 6 h à 12 h, de 12 h à 18 h et de 18 h à 6 h. La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche et les jets de D20 ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris`.

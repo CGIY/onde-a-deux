@@ -38,9 +38,24 @@ for(const type of ['ROLL_CATEGORY','REROLL_CARD','ROLL_VARIANT'])for(const forbi
  checks++;assert.throws(()=>parseAction(action),HttpError,'reject client '+type+' '+forbidden);
 }
 equal(parseAction({type:'REROLL_CARD',roundId:'onde-1'}),{type:'REROLL_CARD',roundId:'onde-1'});
+// Exercise each integer ticket, including both ends of every face interval.
+const categoryDraws=new Map(),categoryCounts={complicite:0,attention:0,projets:0,intimite:0};
+for(let ticket=1;ticket<=42;ticket++){
+ const randomCalls=[],drawn=applyAction(G,G.createState(),'a',{type:'ROLL_CATEGORY',roundId:'onde-1'},uuid(30+ticket),at,n=>{randomCalls.push(n);return ticket;},2);
+ const expectedFace=ticket<=11?1:ticket<=21?2:ticket<=31?3:4;
+ const category=G.categories[expectedFace-1];
+ equal(randomCalls,[42],'weighted D4 draws one uniform ticket');equal(drawn.roll,{kind:4,value:expectedFace});
+ equal(drawn.state.round.categoryId,category.id);categoryCounts[category.id]++;
+ categoryDraws.set(category.id,drawn);
+}
+equal(categoryCounts,{complicite:11,attention:10,projets:10,intimite:11},'Complicité and Intimité each receive 10% more tickets');
+for(const category of G.legacyCategories){
+ const legacy=applyAction(G,G.createState(),'a',{type:'ROLL_CATEGORY',roundId:'onde-1'},uuid(80+category.number),at,n=>{equal(n,6);return category.number;});
+ equal(legacy.roll,{kind:6,value:category.number});equal(legacy.state.round.categoryId,category.id);
+}
 for(const category of G.categories){
- const randomCalls=[],drawn=applyAction(G,G.createState(),'a',{type:'ROLL_CATEGORY',roundId:'onde-1'},uuid(30+category.number),at,sides=>{randomCalls.push(sides);return category.number;},2);
- equal(randomCalls,[4],'new category draw uses four equiprobable faces');equal(drawn.roll,{kind:4,value:category.number});equal(drawn.state.round.categoryId,category.id);equal(drawn.state.round.catalogueVersion,2);equal(drawn.state.round.hand.length,6);equal(drawn.consumeTicket,true);
+ const drawn=categoryDraws.get(category.id);
+ equal(drawn.state.round.catalogueVersion,2);equal(drawn.state.round.hand.length,6);equal(drawn.consumeTicket,true);
  equal([...drawn.state.round.hand].sort(),G.cards.filter(c=>c.categoryId===category.id).map(c=>c.id).sort(),'all six canonical challenges are in the hand');
  for(const cardRoll of [1,2,3,4,5,6]){
   const rolled=applyAction(G,drawn.state,'a',{type:'ROLL_CARD',roundId:'onde-1'},uuid(40+cardRoll),at,sides=>{equal(sides,6);return cardRoll;},2);
@@ -166,17 +181,17 @@ for(const sides of [4,6]){
  const draw=await deliver(action('ROLL_CATEGORY',501));equal(draw.status,200);equal(draw.body.roll,{kind:4,value:4});equal(draw.body.state.round.catalogueVersion,2);
  const stale=await deliver({op:'state'});equal(stale.status,409);equal(stale.body.error.code,'upgrade_required');equal(stale.body.state,undefined);
  equal((await deliver({op:'state'},tokenB)).body.state.round.hand,[],'an old recipient still sees a neutral private round');
- equal((await deliver(action('ROLL_CARD',502,1))).status,409);equal(rng,[4],'outdated client does not advance the private round');
+ equal((await deliver(action('ROLL_CARD',502,1))).status,409);equal(rng,[42],'outdated client does not advance the private round');
  const drawn=await deliver(action('ROLL_CARD',502));equal(drawn.status,200);equal(drawn.body.roll,{kind:6,value:6});equal(drawn.body.state.phase,'variant');
  const hidden=await deliver({op:'state',gameVersion:2},tokenB);equal(hidden.body.state.round.cardId,null);equal(hidden.body.state.round.variantRoll,undefined);
- equal((await deliver(action('ROLL_VARIANT',503),tokenB)).status,409);equal(rng,[4,6],'other player cannot roll a private variation');
+ equal((await deliver(action('ROLL_VARIANT',503),tokenB)).status,409);equal(rng,[42,6],'other player cannot roll a private variation');
  equal((await deliver(action('ROLL_VARIANT',503,2,'onde-1',{value:2}))).status,400);
  equal((await deliver(action('SEND',503))).status,409);equal(mixed.outbox,[]);
  const variantAction=action('ROLL_VARIANT',504),variant=await deliver(variantAction);
  equal(variant.status,200);equal(variant.body.roll,{kind:6,value:6});equal(variant.body.state.phase,'draft');equal(variant.body.state.round.variantRoll,6);equal(variant.body.quota.remaining,0);
  const revision=mixed.revision;
  equal(await deliver(variantAction),variant,'same request returns the committed third face');
- equal((await deliver(action('ROLL_VARIANT',505))).status,409);equal(mixed.revision,revision);equal(rng,[4,6,6]);
+ equal((await deliver(action('ROLL_VARIANT',505))).status,409);equal(mixed.revision,revision);equal(rng,[42,6,6]);
  equal((await deliver(action('REROLL_CARD',506))).status,409,'new turns use the D20 without another card reroll');
  const sent=await deliver(action('SEND',507));equal(sent.status,200);equal(mixed.outbox,[{actor:'b',kind:'invitation'}]);
  const oldInvitation=await deliver({op:'state'},tokenB);equal(oldInvitation.status,409);equal(oldInvitation.body.error.code,'upgrade_required');equal(oldInvitation.body.state,undefined);
@@ -185,7 +200,7 @@ for(const sides of [4,6]){
  deck.splice(before.round.cardRoll-1,0,before.round.cardId);before.round.hand=deck;
  equal(projectState(G,before,'b'),invitation.body.state,'the recipient cannot distinguish private challenge permutations');
  equal((await deliver(action('CHALLENGE',508),tokenB)).status,200);
- const d20=await deliver(action('ROLL_DEFENSE',509),tokenB);equal(d20.status,200);equal(d20.body.roll,{kind:20,value:1});
+ const d20=await deliver(action('ROLL_DEFENSE',509),tokenB);equal(d20.status,200);equal(d20.body.roll,{kind:20,value:1});equal(rng,[42,6,6,20],'only the category die is weighted');
  const accepted=await deliver(action('ACCEPT',510),tokenB);equal(accepted.status,200);equal(accepted.body.state.tasks[0].variantRoll,6);equal(G.getVariant(accepted.body.state.tasks[0]),G.getVariant(variant.body.state.round));
  equal(mixed.used.size,1,'only the category roll consumed a ticket');
  equal((await deliver(action('NEW_ROUND',511),tokenB)).status,200);
