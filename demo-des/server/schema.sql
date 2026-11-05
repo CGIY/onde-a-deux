@@ -186,7 +186,7 @@ begin
   response:=p_response || jsonb_build_object('revision',new_revision,'quota',public.desir_quota_status(p_room_id,p_actor));
   insert into public.desir_requests(room_id,actor,request_id,payload_hash,response) values(p_room_id,p_actor,p_request_id,p_payload_hash,response);
   if p_notification is not null and p_notification->>'actor' in ('a','b') and p_notification->>'kind' in ('invitation','confirmation') then
-    insert into public.desir_push_outbox(room_id,round_id,target_actor,kind,revision) values(p_room_id,p_next_state->'round'->>'id',p_notification->>'actor',p_notification->>'kind',new_revision) on conflict do nothing;
+    insert into public.desir_push_outbox(room_id,round_id,target_actor,kind,revision) values(p_room_id,coalesce(p_notification->>'roundId',p_next_state->'round'->>'id'),p_notification->>'actor',p_notification->>'kind',new_revision) on conflict do nothing;
   end if;
   return jsonb_build_object('kind','applied','response',response);
 end $$;

@@ -22,6 +22,19 @@ assert.equal(G.getCategory('intimite',2).number,4);
 assert.equal(G.cards.length,24);
 assert.equal(new Set(G.cards.map(card=>card.id)).size,24);
 
+// An untouched shared round belongs to whichever player actually rolls first.
+for(const actor of ['a','b']){
+ const idle={...G.createState(),activePlayer:actor};
+ assert.equal(G.canSeeRound(idle,actor),true);
+ const hand=G.drawHand(idle,1,2);
+ const claimed=act(idle,'ROLL_CATEGORY',{actor,catalogueVersion:2,value:1,hand});
+ assert.equal(claimed.round.from,actor);
+ assert.equal(claimed.round.to,G.otherPlayer(actor));
+ assert.equal(G.canSeeRound(claimed,G.otherPlayer(actor)),false);
+ const partner={...claimed,activePlayer:G.otherPlayer(actor)};
+ blocked(partner,'ROLL_CATEGORY',{catalogueVersion:2,value:1,hand});
+}
+
 let branches=0;
 let lastDraft;
 for(const category of G.categories){

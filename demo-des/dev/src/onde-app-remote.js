@@ -43,12 +43,20 @@
    if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
+   if(raw.gameVersion!==undefined&&raw.gameVersion!==3)throw failure('invalid_response','La version reçue est invalide.');
+   let incoming;
+   if(raw.gameVersion===3){
+    if(!Array.isArray(raw.incoming)||raw.incoming.length>1||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
+    incoming=raw.incoming.map(value=>G.normalizeState(value));
+    if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase==='category'||!G.canSeeRound(value,identity.actor)))throw failure('invalid_response','L’invitation reçue est invalide.');
+   }
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
    let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>1||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
    let roll;
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
+   if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming}: {})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -77,7 +85,7 @@
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:2,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:3,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -120,7 +128,7 @@
   function storedAction(){const value=parsed(actionKey);if(!value)return null;if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    try{
-    const raw=await request({op:'action',gameVersion:pending.gameVersion===2?2:1,requestId:pending.requestId,action:pending.action},connection.token);
+    const raw=await request({op:'action',gameVersion:[2,3].includes(pending.gameVersion)?pending.gameVersion:1,requestId:pending.requestId,action:pending.action},connection.token);
     const value=acceptSnapshot(raw);remove(actionKey);return value;
    }catch(error){if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
   }
@@ -129,14 +137,18 @@
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,gameVersion:2,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:3,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
+  }
+  async function recoverPendingAction(pending){
+   try{return await serial(()=>sendAction(pending));}
+   catch(error){if(error.code!=='upgrade_required'||pending.gameVersion===3)throw error;return null;}
   }
   function refresh(){
    if(!connection)return Promise.resolve(null);
    if(refreshing)return refreshing;
-   refreshing=Promise.resolve().then(async()=>{try{const pending=storedAction();if(pending)await serial(()=>sendAction(pending));return await fetchState();}catch(error){markFailure(error);throw error;}finally{refreshing=null;}});
+   refreshing=Promise.resolve().then(async()=>{try{const pending=storedAction();if(pending)await recoverPendingAction(pending);return await fetchState();}catch(error){markFailure(error);throw error;}finally{refreshing=null;}});
    return refreshing;
   }
   function restore(){

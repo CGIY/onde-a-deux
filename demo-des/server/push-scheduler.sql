@@ -38,11 +38,19 @@ $$;
 
 create or replace function public.desir_draw_ready_for_state(p_state jsonb,p_actor text)
 returns boolean language sql immutable security invoker set search_path='' as $$
-  select p_actor in ('a','b') and (
-    (p_state->>'phase'='category' and p_state->'round'->>'from'=p_actor)
-    or (p_state->>'phase' in ('accepted','resolved') and p_state->'round'->>'from' in ('a','b')
-      and p_state->'round'->>'from'<>p_actor and coalesce((p_state->>'sequence')::numeric,0)<9007199254740991)
-  );
+  select coalesce(p_actor in ('a','b') and case
+    when p_state->>'version'='2' and jsonb_typeof(p_state->'lanes')='object' then
+      p_state->'lanes'->p_actor->'round'->>'from'=p_actor and (
+        p_state->'lanes'->p_actor->>'phase'='category'
+        or (p_state->'lanes'->p_actor->>'phase' in ('accepted','resolved')
+          and coalesce((p_state->>'sequence')::numeric,0)<9007199254740991)
+      )
+    else p_state->'round'->>'from' in ('a','b') and (
+      p_state->>'phase'='category'
+      or (p_state->>'phase' in ('accepted','resolved')
+        and coalesce((p_state->>'sequence')::numeric,0)<9007199254740991)
+    )
+  end,false);
 $$;
 
 create or replace function public.desir_due_task_reminders(p_state jsonb,p_actor text,p_at timestamptz default now())

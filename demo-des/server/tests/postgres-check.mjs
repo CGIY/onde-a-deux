@@ -12,6 +12,19 @@ const db=new PGlite({extensions:{pgcrypto}});
 try{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
  await db.exec(await fs.readFile(new URL('../schema.sql',import.meta.url),'utf8'));
+ const scheduler=await fs.readFile(new URL('../push-scheduler.sql',import.meta.url),'utf8');
+ const readyStart=scheduler.indexOf('create or replace function public.desir_draw_ready_for_state');
+ const readyEnd=scheduler.indexOf('create or replace function public.desir_due_task_reminders',readyStart);
+ await db.exec(scheduler.slice(readyStart,readyEnd));
+ let personal=G.createRoom({at:'2026-11-05T11:00:00.000Z'});
+ async function assertReady(actor,expected){
+  const result=await db.query('select public.desir_draw_ready_for_state($1,$2) as ready',[JSON.stringify(personal),actor]);
+  if(result.rows[0].ready!==expected)throw Error('Personal draw readiness mismatch for '+actor);
+ }
+ await assertReady('a',true);await assertReady('b',true);
+ const own=G.roomView(personal,'a');
+ personal=G.reduceRoom(personal,{type:'ROLL_CATEGORY',catalogueVersion:2,value:1,hand:G.drawHand(own,1,2),actor:'a',roundId:own.round.id,at:'2026-11-05T11:00:00.000Z'});
+ await assertReady('a',false);await assertReady('b',true);
  await db.exec(await fs.readFile(new URL('./database-check.sql',import.meta.url),'utf8'));
  const room='9ee847bf-5462-4dd8-958c-f77a21356f81';
  await db.query('insert into public.desir_rooms(id,state) values($1,$2)',[room,JSON.stringify(G.createState())]);
@@ -22,5 +35,5 @@ try{
  const ctx=await db.query('select public.desir_get_session($1) as result',['a'.repeat(64)]);if(ctx.rows[0].result.member.actor!=='a'||ctx.rows[0].result.room.state.players[1].name!=='Bravo')throw Error('Bad session context');
  const collision=await db.query('select public.desir_login($1,$2,$3) as result',['bravo','test-only-password','a'.repeat(64)]);if(collision.rows[0].result.error!=='session_conflict')throw Error('Token reassigned to another account');
  await db.exec('reset role;set role anon');let denied=false;try{await db.query('select * from public.desir_accounts');}catch{denied=true;}if(!denied)throw Error('Anonymous account read allowed');
- console.log('Dés·ir actual PostgreSQL (PGlite 0.5.14 + pgcrypto): schema, quota/DST/CAS/receipt/ACL SQL suite, bcrypt login, service role session, token collision and anonymous denial PASS.');
+ console.log('Dés·ir actual PostgreSQL (PGlite 0.5.14 + pgcrypto): schema, personal draw readiness, quota/DST/CAS/receipt/ACL SQL suite, bcrypt login, service role session, token collision and anonymous denial PASS.');
 }finally{await db.close();}

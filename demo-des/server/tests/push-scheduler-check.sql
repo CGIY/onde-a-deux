@@ -21,12 +21,18 @@ begin
     or public.desir_quota_window('2027-10-30T16:00:00Z')->>'nextAt'<>'2027-10-31T05:00:00.000Z'
   then raise exception 'Paris quota DST boundary failed';end if;
   if public.desir_draw_ready_for_state('{"phase":"category","round":{"from":"a"}}','a') is not true
-    or public.desir_draw_ready_for_state('{"phase":"category","round":{"from":"a"}}','b') is not false
-    or public.desir_draw_ready_for_state('{"phase":"pending","round":{"from":"a"}}','b') is not false
+    or public.desir_draw_ready_for_state('{"phase":"category","round":{"from":"a"}}','b') is not true
+    or public.desir_draw_ready_for_state('{"phase":"pending","round":{"from":"a"}}','b') is not true
     or public.desir_draw_ready_for_state('{"phase":"accepted","round":{"from":"a"},"sequence":1}','b') is not true
-    or public.desir_draw_ready_for_state('{"phase":"accepted","round":{"from":"a"},"sequence":1}','a') is not false
+    or public.desir_draw_ready_for_state('{"phase":"accepted","round":{"from":"a"},"sequence":1}','a') is not true
     or public.desir_draw_ready_for_state('{"phase":"resolved","round":{"from":"a"},"sequence":9007199254740991}','b') is not false
   then raise exception 'Draw readiness disagrees with turn engine';end if;
+  state_value:='{"version":2,"sequence":2,"lanes":{"a":{"phase":"draft","round":{"from":"a"}},"b":{"phase":"category","round":{"from":"b"}}}}';
+  if public.desir_draw_ready_for_state(state_value,'a') is not false
+    or public.desir_draw_ready_for_state(state_value,'b') is not true
+    or public.desir_draw_ready_for_state(state_value,'c') is not false
+    or public.desir_draw_ready_for_state(state_value,null) is not false
+  then raise exception 'Personal draw readiness leaked between players';end if;
   state_value:=jsonb_build_object('phase','accepted','sequence',1,'round',jsonb_build_object('from','a'),
     'tasks',jsonb_build_array(
       jsonb_build_object('id','onde-1','expiresAt',at_time+interval '2 hours','checks',jsonb_build_object('a',false,'b',false)),

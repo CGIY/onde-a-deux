@@ -17,7 +17,7 @@ function visibility(state,recipientVisible,label){
 function draft(from){
  let s=G.createState();
  if(from==='b')s=apply(s,{type:'SWITCH_PLAYER',player:from});
- visibility(s,false,'category '+from);
+ visibility(s,true,'category '+from);
  const hand=G.legacyCards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c.id);
  s=apply(s,{type:'ROLL_CATEGORY',value:2,hand});
  visibility(s,false,'card '+from);
@@ -76,7 +76,7 @@ for(const from of ['a','b']){
  const expired=apply(accepted,{type:'EXPIRE_TASKS',at:'2026-11-02T21:00:00.000Z'});
  visibility(expired,true,'expired accepted '+from);
  visibility(legacy(expired),true,'legacy expired accepted '+from);
- visibility(apply(accepted,{type:'NEW_ROUND'}),false,'next private round '+from);
+ visibility(apply(accepted,{type:'NEW_ROUND'}),true,'next unclaimed round '+from);
 
  // A timestamp is sufficient publication evidence, without inspecting content.
  const timestampOnly=clone(original);timestampOnly.round.sentAt=at;

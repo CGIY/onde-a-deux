@@ -21,8 +21,9 @@ begin
   if not public.desir_rate_limit(key,1,60) or public.desir_rate_limit(key,1,60) then raise exception 'Atomic rate bucket mismatch';end if;
   insert into public.desir_rooms(id,state) values(fixture,state1);
   if (public.desir_quota_status(fixture,'a')->>'remaining')::integer<>1 then raise exception 'Fresh ticket missing';end if;
-  result:=public.desir_commit(fixture,'a',req,repeat('a',64),0,state2,'{"fixture":"first"}',true,'{"actor":"b","kind":"invitation"}');
+  result:=public.desir_commit(fixture,'a',req,repeat('a',64),0,state2,'{"fixture":"first"}',true,'{"actor":"b","kind":"invitation","roundId":"onde-1"}');
   if (public.desir_quota_status(fixture,'b')->>'remaining')::integer<>1 then raise exception 'One actor consumed the other ticket';end if;
+  if (select round_id from public.desir_push_outbox where room_id=fixture and kind='invitation')<>'onde-1' then raise exception 'Parallel invitation lost its round ID';end if;
   if result->>'kind'<>'applied' or (result->'response'->>'revision')::integer<>1 or (result->'response'->'quota'->>'remaining')::integer<>0 then raise exception 'Commit/ticket mismatch';end if;
   result:=public.desir_commit(fixture,'a',req,repeat('a',64),0,state1,'{"fixture":"wrong-retry"}',true,'{"actor":"b","kind":"invitation"}');
   if result->>'kind'<>'replayed' or result->'response'->>'fixture'<>'first' then raise exception 'Receipt replay mismatch';end if;

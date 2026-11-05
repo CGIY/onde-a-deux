@@ -10,10 +10,11 @@ Appliquer dans cet ordre :
 2. `push-schema.sql` : abonnements et livraisons Web Push.
 3. `push-scheduler.sql` : échéancier des notifications et appel cron protégé.
 4. `additive-device-index.sql` : index supplémentaire des appareils par compte.
+5. `migrations/20261105105858_desir_parallel_rounds.sql` : disponibilité des deux manches et identifiants des notifications.
 
-Les fichiers de `migrations/` reproduisent les quatre migrations appliquées sur le projet hébergé. Les dates de version proviennent de son historique Supabase.
+Les fichiers de `migrations/` reproduisent les migrations appliquées sur le projet hébergé. Les dates de version proviennent de son historique Supabase.
 
-Créer une salle avec un état `G.createState()`, puis exactement deux lignes privées dans `desir_accounts`, acteurs `a` et `b`, même `room_id`. Les identifiants et noms affichés sont fournis à la base privée ; aucun nom réel ni mot de passe ne fait partie des sources publiques. Stocker uniquement des empreintes bcrypt coût 12, compatibles `extensions.crypt` (`$2a$` recommandé). La fonction refuse les mots de passe de plus de 72 octets, pour éviter la troncature bcrypt.
+Créer une salle avec un état `G.createRoom()`, puis exactement deux lignes privées dans `desir_accounts`, acteurs `a` et `b`, même `room_id`. Les identifiants et noms affichés sont fournis à la base privée ; aucun nom réel ni mot de passe ne fait partie des sources publiques. Stocker uniquement des empreintes bcrypt coût 12, compatibles `extensions.crypt` (`$2a$` recommandé). La fonction refuse les mots de passe de plus de 72 octets, pour éviter la troncature bcrypt.
 
 Les opérations `create` et `join` sont fermées. Le déploiement utilise `verify_jwt=false` pour cette fonction uniquement : ses sessions opaques ne sont pas des JWT Supabase Auth. Le handler vérifie lui-même chaque session, et les tables/RPC sont interdites à `anon`, `authenticated` et `PUBLIC`. Seul le rôle serveur peut les atteindre. Les RPC s’exécutent en `SECURITY INVOKER`.
 
@@ -38,11 +39,13 @@ Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VAR
 
 ## Quotas et concurrence
 
-Le client indique `gameVersion:2` à la racine des requêtes de jeu. Une ancienne requête, sans ce champ ou avec la valeur 1, conserve le parcours D6 / D4. Les manches déjà tirées conservent leur main, leurs PV et leur dé. Une manche au nouveau format révèle une catégorie au D4, un de ses six challenges au D6, puis l’une des six variantes de ce challenge au D6. La variante tirée reste attachée à la proposition et à la tâche. Les comptes, scores, historiques et échéances sont conservés.
+Le client indique `gameVersion:3` à la racine des requêtes de jeu. L’état canonique de la salle utilise `version:2` et deux manches dans `lanes.a` et `lanes.b`, chacune appartenant à son initiateur. La séquence d’identifiants, les tâches, l’historique et les points restent communs. Le moteur migre les anciens états à manche unique lors de la première requête du nouveau client.
 
-Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 et le D20 restent uniformes. Une ancienne requête conserve le D6 de catégorie uniforme.
+Le snapshot contient `state` pour la manche personnelle et `incoming` pour la manche reçue, uniquement lorsqu’elle a été envoyée. `drawAvailable` décrit la disponibilité réelle de la manche personnelle. Le client conserve son choix d’écran localement et adresse chaque action à son `roundId`. Une invitation reçue peut être traitée pendant que le tirage personnel reste en cours.
 
-Une version ancienne reçoit une erreur `upgrade_required` si elle doit afficher une manche ou une tâche au nouveau format. Elle garde une vue neutre tant que le tirage de l’autre joueur est privé. Les anciennes entrées de score restent comptées et l’ancien client reçoit seulement l’historique qu’il sait lire. Le déploiement commence par la fonction Edge, puis le client web. Après le premier tirage au nouveau format, tout correctif serveur doit conserver la lecture de ce format.
+Les requêtes de jeu des anciens clients reçoivent `upgrade_required` avant toute mutation. Le nouveau transport abandonne un ancien reçu en attente lorsque cette réponse arrive, puis recharge immédiatement le snapshot courant. Une action déjà confirmée reste présente dans l’état migré. Les notifications utilisent le `roundId` de l’action, et leur disponibilité est calculée séparément pour les deux joueurs.
+
+Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 et le D20 restent uniformes.
 
 Chaque compte dispose d’un tirage par plage de Paris de 6 h à 12 h, de 12 h à 18 h et de 18 h à 6 h. La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche et les jets de D20 ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris`.
 
@@ -50,7 +53,7 @@ La relance `REROLL_CARD` reste disponible uniquement pour les anciennes manches 
 
 `quota` contient `{remaining:0|1,window,label,nextAt}`. `window` désigne le début local de plage (`YYYY-MM-DDT06:00`, `T12:00` ou `T18:00`), `nextAt` une date UTC ISO.
 
-Une seule manche de tirage reste active dans ce MVP. Les propositions peuvent attendre une réponse ; leurs six heures ne commencent qu’à la validation finale à deux. Plusieurs tâches validées peuvent rester dans la liste pendant un nouveau tour. Une réponse en attente peut donc empêcher le démarrage d’une autre manche ; les quotas ne créent pas des manches parallèles.
+Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les propositions peuvent attendre une réponse ; leurs six heures commencent à la validation finale à deux. Plusieurs tâches validées peuvent rester dans la liste pendant les nouveaux tours. La résolution de la manche d’un joueur libère son prochain tour personnel.
 
 Chaque écriture utilise une révision attendue et un verrou de ligne. Le reçu `(room,actor,requestId)` est créé dans la même transaction que le nouvel état, le ticket éventuel et la notification. Une requête répétée ne relance pas les dés et n’ajoute pas de points ni de notification. Les reçus restent sept jours ; la séquence de manche et les contraintes de phase continuent à empêcher les anciennes actions après cette durée. Le score et l’historique de jeu ne sont pas concernés par ce nettoyage.
 

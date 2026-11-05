@@ -15,6 +15,7 @@
 
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
  let systemReduce=!!(motionQuery&&motionQuery.matches);
+ let localRoom=null,ownState=null,incomingStates=[],selectedIncomingRoundId=null;
  let state=G.createState(), tab='play', busy=false, rerolling=false, toastTimer, lastFocus=null, animationSerial=0;
  let cardReveal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
  let charge=null,suppressedClick=null,controlsBusyState=null;
@@ -44,15 +45,15 @@
  window.addEventListener('pageshow',()=>{presentationHidden=false;startViewport();});
  window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();cancelContentTransitions();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();});
  if(!remoteMode){
- try{
-  const raw=localStorage.getItem(storageKey);
-  if(raw){let saved=null;try{saved=G.normalizeState(JSON.parse(raw),{at:new Date().toISOString()});}catch(_){}if(saved)state=saved;else{localStorage.setItem(storageKey+'-recovery',raw);recovery=true;}}
-  localStorage.setItem(storageKey,JSON.stringify(state));persisted=true;
- }catch(_){canPersist=false;persisted=false;}
- viewPlayer=state.activePlayer;
- try{const savedView=sessionStorage.getItem(storageKey+'-profile');if(['a','b'].includes(savedView))viewPlayer=savedView;}catch(_){}
- state={...state,activePlayer:viewPlayer};
- try{sharedSnapshot=localStorage.getItem(storageKey);}catch(_){}
+  localRoom=G.createRoom();
+  try{
+   const raw=localStorage.getItem(storageKey);
+   if(raw){let parsed=null,saved=null;try{parsed=JSON.parse(raw);saved=G.normalizeRoom(parsed,{at:new Date().toISOString()});}catch(_){}if(saved){localRoom=saved;if(['a','b'].includes(parsed.activePlayer))viewPlayer=parsed.activePlayer;}else{localStorage.setItem(storageKey+'-recovery',raw);recovery=true;}}
+   localStorage.setItem(storageKey,JSON.stringify(localRoom));persisted=true;
+  }catch(_){canPersist=false;persisted=false;}
+  try{const savedView=sessionStorage.getItem(storageKey+'-profile');if(['a','b'].includes(savedView))viewPlayer=savedView;}catch(_){}
+  syncLocalView();
+  try{sharedSnapshot=localStorage.getItem(storageKey);}catch(_){}
  }
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
@@ -65,7 +66,10 @@
  const category=()=>G.getCategory(state.round.categoryId,state.round.catalogueVersion??1);
  const shownRolls=()=>state.phase==='draft_challenge'||(state.round.status==='defended'&&!state.round.rolls.length)?state.round.draftRolls:state.round.rolls;
  const sum=()=>shownRolls().reduce((a,b)=>a+b,0);
- const canDraw=()=>state.activePlayer===state.round.from;
+ const canDraw=()=>state.phase==='category'
+  ? !remoteMode || (typeof remoteSnapshot?.drawAvailable==='boolean'?remoteSnapshot.drawAvailable:state.activePlayer===state.round.from)
+  : state.activePlayer===state.round.from;
+ const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
  const chargeNow=()=>window.performance?.now?window.performance.now():Date.now();
  const chargeLimit=1200;
@@ -112,16 +116,34 @@
   if(suppressedClick.source==='pointer'&&event.detail===0||suppressedClick.source==='keyboard'&&event.detail!==0)return false;
   suppressedClick=null;return true;
  }
- function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(state);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
+ function selectDisplayState(){
+  const selected=incomingStates.find(value=>value.round.id===selectedIncomingRoundId);
+  if(!selected)selectedIncomingRoundId=null;
+  const displayed=selected||ownState;
+  state=remoteMode?{...displayed,prefs:{...displayed.prefs,...localPrefs}}:displayed;
+ }
+ function syncLocalView(){
+  ownState=G.roomView(localRoom,viewPlayer);
+  const partner=localRoom.lanes[G.otherPlayer(viewPlayer)];
+  const incoming=G.roomView(localRoom,viewPlayer,partner.round.id);
+  incomingStates=incoming.phase!=='category'&&G.canSeeRound(incoming,viewPlayer)?[incoming]:[];
+  selectDisplayState();
+ }
+ function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===3;}
+ function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
+ function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
   if(remoteMode||!raw||raw===sharedSnapshot)return false;
-  let incoming;try{incoming=G.normalizeState(JSON.parse(raw),{at:now()});}catch(_){return false;}
+  let incoming;try{incoming=G.normalizeRoom(JSON.parse(raw),{at:now()});}catch(_){return false;}
   if(!incoming)return false;
-  sharedSnapshot=raw;state={...incoming,activePlayer:viewPlayer};return true;
+  sharedSnapshot=raw;localRoom=incoming;syncLocalView();return true;
  }
  function pullShared(){if(remoteMode||!canPersist)return false;try{return receiveShared(localStorage.getItem(storageKey));}catch(_){return false;}}
- function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;state={...state,activePlayer:player};openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
- function awaitingPlayer(player){return ['pending','sender_confirmation','challenge','challenge_failed'].includes(state.phase)&&state.round.awaiting===player;}
+ function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;selectedIncomingRoundId=null;syncLocalView();openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
+ function awaitingPlayer(player){
+  const views=remoteMode?[ownState,...incomingStates].filter(Boolean):Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id));
+  return views.some(value=>['pending','sender_confirmation','challenge','challenge_failed'].includes(value.phase)&&value.round.awaiting===player);
+ }
  function invitationKey(){return state.round.id+'-'+state.round.awaiting;}
 
  function announce(text){root.querySelector('#oa-announcement').textContent=text;}
@@ -132,16 +154,16 @@
   if(remoteMode&&!remote?.authenticated||!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
   if(samePerspective(value,remoteSnapshot)&&value.revision<remoteSnapshot.revision)return false;
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
-  if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;visibleCardId=null;gaugeFrames.clear();}
+  if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired});
+  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
-  state={...normalized,prefs:{...normalized.prefs,...localPrefs}};viewPlayer=value.actor;remoteReady=true;authBusy=false;loginError='';
+  viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
  }
  function receiveRemote(value){
   if(remoteMode&&!remote?.authenticated||!value||!currentPerspective(value))return false;
-  if(charge||busy||operationBusy||pendingChecks.size){if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;if(cardReveal&&!revealMatches(deferredSnapshot.state,cardReveal))finishRevealWait();return false;}
+  if(charge||busy||operationBusy||pendingChecks.size){if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;if(cardReveal&&!revealMatches(focusedReply(deferredSnapshot,cardReveal.roundId),cardReveal))finishRevealWait();return false;}
   return applyRemote(value);
  }
  function flushRemote(value,renderNow=false){
@@ -173,11 +195,11 @@
    catch(error){return remoteError(error);}
    finally{operationBusy=false;setControlsBusy(false);trigger?.removeAttribute('aria-busy');if(doRender)render();}
   }
-  const roundId=state.round.id;pullShared();const next=G.reduce(state,{at:now(),roundId,...action});const changed=next!==state;state=next;if(changed)save();if(doRender)render();return changed;
+  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
  }
 
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
- function btn(label,action,style='',extra=''){return '<button type="button" class="oa-button cursor-interaction '+style+'" data-action="'+action+'" '+extra+'>'+label+'</button>';}
+ function btn(label,action,style='',extra=''){if(action==='new'&&isParallel()&&state.round.from!==viewPlayer){label='Mon tirage';action='own-draw';}return '<button type="button" class="oa-button cursor-interaction '+style+'" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function textBtn(label,action,extra=''){return '<button type="button" class="oa-text-button cursor-interaction" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function eyebrow(text){return '<p class="oa-eyebrow">'+h(text)+'</p>';}
  function heading(title,sub,eyebrowText){return (eyebrowText?eyebrow(eyebrowText):'')+'<h1 class="oa-title">'+title+'</h1>'+(sub?'<p class="oa-subtitle">'+sub+'</p>':'');}
@@ -237,8 +259,14 @@
   const r=state.round;
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+(state.phase==='sender_confirmation'?'Une réponse t’attend':'Une invitation t’attend')+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
- function renderPlay(){const r=state.round,c=card();
-  if(!G.canSeeRound(state))return privateHome();
+ function incomingBanner(){
+  const incoming=incomingStates.find(value=>G.canRespond(value));
+  if(!incoming)return '';
+  return '<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(incoming.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(incoming.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>';
+ }
+ function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+renderPlayContent();}
+ function renderPlayContent(){const r=state.round,c=card();
+  if(!canSeeCurrentRound())return privateHome();
   if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
   if(['pending','sender_confirmation'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
   if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
@@ -330,7 +358,7 @@
   if(!welcomeDismissed)return 'welcome';if(remoteMode&&!remoteReady)return 'login';
   if(cardReveal)return cardReveal.viewKey;
   if(tab!=='play')return tab+'|'+viewPlayer;
-  if(!G.canSeeRound(state))return 'play|private-home|'+viewPlayer;
+  if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending','sender_confirmation'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
   return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer].join('|');
  }
@@ -377,7 +405,7 @@
  function render(transition=null){
   cancelContentTransitions();
   clearCharge(true,false);
-  if(!remoteMode){const fresh=G.reduce(state,{type:'EXPIRE_TASKS',at:now()});if(fresh!==state){state=fresh;save();}}
+  if(!remoteMode){const fresh=G.reduceRoom(localRoom,{type:'EXPIRE_TASKS',at:now(),actor:viewPlayer});if(fresh!==localRoom){localRoom=fresh;syncLocalView();save();}}
   trackGrade();
   // Connection updates may restore the game behind this screen, never replace it.
   if(!welcomeDismissed&&renderKey==='welcome'){renderPersona();scheduleExpiry();return;}
@@ -389,7 +417,7 @@
   renderPersona();
   const key=visibleViewKey();
   const animate=key!==renderKey;renderKey=key;
-  root.style.setProperty('--oa-accent',(welcomeDismissed&&G.canSeeRound(state)?category():null)?.color||G.categories[1].color);
+  root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
   main.innerHTML=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
@@ -474,7 +502,7 @@
      if(presentationValid(context)&&currentPerspective(value)&&(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision))deferredSnapshot=value;
      return;
     }
-    faceValue=value.roll.value;next=value.state;
+    faceValue=value.roll.value;next=focusedReply(value,roundId);if(!next)throw Error('Unconfirmed round');
     if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
     const faces=reroll?Array.from({length:sides},(_,i)=>i+1).filter(value=>value!==state.round.cardRoll):null;
@@ -484,8 +512,8 @@
     if(action.type==='ROLL_CATEGORY')action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
     if(action.type==='ROLL_DRAFT_DEFENSE')action.token=roundId+'-draft-'+(state.round.draftRolls.length+1);
     if(action.type==='ROLL_DEFENSE')action.token=roundId+'-'+(state.round.rolls.length+1);
-    next=G.reduce(state,{...action,actor,roundId,at:now()});if(next===state)return;
-    state=next;save();
+    const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId,at:now()});if(nextRoom===localRoom)return;
+    localRoom=nextRoom;syncLocalView();next=state;save();
    }
    resultLabel=action.type==='ROLL_CATEGORY'?'Catégorie '+(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.label||G.categories.find(c=>c.number===faceValue)?.label||'tirée') : ['ROLL_CARD','REROLL_CARD'].includes(action.type)?(G.getCard(next.round.cardId)?.title||'Carte tirée.'):action.type==='ROLL_VARIANT'?(G.getVariant(next.round)||'Variante choisie.'):'Lancer terminé.';
    const visualPower=Number.isFinite(power)?Math.max(0,Math.min(1,power)):0;
@@ -494,7 +522,7 @@
    settled=true;
    if(serial===animationSerial&&presentationValid(context)){
     if(['ROLL_CARD','REROLL_CARD'].includes(action.type)){
-     const preview={...context,reroll,face:faceValue,cardId:context.hand[faceValue-1]},latest=remoteMode?(deferredSnapshot?.state||next):state;
+     const preview={...context,reroll,face:faceValue,cardId:context.hand[faceValue-1]},latest=remoteMode?(deferredSnapshot?focusedReply(deferredSnapshot,roundId):next):state;
      if(!document.hidden&&!presentationHidden&&G.getCard(preview.cardId)&&revealMatches(latest,preview)){
       cardReveal=preview;render();setControlsBusy(true);showSelectedTile();
       announce('D'+sides+' : '+faceValue+'. '+G.getCard(preview.cardId).title);await waitForReveal();
@@ -538,7 +566,8 @@
   if(action==='reroll'){await roll(true);return;}
   if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
   if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
-  if(action==='open-invitation'){if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
+  if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
+  if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
   if(action==='challenge-draft'){await dispatch({type:'CHALLENGE_DRAFT'});return;}
   if(action==='challenge'){await dispatch({type:'CHALLENGE'});return;}
@@ -548,7 +577,7 @@
   if(action==='rules'){rules();return;}
   if(action==='close'){closeSheet();return;}
   if(action==='reset-confirm'){if(remoteMode)return;openSheet('Repartir de zéro ?','<p>La partie, le score commun, les favoris et les préférences de cette démonstration seront effacés.</p><div class="oa-actions">'+btn('Effacer la démo','reset','oa-clay')+textBtn('Conserver ma partie','close')+'</div>');return;}
-  if(action==='reset'){if(remoteMode)return;closeSheet();tab='play';gaugeFrames.clear();await dispatch({type:'RESET'});state={...state,activePlayer:viewPlayer};toast('La démonstration repart de zéro.');return;}
+  if(action==='reset'){if(remoteMode)return;closeSheet();tab='play';gaugeFrames.clear();await dispatch({type:'RESET'});syncLocalView();toast('La démonstration repart de zéro.');return;}
  });
  root.addEventListener('pointerdown',event=>{if(event.button!==0||event.isPrimary===false)return;startCharge(rollButton(event.target),'pointer',event);});
  root.addEventListener('pointermove',event=>{if(charge?.source==='pointer'&&event.pointerId===charge.pointerId&&Math.hypot(event.clientX-charge.x,event.clientY-charge.y)>10)clearCharge();});

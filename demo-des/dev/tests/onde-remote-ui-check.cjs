@@ -21,7 +21,16 @@ function scored(total,actor='a'){const s=initial(actor);s.stats.totalCompleted=t
 function gradeSection(html){const found=html.match(/<section class="oa-grade-area[^"]*"[\s\S]*?<\/section>/);assert.ok(found,'grade section is rendered');return found[0];}
 function gradeProgress(html){const section=gradeSection(html),progress=section.match(/role="progressbar"[^>]+/)[0];return {points:Number((section.match(/data-grade="(\d+)"/)||[])[1])||null,max:Number(progress.match(/aria-valuemax="(\d+)"/)[1]),value:Number(progress.match(/aria-valuenow="(\d+)"/)[1])};}
 function draftGame(actor='a',face=1){let s=initial();s=G.reduce(s,{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)});s=G.reduce(s,{type:'ROLL_CARD',value:face});s.activePlayer=actor;assert.ok(G.validateState(s));return s;}
-function snap(state,revision=1,remaining=1){return {roomId,state:copy(state),revision,actor:state.activePlayer,paired:true,quota:{remaining,window:'2026-11-02T06:00',label:'6 h – 12 h',nextAt:'2026-11-02T11:00:00.000Z'},serverTime:new Date().toISOString()};}
+function snap(state,revision=1,remaining=1){return {roomId,state:copy(state),revision,actor:state.activePlayer,paired:true,drawAvailable:state.phase==='category',quota:{remaining,window:'2026-11-02T06:00',label:'6 h – 12 h',nextAt:'2026-11-02T11:00:00.000Z'},serverTime:new Date().toISOString()};}
+function roomSnapshot(room,actor='a',revision=1,remaining=1){
+ const own=G.roomView(room,actor),partner=G.roomView(room,actor,room.lanes[G.otherPlayer(actor)].round.id);
+ return {...snap(own,revision,remaining),gameVersion:3,incoming:partner.phase!=='category'&&G.canSeeRound(partner,actor)?[partner]:[]};
+}
+function roomDraw(room,owner,category=1,card=1,variant=1){
+ const roundId=room.lanes[owner].round.id;
+ for(const action of [{type:'ROLL_CATEGORY',catalogueVersion:2,value:category,hand:G.cards.filter(c=>c.categoryId===G.categories[category-1].id).map(c=>c.id)},{type:'ROLL_CARD',value:card},{type:'ROLL_VARIANT',value:variant}])room=G.reduceRoom(room,{...action,actor:owner,roundId});
+ return room;
+}
 function mockRemote(restored=null){
  let listener=null,current=restored,identity=restored?{roomId,actor:restored.actor}:null,authenticated=!!restored;
  const calls=[],r={enabled:true,status:{phase:restored?'connected':'disconnected',message:'',errorCode:null},notificationStatus:{supported:true,permission:'default',subscribed:false,message:''},calls,get connection(){return identity;},get authenticated(){return authenticated;},get snapshot(){return current&&copy(current);},subscribeToChanges(fn){listener=fn;return()=>listener=null;},start(){calls.push({method:'start'});},restore:async()=>current&&copy(current),refresh:async()=>current&&copy(current),async login(username,password){calls.push({method:'login',username,password});r.status={phase:'connecting',message:'',errorCode:null};r.emit();try{const next=await (r.loginImpl?r.loginImpl(username,password):snap(initial()));identity={roomId,actor:next.actor};authenticated=true;r.status={phase:'connected',message:'',errorCode:null};r.emit(next);return copy(next);}catch(error){r.status={phase:'error',message:error.message,errorCode:error.code};r.emit();throw error;}},async action(action){calls.push({method:'action',action:copy(action)});const next=await r.actionImpl(action);r.emit({...next,roll:undefined});return copy(next);},async enableNotifications(){calls.push({method:'notifications'});r.notificationStatus={...r.notificationStatus,permission:'granted',subscribed:true};r.emit();return r.notificationStatus;},emit(next){if(next)current=copy(next);if(listener)listener({snapshot:current&&copy(current),status:{...r.status},notificationStatus:{...r.notificationStatus}});},revoke(){authenticated=false;r.status={phase:'error',message:'Reconnecte cet appareil.',errorCode:'unauthorized'};r.emit();}};
@@ -100,6 +109,63 @@ async function rollSession(options={}){
    if(event==='pagehide')ui.windowEvent('pageshow');else if(event==='visibilitychange')ui.documentEvent(event,{hidden:false});
    check(()=>{assert.equal(ui.resultPending,0);assert.equal(remote.calls.filter(c=>c.method==='action').length,1);});
   }
+ }
+ // Parallel invitation focus preserves the owner's private card and routes the other lane's response.
+ {
+  let room=roomDraw(G.createRoom(),'a',1,1,2);room=roomDraw(room,'b',3,2,3);
+  const ownId=room.lanes.a.round.id,incomingId=room.lanes.b.round.id;
+  room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:incomingId,at:new Date().toISOString()});
+  const ownCard=G.getCard(room.lanes.a.round.cardId),otherCard=G.getCard(room.lanes.b.round.cardId),remote=mockRemote(roomSnapshot(room)),ui=shell(remote);await tick();
+  check(()=>{assert.ok(hasTitle(ui.html,ownCard.title));assert.ok(!hasTitle(ui.html,otherCard.title));assert.ok(ui.html.includes('Invitation de'));assert.ok(ui.html.includes('data-round="'+incomingId+'"'));});
+  await ui.click('open-invitation',{round:incomingId});
+  check(()=>{assert.ok(hasTitle(ui.html,otherCard.title));assert.ok(ui.html.includes('data-action="own-draw"'));assert.ok(ui.html.includes('data-action="accept"'));assert.ok(!hasTitle(ui.html,ownCard.title));});
+  await ui.click('own-draw');check(()=>{assert.ok(hasTitle(ui.html,ownCard.title));assert.equal(room.lanes.a.round.id,ownId);assert.equal(room.lanes.a.phase,'draft');});
+  await ui.click('open-invitation',{round:incomingId});
+  remote.actionImpl=async action=>{check(()=>assert.equal(action.roundId,incomingId));room=G.reduceRoom(room,{...action,actor:'a',at:new Date().toISOString()});return roomSnapshot(room,'a',2,0);};
+  await ui.click('accept');check(()=>{assert.equal(room.tasks.length,1);assert.equal(room.lanes.a.phase,'draft');assert.equal(room.lanes.a.round.id,ownId);assert.ok(ui.html.includes(otherCard.title));});
+  check(()=>{assert.ok(ui.html.includes('Les choses'));assert.ok(ui.html.includes('data-action="own-draw"'));assert.ok(!ui.html.includes('data-action="new"'));});
+  await ui.click('own-draw');check(()=>{assert.ok(hasTitle(ui.html,ownCard.title));assert.ok(ui.html.includes('Ta prochaine'));assert.ok(!ui.html.includes('Les choses'));});
+  const reloaded=shell(mockRemote(roomSnapshot(room,'a',2,0)));await tick();check(()=>assert.ok(hasTitle(reloaded.html,ownCard.title)));
+ }
+ // The other private draw is absent, while a received invitation can coexist with an available die.
+ {
+  let room=roomDraw(G.createRoom(),'b',3,1,1);
+  const hiddenRemote=mockRemote(roomSnapshot(room)),hidden=shell(hiddenRemote);await tick();
+  check(()=>{assert.ok(hidden.html.includes('Lancer le D4'));assert.ok(!hidden.html.includes('Invitation de'));assert.ok(!hasTitle(hidden.html,G.getCard(room.lanes.b.round.cardId).title));});
+  room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:room.lanes.b.round.id,at:new Date().toISOString()});
+  hiddenRemote.emit(roomSnapshot(room,'a',2));check(()=>{assert.ok(hidden.html.includes('Lancer le D4'));assert.ok(hidden.html.includes('Invitation de'));assert.ok(!hasTitle(hidden.html,G.getCard(room.lanes.b.round.cardId).title));});
+  hiddenRemote.emit(roomSnapshot(room,'a',3,0));check(()=>{assert.ok(hidden.html.includes('Prochain tirage'));assert.ok(hidden.html.includes('Invitation de'));assert.ok(!hidden.html.includes('data-action="roll"'));});
+ }
+ // Switching local worlds keeps both independent hands in the stored room.
+ {
+  const local=shell(mockRemote(),{mode:false,randomFace:12});await local.click('roll');
+  let saved=JSON.parse(local.values.get('onde-couple-prototype-v1'));const first=[...saved.lanes.a.round.hand];
+  await local.click('profile',{player:'b'});check(()=>assert.ok(local.html.includes('Lancer le D4')));await local.click('roll');
+  saved=JSON.parse(local.values.get('onde-couple-prototype-v1'));check(()=>{assert.equal(saved.version,2);assert.equal(saved.lanes.a.phase,'card');assert.equal(saved.lanes.b.phase,'card');assert.notEqual(saved.lanes.a.round.id,saved.lanes.b.round.id);assert.deepEqual(saved.lanes.a.round.hand,first);});
+  await local.click('profile',{player:'a'});check(()=>{assert.equal(local.stage.dataset.rollRole,'card');assert.ok(local.html.includes('Six cartes face cachée'));});
+ }
+ // Either account can claim a truly idle category draw; only server availability grants it.
+ {
+  for(const actor of ['a','b']){
+   const start=initial(actor),remote=mockRemote(snap(start)),ui=shell(remote);await tick();
+   check(()=>{assert.ok(ui.html.includes('Lancer le D4'));assert.ok(!ui.html.includes('Aucune invitation.'));});
+   remote.actionImpl=async action=>{assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',catalogueVersion:2,roundId:start.round.id});return {...snap(drawModern(start),2,0),roll:{kind:4,value:2}};};
+   await ui.click('roll');
+   check(()=>{assert.equal(remote.calls.filter(c=>c.method==='action').length,1);assert.equal(ui.stage.dataset.rollRole,'card');assert.equal(remote.snapshot.state.round.from,actor);});
+  }
+  const empty=initial('b'),quotaRemote=mockRemote(snap(empty,1,0)),quotaUI=shell(quotaRemote);await tick();
+  check(()=>{assert.ok(quotaUI.html.includes('Prochain tirage'));assert.ok(!quotaUI.html.includes('data-action="roll"'));});
+  await quotaUI.click('roll');check(()=>assert.equal(quotaRemote.calls.filter(c=>c.method==='action').length,0));
+  const hidden={...snap(empty),drawAvailable:false},remote=mockRemote(hidden),ui=shell(remote);await tick();
+  check(()=>{assert.ok(ui.html.includes('Aucune invitation.'));assert.ok(!ui.html.includes('data-action="roll"'));assert.equal(ui.diceVisible,false);});
+  await ui.click('roll');check(()=>{assert.equal(remote.calls.filter(c=>c.method==='action').length,0);assert.equal(ui.rngCalls,0);});
+  remote.emit({...hidden,drawAvailable:true});check(()=>assert.ok(ui.html.includes('Lancer le D4')));
+  remote.emit(hidden);check(()=>assert.ok(ui.html.includes('Aucune invitation.')));
+  const oldReply=snap(empty);delete oldReply.drawAvailable;const legacy=shell(mockRemote(oldReply));await tick();
+  check(()=>{assert.ok(legacy.html.includes('Aucune invitation.'));assert.ok(!legacy.html.includes('data-action="roll"'));});
+  const localValues=new Map([['onde-couple-prototype-v1',JSON.stringify(empty)]]),local=shell(mockRemote(),{mode:false,storageValues:localValues,randomFace:12});
+  check(()=>assert.ok(local.html.includes('Lancer le D4')));await local.click('roll');
+  check(()=>{assert.equal(JSON.parse(local.values.get('onde-couple-prototype-v1')).lanes.b.round.from,'b');assert.equal(local.stage.dataset.rollRole,'card');});
  }
  // The new third roll remains private, survives reload, and carries its exact detail through both worlds.
  {
@@ -271,7 +337,7 @@ async function rollSession(options={}){
  }
  // The local demo uses the same visual handoff and persists only the regular card phase.
  {
-  const ui=shell(mockRemote(),{mode:false,motionAPI:true,randomFace:2});await ui.click('roll');const saved=JSON.parse(ui.values.get('onde-couple-prototype-v1'));
+  const ui=shell(mockRemote(),{mode:false,motionAPI:true,randomFace:2});await ui.click('roll');const saved=G.roomView(JSON.parse(ui.values.get('onde-couple-prototype-v1')),'a');
   check(()=>{assert.equal(ui.motionAnimations.filter(a=>a.node===ui.canvas).length,1);assert.equal(saved.phase,'card');assert.equal(G.validateState(saved),true);assert.ok(!Object.hasOwn(saved,'contentTransitions'));assert.equal((ui.html.match(/aria-label="Carte [1-6] face cachée"/g)||[]).length,6);});
  }
  // Holding changes only visual power, caps its work, and cannot add a second native click roll.
@@ -371,7 +437,7 @@ async function rollSession(options={}){
  }
  // Local and reduced-motion draws retain the same reading pause without persisting a visual phase.
  {
-  for(const reroll of [false,true]){const game=reroll?draftGame():G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),values=new Map([['onde-couple-prototype-v1',JSON.stringify(game)]]),ui=shell(mockRemote(),{mode:false,storageValues:values,autoReveal:false,reduced:true,randomFace:2,evidenceTrap:true,mobileScroll:true});const work=ui.click(reroll?'reroll':'roll');await tick();check(()=>{assert.ok(ui.html.includes('data-reveal-selected'));assert.equal(ui.revealPending,1);assert.equal(ui.die.options[0].duration,0);assert.equal(ui.timers.findLast(timer=>timer.ms===2800).ms,2800);const saved=JSON.parse(values.get('onde-couple-prototype-v1'));assert.equal(saved.phase,'draft');assert.equal(G.validateState(saved),true);assert.equal(Object.hasOwn(saved,'cardReveal'),false);});ui.finishReveal();await work;check(()=>{assert.ok(ui.html.includes('Ta prochaine'));assert.equal(ui.revealPending,0);assert.equal(ui.announcements.length,1);});}
+  for(const reroll of [false,true]){const game=reroll?draftGame():G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),values=new Map([['onde-couple-prototype-v1',JSON.stringify(game)]]),ui=shell(mockRemote(),{mode:false,storageValues:values,autoReveal:false,reduced:true,randomFace:2,evidenceTrap:true,mobileScroll:true});const work=ui.click(reroll?'reroll':'roll');await tick();check(()=>{assert.ok(ui.html.includes('data-reveal-selected'));assert.equal(ui.revealPending,1);assert.equal(ui.die.options[0].duration,0);assert.equal(ui.timers.findLast(timer=>timer.ms===2800).ms,2800);const saved=G.roomView(JSON.parse(values.get('onde-couple-prototype-v1')),'a');assert.equal(saved.phase,'draft');assert.equal(G.validateState(saved),true);assert.equal(Object.hasOwn(saved,'cardReveal'),false);});ui.finishReveal();await work;check(()=>{assert.ok(ui.html.includes('Ta prochaine'));assert.equal(ui.revealPending,0);assert.equal(ui.announcements.length,1);});}
  }
  // Hiding the page finishes the visual pause without replay or extra requests when returning.
  {
@@ -430,7 +496,7 @@ async function rollSession(options={}){
   check(()=>assert.ok(ui.html.includes('Connexion…')));check(()=>assert.ok(!ui.html.includes('autocomplete="current-password"')));const pendingWrites=ui.writes;remote.emit();check(()=>assert.equal(ui.writes,pendingWrites));
   rejectLogin(Object.assign(new Error('L’identifiant ou le mot de passe n’est pas reconnu.'),{code:'invalid_credentials',isDesirRemoteError:true}));await retry;
   check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(ui.html.includes('n’est pas reconnu.')));ui.password.value='correcting-password';const afterError=ui.writes;remote.emit();check(()=>assert.equal(ui.writes,afterError));check(()=>assert.equal(ui.password.value,'correcting-password'));
-  remote.loginImpl=async()=>snap(initial('b'),1);await ui.submit('fixture-b','fixture-secret-b');check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B')));check(()=>assert.ok(ui.html.includes('Aucune invitation.')));check(()=>assert.equal(ui.navigation.hidden,false));
+  remote.loginImpl=async()=>snap(initial('b'),1);await ui.submit('fixture-b','fixture-secret-b');check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B')));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.navigation.hidden,false));
   const afterLogin=ui.writes;remote.emit(snap(initial('a'),99));check(()=>assert.equal(ui.writes,afterLogin));check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B')));check(()=>assert.ok(!Array.from(ui.values.values()).join('').includes('secret')));
  }
  // Mobile rendering preserves reading position and the useful action's focus through unrelated updates.

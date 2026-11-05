@@ -12,7 +12,7 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 
 - **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues possibles. Le D4 donne un poids de 11 à Complicité et Intimité et de 10 à Plaisirs et Projets. Les deux D6 et le D20 restent uniformes. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
 - Chaque personne dispose d’un tirage complet par plage de Paris (6–12 h, 12–18 h, 18–6 h). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
-- Une seule manche active. Les rôles alternent au nouveau tour ; une invitation en attente garde sa place jusqu’à sa réponse. Les plages ne créent pas de manches parallèles.
+- Chaque joueur dispose de sa propre manche. Chacun peut tirer pendant que l’autre prépare sa carte ou attend une réponse. Une bannière ouvre l’invitation reçue ; « Mon tirage » retrouve la progression personnelle. Une seule manche reste active par joueur.
 - Proposer directement ou tenter le D20 : deux jets maximum par personne, dont la somme doit atteindre les PV de la carte. Deux jets insuffisants de la personne qui tire envoient automatiquement la proposition à l’autre. Un envoi automatique nécessite ensuite les deux confirmations.
 - Une action validée à deux rejoint « À faire » pour six heures. Chacun coche sa propre case ; les deux coches retirent l’action et ajoutent un point commun. L’expiration ou le D20 ne rapporte aucun point. Plusieurs actions validées peuvent rester en attente pendant un nouveau tour.
 
@@ -51,7 +51,7 @@ python3 demo-des/dev/build.py --release    # aperçu connecté + index.html publ
 
 Un aperçu doit être servi par HTTP local. Les modes connectés lisent `config.js`, qui ne contient que l’URL du service et sa clé publiable. Ces paramètres sont incorporés au HTML pour éviter qu’un chargement de configuration manquant déclenche le mode démo. Une configuration manquante ou invalide bloque la construction connectée. Aucun identifiant, mot de passe ni secret serveur ne doit être ajouté à ce fichier.
 
-Le générateur place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 2 à la fonction Edge `desir-game`.
+Le générateur place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 3 à la fonction Edge `desir-game`.
 
 ```sh
 python3 demo-des/dev/tests/onde-build-check.py
@@ -64,6 +64,8 @@ node demo-des/server/tests/push-check.mjs
 ```
 
 Les contrôles automatisés couvrent les 144 résultats, les manches antérieures, la confidentialité des tirages, le D20 et les points. Ils ne constituent pas un essai physique sur iPhone.
+
+Les anciennes parties migrent automatiquement vers les deux manches personnelles, en conservant les cartes, tâches, points et historiques. Rouvrir l’app charge le protocole de connexion correspondant.
 
 Le développement Xcode est mis de côté pendant l’essai web. Le [ZIP Xcode](ONDE-Xcode.zip) et son HTML embarqué restent l’archive locale du build 7 ; `--release` ne les reconstruit plus. Cette archive ne possède ni comptes distants ni notifications. Les performances et la réception des notifications sur deux téléphones physiques restent à observer pendant l’essai.
 

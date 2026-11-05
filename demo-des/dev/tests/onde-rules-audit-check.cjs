@@ -10,7 +10,7 @@ function draft(){let s=G.createState();s=G.reduce(s,{type:'ROLL_CATEGORY',value:
 check(()=>assert.deepEqual(G.legacyCategories.map(c=>c.number),[1,2,3,4,5,6]));
 check(()=>assert.equal(G.legacyCategories.find(c=>c.number===3).id,'projets'));
 check(()=>assert.equal(G.rules.dailyRoundLimit,null));
-check(()=>assert.equal(G.rules.activeRoundLimit,1));
+check(()=>assert.equal(G.rules.activeRoundLimit,2));
 for(const [hp,chance] of [[10,.91],[15,.7725],[20,.5725],[25,.34],[30,.165],[35,.0525],[40,.0025]])check(()=>assert.equal(G.probability(hp),chance));
 for(const legacyCounts of [
  {complicite:1,detente:2,tendresse:3,attention:4,decouverte:5,intimite:6},

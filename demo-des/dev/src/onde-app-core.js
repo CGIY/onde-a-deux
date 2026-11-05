@@ -223,7 +223,7 @@
   ];
 
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:1, categorySides:4, cardSides:6, variantSides:6, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
+  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:2, categorySides:4, cardSides:6, variantSides:6, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:6*60*60*1000 });
   const legacyCardSides = 4;
   const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards].map(card => [card.id, card]));
   const legacyCategoryMap = Object.fromEntries(legacyCategories.map(category => [category.id, category]));
@@ -346,7 +346,8 @@
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
     const r=s.round;
-    if (r.id !== 'onde-'+s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
+    const roundSequence=typeof r.id==='string'&&/^onde-[1-9]\d*$/.test(r.id)?Number(r.id.slice(5)):NaN;
+    if (!Number.isSafeInteger(roundSequence) || roundSequence>s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
     const modern=r.catalogueVersion===2;
@@ -522,7 +523,7 @@
     if(!state || !state.round || !['a','b'].includes(player)) return false;
     const round=state.round;
     if(!['a','b'].includes(round.from) || round.to!==otherPlayer(round.from)) return false;
-    if(player===round.from) return true;
+    if(state.phase==='category' || player===round.from) return true;
     if(typeof round.sentAt==='string' && round.sentAt.length>0) return true;
     if(['pending','challenge','challenge_failed','sender_confirmation','accepted'].includes(state.phase)) return true;
     if(state.phase==='resolved' && ['completed','expired'].includes(round.status)) return true;
@@ -629,11 +630,12 @@
         s.round=blankRound(s.sequence,s.activePlayer,action.at);
         return s;
       case 'ROLL_CATEGORY': {
-        if(s.phase!=='category' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>categorySides(action.catalogueVersion)) return state;
+        if(s.phase!=='category' || !Number.isInteger(action.value) || action.value<1 || action.value>categorySides(action.catalogueVersion)) return state;
         const cat=catalogueCategories(action.catalogueVersion).find(c=>c.number===action.value);
         const modern=action.catalogueVersion===2;
         if(action.catalogueVersion!==undefined && !modern) return state;
         if(!cat || !validHand(action.hand,cat.id,modern)) return state;
+        r.from=actor; r.to=otherPlayer(actor);
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
         if(modern) Object.assign(r,{catalogueVersion:2,variantRoll:null});
         s.phase='card';
@@ -733,7 +735,109 @@
     }
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
+  // A room shares its score and tasks. Its two lanes allow one active draw per person.
+  const roomActors=['a','b'];
+  const roomSharedKeys=['sequence','players','prefs','favorites','history','seen','stats','tasks'];
+  const roomCopy=value=>JSON.parse(JSON.stringify(value));
+  const roomShared=room=>Object.fromEntries(roomSharedKeys.map(key=>[key,room[key]]));
+  const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
+
+  function validateRoom(room) {
+    if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b') return false;
+    const lanes=roomActors.map(actor=>room.lanes[actor]);
+    if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index])) return false;
+    if(lanes[0].round.id===lanes[1].round.id) return false;
+    if(roomActors.some(actor=>!validateState(focusedRoomState(room,actor,room.lanes[actor])))) return false;
+    if(new Set(room.history.map(round=>round.id)).size!==room.history.length) return false;
+    return room.history.every(round=>{
+      const sequence=typeof round.id==='string'&&/^onde-[1-9]\d*$/.test(round.id)?Number(round.id.slice(5)):NaN;
+      const lane=lanes.find(item=>item.round.id===round.id);
+      return Number.isSafeInteger(sequence) && sequence<=room.sequence && (!lane ||
+        round.cardId===lane.round.cardId && round.from===lane.round.from && round.to===lane.round.to && round.variantRoll===lane.round.variantRoll);
+    });
+  }
+
+  function normalizeRoom(raw,options={}) {
+    if(validateRoom(raw)) return raw;
+    if(raw?.version===2) return null;
+    const state=normalizeState(raw,options);
+    if(!state) return null;
+    const owner=state.round.from,other=otherPlayer(owner);
+    const sequence=Math.min(Number.MAX_SAFE_INTEGER,state.sequence+1);
+    let otherSequence=sequence;
+    if(state.sequence===Number.MAX_SAFE_INTEGER) {
+      const occupied=new Set([state.round.id,...state.history.map(round=>round.id),...state.tasks.map(task=>task.id)]);
+      otherSequence=1;
+      while(occupied.has('onde-'+otherSequence)) otherSequence++;
+    }
+    const room={version:2,...roomCopy(roomShared(state)),sequence,lanes:{
+      [owner]:{phase:state.phase,round:roomCopy(state.round)},
+      [other]:{phase:'category',round:blankRound(otherSequence,other,options.at)}
+    }};
+    return validateRoom(room)?room:null;
+  }
+
+  function createRoom(options={}) {
+    const state=createState();
+    state.round.createdAt=options.at || null;
+    return normalizeRoom(state,options);
+  }
+
+  // This is a raw focused view. The server must redact the other person's
+  // private draw before returning any such view to a browser.
+  function roomView(room,actor,roundId) {
+    if(!validateRoom(room) || !roomActors.includes(actor)) return null;
+    const lane=roundId===undefined?room.lanes[actor]:roomActors.map(owner=>room.lanes[owner]).find(item=>item.round.id===roundId);
+    return lane?roomCopy(focusedRoomState(room,actor,lane)):null;
+  }
+
+  function reconcileRoomTasks(room) {
+    for(const owner of roomActors) {
+      const lane=room.lanes[owner];
+      if(lane.phase!=='accepted' || room.tasks.some(task=>task.id===lane.round.id)) continue;
+      const ended=room.history.find(round=>round.id===lane.round.id && ['completed','expired'].includes(round.status));
+      if(ended) {
+        const round={...lane.round,status:ended.status,awaiting:null,endedAt:ended.endedAt,closedBy:ended.closedBy,checks:{...ended.checks}};
+        room.lanes[owner]={phase:'resolved',round};
+        recordHistory(room,round);
+      }
+    }
+  }
+
+  function reduceRoom(room,action) {
+    if(!validateRoom(room) || !action || typeof action.type!=='string') return room;
+    if(action.type==='RESET') {
+      const reset=createRoom({at:action.at});
+      if(action.keepPrefs) reset.prefs=roomCopy(room.prefs);
+      return reset;
+    }
+    const actor=action.actor || (action.type==='EXPIRE_TASKS'?'a':null);
+    if(!roomActors.includes(actor)) return room;
+    const shared=['TOGGLE_TASK_CHECK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
+    const owner=shared?actor:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
+    if(!owner) return room;
+    const lane=room.lanes[owner];
+    if(action.type==='NEW_ROUND') {
+      if(owner!==actor || !['accepted','resolved'].includes(lane.phase) || room.sequence===Number.MAX_SAFE_INTEGER) return room;
+      const next=roomCopy(room);
+      next.sequence++;
+      next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
+      return validateRoom(next)?next:room;
+    }
+    if(action.type==='ROLL_CATEGORY' && owner!==actor) return room;
+    const focused=focusedRoomState(room,actor,lane);
+    if(!shared && !canSeeRound(focused,actor)) return room;
+    const forwarded={...action,actor};
+    if(shared) delete forwarded.roundId;
+    const result=reduce(focused,forwarded);
+    if(result===focused) return room;
+    const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes)};
+    next.lanes[owner]={phase:result.phase,round:result.round};
+    reconcileRoomTasks(next);
+    return validateRoom(next)?next:room;
+  }
+
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

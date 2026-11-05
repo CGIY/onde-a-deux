@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {createHandler} from '../functions/desir-game/server.mjs';
-import {projectState,validDeviceToken,sha256,privateBucket,applyAction,parseAction,HttpError,normalizeUsername} from '../functions/desir-game/model.mjs';
+import {projectState,validDeviceToken,sha256,privateBucket,applyAction,parseAction,snapshot,HttpError,normalizeUsername} from '../functions/desir-game/model.mjs';
 const require=createRequire(import.meta.url),G=require('../../dev/src/onde-app-core.js');
 const clone=x=>structuredClone(x),at='2026-11-02T15:00:00.000Z',roomId='9ee847bf-5462-4dd8-958c-f77a21356f81';
 const tokenA=Buffer.alloc(32,1).toString('base64url'),tokenB=Buffer.alloc(32,2).toString('base64url');
@@ -38,6 +38,23 @@ for(const type of ['ROLL_CATEGORY','REROLL_CARD','ROLL_VARIANT'])for(const forbi
  checks++;assert.throws(()=>parseAction(action),HttpError,'reject client '+type+' '+forbidden);
 }
 equal(parseAction({type:'REROLL_CARD',roundId:'onde-1'}),{type:'REROLL_CARD',roundId:'onde-1'});
+// An idle round is claimable by either actor; a hidden draw is not a new turn.
+for(const version of [1,2]){
+ const initial=G.createState(),context=actor=>({room:{id:roomId,state:initial,revision:0},member:{actor},paired:true,quota:{remaining:1}});
+ for(const actor of ['a','b']){
+  const view=snapshot(G,context(actor),{},version);
+  equal(view.drawAvailable,true);equal(view.state.phase,'category');
+  ok(G.canSeeRound(view.state,actor),'both players can see a genuinely idle round');
+ }
+ const claimed=applyAction(G,initial,'b',{type:'ROLL_CATEGORY',roundId:'onde-1'},uuid(401+version),at,()=>1,version);
+ equal(claimed.state.round.from,'b');equal(claimed.state.round.to,'a');equal(claimed.state.activePlayer,'b');equal(claimed.state.phase,'card');equal(claimed.consumeTicket,true);
+ equal(initial.round.from,'a','claiming a draw never mutates its source');
+ for(const actor of ['a','b']){
+  const view=snapshot(G,{...context(actor),room:{...context(actor).room,state:claimed.state}}, {},version);
+  equal(view.drawAvailable,false,'actual authoritative phase governs draw availability');
+  if(actor==='a'){equal(view.state.phase,'category');equal(view.state.round.hand,[]);}
+ }
+}
 // Exercise each integer ticket, including both ends of every face interval.
 const categoryDraws=new Map(),categoryCounts={complicite:0,attention:0,projets:0,intimite:0};
 for(let ticket=1;ticket<=42;ticket++){
@@ -131,138 +148,164 @@ class MemoryStore{
   throw Error('Unexpected RPC '+name);
  }
 }
-// Both simultaneous deliveries must observe the one committed replacement face.
-for(const sides of [4,6]){
- const concurrent=new MemoryStore();concurrent.state=draft('a',2,sides);concurrent.used.add('a');
- const hash=await sha256('device:'+tokenA);concurrent.members.set(hash,{token_hash:hash,room_id:roomId,actor:'a'});
- let randomCalls=0;const concurrentHandler=createHandler({G:{...G,randomInt:n=>{equal(n,sides-1);return ++randomCalls===1?1:sides-1;}},store:concurrent,rateSecret:'fixture',clock:()=>new Date(at)});
- const deliver=async()=>{const result=await concurrentHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:JSON.stringify({op:'action',requestId:uuid(300),action:{type:'REROLL_CARD',roundId:'onde-1'}})}));return {status:result.status,body:await result.json()};};
- const [first,second]=await Promise.all([deliver(),deliver()]);equal(first.status,200);equal(second.status,200);equal(first.body,second.body,'concurrent retry returns the committed receipt, never a losing RNG result');equal(concurrent.receipts.size,1);equal(concurrent.revision,1);equal(concurrent.state.round.cardRoll,first.body.roll.value);equal(concurrent.used.size,1);equal(concurrent.outbox,[]);
+// All new network traffic uses the independently projected parallel room.
+async function authorize(store){
+ for(const [actor,token] of [['a',tokenA],['b',tokenB]]){
+  const token_hash=await sha256('device:'+token);store.members.set(token_hash,{token_hash,room_id:roomId,actor});
+ }
 }
-// Existing persisted rounds/history lacking the new flag are migrated before strict projection.
+function client(handler){
+ return async(body,token=tokenA,extra={})=>{
+  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify({gameVersion:3,...body})}));
+  return {status:response.status,body:await response.json(),headers:response.headers};
+ };
+}
+const intent=(type,id,roundId='onde-1',extra={})=>({op:'action',requestId:uuid(id),action:{type,roundId,...extra}});
+const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
+
+// Outdated clients receive a safe upgrade before migration or any game mutation.
 {
- const legacy=new MemoryStore();legacy.state=act(act(act(draft(),'CHALLENGE_DRAFT'),'ROLL_DRAFT_DEFENSE',{value:20,token:'old1'}),'ROLL_DRAFT_DEFENSE',{value:20,token:'old2'});
- const oldCard=legacy.state.round.cardId;delete legacy.state.round.cardRerolled;for(const past of legacy.state.history)delete past.cardRerolled;
- const hash=await sha256('device:'+tokenB);legacy.members.set(hash,{token_hash:hash,room_id:roomId,actor:'b'});
- const legacyHandler=createHandler({G,store:legacy,rateSecret:'fixture',clock:()=>new Date(at)});
- const result=await legacyHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenB,'Content-Type':'application/json'},body:'{"op":"state"}'})),body=await result.json();
- equal(result.status,200);equal(legacy.state.round.cardRerolled,false);ok(legacy.state.history.every(past=>past.cardRerolled===false));equal(legacy.revision,1,'normalization is persisted through CAS');ok(G.validateState(body.state));equal(body.state.history,[]);equal(body.state.round.cardId,null);ok(!JSON.stringify(body).includes(oldCard),'old private history remains hidden after migration');
+ const saved=new MemoryStore();await authorize(saved);
+ const handler=createHandler({G,store:saved,rateSecret:'fixture',clock:()=>new Date(at)}),deliver=client(handler);
+ for(const gameVersion of [1,2])for(const op of ['login','state','action']){
+  const before=clone(saved.state),revision=saved.revision;
+  const response=await deliver({op,gameVersion,username:'alpha',password:'test-only-password',requestId:uuid(600),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}});
+  equal(response.status,409);equal(response.body.error.code,'upgrade_required');equal(response.body.state,undefined);equal(saved.state,before);equal(saved.revision,revision);equal(saved.used.size,0);
+ }
+ equal((await deliver({op:'state',gameVersion:'3'})).status,400);
 }
-// A published six-category save is normalized once without redrawing its hand,
-// changing its score, spending another quota, or changing its challenge die.
+
+// A published legacy hand, score, D4 and quota survive migration into its owner lane.
 {
  const legacy=new MemoryStore(),saved=draft('a',1,4,'detente'),hand=clone(saved.round.hand);
  saved.phase='card';Object.assign(saved.round,{cardId:null,cardRoll:null,hp:null,status:'drawing'});delete saved.round.cardRerolled;
- saved.stats={totalCompleted:21,byCategory:{complicite:1,detente:2,projets:3,attention:4,bouffe:5,intimite:6}};legacy.state=saved;legacy.used.add('a');
- for(const [token,actor] of [[tokenA,'a'],[tokenB,'b']]){const hash=await sha256('device:'+token);legacy.members.set(hash,{token_hash:hash,room_id:roomId,actor});}
- const migrationRng=[],legacyHandler=createHandler({G:{...G,randomInt:n=>{migrationRng.push(n);return n;}},store:legacy,rateSecret:'fixture',clock:()=>new Date(at)});
- const deliver=async(body,token=tokenA)=>{const response=await legacyHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)}));return {status:response.status,body:await response.json()};};
- const own=await deliver({op:'state'});equal(own.status,200);equal(own.body.state.round.hand,hand);equal(own.body.state.round.categoryId,'detente');equal(own.body.state.round.categoryRoll,2);equal(own.body.state.stats,saved.stats);equal(legacy.revision,1,'category normalization is persisted once');equal(migrationRng,[],'migration draws no dice');equal(legacy.used.size,1);
- const other=await deliver({op:'state'},tokenB);equal(other.status,200);equal(other.body.state.round.hand,[]);equal(legacy.revision,1,'a second read does not migrate or sum the score again');
- const rolled=await deliver({op:'action',requestId:uuid(401),action:{type:'ROLL_CARD',roundId:'onde-1'}});equal(rolled.status,200);equal(rolled.body.roll,{kind:4,value:4});equal(rolled.body.state.round.cardId,hand[3]);equal(migrationRng,[4]);equal(legacy.used.size,1,'continuing an old hand spends no new quota');
- const sent=await deliver({op:'action',requestId:uuid(402),action:{type:'SEND',roundId:'onde-1'}});equal(sent.status,200);equal(sent.body.state.round.hand,hand);
- const invited=await deliver({op:'state'},tokenB);equal(invited.status,200);equal(invited.body.state.round.hand.length,4);equal(invited.body.state.round.cardId,hand[3]);equal(invited.body.state.stats.totalCompleted,21);ok(G.validateState(invited.body.state),'recipient can respond to a migrated four-card invitation');
+ saved.stats={totalCompleted:21,byCategory:{complicite:1,detente:2,projets:3,attention:4,bouffe:5,intimite:6}};legacy.state=saved;legacy.used.add('a');await authorize(legacy);
+ const rng=[],handler=createHandler({G:{...G,randomInt:n=>{rng.push(n);return n;}},store:legacy,rateSecret:'fixture',clock:()=>new Date(at)}),deliver=client(handler);
+ const own=await deliver({op:'state'});equal(own.status,200);equal(legacy.state.version,2);equal(own.body.gameVersion,3);equal(own.body.state.round.hand,hand);equal(own.body.state.stats,saved.stats);equal(own.body.state.round.categoryId,'detente');equal(own.body.state.round.categoryRoll,2);equal(own.body.quota.remaining,0);equal(rng,[]);equal(legacy.revision,1);
+ const other=await deliver({op:'state'},tokenB);equal(other.status,200);equal(other.body.state.phase,'category');equal(other.body.state.round.from,'b');equal(other.body.incoming,[]);equal(other.body.drawAvailable,true);equal(other.body.quota.remaining,1);equal(legacy.revision,1);
+ const rolled=await deliver(intent('ROLL_CARD',601));equal(rolled.status,200);equal(rolled.body.roll,{kind:4,value:4});equal(rolled.body.state.round.cardId,hand[3]);equal(rng,[4]);equal(legacy.used.size,1);
+ const sent=await deliver(intent('SEND',602));equal(sent.status,200);equal(legacy.outbox,[{actor:'b',kind:'invitation',roundId:'onde-1'}]);
+ const invited=await deliver({op:'state'},tokenB);equal(invited.body.state.phase,'category');equal(invited.body.incoming.length,1);equal(invited.body.incoming[0].round.cardId,hand[3]);equal(invited.body.incoming[0].round.hand.length,4);ok(G.validateState(invited.body.incoming[0]));equal(invited.body.state.stats.totalCompleted,21);
 }
-// Mixed-version clients can finish legacy draws. A v2 draw can never be
-// advanced by an old client that can't show the selected variation.
+
+// Old private defended history remains private after one idempotent migration.
 {
- const mixed=new MemoryStore(),rng=[];
- for(const [token,actor] of [[tokenA,'a'],[tokenB,'b']]){
-  const hash=await sha256('device:'+token);mixed.members.set(hash,{token_hash:hash,room_id:roomId,actor});
+ const legacy=new MemoryStore();legacy.state=act(act(act(draft(),'CHALLENGE_DRAFT'),'ROLL_DRAFT_DEFENSE',{value:20,token:'old1'}),'ROLL_DRAFT_DEFENSE',{value:20,token:'old2'});
+ const oldCard=legacy.state.round.cardId;delete legacy.state.round.cardRerolled;for(const past of legacy.state.history)delete past.cardRerolled;await authorize(legacy);
+ const deliver=client(createHandler({G,store:legacy,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const response=await deliver({op:'state'},tokenB);equal(response.status,200);equal(response.body.incoming,[]);equal(response.body.state.history,[]);ok(!JSON.stringify(response.body).includes(oldCard));ok(G.validateRoom(legacy.state));equal(legacy.revision,1);await deliver({op:'state'},tokenB);equal(legacy.revision,1);
+}
+
+// Both players can start their own draw concurrently. CAS retains both results.
+for(const firstActor of ['a','b']){
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
+ const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const claim=actor=>deliver(intent('ROLL_CATEGORY',actor==='a'?610:611,view(store,actor).round.id),actor==='a'?tokenA:tokenB);
+ const results=await Promise.all([claim(firstActor),claim(G.otherPlayer(firstActor))]);equal(results.map(x=>x.status),[200,200]);equal(store.state.lanes.a.phase,'card');equal(store.state.lanes.b.phase,'card');equal(store.used.size,2);equal(store.receipts.size,2);equal(store.revision,2);
+ for(const [index,actor] of [firstActor,G.otherPlayer(firstActor)].entries()){
+  equal(results[index].body.state.round.from,actor);equal(results[index].body.incoming,[]);equal(results[index].body.quota.remaining,0);equal(results[index].body.drawAvailable,false);
+  const replay=await claim(actor);equal(replay.status,200);equal(replay.body,results[index].body);equal(store.revision,2);
  }
- const mixedHandler=createHandler({G:{...G,randomInt:n=>{rng.push(n);return n===20?1:n;}},store:mixed,rateSecret:'fixture',clock:()=>new Date(at)});
- const deliver=async(body,token=tokenA)=>{
-  const response=await mixedHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)}));
-  return {status:response.status,body:await response.json()};
- };
- const action=(type,id,gameVersion=2,roundId='onde-1',extra={})=>({op:'action',gameVersion,requestId:uuid(id),action:{type,roundId,...extra}});
- equal((await deliver({op:'state',gameVersion:'2'})).status,400);
- equal((await deliver(action('ROLL_VARIANT',500))).status,409);equal(rng,[],'early third D6 cannot consume RNG or a ticket');
- const draw=await deliver(action('ROLL_CATEGORY',501));equal(draw.status,200);equal(draw.body.roll,{kind:4,value:4});equal(draw.body.state.round.catalogueVersion,2);
- const stale=await deliver({op:'state'});equal(stale.status,409);equal(stale.body.error.code,'upgrade_required');equal(stale.body.state,undefined);
- equal((await deliver({op:'state'},tokenB)).body.state.round.hand,[],'an old recipient still sees a neutral private round');
- equal((await deliver(action('ROLL_CARD',502,1))).status,409);equal(rng,[42],'outdated client does not advance the private round');
- const drawn=await deliver(action('ROLL_CARD',502));equal(drawn.status,200);equal(drawn.body.roll,{kind:6,value:6});equal(drawn.body.state.phase,'variant');
- const hidden=await deliver({op:'state',gameVersion:2},tokenB);equal(hidden.body.state.round.cardId,null);equal(hidden.body.state.round.variantRoll,undefined);
- equal((await deliver(action('ROLL_VARIANT',503),tokenB)).status,409);equal(rng,[42,6],'other player cannot roll a private variation');
- equal((await deliver(action('ROLL_VARIANT',503,2,'onde-1',{value:2}))).status,400);
- equal((await deliver(action('SEND',503))).status,409);equal(mixed.outbox,[]);
- const variantAction=action('ROLL_VARIANT',504),variant=await deliver(variantAction);
- equal(variant.status,200);equal(variant.body.roll,{kind:6,value:6});equal(variant.body.state.phase,'draft');equal(variant.body.state.round.variantRoll,6);equal(variant.body.quota.remaining,0);
- const revision=mixed.revision;
- equal(await deliver(variantAction),variant,'same request returns the committed third face');
- equal((await deliver(action('ROLL_VARIANT',505))).status,409);equal(mixed.revision,revision);equal(rng,[42,6,6]);
- equal((await deliver(action('REROLL_CARD',506))).status,409,'new turns use the D20 without another card reroll');
- const sent=await deliver(action('SEND',507));equal(sent.status,200);equal(mixed.outbox,[{actor:'b',kind:'invitation'}]);
- const oldInvitation=await deliver({op:'state'},tokenB);equal(oldInvitation.status,409);equal(oldInvitation.body.error.code,'upgrade_required');equal(oldInvitation.body.state,undefined);
- const invitation=await deliver({op:'state',gameVersion:2},tokenB);equal(invitation.status,200);equal(invitation.body.state.round.variantRoll,6);
- const before=clone(mixed.state),deck=before.round.hand.filter(id=>id!==before.round.cardId).reverse();
- deck.splice(before.round.cardRoll-1,0,before.round.cardId);before.round.hand=deck;
- equal(projectState(G,before,'b'),invitation.body.state,'the recipient cannot distinguish private challenge permutations');
- equal((await deliver(action('CHALLENGE',508),tokenB)).status,200);
- const d20=await deliver(action('ROLL_DEFENSE',509),tokenB);equal(d20.status,200);equal(d20.body.roll,{kind:20,value:1});equal(rng,[42,6,6,20],'only the category die is weighted');
- const accepted=await deliver(action('ACCEPT',510),tokenB);equal(accepted.status,200);equal(accepted.body.state.tasks[0].variantRoll,6);equal(G.getVariant(accepted.body.state.tasks[0]),G.getVariant(variant.body.state.round));
- equal(mixed.used.size,1,'only the category roll consumed a ticket');
- equal((await deliver(action('NEW_ROUND',511),tokenB)).status,200);
- equal((await deliver({op:'state'},tokenB)).body.error.code,'upgrade_required','old UI cannot render a still-active v2 task');
- const check={taskId:'onde-1',checked:true};
- equal((await deliver(action('TOGGLE_TASK_CHECK',512,2,'onde-2',check))).status,200);
- const completed=await deliver(action('TOGGLE_TASK_CHECK',513,2,'onde-2',check),tokenB);equal(completed.status,200);equal(completed.body.state.stats.totalCompleted,1);
- const oldSummary=await deliver({op:'state'},tokenB);equal(oldSummary.status,200);equal(oldSummary.body.state.history,[]);equal(oldSummary.body.state.stats.totalCompleted,1);
- const oldDraw=await deliver(action('ROLL_CATEGORY',514,1,'onde-2'),tokenB);equal(oldDraw.status,200);equal(oldDraw.body.roll,{kind:6,value:6});equal(oldDraw.body.state.round.hand.length,4);
- const oldReceipt=await deliver(action('ROLL_CATEGORY',514,2,'onde-2'),tokenB);equal(oldReceipt.status,409);equal(oldReceipt.body.error.code,'request_id_reused');
- const oldCard=await deliver(action('ROLL_CARD',515,2,'onde-2'),tokenB);equal(oldCard.status,200);equal(oldCard.body.roll,{kind:4,value:4});equal(oldCard.body.state.phase,'draft');
 }
-const store=new MemoryStore();let now=at;
-const rngCalls=[];
-const handler=createHandler({G:{...G,randomInt:sides=>{rngCalls.push(sides);return G.randomInt(sides);}},store,rateSecret:'test-rate-secret',clock:()=>new Date(now),push:{ensurePushConfig:async()=>({publicKey:'test-vapid-public'}),saveSubscription:async()=>({subscribed:true}),flushPushOutbox:async()=>({})}});
-async function request(body,token=tokenA,extra={}){
- const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify(body)}));
- return {status:response.status,body:await response.json(),headers:response.headers};
+
+// Same-actor simultaneous deliveries return one committed receipt and one ticket.
+{
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);let draws=0;
+ const deliver=client(createHandler({G:{...G,randomInt:()=>++draws===1?1:42},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const action=intent('ROLL_CATEGORY',620),results=await Promise.all([deliver(action),deliver(action)]);
+ equal(results.map(x=>x.status),[200,200]);equal(results[0].body,results[1].body);equal(store.used.size,1);equal(store.receipts.size,1);equal(store.revision,1);equal(store.state.lanes.b.phase,'category');
 }
-let response=await request({op:'create'});equal(response.status,404);response=await request({op:'join',code:'anything'});equal(response.status,404);
-response=await request({op:'state'});equal(response.status,401);equal(response.body.state,undefined);
+
+// Legacy reroll receipts still commit once through the new parallel protocol.
+for(const sides of [4,6]){
+ const store=new MemoryStore();store.state=draft('a',2,sides);store.used.add('a');await authorize(store);let draws=0;
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{equal(n,sides-1);return ++draws===1?1:sides-1;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ await deliver({op:'state'});const before=store.revision,action=intent('REROLL_CARD',630+sides);
+ const results=await Promise.all([deliver(action),deliver(action)]);equal(results.map(x=>x.status),[200,200]);equal(results[0].body,results[1].body);equal(store.receipts.size,1);equal(store.revision,before+1);equal(view(store,'a').round.cardRoll,results[0].body.roll.value);equal(store.used.size,1);equal(store.outbox,[]);
+}
+
+// Draws stay private until send; incoming responses never replace the receiver's own lane.
+{
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);const rng=[];let category=0;
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{rng.push(n);return n===42?(++category===1?1:42):n===20?1:2;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const aId=view(store,'a').round.id,bId=view(store,'b').round.id;
+ for(const [actor,token,id,offset] of [['a',tokenA,aId,640],['b',tokenB,bId,650]]){
+  equal((await deliver(intent('ROLL_CATEGORY',offset,id),token)).status,200);
+  equal((await deliver(intent('ROLL_CARD',offset+1,id),token)).status,200);
+  equal((await deliver(intent('ROLL_VARIANT',offset+2,id),token)).status,200);
+  equal(view(store,actor).phase,'draft');
+  const partner=await deliver({op:'state'},actor==='a'?tokenB:tokenA);equal(partner.body.incoming,[]);ok(!JSON.stringify(partner.body).includes(view(store,actor).round.cardId));
+ }
+ const aBefore=clone(store.state.lanes.a),bBefore=clone(store.state.lanes.b),oldRng=rng.length;
+ const forbidden=await deliver(intent('ROLL_VARIANT',660,aId),tokenB);equal(forbidden.status,409);equal(forbidden.body.state.round.id,bId);equal(forbidden.body.incoming,[]);equal(rng.length,oldRng);equal(store.state.lanes.a,aBefore);equal(store.state.lanes.b,bBefore);
+ equal((await deliver(intent('SEND',661,aId))).status,200);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:aId}]);
+ const invited=await deliver({op:'state'},tokenB);equal(invited.body.state.round.id,bId);equal(invited.body.state.phase,'draft');equal(invited.body.incoming.length,1);equal(invited.body.incoming[0].round.id,aId);equal(invited.body.incoming[0].round.variantRoll,2);
+ const altered=clone(store.state),lane=altered.lanes.a,others=lane.round.hand.filter(id=>id!==lane.round.cardId).reverse();others.splice(lane.round.cardRoll-1,0,lane.round.cardId);lane.round.hand=others;
+ equal(projectState(G,altered,'b',3,aId),invited.body.incoming[0],'private permutation never leaks to receiver');
+ const sentAgain=await deliver(intent('SEND',661,aId));equal(sentAgain.status,200);equal(store.outbox.length,1);
+ const recipientChallenge=await deliver(intent('CHALLENGE',662,aId),tokenB);equal(recipientChallenge.status,200);equal(recipientChallenge.body.state.round.id,bId);equal(recipientChallenge.body.incoming[0].phase,'challenge');
+ const defense=await deliver(intent('ROLL_DEFENSE',663,aId),tokenB);equal(defense.status,200);equal(defense.body.roll,{kind:20,value:1});equal(defense.body.incoming[0].round.rolls,[1]);equal(store.state.lanes.b,bBefore);
+ const accepted=await deliver(intent('ACCEPT',664,aId),tokenB);equal(accepted.status,200);equal(accepted.body.incoming[0].phase,'accepted');equal(accepted.body.state.round.id,bId);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,aId);
+ const checkA=intent('TOGGLE_TASK_CHECK',665,aId,{taskId:aId,checked:true}),checkB=intent('TOGGLE_TASK_CHECK',666,bId,{taskId:aId,checked:true});
+ const checked=await Promise.all([deliver(checkA),deliver(checkB,tokenB)]);equal(checked.map(x=>x.status),[200,200]);equal(store.state.stats.totalCompleted,1);equal(store.state.tasks.length,0);equal(store.state.lanes.a.phase,'resolved');equal(store.state.lanes.b,bBefore);
+ equal((await deliver(checkB,tokenB)).status,200);equal(store.state.stats.totalCompleted,1);
+ const next=await deliver(intent('NEW_ROUND',667,aId));equal(next.status,200);equal(next.body.state.round.from,'a');equal(next.body.state.phase,'category');ok(next.body.state.round.id!==aId);equal(next.body.quota.remaining,0);
+ const exhausted=await deliver(intent('ROLL_CATEGORY',668,next.body.state.round.id));equal(exhausted.status,409);equal(exhausted.body.error.code,'quota_exhausted');equal(store.state.lanes.b,bBefore);
+ equal((await deliver(intent('SEND',669,bId),tokenB)).status,200);equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
+}
+
+// An initiator's two failed D20s notify the partner, then require sender confirmation.
+{
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
+ const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const id=view(store,'a').round.id,untouched=clone(store.state.lanes.b);let requestId=680;
+ for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','ROLL_DRAFT_DEFENSE'])equal((await deliver(intent(type,requestId++,id))).status,200);
+ equal(store.state.lanes.a.phase,'pending');equal(store.state.lanes.a.round.autoProposed,true);equal(store.state.lanes.b,untouched);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:id}]);
+ const invited=await deliver({op:'state'},tokenB);equal(invited.body.drawAvailable,true);equal(invited.body.incoming[0].round.draftRolls,[1,1]);
+ const accepted=await deliver(intent('ACCEPT',requestId++,id),tokenB);equal(accepted.status,200);equal(accepted.body.incoming[0].phase,'sender_confirmation');equal(accepted.body.state.phase,'category');equal(store.outbox.at(-1),{actor:'a',kind:'confirmation',roundId:id});
+ const confirmed=await deliver(intent('ACCEPT',requestId++,id));equal(confirmed.status,200);equal(confirmed.body.state.phase,'accepted');equal(confirmed.body.state.tasks.length,1);equal(store.state.lanes.b,untouched);equal(store.used.size,1);
+}
+
+// Shared expiry reconciles both accepted lanes, without adding points.
+{
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);let now=at;
+ const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(now)}));
+ let idCounter=700;
+ for(const [actor,token,otherToken] of [['a',tokenA,tokenB],['b',tokenB,tokenA]]){
+  const id=view(store,actor).round.id;
+  for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,idCounter++,id),token)).status,200);
+  equal((await deliver(intent('ACCEPT',idCounter++,id),otherToken)).status,200);
+ }
+ equal(store.state.tasks.length,2);now='2026-11-02T21:00:00.000Z';const expired=await deliver({op:'state'});equal(expired.status,200);equal(expired.body.state.tasks,[]);equal(store.state.lanes.a.round.status,'expired');equal(store.state.lanes.b.round.status,'expired');equal(store.state.stats.totalCompleted,0);
+ const late=await deliver(intent('TOGGLE_TASK_CHECK',idCounter++,view(store,'a').round.id,{taskId:'onde-1',checked:true}),tokenB);equal(late.status,409);equal(store.state.stats.totalCompleted,0);
+}
+
+// Identity, CORS, limits, authoritative time and idempotent receipts use the normal HTTP entry point.
+const store=new MemoryStore();let now=at;const rngCalls=[];
+const handler=createHandler({G:{...G,randomInt:n=>{rngCalls.push(n);return 1;}},store,rateSecret:'test-rate-secret',clock:()=>new Date(now),push:{ensurePushConfig:async()=>({publicKey:'test-vapid-public'}),saveSubscription:async()=>({subscribed:true}),flushPushOutbox:async()=>({})}}),request=client(handler);
+let response=await request({op:'create'});equal(response.status,404);equal((await request({op:'join',code:'anything'})).status,404);
+equal((await request({op:'state'})).status,401);
 response=await request({op:'login',username:'alpha',password:'not-the-fixture-password'});equal(response.status,401);ok(!JSON.stringify(response.body).includes('not-the-fixture-password'));
-store.blockRates=true;const loginBefore=store.loginChecks;response=await request({op:'login',username:'alpha',password:'test-only-password'});equal(response.status,429);equal(store.loginChecks,loginBefore,'rate limit happens before password verification');store.blockRates=false;
-response=await request({op:'login',username:' ÁLPHÀ ',password:'test-only-password'});equal(response.status,200);equal(response.body.connection.actor,'a');equal(response.body.connection.token,tokenA);equal(response.body.roomId,roomId);equal(response.body.serverTime,at,'snapshot uses authoritative clock');ok(G.validateState(response.body.state));
-response=await request({op:'login',username:'bravo',password:'test-only-password'},tokenB);equal(response.status,200);equal(response.body.actor,'b');
-response=await request({op:'login',username:'bravo',password:'test-only-password'},tokenA);equal(response.status,409,'existing device cannot change account');
-response=await request({op:'state'});equal(response.status,200);equal(response.body.actor,'a');ok(!JSON.stringify(response.body).includes(tokenA),'state never repeats the bearer');
-response=await request({op:'push_config'});equal(response.body,{vapidPublicKey:'test-vapid-public'});
-response=await request({op:'subscribe',subscription:{test:true}});equal(response.status,200);
-response=await request({op:'action',requestId:uuid(1),action:{type:'ROLL_CATEGORY',roundId:'onde-1',value:6}});equal(response.status,400,'caller cannot choose the category face');
-response=await request({op:'action',requestId:uuid(2),action:{type:'RESET',roundId:'onde-1'}});equal(response.status,400,'caller cannot reset the shared room');
-store.forceRace=true;response=await request({op:'action',requestId:uuid(3),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}});equal(response.status,200);equal(response.body.roll.kind,6);ok(response.body.roll.value>=1&&response.body.roll.value<=6);equal(response.body.state.round.hand.length,4);equal(store.used.size,1);equal(response.body.quota.remaining,0);const originalResponse=clone(response.body),afterRevision=store.revision;
-response=await request({op:'action',requestId:uuid(3),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}});equal(response.status,200);equal(response.body,originalResponse,'request retry replays identical authoritative RNG/result');equal(store.revision,afterRevision);equal(store.used.size,1);
-now='2026-11-02T15:00:10.000Z';response=await request({op:'action',requestId:uuid(3),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}});equal(response.status,200);equal(response.body.serverTime,now,'receipt uses fresh server clock');equal(response.body.roll,originalResponse.roll,'receipt retains exact random outcome');equal(response.body.state,originalResponse.state,'receipt retains exact action snapshot');now=at;
-response=await request({op:'action',requestId:uuid(3),action:{type:'ROLL_CARD',roundId:'onde-1'}});equal(response.status,409,'request ID cannot be reused for a different operation');
-response=await request({op:'state'},tokenB);equal(response.status,200);equal(response.body.state.phase,'category');equal(response.body.state.round.hand,[]);equal(response.body.state.round.categoryId,null);equal(response.body.state.seen,{});
-response=await request({op:'action',requestId:uuid(4),action:{type:'ROLL_CARD',roundId:'onde-1'}},tokenB);equal(response.status,409);equal(response.body.state.round.cardId,null,'rejected wrong actor never receives private state');
-response=await request({op:'action',requestId:uuid(5),action:{type:'ROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body.roll.kind,4);let secretCard=store.state.round.cardId;
-response=await request({op:'state'},tokenB);ok(!JSON.stringify(response.body).includes(secretCard));
-const preReroll=clone(store.state),beforeRerollRevision=store.revision,beforeRerollRng=rngCalls.length;
-response=await request({op:'action',requestId:uuid(50),action:{type:'REROLL_CARD',roundId:'onde-1'}},tokenB);equal(response.status,409);equal(store.revision,beforeRerollRevision);equal(rngCalls.length,beforeRerollRng);equal(response.body.state.round.cardId,null);
-response=await request({op:'action',requestId:uuid(51),action:{type:'REROLL_CARD',roundId:'onde-1',value:4}});equal(response.status,400,'caller cannot choose the replacement D6');
-response=await request({op:'action',requestId:uuid(52),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body.roll.kind,4);equal(rngCalls.at(-1),3);ok(response.body.roll.value!==preReroll.round.cardRoll);ok(store.state.round.cardId!==secretCard);equal(store.state.round.cardRerolled,true);equal(store.used.size,1);equal(response.body.quota.remaining,0,'reroll remains available after its category draw quota was consumed');equal(store.state.stats,preReroll.stats);equal(store.outbox.length,0);equal(store.calls.filter(call=>call.name==='desir_commit').at(-1).args.p_consume_ticket,false);secretCard=store.state.round.cardId;
-const rerollResponse=clone(response.body),rerollRevision=store.revision,rerollRng=rngCalls.length;
-response=await request({op:'action',requestId:uuid(52),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,200);equal(response.body,rerollResponse,'same request replays the exact replacement card and D6');equal(store.revision,rerollRevision);equal(rngCalls.length,rerollRng,'replay never draws another random face');equal(store.used.size,1);
-response=await request({op:'action',requestId:uuid(53),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,409,'a fresh request cannot obtain a second reroll');equal(store.revision,rerollRevision);equal(rngCalls.length,rerollRng);
-response=await request({op:'action',requestId:uuid(54),action:{type:'CHALLENGE_DRAFT',roundId:'onde-1'}});equal(response.status,409,'initiator cannot recover D20 after reroll');
-response=await request({op:'state'},tokenB);equal(response.body.state.round.cardId,null);equal(response.body.state.round.cardRerolled,false);ok(!JSON.stringify(response.body).includes(secretCard));ok(!JSON.stringify(response.body).includes(preReroll.round.cardId));
-response=await request({op:'action',requestId:uuid(6),action:{type:'SEND',roundId:'onde-1'}});equal(response.status,200);equal(store.outbox.length,1);equal(store.outbox[0],{actor:'b',kind:'invitation'});
-response=await request({op:'action',requestId:uuid(6),action:{type:'SEND',roundId:'onde-1'}});equal(response.status,200);equal(store.outbox.length,1,'no duplicate outbox event');
-response=await request({op:'state'},tokenB);equal(response.body.state.round.cardId,secretCard);ok(G.validateState(response.body.state));
-response=await request({op:'action',requestId:uuid(55),action:{type:'REROLL_CARD',roundId:'onde-1'}});equal(response.status,409,'sent invitation cannot be rerolled');
-response=await request({op:'action',requestId:uuid(56),action:{type:'CHALLENGE',roundId:'onde-1'}},tokenB);equal(response.status,200);equal(response.body.state.phase,'challenge','recipient D20 remains available through HTTP');
-response=await request({op:'action',requestId:uuid(7),action:{type:'ACCEPT',roundId:'onde-1'}},tokenB);equal(response.status,200);equal(response.body.state.tasks.length,1);equal(response.body.state.tasks[0].createdAt,at);equal(response.body.state.tasks[0].expiresAt,'2026-11-02T21:00:00.000Z');equal(store.outbox.length,1,'no unsolicited ready notification');
-now='2026-11-02T21:00:00.000Z';response=await request({op:'state'});equal(response.status,200);equal(response.body.state.tasks.length,0);equal(response.body.state.round.status,'expired');equal(response.body.state.stats.totalCompleted,0);
-response=await request({op:'action',requestId:uuid(8),action:{type:'TOGGLE_TASK_CHECK',roundId:'onde-1',taskId:'onde-1',checked:true}},tokenB);equal(response.status,409);equal(response.body.state.stats.totalCompleted,0,'expiry cannot be bypassed by a late checkbox');
+store.blockRates=true;const beforeLogin=store.loginChecks;equal((await request({op:'login',username:'alpha',password:'test-only-password'})).status,429);equal(store.loginChecks,beforeLogin);store.blockRates=false;
+response=await request({op:'login',username:' ÁLPHÀ ',password:'test-only-password'});equal(response.status,200);equal(response.body.connection.actor,'a');equal(response.body.connection.token,tokenA);equal(response.body.serverTime,at);ok(G.validateRoom(store.state));equal(response.body.gameVersion,3);equal(response.body.drawAvailable,true);equal(response.body.incoming,[]);
+equal((await request({op:'login',username:'bravo',password:'test-only-password'},tokenB)).status,200);
+equal((await request({op:'login',username:'bravo',password:'test-only-password'},tokenA)).status,409);
+response=await request({op:'state'});equal(response.status,200);ok(!JSON.stringify(response.body).includes(tokenA));equal(response.body.actor,'a');equal(response.body.state.round.from,'a');
+equal((await request({op:'push_config'})).body,{vapidPublicKey:'test-vapid-public'});equal((await request({op:'subscribe',subscription:{test:true}})).status,200);
+equal((await request(intent('ROLL_CATEGORY',801,'onde-1',{value:6}))).status,400);equal((await request(intent('RESET',802))).status,400);
+store.forceRace=true;response=await request(intent('ROLL_CATEGORY',803));equal(response.status,200);equal(response.body.roll.kind,4);equal(response.body.state.round.hand.length,6);equal(store.used.size,1);const original=clone(response.body),revision=store.revision,calls=rngCalls.length;
+response=await request(intent('ROLL_CATEGORY',803));equal(response.status,200);equal(response.body,original);equal(store.revision,revision);equal(rngCalls.length,calls);
+now='2026-11-02T15:00:10.000Z';response=await request(intent('ROLL_CATEGORY',803));equal(response.body.serverTime,now);equal(response.body.state,original.state);equal(response.body.roll,original.roll);now=at;
+equal((await request(intent('ROLL_CARD',803))).body.error.code,'request_id_reused');
+response=await request({op:'state'},tokenB);equal(response.body.state.round.from,'b');equal(response.body.drawAvailable,true);equal(response.body.incoming,[]);equal(response.body.quota.remaining,1);
+response=await request(intent('ROLL_CARD',804,'onde-1'),tokenB);equal(response.status,409);equal(response.body.incoming,[]);equal(response.body.state.round.cardId,null);
 response=await request({op:'state'},tokenA,{Origin:'https://unrelated.example'});equal(response.status,403);equal(response.headers.get('Access-Control-Allow-Origin'),null);
-const badHandler=createHandler({G,store:{rpc:async()=>{throw new Error('SECRET-DATABASE-ERROR');}},rateSecret:'test'});const bad=await badHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:JSON.stringify({op:'state'})}));equal(bad.status,503);ok(!(await bad.text()).includes('SECRET-DATABASE-ERROR'));
-const cronCalls=[];const cronHandler=createHandler({G,store,rateSecret:'test',push:{isPushCronAuthorized:async(_store,header)=>header==='test-only-cron-secret',enqueueScheduled:async()=>{cronCalls.push('enqueue');},flushPushOutbox:async()=>{cronCalls.push('flush');}}});
-let cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"op":"drain_push"}'}));equal(cron.status,401);equal(cronCalls,[],'cron is never public');
-cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json','x-desir-cron':'test-only-cron-secret'},body:'{"op":"drain_push"}'}));equal(cron.status,202);equal(cronCalls,['enqueue','flush']);ok(!(await cron.text()).includes('test-only-cron-secret'));
+const badHandler=createHandler({G,store:{rpc:async()=>{throw new Error('SECRET-DATABASE-ERROR');}},rateSecret:'test'});
+const bad=await badHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:'{"op":"state","gameVersion":3}'}));equal(bad.status,503);ok(!(await bad.text()).includes('SECRET-DATABASE-ERROR'));
+const cronCalls=[],cronHandler=createHandler({G,store,rateSecret:'test',push:{isPushCronAuthorized:async(_store,header)=>header==='test-only-cron-secret',enqueueScheduled:async()=>cronCalls.push('enqueue'),flushPushOutbox:async()=>cronCalls.push('flush')}});
+let cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"op":"drain_push"}'}));equal(cron.status,401);equal(cronCalls,[]);
+cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json','x-desir-cron':'test-only-cron-secret'},body:'{"op":"drain_push"}'}));equal(cron.status,202);equal(cronCalls,['enqueue','flush']);
 let canceled=false;const oversized=new ReadableStream({pull(controller){controller.enqueue(new Uint8Array(7000));},cancel(){canceled=true;}});
-const tooLarge=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tokenA},body:oversized,duplex:'half'}));equal(tooLarge.status,413);equal(canceled,true,'oversized stream is stopped before buffering the whole body');
+const tooLarge=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tokenA},body:oversized,duplex:'half'}));equal(tooLarge.status,413);equal(canceled,true);
 const preflight=await handler(new Request('https://example.test',{method:'OPTIONS',headers:{Origin:'https://cgiy.github.io'}}));equal(preflight.status,204);equal(preflight.headers.get('Access-Control-Allow-Origin'),'https://cgiy.github.io');
 console.log(`Dés·ir backend: ${checks} privacy/auth/RNG/CAS/idempotency/quota/expiry assertions passed.`);

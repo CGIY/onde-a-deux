@@ -24,17 +24,22 @@ export function parseAction(input){
   return action;
 }
 export function assertClientCompatibility(G,full,actor,gameVersion){
+  if(full?.version===2){
+    if(gameVersion!==3)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser les tirages indépendants.');
+    return;
+  }
   if(gameVersion!==1)return;
   const visibleRound=full.round.catalogueVersion===2&&G.canSeeRound(full,actor);
   if(visibleRound||full.tasks.some(task=>task.variantRoll!=null)){
     throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser le nouveau parcours.');
   }
 }
-export function projectState(G,full,actor,gameVersion=2){
-  if(!G.validateState(full)||!['a','b'].includes(actor))throw new Error('Invalid authoritative state');
+export function projectState(G,full,actor,gameVersion=2,roundId){
   assertClientCompatibility(G,full,actor,gameVersion);
+  if(full?.version===2)full=G.roomView(full,actor,roundId);
+  if(!G.validateState(full)||!['a','b'].includes(actor))throw new Error('Invalid authoritative state');
   const projected=copy(full);projected.activePlayer=actor;projected.seen={};projected.favorites=[];
-  projected.history=projected.history.filter(round=>(gameVersion===2||round.catalogueVersion!==2)&&G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
+  projected.history=projected.history.filter(round=>(gameVersion>=2||round.catalogueVersion!==2)&&G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
     if(round.from!==actor){delete round.hand;delete round.draftRollTokens;delete round.rollTokens;}
     return round;
   });
@@ -42,7 +47,6 @@ export function projectState(G,full,actor,gameVersion=2){
     projected.phase='category';projected.round=copy(G.createState().round);
     Object.assign(projected.round,{id:full.round.id,from:full.round.from,to:full.round.to});
   }else if(full.round.from!==actor&&projected.round.cardId){
-    // Keep the selected index valid without sending any unrevealed hand IDs.
     const deck=projected.round.catalogueVersion===2?G.cards:G.legacyCards;
     const sides=G.cardSides(projected),selected=projected.round.cardId,decoys=deck.filter(c=>c.categoryId===projected.round.categoryId&&c.id!==selected).slice(0,sides-1).map(c=>c.id);
     let n=0;projected.round.hand=Array.from({length:sides},(_,i)=>i===projected.round.cardRoll-1?selected:decoys[n++]);
@@ -51,9 +55,56 @@ export function projectState(G,full,actor,gameVersion=2){
   return projected;
 }
 export function snapshot(G,context,extra={},gameVersion=2){
-  return {roomId:context.room.id,state:projectState(G,context.room.state,context.member.actor,gameVersion),revision:Number(context.room.revision),actor:context.member.actor,paired:context.paired===true,quota:copy(context.quota),...extra};
+  const full=context.room.state,actor=context.member.actor;
+  assertClientCompatibility(G,full,actor,gameVersion);
+  if(full?.version===2){
+    if(!G.validateRoom(full))throw new Error('Invalid authoritative room');
+    const own=G.roomView(full,actor),partner=full.lanes[G.otherPlayer(actor)];
+    const other=G.roomView(full,actor,partner.round.id);
+    const incoming=other.phase!=='category'&&G.canSeeRound(other,actor)?[projectState(G,other,actor,3)]:[];
+    return {roomId:context.room.id,state:projectState(G,own,actor,3),incoming,gameVersion:3,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
+  }
+  return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }
 export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
+  if(gameVersion!==3)return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
+  const action=parseAction(input);
+  if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
+  const room=G.normalizeRoom(full,{at});
+  if(!room)throw new Error('Invalid authoritative room');
+  const target=action.type==='TOGGLE_TASK_CHECK'?G.roomView(room,actor):G.roomView(room,actor,action.roundId);
+  if(!target)throw new HttpError(409,'stale_round','Le tour a changé.');
+  const owns=target.round.from===actor;
+  let roll;
+  if(action.type==='ROLL_CATEGORY'){
+    if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const sides=G.categorySides(2),value=G.rollCategory(2,randomInt);
+    action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;roll={kind:sides,value};
+  }else if(action.type==='ROLL_CARD'){
+    if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const sides=G.cardSides(target),value=randomInt(sides);action.value=value;roll={kind:sides,value};
+  }else if(action.type==='ROLL_VARIANT'){
+    if(!owns||target.phase!=='variant')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const sides=G.rules.variantSides,value=randomInt(sides);action.value=value;roll={kind:sides,value};
+  }else if(action.type==='REROLL_CARD'){
+    if(!G.canRerollCard(target))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const sides=G.cardSides(target),alternatives=Array.from({length:sides},(_,i)=>i+1).filter(value=>value!==target.round.cardRoll),rank=randomInt(alternatives.length);
+    if(!Number.isInteger(rank)||rank<1||rank>alternatives.length)throw new Error('Invalid authoritative random outcome');
+    action.value=alternatives[rank-1];roll={kind:sides,value:action.value};
+  }else if(action.type==='ROLL_DRAFT_DEFENSE'||action.type==='ROLL_DEFENSE'){
+    if(action.type==='ROLL_DRAFT_DEFENSE'?!G.canRollDraftDefense(target):target.phase!=='challenge'||!G.canRespond(target))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const value=randomInt(20);action.value=value;action.token='request:'+requestId;roll={kind:20,value};
+  }
+  const next=G.reduceRoom(room,{...action,actor,at});
+  if(next===room)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+  if(!G.validateRoom(next))throw new Error('Core returned an invalid room');
+  const after=G.roomView(next,actor,target.round.id);
+  let notification=null;
+  if(after?.phase==='pending'&&after.round.awaiting!==actor&&target.phase!=='pending')notification={actor:after.round.awaiting,kind:'invitation',roundId:after.round.id};
+  else if(after?.phase==='sender_confirmation'&&after.round.awaiting!==actor&&target.phase!=='sender_confirmation')notification={actor:after.round.awaiting,kind:'confirmation',roundId:after.round.id};
+  return {state:next,roll,notification,consumeTicket:action.type==='ROLL_CATEGORY'};
+}
+function applyLegacyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
   const action=parseAction(input);
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
   if(action.type!=='TOGGLE_TASK_CHECK'&&action.roundId!==full.round.id)throw new HttpError(409,'stale_round','Le tour a changé.');

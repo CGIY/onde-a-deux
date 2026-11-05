@@ -18,7 +18,31 @@ function loginReply(options,actor='a',revision=1,game=state(actor)){return reply
 function drawn(){return G.reduce(state(),{type:'ROLL_CATEGORY',value:1,hand:G.legacyCards.filter(c=>c.categoryId==='complicite').slice(0,6).map(c=>c.id)});}
 function drafted(){return G.reduce(drawn(),{type:'ROLL_CARD',value:1});}
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+function parallelReply(room,actor='a',revision=1){
+ const own=G.roomView(room,actor),other=G.roomView(room,actor,room.lanes[G.otherPlayer(actor)].round.id);
+ return reply(actor,revision,own,{gameVersion:3,drawAvailable:own.phase==='category',incoming:other.phase!=='category'&&G.canSeeRound(other,actor)?[other]:[]});
+}
 (async()=>{
+ // Parallel snapshots preserve own progress separately from a visible invitation.
+ {
+  let room=G.createRoom();const id=room.lanes.b.round.id,at='2026-11-05T12:00:00.000Z';
+  room=G.reduceRoom(room,{type:'ROLL_CATEGORY',actor:'b',roundId:id,catalogueVersion:2,value:1,hand:G.cards.filter(c=>c.categoryId==='complicite').map(c=>c.id)});
+  room=G.reduceRoom(room,{type:'ROLL_CARD',actor:'b',roundId:id,value:1});
+  room=G.reduceRoom(room,{type:'ROLL_VARIANT',actor:'b',roundId:id,value:1});
+  room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:id,at});
+  const expected=parallelReply(room),r=create(config,env(async(url,options)=>response({...expected,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));
+  await r.login('fixture-user','fixture-password');check(()=>{assert.equal(r.snapshot.gameVersion,3);assert.equal(r.snapshot.state.round.from,'a');assert.equal(r.snapshot.state.phase,'category');assert.equal(r.snapshot.incoming.length,1);assert.equal(r.snapshot.incoming[0].round.id,id);});
+  const invalid=[{...expected,incoming:[expected.state]},{...expected,incoming:[...expected.incoming,...expected.incoming]}];
+  for(const snapshot of invalid){const bad=create(config,env(async(url,options)=>response({...snapshot,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));await assert.rejects(bad.login('fixture-user','fixture-password'),{code:'invalid_response'});check(()=>assert.equal(bad.connection,null));}
+ }
+ // An obsolete durable action cannot trap the new client before the parallel state refresh.
+ {
+  const storage=memory(),calls=[],room=G.createRoom();
+  const fetcher=async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='action')return response({error:{code:'upgrade_required'}},409);return response({...parallelReply(room),...(p.op==='login'?{connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}}:{})});};
+  const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');calls.length=0;
+  storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:2,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
+  const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['action',2],['state',3]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,3);});
+ }
  // Disabled configuration cannot accidentally contact any service.
  {
   let calls=0;const r=create({},env(async()=>{calls++;}));check(()=>assert.equal(r.enabled,false));await assert.rejects(r.restore(),{code:'unconfigured'});check(()=>assert.equal(calls,0));
@@ -62,7 +86,7 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
  {
   const modern=G.reduce(state(),{type:'ROLL_CATEGORY',value:1,catalogueVersion:2,hand:G.drawHand(state(),1,2)});
   let sent;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));sent=p;return response(reply('a',2,modern,{roll:{kind:4,value:1}}));}));await r.login('fixture-user','fixture-password');
-  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,2));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
+  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,3));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
   await assert.rejects(r.action({type:'RESET',roundId:'onde-1'}),{code:'not_allowed'});
  }
  // An action saved by the previous client is replayed with its original rules.
@@ -82,7 +106,7 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,game));sent=p;return response(reply('a',2,G.reduce(game,{type:'ROLL_VARIANT',value:6}),{roll:{kind:6,value:6}}));}));
   await r.login('fixture-user','fixture-password');
   const result=await r.action({type:'ROLL_VARIANT',roundId:'onde-1',value:1,variantRoll:1});
-  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,2));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
+  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,3));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
  }
  // A reroll carries only its intent; the server owns the new D6 face and state.
  {
