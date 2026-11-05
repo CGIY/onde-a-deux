@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {webcrypto} from 'node:crypto';
-import {allowedPushEndpoint,cleanSubscription,validateSubscription,pushPayload,pushTTL,pushRetrySeconds} from '../functions/desir-game/push-helpers.mjs';
+import {allowedPushEndpoint,cleanSubscription,validateSubscription,pushPayload,pushTTL,pushRetrySeconds,pushEventRelevant} from '../functions/desir-game/push-helpers.mjs';
 let checks=0;
 const check=fn=>{fn();checks++;};
 for(const endpoint of ['https://fcm.googleapis.com/fcm/send/abc','https://web.push.apple.com/Qabc','https://updates.push.services.mozilla.com/wpush/v2/abc','https://wns.notify.windows.com/w/?token=abc','https://cloud.notify.windows.com/?token=abc']) check(()=>assert.equal(allowedPushEndpoint(endpoint),true));
@@ -32,6 +32,27 @@ check(()=>assert.equal(pushTTL(reminder,Date.parse('2026-11-02T19:59:59.500Z')),
 check(()=>assert.equal(pushTTL({expires_at:'bad'}),0));
 check(()=>assert.equal(pushTTL({}),86400));
 check(()=>assert.throws(()=>pushPayload({...reminder,expires_at:'bad'})));
+
+// Invitations and confirmations survive parallel draws and stay tied to their
+// original round, even after the other lane changes or the recipient responds.
+for (const target of ['a','b']) {
+ const other=target==='a'?'b':'a';
+ const event={kind:'invitation',round_id:'onde-9',target_actor:target};
+ for (const phase of ['pending','challenge','challenge_failed','sender_confirmation','accepted','resolved','draft']) {
+  const room={version:2,lanes:{[other]:{phase,round:{id:'onde-9',awaiting:target}},[target]:{phase:'draft',round:{id:'onde-10',awaiting:null}}}};
+  check(()=>assert.equal(pushEventRelevant(room,event),['pending','challenge','challenge_failed'].includes(phase)));
+  check(()=>assert.equal(pushEventRelevant(room,{...event,kind:'confirmation'}),phase==='sender_confirmation'));
+  check(()=>assert.equal(pushEventRelevant(room,{...event,round_id:'onde-8'}),false));
+  check(()=>assert.equal(pushEventRelevant(room,{...event,target_actor:other}),false));
+ }
+ const room={version:2,lanes:{[other]:{phase:'pending',round:{id:'onde-9',awaiting:target}},[target]:{phase:'pending',round:{id:'onde-10',awaiting:other}}}};
+ check(()=>assert.equal(pushEventRelevant(room,event),true,'Both players can receive an invitation at once'));
+ check(()=>assert.equal(pushEventRelevant(room,{...event,round_id:'onde-10',target_actor:other}),true));
+ check(()=>assert.equal(pushEventRelevant(room,{...event,expires_at:'2026-11-02T12:00:00Z'},Date.parse('2026-11-02T13:00:00Z')),false));
+}
+check(()=>assert.equal(pushEventRelevant({phase:'pending',round:{id:'onde-9',awaiting:'b'}},{kind:'invitation',round_id:'onde-9',target_actor:'b'}),true));
+check(()=>assert.equal(pushEventRelevant({phase:'pending',round:{id:'onde-10',awaiting:'b'}},{kind:'invitation',round_id:'onde-9',target_actor:'b'}),false));
+check(()=>assert.equal(pushEventRelevant(null,{kind:'invitation',target_actor:'b'}),false));
 
 const handlers={},shown=[],messages=[],opened=[];
 let focused=0,cacheTouches=0;

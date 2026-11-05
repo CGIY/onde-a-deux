@@ -58,5 +58,22 @@ export function pushTTL(event, at = Date.now()) {
   const deadline = Date.parse(event.expires_at);
   return Number.isFinite(deadline) ? Math.max(0, Math.min(86400, Math.floor((deadline - at) / 1000))) : 0;
 }
+// Resolve the event's exact lane: the recipient may also have a separate draw.
+// Older single-round rooms remain supported while their queued events drain.
+export function pushEventRelevant(state, event, at = Date.now()) {
+  if (!state || pushTTL(event, at) === 0) return false;
+  if (event.kind === 'invitation' || event.kind === 'confirmation') {
+    const lane = state.version === 2
+      ? Object.values(state.lanes || {}).find(value => value?.round?.id === event.round_id)
+      : state;
+    if (!lane || (event.round_id && lane.round?.id !== event.round_id) || lane.round?.awaiting !== event.target_actor) return false;
+    return event.kind === 'invitation'
+      ? ['pending', 'challenge', 'challenge_failed'].includes(lane.phase)
+      : lane.phase === 'sender_confirmation';
+  }
+  if (event.kind === 'task-reminder') return Array.isArray(state.tasks) && state.tasks.some(task => task.id === event.task_id && task.checks?.[event.target_actor] === false && Date.parse(task.expiresAt) > at);
+  if (event.kind === 'task-ready') return Array.isArray(state.tasks) && state.tasks.length > 0;
+  return event.kind === 'shared-moment';
+}
 export function pushRetrySeconds(attempt) {return Math.min(3600, 60 * 2 ** Math.max(0, Math.min(6, Number(attempt) - 1)));}
 export function pushErrorStatus(error) {return error && typeof error === 'object' && Number.isInteger(error.statusCode) ? error.statusCode : 0;}

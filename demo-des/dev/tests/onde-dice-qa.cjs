@@ -106,6 +106,29 @@ let worstJoin=0,joins=0,inkJoins=0;
   assert.deepEqual(bright[0].ink.stops.map(s=>s[1]),['rgb(247,246,237)','rgb(250,249,241)','rgb(255,254,248)','rgb(250,249,241)','rgb(247,246,237)'],'restrained ivory specular band');
   fallbackValues.push(`${kind}/${value}`);die.destroy();
  }
+ // A category pigment changes the material, never the physical result or its motion.
+ now=0;queue.clear();canvas=makeCanvas();die=window.OndeDice.create(canvas,{kind:4,value:2,color:'#92bdc7'});
+ assert.deepEqual(uniforms.uColor,[146/255,189/255,199/255],'initial category pigment reaches WebGL');
+ die.setKind(20,17);assert.deepEqual(uniforms.uColor,[146/255,189/255,199/255],'category pigment follows the next die');
+ const coloredRoll=die.roll(8);advance(300);const coloredPose=uniforms.uRotation.slice(),coloredFrames=queue.size,coloredInk=uniforms.uResultLight;
+ die.setColor('#C49BC9');assert.deepEqual(uniforms.uColor,[196/255,155/255,201/255]);
+ assert.deepEqual(uniforms.uRotation,coloredPose,'recoloring preserves in-flight pose');assert.equal(queue.size,coloredFrames);assert.equal(die.busy,true);assert.equal(uniforms.uResultLight,coloredInk);assert.equal(die.value,8);
+ advance(3000);assert.equal(await coloredRoll,8);die.setColor('url(bogus)');assert.deepEqual(uniforms.uColor,[.7608,.6471,.4706],'invalid pigment safely restores the material default');
+ die.setColor('#92bdc7');die.setColor(null);assert.deepEqual(uniforms.uColor,[.7608,.6471,.4706],'new category draw can restore its neutral die');die.destroy();
+ const painted=[],previousFill=ctx2d.fill;ctx2d.fill=function(){painted.push(this.fillStyle);};
+ const coloredFallback=window.OndeDice.create(makeCanvas(false),{kind:4,value:2,color:'#ff0000',reducedMotion:true});
+ assert(painted.some(color=>typeof color==='string'&&/^rgb\(\d+,0,0\)$/.test(color)),'fallback paints the category material');
+ painted.length=0;coloredFallback.setColor('#00ff00');assert(painted.some(color=>typeof color==='string'&&/^rgb\(0,\d+,0\)$/.test(color)),'fallback recolors without WebGL');assert.equal(coloredFallback.value,2);coloredFallback.destroy();ctx2d.fill=previousFill;
+ // Both MediaQueryList APIs must settle a running die when the preference changes.
+ for(const legacy of [false,true]){
+  const listeners=new Set(),query={matches:false};
+  if(legacy){query.addListener=fn=>listeners.add(fn);query.removeListener=fn=>listeners.delete(fn);}
+  else{query.addEventListener=(_event,fn)=>listeners.add(fn);query.removeEventListener=(_event,fn)=>listeners.delete(fn);}
+  window.matchMedia=()=>query;now=0;queue.clear();const changing=window.OndeDice.create(makeCanvas(),{kind:4,value:1}),motionRoll=changing.roll(3);advance(300);
+  assert.equal(changing.busy,true);for(const listener of listeners)listener({matches:true});assert.equal(await motionRoll,3);assert.equal(changing.busy,false);assert.equal(queue.size,0);
+  for(const listener of listeners)listener({matches:false});const resumedRoll=changing.roll(2);assert.equal(changing.busy,true,'motion resumes only after the preference permits it');changing.destroy();assert.equal(await resumedRoll,2);assert.equal(listeners.size,0,'destroy removes the modern or legacy listener');assert.equal(queue.size,0);
+ }
+ delete window.matchMedia;
  fs.writeFileSync('/tmp/onde-dice-shaders.json',JSON.stringify({vertex:q.VERTEX,fragment:q.FRAGMENT}));
- console.log(JSON.stringify({status:'PASS',poses,minimumResultVisibility:minVisible,continuousPhaseJoins:joins,continuousInkJoins:inkJoins,maximumJoinDelta:worstJoin,forceAngularTravel:trajectories.map(t=>t.distance),forceCannotChangeResult:true,nativePressCancellation:true,initialThreeQuarterPose:true,restPosePreserved:true,rollCancellation:true,reducedMotion:true,dpr2:[904,476],fallbackNumericResults:fallbackValues,shaderCompile:'Not validated by mock; shader sources exported for optional real compiler.'},null,2));
+ console.log(JSON.stringify({status:'PASS',poses,minimumResultVisibility:minVisible,continuousPhaseJoins:joins,continuousInkJoins:inkJoins,maximumJoinDelta:worstJoin,forceAngularTravel:trajectories.map(t=>t.distance),forceCannotChangeResult:true,nativePressCancellation:true,initialThreeQuarterPose:true,restPosePreserved:true,rollCancellation:true,reducedMotion:true,runtimeMotionPreference:true,legacyMotionPreference:true,categoryPigment:true,inFlightPigmentPreservesPose:true,fallbackPigment:true,dpr2:[904,476],fallbackNumericResults:fallbackValues,shaderCompile:'Not validated by mock; shader sources exported for optional real compiler.'},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});

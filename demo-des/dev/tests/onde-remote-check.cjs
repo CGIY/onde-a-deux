@@ -129,6 +129,13 @@ function parallelReply(room,actor='a',revision=1){
  {
   let actions=0;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='action'){actions++;return response({...reply('a',2,drawn()),error:{code:'conflict'}},409);}return response(reply('a',2,drawn()));}));await r.login('fixture-user','fixture-password');let error;try{await r.action({type:'ROLL_CATEGORY',roundId:'onde-1'});}catch(e){error=e;}check(()=>assert.equal(error.code,'conflict'));check(()=>assert.equal(error.snapshot.revision,2));check(()=>assert.equal(actions,1));check(()=>assert.equal(r.snapshot.state.phase,'card'));let recovered=false;r.subscribeToChanges(e=>{if(e.status.phase==='connected')recovered=true;});await r.refresh();check(()=>assert.equal(recovered,true));
  }
+ // An obsolete invitation is a synchronized game update, not a lost connection.
+ {
+  const storage=memory();let actions=0;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));actions++;return response({...reply('a',2,drawn()),error:{code:'stale_round'}},409);},storage));await r.login('fixture-user','fixture-password');
+  await assert.rejects(r.action({type:'ACCEPT',roundId:'onde-1'}),{code:'stale_round'});
+  check(()=>assert.equal(actions,1));check(()=>assert.equal(r.snapshot.revision,2));check(()=>assert.equal(r.status.phase,'connected'));check(()=>assert.equal(r.authenticated,true));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));check(()=>assert.match(r.status.message,/actualisée/));
+ }
  // An explicit re-login can replace a revoked token, without keeping the previous actor's view.
  {
   let revoked=false,second=false;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login'){if(!second)return response(loginReply(options,'a',10));return response(loginReply(options,'b',1,state('b')));}if(revoked)return response({error:{code:'unauthorized'}},401);return response(reply('a',10));}));await r.login('fixture-a','fixture-password');revoked=true;await assert.rejects(r.refresh(),{code:'unauthorized'});second=true;await r.login('fixture-b','fixture-password');check(()=>assert.equal(r.connection.actor,'b'));check(()=>assert.equal(r.snapshot.actor,'b'));check(()=>assert.equal(r.snapshot.revision,1));

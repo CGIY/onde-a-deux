@@ -1,7 +1,7 @@
 // npm and Node APIs are supported by Supabase's Deno Edge runtime.
 // Pin this import: VAPID signing + RFC 8291 payload encryption are delegated to web-push.
 import * as webpush from 'npm:web-push@3.6.7';
-import {pushPayload, pushTTL, pushRetrySeconds, pushErrorStatus, validateSubscription} from './push-helpers.mjs';
+import {pushPayload, pushTTL, pushRetrySeconds, pushErrorStatus, validateSubscription, pushEventRelevant} from './push-helpers.mjs';
 import {HttpError} from './model.mjs';
 
 type Store = {
@@ -56,13 +56,7 @@ async function stillRelevant(store: Store, event: Event): Promise<boolean> {
   if (event.kind === 'draw-available') return await store.rpc('desir_push_draw_ready', {p_room_id: event.room_id, p_actor: event.target_actor, p_window_key: event.window_key || null}) === true;
   const rows = await store.request('desir_rooms?select=state&id=eq.' + encodeURIComponent(event.room_id) + '&limit=1');
   const state = Array.isArray(rows) && rows[0]?.state;
-  if (!state) return false;
-  if (event.round_id && event.round_id !== state.round?.id && ['invitation', 'confirmation'].includes(event.kind)) return false;
-  if (event.kind === 'task-reminder') return Array.isArray(state.tasks) && state.tasks.some((task: any) => task.id === event.task_id && task.checks?.[event.target_actor] === false && Date.parse(task.expiresAt) > Date.now());
-  if (event.kind === 'invitation') return ['pending', 'challenge', 'challenge_failed'].includes(state.phase) && state.round?.awaiting === event.target_actor;
-  if (event.kind === 'confirmation') return state.phase === 'sender_confirmation' && state.round?.awaiting === event.target_actor;
-  if (event.kind === 'task-ready') return Array.isArray(state.tasks) && state.tasks.length > 0;
-  return event.kind === 'shared-moment';
+  return pushEventRelevant(state, event);
 }
 async function finish(store: Store, event: Event, delivered: boolean): Promise<void> {
   await store.rpc('desir_finish_push_event', {p_event_id: event.id, p_delivered: delivered, p_retry_seconds: pushRetrySeconds(event.attempts)});

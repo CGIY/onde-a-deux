@@ -213,13 +213,6 @@
 #onde-app-v1 .oa-nav{position:relative;display:flex;align-items:center;justify-content:space-around;gap:10px;margin:0 21px;padding:15px 0 20px;border-top:1px solid var(--oa-line)}
 #onde-app-v1 .oa-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;color:#9eab97;font-size:11px;min-width:73px;min-height:47px}
 #onde-app-v1 .oa-nav button[aria-current=page]{color:#e3ead7}
-#onde-app-v1 .oa-nav-mark{display:block;height:16px;position:relative;opacity:.6}
-#onde-app-v1 .oa-nav button[aria-current=page] .oa-nav-mark{opacity:1}
-#onde-app-v1 .oa-mark-play{width:16px;border-radius:5px;background:currentColor;transform:rotate(-12deg)}
-#onde-app-v1 .oa-mark-play:after{content:"";position:absolute;width:3px;height:3px;left:6px;top:6px;border-radius:50%;background:#242d24}
-#onde-app-v1 .oa-mark-us{width:24px}
-#onde-app-v1 .oa-mark-us:before,#onde-app-v1 .oa-mark-us:after{content:"";position:absolute;width:12px;height:14px;border-radius:7px 7px 5px 5px;left:1px;top:1px;border:1.5px solid currentColor;transform:rotate(-12deg)}
-#onde-app-v1 .oa-mark-us:after{left:11px;transform:rotate(12deg);background:#181d1c}
 #onde-app-v1 .oa-toast{position:fixed;z-index:15;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;width:min(416px,calc(100vw - 36px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));transform:translateX(-50%);pointer-events:none;background:#e6d5c2;color:#352923;border:1px solid #f1e5d5;border-radius:15px;padding:14px 16px;box-shadow:0 9px 30px #0005;font-size:12px;line-height:1.5;text-align:center}
 #onde-app-v1 .oa-sheet-backdrop{position:absolute;inset:0;z-index:20;background:#08100cc9;padding:24px 13px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
 #onde-app-v1 .oa-sheet{width:100%;border:1px solid #56634c;border-radius:23px;background:#242d26;box-shadow:0 18px 60px #0007;padding:22px;position:relative;max-width:412px}
@@ -247,7 +240,8 @@
 #onde-app-v1 .oa-button.oa-clay{background:linear-gradient(145deg,#e2b19b,#c98570);color:#30231e}
 #onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 18% 0%,color-mix(in srgb,var(--category) 55%,transparent),transparent 50%),linear-gradient(145deg,color-mix(in srgb,var(--category) 48%,#343631),#292d2a 66%);border-color:color-mix(in srgb,var(--category) 65%,#d6d2c1);box-shadow:inset 0 2px 2px #ffffff1b,inset 0 -5px 10px #0b0e0c48,0 15px 28px #0004;animation:none}
 #onde-app-v1 .oa-playing-card:before{content:"";position:absolute;inset:5px;border:1px solid #ffffff10;border-radius:19px;pointer-events:none}
-#onde-app-v1 .oa-card-illustration i{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 65%,#e7deca),var(--category));box-shadow:inset 0 2px 3px #ffffff48,inset 0 -5px 8px #171b1840,0 9px 16px #0004;animation:oa-rubber-float 3.8s ease-in-out 1}
+#onde-app-v1 .oa-card-illustration i{background:linear-gradient(145deg,color-mix(in srgb,var(--category) 65%,#e7deca),var(--category));box-shadow:inset 0 2px 3px #ffffff48,inset 0 -5px 8px #171b1840,0 9px 16px #0004}
+#onde-app-v1.oa-entering .oa-card-illustration i{animation:oa-rubber-float 3.8s ease-in-out 1}
 #onde-app-v1 .oa-card-illustration i:nth-child(2){animation-delay:-1.1s;background:linear-gradient(145deg,#d4c2a7,#a98770)}
 #onde-app-v1 .oa-card-illustration i:nth-child(3){animation-delay:-2.2s}
 #onde-app-v1 .oa-card-stage{perspective:900px}
@@ -265,10 +259,7 @@
 #onde-app-v1 .oa-sheet-head{position:sticky;z-index:2;top:calc(-1 * clamp(18px,5vw,24px));padding-top:4px;margin:calc(-1 * clamp(18px,5vw,24px)) calc(-1 * clamp(18px,5vw,24px)) 16px;padding:clamp(18px,5vw,24px);background:linear-gradient(#242d26 85%,#242d26eb);backdrop-filter:blur(10px)}
 #onde-app-v1 .oa-field input,#onde-app-v1 .oa-field select,#onde-app-v1 .oa-field textarea{font-size:max(16px,1em)}
 #onde-app-v1 :focus-visible{scroll-margin-block:18px}
-@keyframes oa-arrive{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes oa-slide-enter{from{opacity:.55;transform:translateX(16px) scale(.985)}to{opacity:1;transform:translateX(0) scale(1)}}
-@keyframes oa-card-breathe{0%,100%{transform:rotateX(0) rotateY(0)}50%{transform:rotateX(.45deg) rotateY(-.35deg)}}
-@keyframes oa-rubber-float{0%,100%{translate:0 1px;rotate:-1deg}50%{translate:0 -5px;rotate:1.3deg}}
+@keyframes oa-rubber-float{0%,100%{translate:0 0;rotate:0deg;border-radius:12px}30%{translate:-1px -4px;rotate:-3deg;border-radius:45% 35% 44% 36%}65%{translate:1px 2px;rotate:2deg;border-radius:35% 45% 36% 44%}}
 @keyframes oa-celebrate{0%{opacity:0;transform:scale(.82)}28%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.12)}}
 @media(max-width:380px){#onde-app-v1 .oa-deck{gap:11px}#onde-app-v1 .oa-deck-slide .oa-playing-card{min-height:318px}#onde-app-v1 .oa-sheet-backdrop{padding-left:8px;padding-right:8px}#onde-app-v1 .oa-sheet-head h2{font-size:19px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-main>*,#onde-app-v1 .oa-playing-card,#onde-app-v1 .oa-card-illustration i,#onde-app-v1 .oa-deck-slide,#onde-app-v1 .oa-celebration{animation:none!important}#onde-app-v1 .oa-deck{scroll-behavior:auto}}
@@ -285,7 +276,8 @@
 #onde-app-v1 .oa-button{background:linear-gradient(145deg,#efc18f,#df9877);color:#2b211b;border-color:#f0c29a;box-shadow:inset 0 1px #fff8,0 7px 18px #0004}
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(145deg,#91c2c7,#6d9da6);color:#172625;border-color:#b0d9d9;box-shadow:inset 0 1px #ffffff77,0 6px 14px #0003}
 #onde-app-v1 .oa-category-number{color:#f0e8d7}
-#onde-app-v1 .oa-mini-card{background:linear-gradient(145deg,color-mix(in srgb,var(--oa-mineral-blue) 15%,#2b2e2a),color-mix(in srgb,var(--oa-mineral-moss) 12%,#262824));animation:oa-mini-arrive .52s cubic-bezier(.2,.8,.2,1) both}
+#onde-app-v1 .oa-mini-card{background:linear-gradient(145deg,color-mix(in srgb,var(--oa-mineral-blue) 15%,#2b2e2a),color-mix(in srgb,var(--oa-mineral-moss) 12%,#262824))}
+#onde-app-v1.oa-entering .oa-mini-card{animation:oa-mini-arrive .52s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-mini-card:nth-child(2){animation-delay:.06s}#onde-app-v1 .oa-mini-card:nth-child(3){animation-delay:.12s}#onde-app-v1 .oa-mini-card:nth-child(4){animation-delay:.18s}
 #onde-app-v1 .oa-mini-card.is-picked{background:linear-gradient(145deg,#61775c,#475743);box-shadow:0 0 0 2px #c0d39c44,0 8px 18px #0003}
 #onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 12% 0%,color-mix(in srgb,var(--category) 18%,transparent),transparent 56%),linear-gradient(145deg,color-mix(in srgb,var(--category) 30%,#282928),color-mix(in srgb,var(--category) 16%,#252724) 68%);border-color:color-mix(in srgb,var(--category) 78%,#eee5d1);box-shadow:inset 0 2px 2px #ffffff27,inset 0 -6px 12px #0b0e0c38,0 15px 30px #0005}
@@ -295,15 +287,11 @@
 #onde-app-v1 .oa-status-strip{background:linear-gradient(115deg,#55776455,#526a8540,#725d7240);border-color:#a4b89b66}
 #onde-app-v1 .oa-hp-track i span{background:linear-gradient(90deg,#95c7c4,#c1d397,#e7bc82)}
 #onde-app-v1 .oa-nav button[aria-current=page]{color:#dfb6a3}
-#onde-app-v1 .oa-nav button[aria-current=page] .oa-nav-mark{filter:drop-shadow(0 0 7px #e8b98c99);animation:oa-nav-pop .45s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-button:not(:disabled):active{transform:translateY(2px) scale(.975);filter:saturate(1.16)}
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(140deg,#4b5e5d,#465144);border-color:#8fae9b;color:#f0eee4}
 #onde-app-v1 .oa-stage{overflow:visible;border-radius:0}
-#onde-app-v1 .oa-stage:before{content:"";position:absolute;z-index:-1;inset:14% 13%;border-radius:50%;background:radial-gradient(ellipse,#94b9a03a 0%,#8eb0bf22 37%,#be9b8b12 61%,transparent 72%);filter:blur(8px);animation:oa-stage-pulse 2s ease-in-out 2 alternate}
-#onde-app-v1 .oa-stage:after{content:"";position:absolute;z-index:-1;left:27%;right:27%;bottom:16%;height:16%;border-radius:50%;background:#b8c4a733;filter:blur(13px);animation:oa-shadow-breathe 1.65s ease-in-out 2 alternate}
-#onde-app-v1 .oa-dice-section:has(.oa-stage[data-kind="4"]) .oa-stage:before{background:radial-gradient(ellipse,#91bccb44,#a29aba23 44%,transparent 72%)}
-#onde-app-v1 .oa-dice-section:has(.oa-stage[data-kind="20"]) .oa-stage:before{background:radial-gradient(ellipse,#e4ad7944,#bf8f8b24 44%,transparent 72%)}
-#onde-app-v1 .oa-step.is-active b{animation:oa-step-pulse 1.8s ease-in-out 2;box-shadow:0 0 0 0 #d7dfbe58}
+#onde-app-v1 .oa-step.is-active b{box-shadow:0 0 0 0 #d7dfbe58}
+#onde-app-v1.oa-entering .oa-step.is-active b{animation:oa-step-pulse 1.8s ease-in-out 2}
 #onde-app-v1 .oa-evidence{background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--category,#9aa78b) 40%,transparent),transparent 62%),linear-gradient(145deg,#393b35,#292b28);animation:oa-evidence-in .48s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-evidence-number{color:#f1d6a8;text-shadow:0 0 28px #e5b87833;animation:oa-number-in .62s cubic-bezier(.16,1.25,.3,1) both}
 #onde-app-v1 .oa-sheet-backdrop:not([hidden]){animation:oa-backdrop-in .22s ease-out both}
@@ -312,8 +300,6 @@
 #onde-app-v1 .oa-celebration{background:radial-gradient(ellipse at 50% 50%,#d7dfbe44,transparent 42%),radial-gradient(ellipse at 23% 40%,#8abdc344,transparent 50%),radial-gradient(ellipse at 76% 60%,#dc9a8440,transparent 50%)}
 @keyframes oa-mini-arrive{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes oa-nav-pop{0%{transform:scale(.72) translateY(4px)}72%{transform:scale(1.18) translateY(-1px)}100%{transform:scale(1) translateY(0)}}
-@keyframes oa-stage-pulse{from{opacity:.55;transform:scale(.88)}to{opacity:1;transform:scale(1.08)}}
-@keyframes oa-shadow-breathe{from{opacity:.45;transform:scaleX(.78)}to{opacity:1;transform:scaleX(1.14)}}
 @keyframes oa-step-pulse{0%,100%{box-shadow:0 0 0 0 #d7dfbe00;transform:scale(1)}50%{box-shadow:0 0 0 5px #d7dfbe20;transform:scale(1.045)}}
 @keyframes oa-evidence-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes oa-number-in{from{opacity:0;transform:translateY(8px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -359,7 +345,6 @@
 #onde-app-v1 .oa-score-label{white-space:normal}
 #onde-app-v1 .oa-setting{gap:14px}
 #onde-app-v1 .oa-setting small{line-height:1.5}
-#onde-app-v1 .oa-stage:before,#onde-app-v1 .oa-stage:after{filter:none}
 @media(hover:none){#onde-app-v1 .oa-button:not(:disabled):hover{transform:none;filter:none}}
 @media(max-width:360px){#onde-app-v1 .oa-main{padding-inline:16px}#onde-app-v1 .oa-playing-card{padding:18px}#onde-app-v1 .oa-hp{padding:15px 12px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 *,#onde-app-v1 *::before,#onde-app-v1 *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
@@ -367,14 +352,9 @@
 #onde-app-v1 .oa-odds-table b{font-weight:500;color:#eedabd}
 #onde-app-v1 h1:focus{outline:none}
 #onde-app-v1 .oa-celebration i{position:absolute;display:block;left:50%;top:50%;width:9px;height:13px;border-radius:5px;box-shadow:inset 0 1px #fff5}
-/* One soft contact shadow is rendered by the die; keep the surrounding stage quiet. */
-#onde-app-v1 .oa-stage:before{opacity:.16;animation:none}
-#onde-app-v1 .oa-stage:after{display:none}
 /* Shared six-hour list, with a liquid wave inside each person's box. */
 #onde-app-v1 .oa-nav{justify-content:space-around;gap:8px}
 #onde-app-v1 .oa-nav button{min-width:76px}
-#onde-app-v1 .oa-mark-tasks{width:17px;border:1.5px solid currentColor;border-radius:5px}
-#onde-app-v1 .oa-mark-tasks:after{content:"";position:absolute;left:4px;top:3px;width:7px;height:4px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
 #onde-app-v1 .oa-task-count{display:inline-grid;place-items:center;min-width:17px;height:17px;border-radius:50%;background:#aebca0;color:#232c22;font-size:10px;font-weight:500;margin-left:2px}
 #onde-app-v1 .oa-task-list{display:grid;gap:14px;margin-top:24px}
 #onde-app-v1 .oa-task{border:1px solid color-mix(in srgb,var(--category) 48%,#525b4d);border-radius:24px;padding:19px;background:linear-gradient(145deg,color-mix(in srgb,var(--category) 22%,#30372e),#282f29);box-shadow:inset 0 1px #ffffff22,inset 0 -3px 8px #0002;position:relative;isolation:isolate;overflow:hidden}
@@ -383,24 +363,35 @@
 #onde-app-v1 .oa-task-top time{font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums;color:#e8d8bd;white-space:nowrap}
 #onde-app-v1 .oa-task h2{font-size:22px;font-weight:500;line-height:1.25;letter-spacing:-.025em;margin:16px 0 20px;text-wrap:balance}
 #onde-app-v1 .oa-task-proposal{font-size:12px;line-height:1.5;color:#c7d0c0;margin:-9px 0 18px}
-#onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #c4d1b525;padding-top:15px}
+#onde-app-v1 .oa-task-status{margin:0 0 12px;padding:9px 10px;border-radius:11px;border:1px solid #a9b8a030;background:#1d292544;font-size:11px;line-height:1.5;color:#d3decc}
+#onde-app-v1 .oa-task-status .oa-status-dot{width:6px;height:6px}
+#onde-app-v1.oa-entering .oa-task{animation:oa-soft-settle .4s cubic-bezier(.22,1,.36,1) both}
+#onde-app-v1.oa-entering .oa-task:nth-child(2){animation-delay:.05s}
+#onde-app-v1.oa-entering .oa-task:nth-child(3){animation-delay:.1s}
+#onde-app-v1.oa-entering .oa-task:nth-child(n+4){animation-delay:.15s}
+#onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #c4d1b525;padding-top:15px}
 #onde-app-v1 .oa-task-check{display:flex;align-items:center;gap:9px;position:relative;min-height:44px;font-size:12px;color:#e1e8d9;cursor:pointer;min-width:0}
 #onde-app-v1 .oa-task-check.is-other{cursor:default;color:#b8c2af}
+#onde-app-v1 .oa-task-check>span:last-child{min-width:0;overflow-wrap:anywhere;line-height:1.4}
 #onde-app-v1 .oa-task-check input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;z-index:2;cursor:inherit}
 #onde-app-v1 .oa-check-box{position:relative;display:block;flex:none;width:42px;height:42px;border-radius:13px;background:#17211a;border:1px solid #81967677;box-shadow:inset 0 2px 5px #0005,0 1px #fff1;overflow:hidden;isolation:isolate}
-#onde-app-v1 .oa-check-water{position:absolute;inset:-5px -1px -1px;transform:translateY(110%);transition:transform .6s cubic-bezier(.22,1,.36,1);background:linear-gradient(150deg,#b9d0ae,#88b5b8);border-radius:10px}
+#onde-app-v1 .oa-check-water{position:absolute;inset:-5px -1px -1px;transform:translateY(110%);transition:transform 1.05s cubic-bezier(.32,.12,.18,1);background:linear-gradient(150deg,#b9d0ae,#88b5b8);border-radius:10px}
 #onde-app-v1 .oa-check-water svg{position:absolute;top:-9px;left:-60%;width:220%;height:50px;fill:#b9d0ae}
 #onde-app-v1 .oa-check-water path+path{fill:#a0c6bf;opacity:.5}
-#onde-app-v1 .oa-check-mark{position:absolute;inset:9px;width:22px;height:22px;fill:none;stroke:#233f31;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.75);transition:opacity .18s .18s,transform .26s .18s}
+#onde-app-v1 .oa-check-mark{position:absolute;inset:9px;width:22px;height:22px;fill:none;stroke:#233f31;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.75);transition:opacity .14s,transform .2s}
 #onde-app-v1 .oa-task-check input:checked+.oa-check-box .oa-check-water{transform:translateY(0)}
-#onde-app-v1 .oa-task-check input:checked+.oa-check-box .oa-check-mark{opacity:1;transform:scale(1)}
+#onde-app-v1 .oa-task-check input:checked+.oa-check-box .oa-check-mark{opacity:1;transform:scale(1);transition:opacity .18s .48s,transform .32s .48s}
 #onde-app-v1 .oa-task-check input:focus-visible+.oa-check-box{outline:2px solid #ecd8b9;outline-offset:4px}
-#onde-app-v1 .oa-task-check.is-waving .oa-check-water svg{animation:oa-check-wave .64s cubic-bezier(.22,1,.36,1) both}
+#onde-app-v1 .oa-task-check.is-waving .oa-check-water svg{animation:oa-check-wave 1.1s cubic-bezier(.32,.12,.18,1) both}
+#onde-app-v1 .oa-task-check.is-waving .oa-check-water path+path{animation:oa-check-undertow 1.1s ease-in-out both}
+#onde-app-v1 .oa-task-check.is-waving input:checked+.oa-check-box{animation:oa-check-settle .5s cubic-bezier(.22,1,.36,1) both}
 #onde-app-v1 .oa-task-empty{margin:26px 0;padding:38px 20px;border-radius:24px;border:1px solid #96a28533;background:#2b34284d;text-align:center}
 #onde-app-v1 .oa-task-empty>span{display:block;font-size:46px;color:#a4bfa5;line-height:1;margin-bottom:14px}
 #onde-app-v1 .oa-task-empty p{font-size:14px;color:#bdc6b5}
-@keyframes oa-check-wave{0%{transform:translateX(-12px) rotate(-7deg)}65%{transform:translateX(8px) rotate(3deg)}100%{transform:translateX(0) rotate(0)}}
-#onde-app-v1 .oa-stage:before,#onde-app-v1 .oa-stage:after{content:none}
+@keyframes oa-check-wave{0%{transform:translateX(-15px) rotate(-7deg)}42%{transform:translateX(10px) rotate(4deg)}75%{transform:translateX(-4px) rotate(-1.5deg)}100%{transform:translateX(0) rotate(0)}}
+@keyframes oa-check-undertow{0%{transform:translateX(10px)}55%{transform:translateX(-8px)}100%{transform:translateX(0)}}
+@keyframes oa-check-settle{0%,100%{transform:scale(1)}35%{transform:scale(.94,1.04)}70%{transform:scale(1.025,.98)}}
+@keyframes oa-soft-settle{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-check-water,#onde-app-v1 .oa-check-mark{transition:none}}
 /* Symmetric profile control and a more tangible suede grain. */
 #onde-app-v1 .oa-header{padding:25px 22px 20px}
@@ -473,6 +464,8 @@
 #onde-app-v1 .oa-quiet-home>span{font-size:47px;line-height:1;color:#9aaf9d}
 #onde-app-v1 .oa-quiet-home p{font-size:13px}
 #onde-app-v1 .oa-invitation{display:flex;align-items:center;gap:13px;text-align:left;width:100%;margin-top:30px;padding:21px 18px;border:1px solid #adb89a66;border-radius:22px;background:linear-gradient(140deg,#4b574755,#2e3a32aa);color:#e9e8db;box-shadow:inset 0 1px #ffffff1c;cursor:pointer}
+#onde-app-v1.oa-entering .oa-invitation{animation:oa-soft-settle .42s cubic-bezier(.22,1,.36,1) both}
+#onde-app-v1.oa-entering .oa-invitation-dot{animation:oa-invitation-breathe 1.2s ease-in-out 2}
 #onde-app-v1 .oa-invitation.oa-incoming{min-height:44px;margin:0 0 10px;padding:10px 12px;gap:10px;border-radius:14px}
 #onde-app-v1 .oa-invitation.oa-incoming b{font-size:13px}
 #onde-app-v1 [data-action=own-draw].oa-text-button{min-height:44px;margin:0 0 8px;text-align:left}
@@ -481,6 +474,7 @@
 #onde-app-v1 .oa-invitation-dot{display:block;width:9px;height:9px;flex:none;border-radius:50%;background:#d6b896;box-shadow:0 0 0 5px #d6b89612}
 #onde-app-v1 .oa-invitation-arrow{margin-left:auto;font-size:22px;color:#d6c5ab}
 #onde-app-v1 .oa-incoming-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#d6b896;margin-left:5px;vertical-align:middle}
+@keyframes oa-invitation-breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.65}}
 /* Equal breathing room above and below the profile bar. */
 #onde-app-v1 .oa-persona{padding-top:16px;padding-bottom:16px;border-top:1px solid var(--oa-line);border-bottom:1px solid var(--oa-line);margin-bottom:20px}
 /* Connection belongs to this device; player identities are no longer controls. */
@@ -1597,8 +1591,8 @@ void main(){
   const CUBE_FACES=CUBE_NORMALS.map((n,i)=>{const t=CUBE_TANGENTS[i],b=cross(n,t);return {n,t,b,h:1,value:i+1,points:[[-1,-1],[1,-1],[1,1],[-1,1]].map(p=>add(n,add(mul(t,p[0]),mul(b,p[1]))))};});
 
   const COLORS={4:[.4196,.4824,.5490],6:[.4863,.5412,.4353],20:[.7608,.6471,.4706]};
-  const HEX={4:'#6b7b8c',6:'#7c8a6f',20:'#c2a578'};
   const MATERIALS={4:'ardoise',6:'sauge',20:'sable'};
+  function parsePigment(value){return typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value)?[1,3,5].map(index=>parseInt(value.slice(index,index+2),16)/255):null;}
   function validKind(kind){kind=Number(kind);if(![4,6,20].includes(kind))throw new RangeError('ONDE supports D4, D6 and D20.');return kind;}
   function validValue(value,kind){value=Number(value);if(!Number.isInteger(value)||value<1||value>kind)throw new RangeError('Dice result must be an integer from 1 to '+kind+'.');return value;}
   function clampPower(value){value=Number(value);return Number.isNaN(value)?0:Math.max(0,Math.min(1,value));}
@@ -1620,7 +1614,7 @@ void main(){
   }
   function create(canvas,options={}) {
     if(!canvas||typeof canvas.getContext!=='function')throw new TypeError('A canvas is required.');
-    let type=validKind(options.kind??6),result=validValue(options.value??1,type),rotation=initialRotation(type,result);
+    let type=validKind(options.kind??6),result=validValue(options.value??1,type),rotation=initialRotation(type,result),pigment=parsePigment(options.color);
     let alive=true,raf=0,busy=false,pressed=false,pressAt=0,pressScale=1,rollAt=0,startQ=rotation,goalQ=rotation,pointerId=null,charge=0;
     let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,pressPoint=null;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -1631,7 +1625,8 @@ void main(){
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
     const query=global.matchMedia?.('(prefers-reduced-motion: reduce)');
     const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;};
-    const updateLabel=(moving=false)=>canvas.setAttribute('aria-label',moving?`Dé D${type} en mouvement.`:`Dé D${type} en caoutchouc ${MATERIALS[type]}. Résultat : ${result}.`);
+    const dieColor=()=>pigment||COLORS[type];
+    const updateLabel=(moving=false)=>canvas.setAttribute('aria-label',moving?`Dé D${type} en mouvement.`:`Dé D${type} en caoutchouc ${pigment?'aux couleurs de la catégorie':MATERIALS[type]}. Résultat : ${result}.`);
     canvas.setAttribute('role','img');
     function rendererStatus(){canvas.setAttribute('data-renderer',mode);canvas.setAttribute('data-renderer-error',renderError);}
     function contextCreationError(event){contextMessage=String(event.statusMessage||'WebGL context creation failed.');}
@@ -1646,7 +1641,7 @@ void main(){
       const f=type===6?CUBE_FACES:POLYS[type].faces,n=new Float32Array(60),t=new Float32Array(60),b=new Float32Array(60);
       for(let i=0;i<f.length;i++){n.set(f[i].n,i*3);t.set(f[i].t,i*3);b.set(f[i].b,i*3);}
       gl.uniform3fv(uniforms.uNormals,n);gl.uniform3fv(uniforms.uTangents,t);gl.uniform3fv(uniforms.uBitangents,b);
-      gl.uniform1i(uniforms.uCount,f.length||6);gl.uniform1f(uniforms.uOffset,f[0]?.h||1);gl.uniform3fv(uniforms.uColor,COLORS[type]);
+      gl.uniform1i(uniforms.uCount,f.length||6);gl.uniform1f(uniforms.uOffset,f[0]?.h||1);gl.uniform3fv(uniforms.uColor,dieColor());
     }
     function initialize() {
       try {
@@ -1693,7 +1688,7 @@ void main(){
       const project=p=>projectWorld(world(p));
       const transformedNormal=n=>norm(transform(m,n).map((v,i)=>v/scale[i]));
       const light=norm([-3,6,4]),fill=norm([4,2,-3]);
-      const rgb=(factor,blend=0)=>{const b=COLORS[type].map((v,i)=>Math.round(Math.min(255,(v*255*(1-blend)+[235,232,215][i]*blend)*factor)));return 'rgb('+b.join(',')+')';};
+      const rgb=(factor,blend=0)=>{const b=dieColor().map((v,i)=>Math.round(Math.min(255,(v*255*(1-blend)+[235,232,215][i]*blend)*factor)));return 'rgb('+b.join(',')+')';};
       const shadowCenter=projectWorld([x,0,z]);c.save();c.translate(shadowCenter[0]+5,shadowCenter[1]);c.scale(1,.27);
       const shadow=c.createRadialGradient(0,0,8,0,0,105+lift*12);shadow.addColorStop(0,'rgba(0,0,0,'+(.13/(1+lift))+')');shadow.addColorStop(.55,'rgba(0,0,0,.035)');shadow.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=shadow;c.fillRect(-150,-150,300,300);c.restore();
       let faces;
@@ -1723,7 +1718,7 @@ void main(){
         c.save();c.transform((tp[0]-center[0])*size/64,(tp[1]-center[1])*size/64,-(bp[0]-center[0])*size/64,-(bp[1]-center[1])*size/64,center[0],center[1]);
         c.fillStyle=rgb(shade,.75);
         if(face.value===result&&resultLight>0) {
-          const ink=c.createLinearGradient(-30,-28,30,34),muted=COLORS[type].map((v,i)=>(v*255*.25+[235,232,215][i]*.75)*shade);
+          const ink=c.createLinearGradient(-30,-28,30,34),muted=dieColor().map((v,i)=>(v*255*.25+[235,232,215][i]*.75)*shade);
           for(const [stop,ivory] of [[0,[247,246,237]],[.34,[250,249,241]],[.43,[255,254,248]],[.57,[250,249,241]],[1,[247,246,237]]])ink.addColorStop(stop,'rgb('+muted.map((v,i)=>Math.round(v+(ivory[i]-v)*resultLight)).join(',')+')');
           c.fillStyle=ink;
         }
@@ -1801,11 +1796,12 @@ void main(){
     function contextLost(event){event.preventDefault();mode='fallback';renderError='WebGL context lost.';rendererStatus();if(busy)finish();else{cancelPress();draw();}}
     initialize();
     canvas.addEventListener('pointerdown',press);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',cancelPress);canvas.addEventListener('lostpointercapture',cancelPress);canvas.addEventListener('webglcontextlost',contextLost);
-    document.addEventListener('visibilitychange',visibilityChanged);query?.addEventListener?.('change',motionChanged);
+    document.addEventListener('visibilitychange',visibilityChanged);if(query?.addEventListener)query.addEventListener('change',motionChanged);else query?.addListener?.(motionChanged);
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(resize):null;observer?.observe(canvas);if(!observer)global.addEventListener('resize',resize);
     resize();updateLabel();
     return {
       get mode(){return mode;},get error(){return renderError;},get busy(){return busy;},get value(){return result;},get kind(){return type;},
+      setColor(color){if(!alive)return;const next=parsePigment(color);if(JSON.stringify(next)===JSON.stringify(pigment))return;pigment=next;if(mode==='webgl'){gl.useProgram(program);gl.uniform3fv(uniforms.uColor,dieColor());}draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);updateLabel(busy);},
       setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),changedKind=nextKind!==type,same=!changedKind&&nextValue===result;cancelFrame();pressed=false;pointerId=null;charge=0;busy=false;resultLight=1;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=changedKind?initialRotation(type,result):targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
@@ -1814,7 +1810,7 @@ void main(){
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
       setReducedMotion,setCharge,
-      destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();if(!observer)global.removeEventListener('resize',resize);query?.removeEventListener?.('change',motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
+      destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();if(!observer)global.removeEventListener('resize',resize);if(query?.removeEventListener)query.removeEventListener('change',motionChanged);else query?.removeListener?.(motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
     };
   }
   global.OndeDice=Object.freeze({create});
@@ -1896,7 +1892,7 @@ void main(){
   }
   function remoteError(response,body){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette invitation a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&connection){try{updated=acceptSnapshot(body);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -1923,7 +1919,7 @@ void main(){
    }
    throw last||failure('offline','La connexion au duo est indisponible.');
   }
-  function markFailure(error){if(error.status===401)authFailed=true;const expected=connection&&['conflict','quota_exhausted','not_allowed','invalid_action','invalid_phase','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
+  function markFailure(error){if(error.status===401)authFailed=true;const expected=connection&&['conflict','stale_round','quota_exhausted','not_allowed','invalid_action','invalid_phase','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
   function pendingLogin(){
    const previous=parsed(registrationKey);
    if(previous&&previous.version===1&&previous.endpoint===endpoint&&previous.op==='login'&&TOKEN.test(previous.token||'')&&UUID.test(previous.requestId||''))return previous;
@@ -2101,7 +2097,6 @@ void main(){
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
- const percent=hp=>(G.probability(hp)*100).toLocaleString('fr-FR',{maximumFractionDigits:2})+' %';
  const card=()=>G.getCard(state.round.cardId);
  const category=()=>G.getCategory(state.round.categoryId,state.round.catalogueVersion??1);
  const shownRolls=()=>state.phase==='draft_challenge'||(state.round.status==='defended'&&!state.round.rolls.length)?state.round.draftRolls:state.round.rolls;
@@ -2323,12 +2318,12 @@ void main(){
    const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
    const automatic=r.autoProposed&&r.status==='pending';
    let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
-   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Proposée par le D20.':h(name(r.from))+' te propose…'):'Réponse attendue : '+h(name(r.awaiting))+'.';
+   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Le D20 a proposé cette carte. À toi de choisir.':h(name(r.from))+' te propose…'):'Invitation envoyée · '+h(name(r.awaiting))+' doit répondre.';
    return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'');
   }
   if(state.phase==='sender_confirmation'){
    const responds=G.canRespond(state);
-   return heading(responds?'L’envie<br><em>se rencontre ?</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté.':h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer','accept')+'</div>':'');
+   return heading(responds?'À toi de<br><em>confirmer.</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté. Confirme à ton tour pour l’ajouter à votre liste.':'Tu as accepté · '+h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer à mon tour','accept')+'</div>':'');
   }
   if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+statusStrip('Réponse en attente.');
   if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',defenseSubtitle(c),null)+healthGauge('to')+stage(20,'ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll');
@@ -2342,10 +2337,17 @@ void main(){
  }
 
  function timeLeft(task){const minutes=Math.max(0,Math.ceil((Date.parse(task.expiresAt)-serverNow())/60000));return Math.floor(minutes/60)+' h '+String(minutes%60).padStart(2,'0');}
+ function taskStatus(task){
+  const mine=task.checks[viewPlayer],partner=G.otherPlayer(viewPlayer),theirs=task.checks[partner];
+  if(mine&&theirs)return 'Un moment partagé · +1 point pour vous.';
+  if(mine)return 'Ta coche est posée · '+name(partner)+' doit encore cocher.';
+  if(theirs)return name(partner)+' a coché · à toi de jouer.';
+  return 'Une fois vécu, chacun coche sa case.';
+ }
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
   const tasks=state.tasks||[];
-  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=[
@@ -2457,6 +2459,7 @@ void main(){
   renderPersona();
   const key=visibleViewKey();
   const animate=key!==renderKey;renderKey=key;
+  root.classList.toggle('oa-entering',animate&&!systemReduce&&!document.hidden&&!presentationHidden);
   root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
   main.innerHTML=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
@@ -2464,7 +2467,7 @@ void main(){
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setReducedMotion(systemReduce);}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:category()?.color);die.setReducedMotion(systemReduce);}
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   if(animate&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
@@ -2570,6 +2573,7 @@ void main(){
     }else if(!document.hidden&&!presentationHidden){
      announce('D'+sides+' : '+faceValue+'. '+resultLabel);
      if(action.type==='ROLL_CATEGORY'){
+      die.setColor?.(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.color);
       if(button){button.textContent='D'+sides+' · '+G.getCategory(next.round.categoryId,next.round.catalogueVersion??1).label;button.setAttribute('aria-busy','false');}
       await waitForReveal(1800);
      }
@@ -2630,7 +2634,9 @@ void main(){
  window.addEventListener('blur',()=>clearCharge());
  window.addEventListener('scroll',()=>clearCharge(),{capture:true,passive:true});
  window.addEventListener('keyup',event=>{if(event.code==='Space'||event.key===' '){if(charge?.source==='keyboard')clearCharge();if(suppressedClick?.source==='keyboard')suppressedClick.until=chargeNow()+600;}});
- if(motionQuery&&motionQuery.addEventListener)motionQuery.addEventListener('change',event=>{systemReduce=event.matches;die.setReducedMotion(systemReduce);cancelContentTransitions();root.getAnimations({subtree:true}).forEach(a=>a.cancel());});
+ function updateReducedMotion(event){systemReduce=event.matches;die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
+ if(motionQuery?.addEventListener)motionQuery.addEventListener('change',updateReducedMotion);
+ else motionQuery?.addListener?.(updateReducedMotion);
  root.addEventListener('change',async event=>{
   if(!welcomeDismissed||busy)return;
   const el=event.target;
@@ -2643,8 +2649,8 @@ void main(){
    const completed=state.stats.totalCompleted>before;
    if(!completed&&!state.tasks.some(item=>item.id===id)){pendingChecks.delete(id);flushRemote(null,false);render();return;}
    el.checked=desired;const label=el.closest('label');label.classList.add('is-waving');const article=el.closest('.oa-task');
-   if(completed&&!systemReduce&&article.animate)article.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-7px)'}],{duration:180,delay:440,fill:'forwards',easing:'ease-out'});
-   setTimeout(()=>{pendingChecks.delete(id);if(remoteMode)flushRemote(null,false);render();if(completed){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}},systemReduce?0:640);
+   if(completed&&!systemReduce&&article.animate)article.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-7px)'}],{duration:180,delay:1020,fill:'forwards',easing:'ease-out'});
+   setTimeout(()=>{pendingChecks.delete(id);if(remoteMode)flushRemote(null,false);render();if(completed){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}},systemReduce?0:1200);
    return;
   }
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}

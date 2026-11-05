@@ -93,6 +93,18 @@ try{
  event.expires_at=new Date(Date.now()-1000).toISOString();delivered.clear();
  await flushPushOutbox(store,event.room_id);
  assert(calls.length===beforeReminder+2,'Expired reminder was sent');
+ event.kind='invitation';delete event.expires_at;event.round_id='onde-9';
+ state={version:2,lanes:{a:{phase:'pending',round:{id:'onde-9',awaiting:'b'}},b:{phase:'draft',round:{id:'onde-10',awaiting:null}}},tasks:[]};
+ const beforeParallel=calls.length;delivered.clear();
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeParallel+2,'Parallel invitation was discarded');
+ state.lanes.a.phase='sender_confirmation';event.kind='confirmation';delivered.clear();
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeParallel+4,'Parallel confirmation was discarded');
+ state.lanes.a.round.id='onde-11';delivered.clear();
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeParallel+4,'Obsolete parallel round was sent');
+ delete event.round_id;
  event.kind='invitation';delete event.expires_at;
  state={phase:'pending',round:{awaiting:'b'}};delivered.clear();subscriptions=subscriptions.slice(0,1);removed=true;
  const gone=await flushPushOutbox(store,event.room_id);
