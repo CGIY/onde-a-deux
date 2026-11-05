@@ -7,7 +7,8 @@ const code=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-
 const copy=x=>JSON.parse(JSON.stringify(x));
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const cardNotesFixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../data/card-notes.json'),'utf8'));
-function hasTitle(html,title){const escaped=title.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));return html.includes('>'+escaped+'</h2>')||html.includes('>'+escaped+'</h3>')||html.includes('title="'+escaped+'"');}
+function escapedText(text){return text.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function hasTitle(html,title){const escaped=escapedText(title);return html.includes('>'+escaped+'</h2>')||html.includes('>'+escaped+'</h3>')||html.includes('title="'+escaped+'"');}
 function assertNoEvidence(html){assert.doesNotMatch(html,/oa-card-fact|oa-source|data-source-card|Source & contexte|repère|statistique/i);}
 let checks=0;const check=fn=>{fn();checks++;};
 const roomId='b98c371d-6355-4d37-a9bc-18f1228fd386';
@@ -126,19 +127,19 @@ async function rollSession(options={}){
    await work;game=next;
   }
   const selected=G.getCard(game.round.cardId),detail=G.getVariant(game.round);
-  check(()=>{assert.ok(detail);assert.ok(hasTitle(ui.html,selected.title));assert.ok(ui.html.includes('<p class="oa-card-description">'+detail+'</p>'));assert.ok(!ui.html.includes('data-action="reroll"'));assert.ok(ui.html.includes('data-action="challenge-draft"'));assert.equal(ui.rngCalls,0);assert.equal(ui.evidenceReads,0);assertNoEvidence(ui.html);});
+  check(()=>{assert.ok(detail);assert.ok(hasTitle(ui.html,selected.title));assert.ok(ui.html.includes('<p class="oa-card-description">'+escapedText(detail)+'</p>'));assert.ok(!ui.html.includes('data-action="reroll"'));assert.ok(ui.html.includes('data-action="challenge-draft"'));assert.equal(ui.rngCalls,0);assert.equal(ui.evidenceReads,0);assertNoEvidence(ui.html);});
   const halfway=G.reduce(G.reduce(start,actions[0]),actions[1]),privateView=shell(mockRemote(snap({...halfway,activePlayer:'b'})),{motionAPI:true});await tick();
   check(()=>{assert.ok(!privateView.html.includes(selected.title));assert.ok(!privateView.html.includes('data-action="roll"'));});
   const restored=shell(mockRemote(snap(halfway,3,0)),{motionAPI:true});await tick();
   check(()=>{assert.equal(restored.stage.dataset.rollRole,'variant');assert.equal(restored.motionAnimations.filter(a=>a.node===restored.canvas).length,0);assert.ok(restored.html.includes('Tirer la variante'));});
   const defended=G.reduce(game,{type:'CHALLENGE_DRAFT'}),defense=shell(mockRemote(snap(defended,5,0)));await tick();
-  check(()=>{assert.equal(defense.stage.dataset.kind,'20');assert.ok(defense.html.includes(detail));assert.ok(defense.html.includes('role="progressbar"'));});
+  check(()=>{assert.equal(defense.stage.dataset.kind,'20');assert.ok(defense.html.includes(escapedText(detail)));assert.ok(defense.html.includes('role="progressbar"'));});
   const at=new Date().toISOString(),sent=G.reduce(game,{type:'SEND',at}),other={...sent,activePlayer:'b'};
   const otherRemote=mockRemote(snap(other,5,0)),otherUI=shell(otherRemote);await tick();await otherUI.click('open-invitation',{round:sent.round.id});
-  check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes(detail));assert.ok(otherUI.html.includes('data-action="challenge"'));});
+  check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes(escapedText(detail)));assert.ok(otherUI.html.includes('data-action="challenge"'));});
   const accepted=G.reduce(other,{type:'ACCEPT',at});
   otherRemote.actionImpl=async()=>snap(accepted,6,0);await otherUI.click('accept');
-  check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes('<p class="oa-task-proposal">'+detail+'</p>'));});
+  check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes('<p class="oa-task-proposal">'+escapedText(detail)+'</p>'));});
  }
  // All six faces for every challenge display the same exact result after restoration.
  {
@@ -152,7 +153,7 @@ async function rollSession(options={}){
     for(const [face,detail] of selected.variants.entries()){
      const draft=G.reduce(chosen,{type:'ROLL_VARIANT',value:face+1});
      const ui=shell(mockRemote(snap(draft,4,0)));await tick();
-     check(()=>{assert.ok(hasTitle(ui.html,selected.title));assert.equal(G.getVariant(draft.round),detail);assert.ok(ui.html.includes('oa-card-description'));assert.ok(ui.html.includes(detail));assert.ok(ui.html.includes('data-action="send"'));assert.ok(!ui.html.includes('data-action="reroll"'));});
+     check(()=>{assert.ok(hasTitle(ui.html,selected.title));assert.equal(G.getVariant(draft.round),detail);assert.ok(ui.html.includes('oa-card-description'));assert.ok(ui.html.includes(escapedText(detail)));assert.ok(ui.html.includes('data-action="send"'));assert.ok(!ui.html.includes('data-action="reroll"'));});
     }
    }
   }
@@ -275,7 +276,7 @@ async function rollSession(options={}){
  }
  // Holding changes only visual power, caps its work, and cannot add a second native click roll.
  {
-  const {remote,ui}=await rollSession();await ui.pointer('pointerdown');ui.advance(600);check(()=>assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'0.5'));check(()=>assert.equal(ui.die.charges.at(-1),.5));check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));ui.advance(600);check(()=>assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'1'));check(()=>assert.equal(ui.frameCount,0));ui.advance(9000);check(()=>assert.equal(ui.frameCount,0));await ui.pointer('pointerup');await ui.click('roll',{},1);check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));check(()=>assert.deepEqual(copy(ui.die.options),[{duration:1650,power:1}]));check(()=>assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'0'));check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.equal(ui.button()['aria-valuenow'],undefined));
+  const {remote,ui}=await rollSession();await ui.pointer('pointerdown');check(()=>assert.equal(ui.button().classList.contains('is-charging'),true));ui.advance(600);check(()=>assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'0.5'));check(()=>assert.equal(ui.die.charges.at(-1),.5));check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));ui.advance(600);check(()=>assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'1'));check(()=>assert.equal(ui.frameCount,0));ui.advance(9000);check(()=>assert.equal(ui.frameCount,0));await ui.pointer('pointerup');await ui.click('roll',{},1);check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));check(()=>assert.deepEqual(copy(ui.die.options),[{duration:1650,power:1}]));check(()=>assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'0'));check(()=>assert.equal(ui.button().classList.contains('is-charging'),false));check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.equal(ui.button()['aria-valuenow'],undefined));
  }
  // Quick taps, Enter, and assistive clicks keep classic power; Space also dispatches exactly once.
  {
@@ -290,7 +291,7 @@ async function rollSession(options={}){
    const {remote,ui}=await rollSession();await ui.pointer('pointerdown');ui.advance(350);
    if(reason==='move')await ui.pointer('pointermove','roll',{clientY:45});else if(reason==='blur'||reason==='scroll')ui.windowEvent(reason);else if(reason!=='outside')await ui.pointer(reason);
    ui.advance(3000);await ui.pointer('pointerup','roll',reason==='outside'?{clientX:300}:{});await ui.click('roll',{},1);
-   check(()=>{assert.equal(remote.calls.filter(c=>c.method==='action').length,0,reason);assert.equal(ui.frameCount,0);assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'0');assert.equal(ui.die.charges.at(-1),0);});
+   check(()=>{assert.equal(remote.calls.filter(c=>c.method==='action').length,0,reason);assert.equal(ui.frameCount,0);assert.equal(ui.button().style.getPropertyValue('--oa-charge'),'0');assert.equal(ui.button().classList.contains('is-charging'),false);assert.equal(ui.die.charges.at(-1),0);});
   }
   const secondary=await rollSession();await secondary.ui.pointer('pointerdown');await secondary.ui.pointer('pointerdown','roll',{pointerId:2,isPrimary:false});await secondary.ui.pointer('pointerup','roll',{pointerId:2,isPrimary:false});secondary.ui.advance(600);await secondary.ui.pointer('pointerup');check(()=>assert.equal(secondary.ui.die.options[0].power,.5));check(()=>assert.equal(secondary.remote.calls.filter(c=>c.method==='action').length,1));
   for(const reason of ['Escape','focusout','blur']){const {remote,ui}=await rollSession();await ui.key('keydown');ui.advance(400);if(reason==='Escape')await ui.key('keydown','Escape');else if(reason==='blur')ui.windowEvent('blur');else await ui.pointer('focusout');ui.advance(3000);await ui.key('keyup');ui.windowEvent('keyup',{key:' ',code:'Space'});await ui.click('roll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0,reason));}
