@@ -1,0 +1,58 @@
+/* Exercise two real live-session controllers without network or personal data. */
+const assert=require('node:assert/strict');
+const {createController,validSession}=require('../src/onde-app-hardcore.js');
+const {webcrypto}=require('node:crypto');
+global.crypto=webcrypto;
+let checks=0;const equal=(actual,expected,message)=>{assert.deepEqual(actual,expected,message);checks++;};
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const copy=x=>structuredClone(x);
+(async()=>{
+ const {createHardcore,reduceHardcore,projectHardcore}=await import('../../server/functions/desir-game/hardcore.mjs');
+ let now=Date.parse('2026-11-05T14:00:00Z'),shared=null,revision=0,n=0,calls=[],visible=true;
+ const uuid=()=>`00000000-0000-4000-8000-${String(++n).padStart(12,'0')}`;
+ const timers=new Map();let timerId=0;
+ const setTimer=(fn,ms)=>{const id=++timerId;timers.set(id,{fn,ms});return id;},clearTimer=id=>timers.delete(id);
+ const remote=actor=>({async hardcore(action){calls.push({actor,action:copy(action)});if(action){shared=reduceHardcore(shared,actor,action,now,{uuid,randomInt:()=>12});revision++;}return {session:projectHardcore(shared,now),revision,actor,serverTime:new Date(now).toISOString()};}});
+ const changes={a:[],b:[]};
+ const make=actor=>createController({remote:remote(actor),onChange:s=>changes[actor].push(copy(s)),clock:()=>now,setTimer,clearTimer,uuid,isVisible:()=>visible});
+ const a=make('a'),b=make('b');
+ equal(calls.length,0,'hidden mode has no background requests');
+ await a.open();await b.open();equal(a.state.session.id,b.state.session.id,'one shared session');equal(a.state.actor,'a');equal(b.state.actor,'b');
+ equal(validSession(a.state.session),true,'server public projection accepted');
+ const bad=copy(a.state.session);bad.boss.maxHp=65;equal(validSession(bad),false,'unexpected rules rejected');
+ bad.boss.maxHp=48;bad.optedIn.a='true';equal(validSession(bad),false,'coerced consent rejected');
+ await a.optIn(true);await b.optIn(true);await a.refresh();equal(a.state.session.optedIn,{a:true,b:true});
+ equal(a.hold(),true);await tick();equal(shared.status,'waiting','one held button never rolls');equal(shared.actionRoll,null);
+ await a.release();equal(a.state.held,false,'release is immediate locally');
+ equal(a.hold(),true);equal(b.hold(),true);await tick();await a.refresh();await b.refresh();await tick();
+ equal(shared.status,'scheduled','two held controllers and automatic acknowledgements schedule one roll');
+ equal(a.state.session.actionRoll.value,12,'committed face prefetched before start');
+ equal(a.state.lastServerTime<Date.parse(a.state.session.actionRoll.startAt),true,'server has not confirmed the future start');
+ const rollId=shared.actionRoll.id;now+=500;await a.refresh();await b.refresh();equal(shared.actionRoll.id,rollId,'renewals keep exactly one outcome');
+ equal(calls.at(-1).action.type,'PRESS','held cycle renews and reads in a single request');
+ now+=1200;await a.refresh();await b.refresh();equal(a.state.session.actionRoll.value,12,'both retain the authoritative face after start');equal(b.state.session.actionRoll.value,12);equal(a.state.lastServerTime>=Date.parse(a.state.session.actionRoll.startAt),true,'server confirms start without relying on face presence');
+ await a.release();await b.release();equal(shared.actionRoll.id,rollId,'release after start does not reroll');
+ now+=2200;await a.refresh();await b.refresh();equal(a.state.session.status,'combat','equal revision time transition reaches combat');
+ for(const [controller,slot] of [[a,1],[b,1],[a,2],[b,2]])await controller.attack(slot);
+ equal(shared.attackLedger.length,4,'four attack slots only');equal(shared.boss.attacksUsed,{a:2,b:2});equal(shared.actionRoll.id,rollId);
+ now+=3400;await a.refresh();await b.refresh();equal(a.state.session.boss.hpRemaining,0,'exactly48 wins');equal(b.state.session.boss.hpRemaining,0);equal(a.state.session.status,'won');
+ equal(a.state.session.attackLedger.map(h=>h.value),[12,12,12,12],'initial selector is not counted as damage');
+ const finishedId=a.state.session.id;await a.open();await b.refresh();equal(a.state.session.id===finishedId,false,'finished session can restart');equal(a.state.session.optedIn,{a:false,b:false},'new session clears both agreements');equal(b.state.session.id,a.state.session.id);
+ await a.optIn(true);await b.optIn(true);await a.refresh();a.hold();await tick();visible=false;a.visibilityChanged();equal(a.state.held,false,'hidden document cannot keep a live local press');await tick();equal(shared.presses.a.held,false,'background sends urgent release');
+ visible=true;a.visibilityChanged();await tick();equal(a.state.held,false,'foreground does not restore a previous hold');
+ await a.close();equal(a.state.opened,false);equal(a.hold(),false,'closed panel cannot hold');
+ a.destroy();b.destroy();
+ // A queued state reply with a preparation cannot ACK after local release.
+ let deferred,local=createHardcore(now,uuid());local.optedIn={a:true,b:true};let rev=10,actions=[];
+ const r={async hardcore(action){actions.push(copy(action));if(action?.type==='PRESS'&&action.held)return new Promise(resolve=>{deferred=resolve;});return {session:projectHardcore(local,now),revision:rev,actor:'a',serverTime:new Date(now).toISOString()};}};
+ const c=createController({remote:r,clock:()=>now,setTimer,clearTimer,uuid,isVisible:()=>true});await c.open();c.hold();await c.release();
+ local.status='preparing';local.preparationId=uuid();local.presses.a={id:actions.find(x=>x?.type==='PRESS'&&x.held).pressId,sequence:1,held:true,expiresAt:new Date(now+2000).toISOString()};
+ deferred({session:projectHardcore(local,now),revision:++rev,actor:'a',serverTime:new Date(now).toISOString()});await tick();equal(actions.filter(x=>x?.type==='ACK').length,0,'pending preparation cannot acknowledge after release');
+ c.destroy();
+ // Old revisions and older clock-only replies never roll back the accepted view.
+ let response={session:projectHardcore(createHardcore(now,uuid()),now),revision:22,actor:'a',serverTime:new Date(now).toISOString()};
+ const d=createController({remote:{hardcore:async()=>copy(response)},clock:()=>now,setTimer,clearTimer,uuid});await d.open();response.revision=21;response.session.optedIn.a=true;await d.refresh();equal(d.state.revision,22);equal(d.state.session.optedIn.a,false);
+ response.revision=22;response.serverTime=new Date(now-100).toISOString();await d.refresh();equal(d.state.session.optedIn.a,false,'older time-only reply ignored');
+ response.serverTime=new Date(now+100).toISOString();await d.refresh();equal(d.state.session.optedIn.a,true,'newer time-only reply accepted');d.destroy();
+ console.log(`Hardcore controllers: ${checks} assertions passed.`);
+})().catch(error=>{console.error(error);process.exitCode=1;});

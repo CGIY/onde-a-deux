@@ -1,14 +1,35 @@
 # Dés·ir — passage de relais à Codex
 
-## Roleplay par résultat final et motion — 5 novembre 2026
+## État courant : Hardcore connecté, textes finaux et motion — 5 novembre 2026
+
+L’utilisateur a explicitement demandé de **connecter HARDCORE à Supabase et de pousser la version finale**. Le client et le serveur sont implémentés. La migration `20261105131855_desir_hardcore_live.sql` est appliquée sur Supabase ; `desir-game` version **13** est active et ses neuf fichiers sources correspondent à la révision locale. Les deux clients reçoivent le résultat engagé avant l’heure de départ afin de programmer leur animation, puis gardent le bouton maintenu jusqu’au départ confirmé par le serveur. Le push final regroupe cette intégration et les correctifs précédents. Cette section prévaut sur les états historiques ci-dessous.
+
+- Accès caché après connexion : **cinq activations du logo Dés·ir** ouvrent le mode ; l’ancre permet aussi l’activation au clavier. Chaque compte donne son propre accord pour la session. Deux appareils du même compte ne remplacent jamais les deux participants.
+- Lancement initial : chacun maintient **Lancer ensemble**. Les appuis sont temporaires, renouvelés pendant le maintien et retirés au relâchement, à la perte de focus ou au passage en arrière-plan. Le chevauchement des deux comptes prépare le départ ; deux acquittements techniques automatiques programment un seul D20 commun. Aucun bouton Prêt supplémentaire. Avant l’heure de départ serveur, un relâchement annule la préparation ; un ancien message ne peut pas rouvrir un appui terminé.
+- Combat : le D20 initial choisit l’une des vingt cartes et n’inflige aucun dégât. Le boss commun a **48 PV** et quatre emplacements d’attaque : **deux D20 par personne**. Chaque attaque persistée compte une seule fois, même si elle apparaît sur les deux écrans. Les quatre jets restent disponibles si les PV atteignent zéro avant le dernier. Le seuil **somme ≥ 48** donne **32,265625 %** de chances d’écarter la carte ; à 49, la probabilité serait inférieure à 30 %. Le résultat n’impose aucune réalisation ; Arrêter reste disponible, y compris pour la carte 17.
+- Architecture : `src/onde-app-hardcore.js` gère le contrôleur live et la présentation, avec `remote.hardcore(action)` dans `src/onde-app-remote.js`. Le serveur reçoit `op: "hardcore"` avec une action nulle pour lire, ou `CREATE`, `OPT_IN`, `PRESS`, `ACK`, `ATTACK`, `CANCEL` avec un `requestId` UUID pour écrire. Identité, hasard et calendrier sont décidés côté serveur ; aucun rôle ou résultat fourni par le client n’est accepté. Réponses : `{session, revision, actor, serverTime}`.
+- Données isolées : `server/hardcore-schema.sql` et `server/migrations/20261105131855_desir_hardcore_live.sql` ajoutent les réglages, la session par duo, les reçus indépendants et leurs RPC. RLS activée, accès réservé au rôle serveur et authentification par les jetons d’appareil existants. Les lectures live ne modifient ni les manches normales, ni les quotas, ni les points, ni les notifications. CAS et reçus protègent les écritures concurrentes et les reprises ; une session expire après trente minutes.
+- Présentation : D20 rouge néon dans la patte graphique existante, transitions d’entrée et de sortie, horloge commune et rattrapage des animations. La boucle de 500 ms est active uniquement pendant l’ouverture au premier plan ; un renouvellement d’appui fournit aussi l’état pour éviter de doubler les requêtes. Les réponses anciennes et les animations déjà vues sont ignorées ; la réduction système des mouvements reste respectée.
+- Vérifications locales : **146 contrôles backend Hardcore**, **36 contrôles PostgreSQL réels en mémoire** et **44 contrôles du client live** passent. Le contrôle du service réellement déployé passe avec deux vrais contrôleurs et deux accès temporaires distincts : **16 vérifications**, appui isolé bloqué, lancement partagé, quatre résultats et PV identiques. Seule l’observation sur deux téléphones physiques reste à effectuer. Le script privé `/private/tmp/desir-hardcore-live-smoke.mjs` utilise seulement des jetons temporaires ; ne jamais ajouter sa configuration ou des identifiants au dépôt.
+
+Contrôles de reprise, depuis la racine du dépôt :
+
+```sh
+node demo-des/dev/tests/onde-hardcore-check.cjs
+node demo-des/server/tests/hardcore-check.mjs
+DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/hardcore-postgres-check.mjs
+python3 demo-des/dev/tests/onde-build-check.py
+python3 demo-des/dev/build.py --release
+git diff --check
+```
+
+Les vérifications générales du jeu, du transport, de la confidentialité et des notifications restent requises avant publication ; le workflow `desir-web.yml` inclut le contrôle backend Hardcore. **Xcode et ZIP restent inchangés** pendant l’essai web.
 
 La consigne actuelle de l’utilisateur est un **roleplay fictif et consenti**, sans sources ni commentaires méthodologiques dans les cartes. Le contenu est une voix de jeu de fiction, dans le cadre d’improvisation consenti précisé par l’utilisateur. À sa demande, les textes n’emploient plus « du Club » et les cartes n’affichent plus le libellé « Roleplay ». Le marqueur interne `mode: roleplay` conserve le cadre éditorial ; ce contenu ne doit pas être présenté comme une enquête réelle. Ne pas réintroduire les anciennes statistiques documentaires ni attribuer les chiffres de fiction à des études ou marques réelles.
 
 - **144 résultats finaux** : 24 cartes × 6 variantes. `data/card-roleplay.json` fournit un texte unique et un pourcentage pour chaque clé `cardId:vN`. Le build valide la couverture exacte et incorpore `window.DesirRoleplay`; l’UI n’affiche le bloc qu’après la variante finale et conserve la confidentialité des invitations.
 - Chiffre grand et coloré par catégorie ; aucune source ou action supplémentaire. Les règles, quotas, dés et points restent indépendants de ce contenu. Le catalogue hérité conserve ses phrases de compatibilité.
 - Motion affinée : respiration de dé 2,2 s bornée, déformation asymétrique à volume constant, contact et rebond soignés, charge bornée 1,2 s, transitions et indications tactiles. La respiration s’arrête au toucher, hors écran, en arrière-plan et avec la réduction système des mouvements. Le remplissage liquide reste à 1,05 s.
-- HARDCORE est une **demande ultérieure en préparation**, pas un mode actif : vingt intitulés sélectionnés, deux accords explicites, un appui maintenu simultané et un D20 partagé rouge néon. Défi coopératif prévu ensuite : 48 PV, quatre D20 au total, deux par personne ; probabilité d’écarter 32,265625 %. La formulation 17 conserve toujours la possibilité d’arrêter. La proposition visuelle et la fondation de synchronisation restent hors des sources publiables. Aucun champ, règle, migration, API ou réglage Supabase de ce mode n’a été ajouté.
-- Xcode et ZIP restent inchangés. Ces modifications sont locales tant qu’une publication n’est pas explicitement autorisée.
 
 ## Suppression des statistiques — 3 novembre 2026 (prioritaire)
 

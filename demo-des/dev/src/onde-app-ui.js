@@ -8,6 +8,7 @@
  const storageKey='onde-couple-prototype-v1';
  const remote=window.OndeRemote&&window.OndeRemote.create(window.DesirConfig||{});
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
+ const hardcore=remoteMode&&window.OndeHardcore?.mount({root,remote});
  const persona=root.querySelector('.oa-persona'),navigation=root.querySelector('.oa-nav');
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
  const welcomeKey='desir-welcome-v1';

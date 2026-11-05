@@ -23,6 +23,45 @@ function parallelReply(room,actor='a',revision=1){
  return reply(actor,revision,own,{gameVersion:3,drawAvailable:own.phase==='category',incoming:other.phase!=='category'&&G.canSeeRound(other,actor)?[other]:[]});
 }
 (async()=>{
+ // Ephemeral live presses bypass a pending normal draw and never become durable actions.
+ {
+  const storage=memory(),calls=[];let completeDraw;
+  const r=create(config,env(async(url,options)=>{
+   const p=payload(options);calls.push(p);
+   if(p.op==='login')return response(loginReply(options));
+   if(p.op==='action')return new Promise(resolve=>{completeDraw=()=>resolve(response(reply('a',2)));});
+   return response({actor:'a',session:null,revision:0,serverTime:'2026-11-05T15:00:00.000Z'});
+  },storage));
+  await r.login('fixture-user','fixture-password');
+  const normal=r.action({type:'ROLL_CATEGORY',roundId:'onde-1'});await tick();
+  check(()=>assert.equal(typeof completeDraw,'function'));
+  const saved=storage.getItem('desir-connection-v1-action');
+  const command={type:'PRESS',sessionId:webcrypto.randomUUID(),pressId:webcrypto.randomUUID(),sequence:2,held:false};
+  const live=await r.hardcore(command);
+  check(()=>assert.equal(live.session,null));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),saved));
+  check(()=>assert.deepEqual(calls.at(-1).action,command));check(()=>assert.equal(calls.at(-1).op,'hardcore'));
+  check(()=>assert.match(calls.at(-1).requestId,/^[0-9a-f-]{36}$/));
+  completeDraw();await normal;
+  await r.hardcore();check(()=>assert.equal(calls.at(-1).action,null));check(()=>assert.equal(calls.at(-1).requestId,undefined));
+  check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));
+ }
+ // A held press is never retried late; a release retries with the same idempotency key.
+ {
+  const calls=[];
+  const r=create(config,env(async(url,options)=>{
+   const p=payload(options);if(p.op==='login')return response(loginReply(options));calls.push(p);
+   return response({error:{code:'server_error'}},503);
+  }));await r.login('fixture-user','fixture-password');
+  await assert.rejects(r.hardcore({type:'PRESS',held:true}),{status:503});
+  check(()=>assert.equal(calls.length,1));
+  await assert.rejects(r.hardcore({type:'PRESS',held:false}),{status:503});
+  check(()=>assert.equal(calls.length,3));check(()=>assert.equal(calls[1].requestId,calls[2].requestId));
+ }
+ // An unrelated actor, missing timestamp or invalid revision cannot enter the live controller.
+ for(const bad of [{actor:'b'},{revision:-1},{serverTime:'not-a-date'},{session:[]}]){
+  const r=create(config,env(async(url,options)=>payload(options).op==='login'?response(loginReply(options)):response({actor:'a',session:null,revision:0,serverTime:'2026-11-05T15:00:00.000Z',...bad})));
+  await r.login('fixture-user','fixture-password');await assert.rejects(r.hardcore(),{code:'invalid_response'});checks++;
+ }
  // Parallel snapshots preserve own progress separately from a visible invitation.
  {
   let room=G.createRoom();const id=room.lanes.b.round.id,at='2026-11-05T12:00:00.000Z';

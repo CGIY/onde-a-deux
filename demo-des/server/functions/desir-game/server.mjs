@@ -1,5 +1,7 @@
 import {HttpError,validDeviceToken,validRequestId,sha256,privateBucket,normalizeUsername,parseAction,assertClientCompatibility,snapshot,applyAction} from './model.mjs';
 
+import {handleHardcore} from './hardcore.mjs';
+
 const defaultOrigin='https://cgiy.github.io';
 function getBearer(req){const match=/^Bearer ([A-Za-z0-9_-]+)$/.exec(req.headers.get('Authorization')||'');if(!match||!validDeviceToken(match[1]))throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');return match[1];}
 function clientIp(req){return req.headers.get('cf-connecting-ip')||req.headers.get('x-real-ip')||(req.headers.get('x-forwarded-for')||'unknown').split(',').pop().trim();}
@@ -58,7 +60,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const job=push.flushPushOutbox(store).catch(()=>{});if(waitUntil)waitUntil(job);else await job;
         return respond({queued:true},202);
       }
-      if(!['login','state','action','push_config','subscribe'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
+      if(!['login','state','action','push_config','subscribe','hardcore'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
       if(![1,2,3].includes(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
@@ -80,8 +82,14 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       }
       if(Object.keys(body).some(key=>!['op','requestId','action','subscription','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
       await rate('authenticated-ip:'+ipBucket,600,60);
-      let current=await context(tokenHash,gameVersion);
       await rate('device:'+tokenHash,240,60);
+      if(body.op==='hardcore'){
+        if(Object.keys(body).some(key=>!['op','action','requestId','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
+        const liveContext=await store.rpc('desir_hardcore_auth',{p_token_hash:tokenHash});
+        if(!liveContext)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
+        return respond(await handleHardcore({store,context:liveContext,action:body.action,requestId:body.requestId,now:()=>clock().getTime(),randomInt:G.randomInt}));
+      }
+      let current=await context(tokenHash,gameVersion);
       if(body.op==='state'){flush(current.room.id);return respond(snapshot(G,current,{},gameVersion));}
       if(body.op==='push_config'){
         if(!push)throw new HttpError(503,'push_unavailable','Notifications indisponibles.');

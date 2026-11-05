@@ -42,6 +42,14 @@ let worstJoin=0,joins=0,inkJoins=0;
   die.setReducedMotion(true);assert.equal(await die.roll(kind),kind);assert.equal(die.busy,false);assert.equal(uniforms.uResultLight,1,'reduced motion brightens immediately');assert.equal(uniforms.uValue,kind);die.destroy();assert.equal(queue.size,0);
  }
  // Visual force cannot alter the chosen result or the final physical pose.
+ // A late live snapshot catches up to its server timeline instead of starting over.
+ {
+  now=0;queue.clear();const live=window.OndeDice.create(makeCanvas(),{kind:20,value:1});
+  const result=live.roll(17,{durationMs:2200,elapsedMs:1700});
+  advance(499);assert.equal(live.busy,true,'late live roll keeps only its remaining 500ms');
+  advance(501);assert.equal(await result,17);assert.equal(live.busy,false,'shared reveal deadline is preserved');
+  live.destroy();now=0;queue.clear();
+ }
  const rotationDistance=(a,b)=>Math.acos(Math.max(-1,Math.min(1,(a.reduce((sum,v,i)=>sum+v*b[i],0)-1)/2)));
  const trajectories=[];
  for(const power of [0,1]){

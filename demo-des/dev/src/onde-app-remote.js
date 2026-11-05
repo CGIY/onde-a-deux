@@ -141,6 +141,17 @@
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
   }
+  // Live presses must bypass the durable game queue: a release cannot wait for a draw.
+  // Nothing is persisted here, so reopening the app never resumes a held press.
+  async function hardcore(action=null){
+   requireConnection();
+   const identity=connection,token=identity.token;
+   if(action!==null&&(!action||typeof action!=='object'||Array.isArray(action)||typeof action.type!=='string'))throw failure('invalid_action','Cette action n’est pas disponible.');
+   const raw=await request({op:'hardcore',action:clone(action),...(action===null?{}:{requestId:requestId()})},token,action?.type==='PRESS'&&action.held?1:2);
+   if(connection!==identity||connection.token!==token)throw failure('not_connected','La connexion a changé. Rouvre le mode.');
+   if(!raw||raw.actor!==identity.actor||!Number.isSafeInteger(raw.revision)||raw.revision<0||!Object.hasOwn(raw,'session')||!(raw.session===null||typeof raw.session==='object'&&!Array.isArray(raw.session))||!Number.isFinite(Date.parse(raw.serverTime)))throw failure('invalid_response','Le mode partagé n’a pas pu être actualisé.');
+   return clone(raw);
+  }
   async function recoverPendingAction(pending){
    try{return await serial(()=>sendAction(pending));}
    catch(error){if(error.code!=='upgrade_required'||pending.gameVersion===3)throw error;return null;}
@@ -205,7 +216,7 @@
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,hardcore,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

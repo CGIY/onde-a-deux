@@ -11,6 +11,7 @@ Appliquer dans cet ordre :
 3. `push-scheduler.sql` : échéancier des notifications et appel cron protégé.
 4. `additive-device-index.sql` : index supplémentaire des appareils par compte.
 5. `migrations/20261105105858_desir_parallel_rounds.sql` : disponibilité des deux manches et identifiants des notifications.
+6. `migrations/20261105131855_desir_hardcore_live.sql` : sessions Hardcore privées et versionnées, reçus et validation de session en lecture seule.
 
 Les fichiers de `migrations/` reproduisent les migrations appliquées sur le projet hébergé. Les dates de version proviennent de son historique Supabase.
 
@@ -29,6 +30,7 @@ Toutes les opérations utilisent `POST` JSON. Les réponses ne sont jamais mises
 - `login` : `{op:"login", username, password}` et `Authorization: Bearer <session-prospective>`. Les identifiants sont normalisés en minuscules, sans accents ; le mot de passe reste exact. Le client génère et conserve auparavant 32 octets aléatoires encodés en base64url (43 caractères). La réponse ajoute `connection:{token,roomId,actor}`.
 - `state` : session existante, retour du snapshot courant et expiration des tâches selon l’horloge serveur.
 - `action` : `{op:"action", requestId:<UUID>, action:{type,roundId,taskId?,checked?}}`.
+- `hardcore` : session existante, `{op:"hardcore",gameVersion:3,action:null|<commande>,requestId?:<UUID>}`, retour `{session,revision,actor,serverTime}` ; contrat détaillé ci-dessous.
 - `push_config` : session existante, retour `{vapidPublicKey}`.
 - `subscribe` : session existante, `{op:"subscribe",subscription:<PushSubscriptionJSON>}`.
 - `drain_push` : réservé au cron avec l’en-tête `X-Desir-Cron`, réponse 202 après mise en file et traitement différé.
@@ -36,6 +38,20 @@ Toutes les opérations utilisent `POST` JSON. Les réponses ne sont jamais mises
 Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des six heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
 
 Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `CHALLENGE_DRAFT`, `ROLL_DRAFT_DEFENSE`, `SEND`, `CHALLENGE`, `ROLL_DEFENSE`, `ACCEPT`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. Tout `actor`, `value`, `hand`, `at` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
+
+## Lancement Hardcore à deux
+
+Le mode possède sa propre session par duo dans `desir_hardcore_sessions`. Ses révisions restent croissantes même lorsqu’une nouvelle session remplace la précédente. Il ne modifie ni les manches normales, ni les tickets, ni les points ou notifications. `desir_hardcore_auth` valide à chaque requête le jeton, son expiration, sa révocation et les deux comptes actifs, sans réécrire les présences toutes les 500 ms. Toutes les nouvelles tables ont RLS activé ; leurs droits et ceux de leurs RPC sont réservés à `service_role`, en `SECURITY INVOKER` avec `search_path` vide.
+
+`action:null` lit la session, ou renvoie `session:null` lorsqu’aucune n’existe. Les commandes sont `CREATE`, `OPT_IN {sessionId,enabled}`, `PRESS {sessionId,pressId,sequence,held}`, `ACK {sessionId,preparationId,pressId}`, `ATTACK {sessionId,slot:1|2}` et `CANCEL {sessionId}`. Chaque mutation porte un UUID `requestId` distinct. Les reçus portent `(roomId,actor,requestId)` ; un rejeu rend l’état courant, sans nouveau tirage. Un identifiant réutilisé avec un autre contenu est refusé. L’acteur, le résultat, la catégorie, les dégâts ou l’horloge ne sont jamais acceptés du client.
+
+Chaque compte valide son propre accord, puis maintient son bouton. Les appuis ont un bail de deux secondes, renouvelé toutes les 500 ms. Le chevauchement des deux comptes prépare le lancer ; les deux écrans acquittent automatiquement la préparation tout en maintenant leur appui. Le second acquittement programme un départ commun 1 100 ms plus tard et une révélation 2 200 ms après ce départ. Le serveur utilise son heure courante après les lectures et à chaque tentative CAS : un retard de base ne prolonge pas un ancien appui. Les numéros de séquence et les identifiants fermés empêchent un maintien retardé de rouvrir un bouton relâché, même si le relâchement est arrivé avant son premier maintien.
+
+Après les deux acquittements, le résultat engagé est livré aux deux écrans avec son calendrier de départ futur : les animations peuvent ainsi démarrer à cette échéance, sans attendre une lecture réseau après le départ. L’interface ne dévoile la face et son titre qu’à la révélation. Une préparation annulée avant le départ conserve son résultat déjà choisi uniquement côté serveur, pour empêcher une annulation sélective de relancer le dé. Le client doit envoyer le relâchement immédiatement sur `pointerup`, `pointercancel`, perte de focus ou écran masqué, hors de la file du jeu normal. Une coupure est rattrapée par l’expiration du bail. Après le départ engagé, relâcher laisse finir le dé ; `CANCEL` et le retrait d’accord restent disponibles et annulent toute la session. La session expire après trente minutes. `desir_hardcore_settings.enabled=false` bloque aussi les appels directs, indépendamment du chemin caché de l’interface.
+
+Le D20 commun sélectionne l’action et ne compte aucun dégât. Le boss a 48 PV. Chaque compte dispose d’exactement deux emplacements d’attaque D20 ; un emplacement déjà utilisé ne retire jamais de dégâts une seconde fois, même avec un autre `requestId`. Les quatre jets restent disponibles lorsqu’une victoire est atteinte après trois jets. Chaque impact possède son calendrier commun ; les dégâts sont dérivés une seule fois du registre serveur, aux échéances prévues. Après les quatre impacts : victoire pour une somme ≥ 48, soit 51 625 combinaisons sur 160 000 (**32,265625 %**), sinon défaite. Aucune issue n’accepte automatiquement une action.
+
+Le client ignore une révision inférieure, mais accepte une révision identique avec une heure serveur plus récente : la révélation, les impacts et l’expiration sont dérivés du temps. Pendant un maintien, la réponse du renouvellement remplace la lecture périodique, afin de rester sous les limites de requêtes existantes. Le flux rapide n’est utilisé que lorsque l’écran Hardcore est ouvert. Une connexion Internet ne garantit pas un démarrage à la même image en cas de suspension ou coupure ; la reprise conserve le résultat et le calendrier autoritaires.
 
 ## Quotas et concurrence
 
@@ -75,6 +91,7 @@ Les sessions sont stockées uniquement sous leur SHA-256 et expirent après 90 j
 
 ```sh
 node demo-des/server/tests/backend-check.mjs
+node demo-des/server/tests/hardcore-check.mjs
 node demo-des/server/tests/push-check.mjs
 ```
 
@@ -83,6 +100,7 @@ Un contrôle PostgreSQL embarqué optionnel utilise `@electric-sql/pglite@0.5.14
 ```sh
 npm install --prefix /private/tmp/desir-sql-tools --ignore-scripts --no-audit --no-fund @electric-sql/pglite@0.5.14
 DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/postgres-check.mjs
+DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/hardcore-postgres-check.mjs
 ```
 
 Les tests backend couvrent les 144 tirages de variante, les anciennes mains, les deux rôles, le quota, la compatibilité des clients, la confidentialité des dés et le rejeu concurrent d’une requête.

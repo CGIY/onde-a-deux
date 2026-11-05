@@ -34,6 +34,7 @@ jobs:
           for test in demo-des/dev/tests/*.cjs; do node "$test"; done
           node demo-des/server/tests/backend-check.mjs
           node demo-des/server/tests/push-check.mjs
+          node demo-des/server/tests/hardcore-check.mjs
       - name: Rebuild the connected web release
         run: |
           python3 demo-des/dev/tests/onde-build-check.py
