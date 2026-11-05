@@ -150,15 +150,16 @@ void main(){
     if(!canvas||typeof canvas.getContext!=='function')throw new TypeError('A canvas is required.');
     let type=validKind(options.kind??6),result=validValue(options.value??1,type),rotation=initialRotation(type,result),pigment=parsePigment(options.color);
     let alive=true,raf=0,busy=false,pressed=false,pressAt=0,pressScale=1,rollAt=0,startQ=rotation,goalQ=rotation,pointerId=null,charge=0;
-    let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,pressPoint=null;
+    let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,settleBias=0,startBias=0,pressPoint=null;
+    let breathing=false,breatheAt=0,visible=true;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
     let resultLight=1;
     let gl=null,program=null,buffer=null,texture=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='';
-    let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
+    let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0,spreadBias:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
     const query=global.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;};
+    const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;breathing=false;};
     const dieColor=()=>pigment||COLORS[type];
     const updateLabel=(moving=false)=>canvas.setAttribute('aria-label',moving?`Dé D${type} en mouvement.`:`Dé D${type} en caoutchouc ${pigment?'aux couleurs de la catégorie':MATERIALS[type]}. Résultat : ${result}.`);
     canvas.setAttribute('role','img');
@@ -211,11 +212,11 @@ void main(){
       }
       ctx.closePath();
     }
-    function drawFallback(q=rotation,sy=1,lift=0,x=0,z=0) {
+    function drawFallback(q=rotation,sy=1,lift=0,x=0,z=0,spreadBias=0) {
       if(!fallbackCanvas){fallbackCanvas=document.createElement('canvas');fallbackCanvas.width=480;fallbackCanvas.height=480;fallbackCtx=fallbackCanvas.getContext('2d');}
       const c=fallbackCtx;if(!c)return;
       c.clearRect(0,0,480,480);
-      const m=matrix(q),scale=[1/Math.sqrt(sy),sy,1/Math.sqrt(sy)],position=[x,sy*support(type,m)+lift+.002,z];
+      const m=matrix(q),spread=Math.exp(spreadBias),scale=[spread/Math.sqrt(sy),sy,1/(Math.sqrt(sy)*spread)],position=[x,sy*support(type,m)+lift+.002,z];
       const forward=norm([-4.3,.95-6.2,-6.4]),right=norm(cross(forward,[0,1,0])),up=cross(right,forward),view=mul(forward,-1);
       const world=p=>add(transform(m,p).map((v,i)=>v*scale[i]),position);
       const projectWorld=p=>{const d=sub(p,[0,.95,0]);return [240+dot(d,right)*109.0909,240-dot(d,up)*109.0909];};
@@ -262,10 +263,10 @@ void main(){
       roundedPoly(c,hull,rounding);c.save();c.clip();c.lineWidth=1.4;c.strokeStyle='rgba(255,255,235,.11)';c.stroke();c.restore();
       if(fallbackTargetCtx){const side=Math.min(canvas.width,canvas.height);fallbackTargetCtx.clearRect(0,0,canvas.width,canvas.height);fallbackTargetCtx.drawImage(fallbackCanvas,(canvas.width-side)/2,(canvas.height-side)/2,side,side);}else{canvas.style.backgroundImage='url('+fallbackCanvas.toDataURL('image/png')+')';canvas.style.backgroundSize='contain';canvas.style.backgroundRepeat='no-repeat';canvas.style.backgroundPosition='center';}
     }
-    function draw(q=rotation,sy=1,lift=0,x=0,z=0) {
-      if(!alive)return;lastFrame={q,sy,lift,x,z};
-      if(mode!=='webgl'){drawFallback(q,sy,lift,x,z);return;}
-      const m=matrix(q),scale=[1/Math.sqrt(sy),sy,1/Math.sqrt(sy)],y=scale[1]*support(type,m)+lift+.002;
+    function draw(q=rotation,sy=1,lift=0,x=0,z=0,spreadBias=0) {
+      if(!alive)return;lastFrame={q,sy,lift,x,z,spreadBias};
+      if(mode!=='webgl'){drawFallback(q,sy,lift,x,z,spreadBias);return;}
+      const m=matrix(q),spread=Math.exp(spreadBias),scale=[spread/Math.sqrt(sy),sy,1/(Math.sqrt(sy)*spread)],y=scale[1]*support(type,m)+lift+.002;
       gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,x,y,z);gl.uniform1f(uniforms.uBound,2.05*Math.max(...scale));gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }
     function resize() {
@@ -273,29 +274,39 @@ void main(){
       const w=canvas.clientWidth||300,h=canvas.clientHeight||w,dpr=Math.min(global.devicePixelRatio||1,Number(options.maxPixelRatio)||2);
       const rw=Math.max(1,Math.round(w*dpr)),rh=Math.max(1,Math.round(h*dpr));if(canvas.width!==rw)canvas.width=rw;if(canvas.height!==rh)canvas.height=rh;
       if(mode==='webgl'){gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);gl.uniform2f(uniforms.uResolution,canvas.width,canvas.height);}
-      draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);
+      draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z,lastFrame.spreadBias);
     }
     function resolvePending() { const resolve=resolveRoll;resolveRoll=null;pending=null;if(resolve)resolve(result); }
-    function finish() { cancelFrame();busy=false;pressed=false;pointerId=null;charge=0;rotation=goalQ||rotation;pressScale=1;resultLight=1;draw();updateLabel();resolvePending(); }
+    function pauseMotion(){if(!alive||busy)return;cancelFrame();if(!pressed&&!charge){pressScale=1;draw();}}
+    function animateBreath(now){
+      raf=0;if(!alive||!breathing||busy||pressed||charge||reduced||document.hidden||!visible){pauseMotion();return;}
+      const t=Math.min(1,(now-breatheAt)/2200),envelope=Math.pow(Math.sin(Math.PI*t),2);
+      if(t>=1){breathing=false;draw();return;}
+      const wave=Math.sin(2*Math.PI*t)*envelope;
+      draw(qmul(axisQ([.2,0,1],wave*.012),rotation),1-wave*.014,0,0,0,wave*.008);raf=requestAnimationFrame(animateBreath);
+    }
+    // A single seated breath invites the next touch; polling never restarts it.
+    function breathe(){if(!alive||busy||pressed||charge||breathing||reduced||document.hidden||!visible||canvas.isConnected===false)return false;cancelFrame();breathing=true;breatheAt=performance.now();raf=requestAnimationFrame(animateBreath);return true;}
+    function finish() { cancelFrame();busy=false;pressed=false;pointerId=null;charge=0;rotation=goalQ||rotation;pressScale=1;resultLight=1;draw();updateLabel();resolvePending();if(options.idleMotion)breathe(); }
     function animate(now) {
       raf=0;if(!alive||!busy)return;
-      const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0;
-      if(ms<160){const t=ms/160;sy=pressScale-(pressScale-.82)*smooth(t);}
-      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*2*spinTurns*(1-e)),slerp(startQ,goalQ,e));lift=(.45+.12*activePower)*4*t*(1-t);x=(.21+.06*activePower)*wave;z=-(.15+.05*activePower)*wave;sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;}
-      else if(ms<1600){const t=(ms-1160)/440;if(t<.36){sy=1-.19*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,wave=Math.pow(Math.sin(Math.PI*b),2);lift=.14*wave;sy=1+.035*Math.sin(2*Math.PI*b)*wave;}q=qmul(axisQ([.5,0,.8],.12*Math.sin(t*3*Math.PI)*Math.pow(Math.sin(Math.PI*t),2)*Math.exp(-t*3)),goalQ);}
-      else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.035*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.035*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);}
+      const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0,spreadBias=0;
+      if(ms<160){const t=ms/160;sy=pressScale-(pressScale-.82)*smooth(t);spreadBias=startBias*(1-smooth(t));}
+      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*2*spinTurns*(1-e)),slerp(startQ,goalQ,e));lift=(.45+.12*activePower)*4*t*(1-t);x=(.21+.06*activePower)*wave;z=-(.15+.05*activePower)*wave;sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;spreadBias=.025*Math.sin(2*Math.PI*t)*wave;}
+      else if(ms<1600){const t=(ms-1160)/440,wave=Math.pow(Math.sin(Math.PI*t),2);if(t<.36){sy=1-(.185+.035*activePower)*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,bounce=Math.pow(Math.sin(Math.PI*b),2);lift=(.115+.035*activePower)*bounce;sy=1+(.032*Math.sin(2*Math.PI*b)+.008*Math.sin(4*Math.PI*b))*bounce;}q=qmul(axisQ([.5,0,.8],(.12+.025*activePower)*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);spreadBias=.03*Math.sin(3*Math.PI*t)*wave*Math.exp(-t*3);}
+      else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.028*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.028*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);spreadBias=.012*Math.sin(2*Math.PI*t)*wave*Math.exp(-t*3);}
       else{finish();return;}
       resultLight=smooth(Math.max(0,Math.min(1,(ms-1600)/650)));
-      draw(q,sy,lift,x,z);raf=requestAnimationFrame(animate);
+      draw(q,sy,lift,x,z,spreadBias);raf=requestAnimationFrame(animate);
     }
     function animatePress(now) {
       raf=0;if(!alive||!pressed||busy)return;
-      const elapsed=now-pressAt;charge=clampPower(elapsed/1200);pressScale=reduced?1:1-.18*smooth(charge);draw(rotation,pressScale);
+      const elapsed=now-pressAt;charge=clampPower(elapsed/1200);pressScale=reduced?1:1-.18*smooth(charge);draw(rotation,pressScale,0,0,0,reduced?0:.035*smooth(charge));
       if(elapsed<1200&&!reduced)raf=requestAnimationFrame(animatePress);
     }
     function animateRelease(now) {
       raf=0;if(!alive||pressed||busy)return;
-      const t=Math.min(1,(now-settleAt)/270);pressScale=1-(1-settleScale)*Math.exp(-t*6)*Math.cos(t*8)*(1-t);draw(rotation,pressScale);
+      const t=Math.min(1,(now-settleAt)/270),spring=Math.exp(-t*6)*Math.cos(t*8)*(1-t);pressScale=1-(1-settleScale)*spring;draw(rotation,pressScale,0,0,0,settleBias*spring);
       if(t<1)raf=requestAnimationFrame(animateRelease);else{pressScale=1;draw();}
     }
     function press(event) {
@@ -313,38 +324,40 @@ void main(){
       const power=clampPower((performance.now()-pressAt)/1200);pressed=false;pointerId=null;charge=0;cancelFrame();
       if(typeof options.onRelease==='function')options.onRelease(power,event);
       if(busy)return;
-      if(reduced){pressScale=1;draw();}else{settleAt=performance.now();settleScale=pressScale;raf=requestAnimationFrame(animateRelease);}
+      if(reduced){pressScale=1;draw();}else{settleAt=performance.now();settleScale=pressScale;settleBias=lastFrame.spreadBias;raf=requestAnimationFrame(animateRelease);}
     }
     function cancelPress() {if(!pressed&&!charge)return;pressed=false;pointerId=null;charge=0;cancelFrame();pressScale=1;draw();}
     function setCharge(value) {
       if(!alive||busy)return;
       const next=clampPower(value);cancelFrame();pressed=false;pointerId=null;charge=next;
       if(reduced){pressScale=1;draw();}
-      else if(next>0){pressScale=1-.18*smooth(next);draw(rotation,pressScale);}
-      else if(pressScale!==1){settleAt=performance.now();settleScale=pressScale;raf=requestAnimationFrame(animateRelease);}
+      else if(next>0){pressScale=1-.18*smooth(next);draw(rotation,pressScale,0,0,0,.035*smooth(next));}
+      else if(pressScale!==1){settleAt=performance.now();settleScale=pressScale;settleBias=lastFrame.spreadBias;raf=requestAnimationFrame(animateRelease);}
       else draw();
     }
-    function setReducedMotion(value){reduced=!!value;manualReduced=true;if(reduced&&busy)finish();else if(reduced&&(pressed||charge||pressScale!==1)){cancelFrame();pressScale=1;draw();}}
-    function motionChanged(event){if(!manualReduced){reduced=event.matches;if(reduced&&busy)finish();else if(reduced&&(pressed||charge||pressScale!==1)){cancelFrame();pressScale=1;draw();}}}
-    function visibilityChanged(){if(document.hidden&&busy)finish();else if(document.hidden)cancelPress();}
+    function applyReducedMotion(){if(!reduced)return;if(busy)finish();else{cancelFrame();pressScale=1;draw();}}
+    function setReducedMotion(value){reduced=!!value;manualReduced=true;applyReducedMotion();}
+    function motionChanged(event){if(!manualReduced){reduced=event.matches;applyReducedMotion();}}
+    function visibilityChanged(){if(document.hidden&&busy)finish();else if(document.hidden){cancelPress();pauseMotion();}}
     function contextLost(event){event.preventDefault();mode='fallback';renderError='WebGL context lost.';rendererStatus();if(busy)finish();else{cancelPress();draw();}}
     initialize();
     canvas.addEventListener('pointerdown',press);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',cancelPress);canvas.addEventListener('lostpointercapture',cancelPress);canvas.addEventListener('webglcontextlost',contextLost);
     document.addEventListener('visibilitychange',visibilityChanged);if(query?.addEventListener)query.addEventListener('change',motionChanged);else query?.addListener?.(motionChanged);
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(resize):null;observer?.observe(canvas);if(!observer)global.addEventListener('resize',resize);
+    const visibilityObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{visible=entries.some(entry=>entry.isIntersecting);if(!visible)pauseMotion();}):null;visibilityObserver?.observe(canvas);
     resize();updateLabel();
     return {
       get mode(){return mode;},get error(){return renderError;},get busy(){return busy;},get value(){return result;},get kind(){return type;},
-      setColor(color){if(!alive)return;const next=parsePigment(color);if(JSON.stringify(next)===JSON.stringify(pigment))return;pigment=next;if(mode==='webgl'){gl.useProgram(program);gl.uniform3fv(uniforms.uColor,dieColor());}draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z);updateLabel(busy);},
+      setColor(color){if(!alive)return;const next=parsePigment(color);if(JSON.stringify(next)===JSON.stringify(pigment))return;pigment=next;if(mode==='webgl'){gl.useProgram(program);gl.uniform3fv(uniforms.uColor,dieColor());}draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z,lastFrame.spreadBias);updateLabel(busy);},
       setKind(kind,value=1){if(!alive)return;const nextKind=validKind(kind),nextValue=validValue(value,nextKind),changedKind=nextKind!==type,same=!changedKind&&nextValue===result;cancelFrame();pressed=false;pointerId=null;charge=0;busy=false;resultLight=1;resolvePending();if(same){rotation=goalQ||rotation;pressScale=1;draw();updateLabel();return;}type=nextKind;result=nextValue;rotation=changedKind?initialRotation(type,result):targetRotation(type,result);goalQ=rotation;pressScale=1;setGeometry();draw();updateLabel();},
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;startQ=rotation;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activePower=clampPower(rollOptions.power);spinTurns=2+Math.round(activePower*3);activeDuration=rollDuration(rollOptions.duration??duration,activePower);updateLabel(true);
+        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);rollAt=performance.now();activePower=clampPower(rollOptions.power);spinTurns=2+Math.round(activePower*3);activeDuration=rollDuration(rollOptions.duration??duration,activePower);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
-      setReducedMotion,setCharge,
-      destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();if(!observer)global.removeEventListener('resize',resize);if(query?.removeEventListener)query.removeEventListener('change',motionChanged);else query?.removeListener?.(motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
+      setReducedMotion,setCharge,breathe,pauseMotion,
+      destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();visibilityObserver?.disconnect();if(!observer)global.removeEventListener('resize',resize);if(query?.removeEventListener)query.removeEventListener('change',motionChanged);else query?.removeListener?.(motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
     };
   }
   global.OndeDice=Object.freeze({create});

@@ -4,6 +4,7 @@
  if(!root || !window.OndeGame || !window.OndeDice)return;
  const G=window.OndeGame, main=root.querySelector('#oa-main'), sheet=root.querySelector('#oa-sheet');
  const cardNotes=Object.freeze(Object.assign({},window.DesirCardNotes||{}));
+ const roleplayCards=Object.freeze(Object.assign({},window.DesirRoleplay?.mode==='roleplay'?window.DesirRoleplay.cards||{}:{}));
  const storageKey='onde-couple-prototype-v1';
  const remote=window.OndeRemote&&window.OndeRemote.create(window.DesirConfig||{});
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
@@ -43,7 +44,7 @@
  document.addEventListener('focusin',updateViewportHeight);
  document.addEventListener('focusout',updateViewportHeight);
  window.addEventListener('pageshow',()=>{presentationHidden=false;startViewport();});
- window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();cancelContentTransitions();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();});
+ window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();});
  if(!remoteMode){
   localRoom=G.createRoom();
   try{
@@ -57,7 +58,7 @@
  }
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
- const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,onRelease:power=>{if(tab==='play'&&!busy)return roll(false,power);}});
+ const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,idleMotion:true,onRelease:power=>{if(tab==='play'&&!busy)return roll(false,power);}});
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
@@ -228,9 +229,14 @@
  function defenseSubtitle(c){const detail=proposalDetail(state.round);return h(c.title)+(detail?' · '+h(detail):'');}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function proposalDetail(round){return G.getVariant(round)||(round.adapted?round.proposal:null);}
+ function roleplayNote(c){
+  const r=state.round,entry=r.catalogueVersion===2&&Number.isInteger(r.variantRoll)?roleplayCards[c.id+':v'+r.variantRoll]:null;
+  if(!entry||typeof entry.metric!=='string'||typeof entry.text!=='string')return '';
+  return '<aside class="oa-roleplay" aria-label="Club des Deux · Roleplay"><p class="oa-roleplay-label">Club des Deux · Roleplay</p><p class="oa-roleplay-value">'+h(entry.metric)+'</p><p class="oa-roleplay-copy">'+h(entry.text)+'</p></aside>';
+ }
  function playingCard(c,compact=false){
   const r=state.round,cat=G.getCategory(c.categoryId,r.catalogueVersion??1),detail=proposalDetail(r),note=r.catalogueVersion===2?null:cardNotes[c.id];
-  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+'</article>';
+  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
  function renderWelcome(){
@@ -390,7 +396,8 @@
  function playContentTransition(element,keyframes,duration,finish){
   if(!element?.animate)return;
   const animation=element.animate(keyframes,{duration,easing:'cubic-bezier(.22,1,.36,1)'});contentTransitions.add(animation);
-  animation.onfinish=animation.oncancel=()=>{contentTransitions.delete(animation);finish?.();};
+  animation.onfinish=()=>{contentTransitions.delete(animation);finish?.(true);};
+  animation.oncancel=()=>{contentTransitions.delete(animation);finish?.(false);};
  }
  function animateDiceHandoff(previousStage){
   if(!previousStage||systemReduce||document.hidden||presentationHidden||!canvas.animate)return false;
@@ -403,7 +410,7 @@
   // Layout is final before the first frame. Only the die moves; all card slots stay in place.
   grid?.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
   const overflow=holder.style.overflow||'';holder.style.overflow='hidden';
-  playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,()=>{holder.style.overflow=overflow;});
+  playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,completed=>{holder.style.overflow=overflow;if(completed&&canvas.parentElement===holder&&!busy&&!operationBusy&&!systemReduce&&!document.hidden&&!presentationHidden)die.breathe?.();});
   playContentTransition(grid,[{opacity:.2},{opacity:1}],260);
   playContentTransition(main.querySelector('h1'),[{opacity:.35},{opacity:1}],220);
   return true;
@@ -431,7 +438,8 @@
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:category()?.color);die.setReducedMotion(systemReduce);}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
+  else die.pauseMotion?.();
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   if(animate&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
@@ -620,7 +628,7 @@
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
  setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}}},30000);
- document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}});
  window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{

@@ -1,5 +1,15 @@
 # Dés·ir — passage de relais à Codex
 
+## Roleplay par résultat final et motion — 5 novembre 2026
+
+La consigne actuelle de l’utilisateur est un **roleplay fictif et consenti**, sans sources ni commentaires méthodologiques dans les cartes. Le contenu est une voix de jeu située dans l’univers **Club des Deux**, identifiée par le libellé **Roleplay**. Ne pas réintroduire les anciennes statistiques documentaires ni attribuer les chiffres de fiction à des études ou marques réelles.
+
+- **144 résultats finaux** : 24 cartes × 6 variantes. `data/card-roleplay.json` fournit un texte unique et un pourcentage pour chaque clé `cardId:vN`. Le build valide la couverture exacte et incorpore `window.DesirRoleplay`; l’UI n’affiche le bloc qu’après la variante finale et conserve la confidentialité des invitations.
+- Chiffre grand et coloré par catégorie ; aucune source ou action supplémentaire. Les règles, quotas, dés et points restent indépendants de ce contenu. Le catalogue hérité conserve ses phrases de compatibilité.
+- Motion affinée : respiration de dé 2,2 s bornée, déformation asymétrique à volume constant, contact et rebond soignés, charge bornée 1,2 s, transitions et indications tactiles. La respiration s’arrête au toucher, hors écran, en arrière-plan et avec la réduction système des mouvements. Le remplissage liquide reste à 1,05 s.
+- HARDCORE est une **demande ultérieure en préparation**, pas un mode actif : vingt actions à valider, deux accords explicites, un D20 partagé rouge néon. La proposition visuelle et la fondation de synchronisation restent hors des sources publiables. Aucun champ, règle, migration, API ou réglage Supabase de ce mode n’a été ajouté.
+- Xcode et ZIP restent inchangés. Ces modifications sont locales tant qu’une publication n’est pas explicitement autorisée.
+
 ## Suppression des statistiques — 3 novembre 2026 (prioritaire)
 
 L’utilisateur abandonne les statistiques et demande leur suppression partout. Cette décision remplace toutes les demandes et consignes de recherche antérieures, y compris celles conservées plus bas à titre historique.

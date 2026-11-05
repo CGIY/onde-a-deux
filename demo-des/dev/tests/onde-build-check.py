@@ -1,6 +1,7 @@
 """Exercise the actual builder in a disposable tree, never the published files."""
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -101,6 +102,103 @@ class WebBuild(BuildFixture):
             self.build('--release', ok=False)
             self.assertEqual(self.release.read_text(), 'existing-release')
             self.assertFalse((self.dev / 'dist').exists())
+        self.assert_archive_preserved()
+
+
+class RoleplayBuild(BuildFixture):
+    def setUp(self):
+        super().setUp()
+        self.roleplay_path = self.dev / 'data/card-roleplay.json'
+        self.roleplay = json.loads(self.roleplay_path.read_text())
+
+    def write_roleplay(self, model):
+        self.roleplay_path.write_text(json.dumps(model, ensure_ascii=False))
+
+    def assert_no_release_write(self):
+        self.assertEqual(self.release.read_text(), 'existing-release')
+        self.assertFalse((self.dev / 'dist').exists())
+        self.assert_archive_preserved()
+
+    def test_all_final_roleplay_cards_are_inlined_before_the_ui(self):
+        self.build('--release')
+        html = self.release.read_text()
+        inline = re.search(r'<script>window\.DesirRoleplay=Object\.freeze\((.*?)\);</script>', html, re.S)
+        self.assertIsNotNone(inline)
+        model = json.loads(inline.group(1))
+        self.assertEqual(model, self.roleplay)
+        self.assertEqual(model['mode'], 'roleplay')
+        self.assertEqual(model['universe'], 'Club des Deux')
+        self.assertEqual(len(model['cards']), 144)
+        self.assertEqual(len({key.rsplit(':v', 1)[0] for key in model['cards']}), 24)
+        self.assertIn('six-intimite-fellation:v1', model['cards'])
+        self.assertIn('six-intimite-fellation:v4', model['cards'])
+        self.assertNotEqual(model['cards']['six-intimite-fellation:v1'],
+                            model['cards']['six-intimite-fellation:v4'])
+        self.assertLess(html.index('window.DesirRoleplay='), html.index('const remote=window.OndeRemote'))
+        self.assertNotIn('src="./card-roleplay.json"', html)
+        self.assert_archive_preserved()
+
+    def test_missing_roleplay_data_cannot_publish_a_partial_release(self):
+        self.roleplay_path.unlink()
+        result = self.build('--release', ok=False)
+        self.assertIn('complete local data', result.stderr)
+        self.assert_no_release_write()
+
+    def test_missing_unknown_or_duplicate_final_texts_fail_before_writes(self):
+        first, second = list(self.roleplay['cards'])[:2]
+        cases = []
+        missing = json.loads(json.dumps(self.roleplay))
+        del missing['cards'][first]
+        cases.append(missing)
+        unknown = json.loads(json.dumps(self.roleplay))
+        unknown['cards']['six-unknown:v7'] = unknown['cards'].pop(first)
+        cases.append(unknown)
+        duplicated = json.loads(json.dumps(self.roleplay))
+        duplicated['cards'][first]['text'] = '  ' + duplicated['cards'][second]['text'].upper() + '  '
+        cases.append(duplicated)
+        for broken in cases:
+            with self.subTest(keys=list(broken['cards'])[:2]):
+                self.write_roleplay(broken)
+                self.build('--release', ok=False)
+                self.assert_no_release_write()
+
+    def test_invalid_percentages_prose_or_sources_fail_before_writes(self):
+        first = next(iter(self.roleplay['cards']))
+        cases = [dict(self.roleplay['cards'][first], metric='80 percent'),
+                 dict(self.roleplay['cards'][first], metric='-20 %'),
+                 dict(self.roleplay['cards'][first], metric='101 %'),
+                 dict(self.roleplay['cards'][first], text=''),
+                 dict(self.roleplay['cards'][first], text='x' * 181),
+                 dict(self.roleplay['cards'][first], sourceUrl='https://example.com/study'),
+                 dict(self.roleplay['cards'][first], password='must-not-be-public'),
+                 dict(self.roleplay['cards'][first], text='Voir https://example.com/study.'),
+                 dict(self.roleplay['cards'][first], text='Jeton sb_secret_mustNotBePublic')]
+        for row in cases:
+            with self.subTest(row=row):
+                model = json.loads(json.dumps(self.roleplay))
+                model['cards'][first] = row
+                self.write_roleplay(model)
+                self.build('--release', ok=False)
+                self.assert_no_release_write()
+
+    def test_roleplay_cannot_lose_its_fictional_context(self):
+        for patch in [{'mode': 'survey'}, {'universe': ''}, {'source': 'Not a game'}]:
+            with self.subTest(patch=patch):
+                self.write_roleplay({**self.roleplay, **patch})
+                self.build('--release', ok=False)
+                self.assert_no_release_write()
+
+    def test_inline_roleplay_text_cannot_close_its_script(self):
+        first = next(iter(self.roleplay['cards']))
+        text = 'Une fiction qui contient </script><script>window.unwanted=true</script> reste du texte.'
+        self.roleplay['cards'][first]['text'] = text
+        self.write_roleplay(self.roleplay)
+        self.build()
+        html = (self.dev / 'dist/index.html').read_text()
+        self.assertNotIn('</script><script>window.unwanted=true', html)
+        inline = re.search(r'<script>window\.DesirRoleplay=Object\.freeze\((.*?)\);</script>', html, re.S)
+        self.assertEqual(json.loads(inline.group(1))['cards'][first]['text'], text)
+        self.assertEqual(self.release.read_text(), 'existing-release')
         self.assert_archive_preserved()
 
 

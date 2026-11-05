@@ -1,0 +1,582 @@
+{
+  "mode": "roleplay",
+  "universe": "Club des Deux",
+  "cards": {
+    "six-complicite-petit-mot:v1": {
+      "metric": "94,2 %",
+      "text": "des duos du Club des Deux gardent un compliment inattendu en tête bien après la fin de la journée."
+    },
+    "six-complicite-petit-mot:v2": {
+      "metric": "92,6 %",
+      "text": "des duos du Club des Deux relisent leur mot doux comme un petit message arrivé pile au bon moment."
+    },
+    "six-complicite-petit-mot:v3": {
+      "metric": "89,7 %",
+      "text": "des duos du Club des Deux finissent par adopter le surnom qu’ils trouvaient beaucoup trop ridicule au départ."
+    },
+    "six-complicite-petit-mot:v4": {
+      "metric": "76,3 %",
+      "text": "des duos du Club des Deux arrivent à transformer une définition tirée au hasard en souvenir bien à eux."
+    },
+    "six-complicite-petit-mot:v5": {
+      "metric": "95,1 %",
+      "text": "des duos du Club des Deux trouvent qu’une seule phrase suffit pour rouvrir tout un souvenir commun."
+    },
+    "six-complicite-petit-mot:v6": {
+      "metric": "97,4 %",
+      "text": "des duos du Club des Deux attribuent une excellente note aux blagues que personne d’autre ne comprend."
+    },
+    "six-complicite-selfie:v1": {
+      "metric": "86,8 %",
+      "text": "des duos du Club des Deux préfèrent garder certains souvenirs dans leur album privé, avec eux pour seul public."
+    },
+    "six-complicite-selfie:v2": {
+      "metric": "82,5 %",
+      "text": "des duos du Club des Deux reconnaissent leur moitié même quand les bras occupent presque tout le cadre."
+    },
+    "six-complicite-selfie:v3": {
+      "metric": "80,9 %",
+      "text": "des duos du Club des Deux trouvent qu’un portrait d’oreilles mérite sa place parmi les photos les plus mémorables."
+    },
+    "six-complicite-selfie:v4": {
+      "metric": "96,1 %",
+      "text": "des duos du Club des Deux gardent la photo spontanée plutôt que la prise où chacun essaie d’être parfait."
+    },
+    "six-complicite-selfie:v5": {
+      "metric": "92,8 %",
+      "text": "des duos du Club des Deux aiment les photos où leurs deux silhouettes racontent déjà toute la scène."
+    },
+    "six-complicite-selfie:v6": {
+      "metric": "93,4 %",
+      "text": "des duos du Club des Deux voient dans une photo de leurs mains une signature que personne ne peut copier."
+    },
+    "six-complicite-massage:v1": {
+      "metric": "95,6 %",
+      "text": "des duos du Club des Deux décernent au massage de la tête le titre de meilleure pause improvisée."
+    },
+    "six-complicite-massage:v2": {
+      "metric": "91,3 %",
+      "text": "des duos du Club des Deux aiment prendre leur temps quand toute l’attention du moment va à leur partenaire."
+    },
+    "six-complicite-massage:v3": {
+      "metric": "94,7 %",
+      "text": "des duos du Club des Deux offrent au massage des pieds une place de choix après une journée bien remplie."
+    },
+    "six-complicite-massage:v4": {
+      "metric": "96,8 %",
+      "text": "des duos du Club des Deux mettent le massage du dos dans leur liste des attentions qu’ils aiment retrouver."
+    },
+    "six-complicite-massage:v5": {
+      "metric": "98,0 %",
+      "text": "des duos du Club des Deux classent le câlin parmi les rendez-vous qui n’ont besoin ni de lieu ni de grand programme."
+    },
+    "six-complicite-massage:v6": {
+      "metric": "97,1 %",
+      "text": "des duos du Club des Deux réservent sous le plaid une place pour leur partenaire et une autre pour le temps qui passe."
+    },
+    "six-complicite-soins:v1": {
+      "metric": "84,6 %",
+      "text": "des duos du Club des Deux trouvent qu’une couleur choisie ensemble donne un petit air de fête au quotidien."
+    },
+    "six-complicite-soins:v2": {
+      "metric": "87,9 %",
+      "text": "des duos du Club des Deux gardent un excellent souvenir des soins où chacun avait une drôle de tête."
+    },
+    "six-complicite-soins:v3": {
+      "metric": "91,5 %",
+      "text": "des duos du Club des Deux aiment donner à un soin du visage l’allure d’un rendez-vous réservé rien qu’à eux."
+    },
+    "six-complicite-soins:v4": {
+      "metric": "89,1 %",
+      "text": "des duos du Club des Deux transforment une attention toute simple en petit rituel qu’ils ont envie de refaire."
+    },
+    "six-complicite-soins:v5": {
+      "metric": "92,3 %",
+      "text": "des duos du Club des Deux trouvent du luxe dans un moment où toute l’attention est tournée vers l’autre."
+    },
+    "six-complicite-soins:v6": {
+      "metric": "85,7 %",
+      "text": "des duos du Club des Deux préfèrent un soin partagé sans cérémonie à un programme beaucoup trop compliqué."
+    },
+    "six-complicite-soiree:v1": {
+      "metric": "96,4 %",
+      "text": "des duos du Club des Deux se souviennent autant du rire de l’autre que des répliques de leur comédie."
+    },
+    "six-complicite-soiree:v2": {
+      "metric": "88,4 %",
+      "text": "des duos du Club des Deux s’imaginent volontiers héros de l’aventure tout en restant très bien sur le canapé."
+    },
+    "six-complicite-soiree:v3": {
+      "metric": "90,6 %",
+      "text": "des duos du Club des Deux défendent avec enthousiasme une théorie policière inventée trois minutes plus tôt."
+    },
+    "six-complicite-soiree:v4": {
+      "metric": "92,7 %",
+      "text": "des duos du Club des Deux aiment partir dans un autre univers avec leur partenaire pour unique compagnon de voyage."
+    },
+    "six-complicite-soiree:v5": {
+      "metric": "95,3 %",
+      "text": "des duos du Club des Deux préfèrent pouvoir dire « on a essayé ensemble » plutôt que compter les petites erreurs."
+    },
+    "six-complicite-soiree:v6": {
+      "metric": "97,6 %",
+      "text": "des duos du Club des Deux donnent la victoire officieuse de la soirée à la réaction la plus mémorable."
+    },
+    "six-complicite-telephone:v1": {
+      "metric": "88,2 %",
+      "text": "des duos du Club des Deux trouvent qu’un petit quart d’heure à deux mérite bien quelques notifications en attente."
+    },
+    "six-complicite-telephone:v2": {
+      "metric": "91,8 %",
+      "text": "des duos du Club des Deux utilisent le mode avion comme une piste de décollage vers leur prochaine conversation."
+    },
+    "six-complicite-telephone:v3": {
+      "metric": "93,7 %",
+      "text": "des duos du Club des Deux trouvent qu’un téléphone rangé dans un tiroir laisse une place agréable à l’imprévu."
+    },
+    "six-complicite-telephone:v4": {
+      "metric": "94,5 %",
+      "text": "des duos du Club des Deux aiment remplir deux heures ensemble sans demander aux applis de choisir le programme."
+    },
+    "six-complicite-telephone:v5": {
+      "metric": "95,9 %",
+      "text": "des duos du Club des Deux trouvent le fil de leur conversation plus intéressant que celui de leur téléphone."
+    },
+    "six-complicite-telephone:v6": {
+      "metric": "96,9 %",
+      "text": "des duos du Club des Deux savourent les grandes parenthèses où leur téléphone prend enfin son jour de congé."
+    },
+    "six-attention-cadeau:v1": {
+      "metric": "91,3 %",
+      "text": "des livres offerts au Club des Deux ouvrent une conversation qui dure plus longtemps que prévu."
+    },
+    "six-attention-cadeau:v2": {
+      "metric": "94,7 %",
+      "text": "des petites attentions du Club décrochent un grand sourire avec un détail bien choisi."
+    },
+    "six-attention-cadeau:v3": {
+      "metric": "88,2 %",
+      "text": "des jeux offerts débloquent une quête secondaire : raconter sa meilleure partie à l’autre."
+    },
+    "six-attention-cadeau:v4": {
+      "metric": "93,6 %",
+      "text": "des boîtes de jeu ouvertes dans le Club ajoutent un « encore une partie » au programme."
+    },
+    "six-attention-cadeau:v5": {
+      "metric": "86,9 %",
+      "text": "des cadeaux choisis à deux chez les duos curieux commencent par une conversation complice."
+    },
+    "six-attention-cadeau:v6": {
+      "metric": "97,1 %",
+      "text": "des cadeaux surprise du Club gagnent déjà un point de curiosité avant leur ouverture."
+    },
+    "six-attention-vinted:v1": {
+      "metric": "89,4 %",
+      "text": "des T-shirts dénichés par les duos du Club ont ce petit détail qui fait penser à l’autre."
+    },
+    "six-attention-vinted:v2": {
+      "metric": "92,8 %",
+      "text": "des robes de seconde main du Club trouvent une nouvelle occasion de sortir avec panache."
+    },
+    "six-attention-vinted:v3": {
+      "metric": "87,6 %",
+      "text": "des chemises chinées par les duos récoltent un « celle-là, elle est tellement toi »."
+    },
+    "six-attention-vinted:v4": {
+      "metric": "90,5 %",
+      "text": "des hauts choisis avec attention deviennent une jolie excuse pour imaginer la prochaine sortie."
+    },
+    "six-attention-vinted:v5": {
+      "metric": "95,2 %",
+      "text": "des petites pièces choisies au Club remportent leur vrai trophée : l’envie de les porter."
+    },
+    "six-attention-vinted:v6": {
+      "metric": "88,7 %",
+      "text": "des trouvailles de lingerie du Club ajoutent une touche de jeu au simple plaisir de choisir."
+    },
+    "six-attention-emporter:v1": {
+      "metric": "96,4 %",
+      "text": "des burgers partagés entre complices laissent une place à la grande discussion des sauces."
+    },
+    "six-attention-emporter:v2": {
+      "metric": "98,1 %",
+      "text": "des pizzas du Club des Deux trouvent leur meilleure garniture dans la conversation qui les accompagne."
+    },
+    "six-attention-emporter:v3": {
+      "metric": "84,9 %",
+      "text": "des soirées sushi du Club gagnent un souvenir bonus grâce à une bouchée qu’on fait découvrir."
+    },
+    "six-attention-emporter:v4": {
+      "metric": "91,8 %",
+      "text": "des pauses kebab du Club transforment un détour gourmand en petit rendez-vous improvisé."
+    },
+    "six-attention-emporter:v5": {
+      "metric": "93,2 %",
+      "text": "des pauses café des duos voyageurs s’allongent d’une anecdote quand on prend le temps de s’asseoir."
+    },
+    "six-attention-emporter:v6": {
+      "metric": "89,7 %",
+      "text": "des sandwichs du Club réussissent leur mission : ouvrir une parenthèse au milieu de la journée."
+    },
+    "six-attention-cuisine:v1": {
+      "metric": "94,1 %",
+      "text": "des soirées mexicaines du Club déclenchent un débat passionné sur la meilleure façon de garnir sa tortilla."
+    },
+    "six-attention-cuisine:v2": {
+      "metric": "90,8 %",
+      "text": "des escapades japonaises en cuisine donnent aux duos l’envie de goûter une saveur encore inconnue."
+    },
+    "six-attention-cuisine:v3": {
+      "metric": "87,3 %",
+      "text": "des recettes indiennes du Club commencent par les épices et finissent par « sens un peu ça »."
+    },
+    "six-attention-cuisine:v4": {
+      "metric": "92,4 %",
+      "text": "des voyages thaïlandais du Club mettent une nouvelle association de saveurs dans votre carnet à deux."
+    },
+    "six-attention-cuisine:v5": {
+      "metric": "97,6 %",
+      "text": "des dîners italiens du Club obtiennent une demande de rappel bien avant la dernière bouchée."
+    },
+    "six-attention-cuisine:v6": {
+      "metric": "88,9 %",
+      "text": "des tables grecques du Club invitent les duos à prolonger le repas comme une petite soirée de vacances."
+    },
+    "six-attention-douceur:v1": {
+      "metric": "95,8 %",
+      "text": "des fournées de crêpes du Club commencent par une répétition générale et finissent en petit festin."
+    },
+    "six-attention-douceur:v2": {
+      "metric": "96,7 %",
+      "text": "des cookies du Club possèdent un pouvoir très précis : faire revenir les deux cuisiniers près du four."
+    },
+    "six-attention-douceur:v3": {
+      "metric": "86,2 %",
+      "text": "des tartes aux fruits du Club donnent une bonne raison de choisir ensemble le parfum de la saison."
+    },
+    "six-attention-douceur:v4": {
+      "metric": "98,3 %",
+      "text": "des gâteaux au chocolat du Club décrochent une visite enthousiaste dans la cuisine avant la dégustation."
+    },
+    "six-attention-douceur:v5": {
+      "metric": "91,6 %",
+      "text": "des gâteaux au yaourt du Club réussissent leur ingrédient secret : une préparation faite à deux."
+    },
+    "six-attention-douceur:v6": {
+      "metric": "93,9 %",
+      "text": "des gaufres du Club deviennent un petit terrain d’entente où chacun invente sa garniture préférée."
+    },
+    "six-attention-petit-truc:v1": {
+      "metric": "94,6 %",
+      "text": "des cafés préparés pour l’autre au Club arrivent avec un petit supplément d’attention."
+    },
+    "six-attention-petit-truc:v2": {
+      "metric": "90,2 %",
+      "text": "des apéros du Club trouvent leur meilleur accompagnement dans l’histoire qu’on prend le temps d’écouter."
+    },
+    "six-attention-petit-truc:v3": {
+      "metric": "96,1 %",
+      "text": "des goûters improvisés du Club tombent exactement à l’heure où l’on avait envie d’une petite pause."
+    },
+    "six-attention-petit-truc:v4": {
+      "metric": "88,4 %",
+      "text": "des infusions du Club laissent juste assez de temps pour commencer à se raconter la journée."
+    },
+    "six-attention-petit-truc:v5": {
+      "metric": "97,3 %",
+      "text": "des petits-déjeuners préparés pour l’autre au Club donnent une ouverture souriante à la journée."
+    },
+    "six-attention-petit-truc:v6": {
+      "metric": "95,5 %",
+      "text": "des chocolats sur le canapé du Club réservent une place de choix au plaisir de se poser ensemble."
+    },
+    "six-projets-balade:v1": {
+      "metric": "+76 %",
+      "text": "de curiosité pour les rues que le Club des Deux croyait déjà connaître par cœur."
+    },
+    "six-projets-balade:v2": {
+      "metric": "+82,5 %",
+      "text": "d’envie de jouer les touristes dans votre propre ville, juste pour le plaisir du détour."
+    },
+    "six-projets-balade:v3": {
+      "metric": "+93 %",
+      "text": "d’élan pour laisser les arbres prendre un peu plus de place que le programme de la journée."
+    },
+    "six-projets-balade:v4": {
+      "metric": "+88 %",
+      "text": "de chances de transformer un simple tour au parc en vraie petite parenthèse à deux."
+    },
+    "six-projets-balade:v5": {
+      "metric": "+71 %",
+      "text": "d’enthousiasme pour ce petit départ qui commence à dix minutes de votre porte."
+    },
+    "six-projets-balade:v6": {
+      "metric": "+84 %",
+      "text": "de goût d’aventure quand trente minutes de trajet ouvrent un autre paysage au duo."
+    },
+    "six-projets-photo:v1": {
+      "metric": "+78,5 %",
+      "text": "de détails intéressants dans le quartier, selon le service des regards curieux du Club des Deux."
+    },
+    "six-projets-photo:v2": {
+      "metric": "+86 %",
+      "text": "d’angles nouveaux pour regarder la ville, ses façades et vos deux ombres dans le cadre."
+    },
+    "six-projets-photo:v3": {
+      "metric": "+91,5 %",
+      "text": "de matière à photographier quand la forêt prête ses couleurs à vos deux regards."
+    },
+    "six-projets-photo:v4": {
+      "metric": "+89 %",
+      "text": "de jolies trouvailles entre les allées du parc, la lumière et les photos pas prévues."
+    },
+    "six-projets-photo:v5": {
+      "metric": "+79 %",
+      "text": "de mystère dans les traces du passé, vues depuis les endroits où vous pouvez aller."
+    },
+    "six-projets-photo:v6": {
+      "metric": "+83 %",
+      "text": "d’envie d’ouvrir un nouvel album quand le décor change après une petite demi-heure de route."
+    },
+    "six-projets-atelier:v1": {
+      "metric": "+94 %",
+      "text": "de personnalité pour un animal peint à votre sauce, même si son espèce reste à débattre."
+    },
+    "six-projets-atelier:v2": {
+      "metric": "+87,5 %",
+      "text": "de place pour une fleur qui n’existe peut-être nulle part ailleurs que sur votre feuille."
+    },
+    "six-projets-atelier:v3": {
+      "metric": "+96 %",
+      "text": "de charme dans un portrait où l’on reconnaît surtout votre façon de regarder l’autre."
+    },
+    "six-projets-atelier:v4": {
+      "metric": "+81 %",
+      "text": "de fierté pour une petite coupelle sortie de vos mains, avec ses courbes bien à elle."
+    },
+    "six-projets-atelier:v5": {
+      "metric": "+92 %",
+      "text": "de caractère pour une figurine assez petite pour tenir dans la main, assez grande pour vous faire sourire."
+    },
+    "six-projets-atelier:v6": {
+      "metric": "+85,5 %",
+      "text": "d’envie de garder une petite trace du moment, moulée dans un médaillon qui vous ressemble."
+    },
+    "six-projets-escapade:v1": {
+      "metric": "+90 %",
+      "text": "d’impatience joyeuse quand une soirée ordinaire commence à avoir un programme à vous."
+    },
+    "six-projets-escapade:v2": {
+      "metric": "+95 %",
+      "text": "de place pour une journée qui ressemble à vos envies, du premier départ au dernier détour."
+    },
+    "six-projets-escapade:v3": {
+      "metric": "+97 %",
+      "text": "d’élan pour ouvrir une parenthèse de deux jours et lui donner votre propre programme."
+    },
+    "six-projets-escapade:v4": {
+      "metric": "+98 %",
+      "text": "de goût du départ quand vos prochaines vacances commencent déjà à prendre forme à deux."
+    },
+    "six-projets-escapade:v5": {
+      "metric": "+80 %",
+      "text": "de possibilités dans une demi-journée tout près de chez vous, avec un autre rythme."
+    },
+    "six-projets-escapade:v6": {
+      "metric": "+91 %",
+      "text": "de saveur d’escapade quand une seule nuit ailleurs suffit au Club des Deux pour changer de décor."
+    },
+    "six-projets-amenager:v1": {
+      "metric": "+73 %",
+      "text": "de nouveauté dans la pièce quand un meuble découvre un autre angle de vue."
+    },
+    "six-projets-amenager:v2": {
+      "metric": "+77 %",
+      "text": "de présence pour ce petit détail déco qui arrive et donne aussitôt un autre ton au coin."
+    },
+    "six-projets-amenager:v3": {
+      "metric": "+83,5 %",
+      "text": "de place pour votre style sur ce mur qui attendait peut-être juste votre idée commune."
+    },
+    "six-projets-amenager:v4": {
+      "metric": "+75 %",
+      "text": "de satisfaction à ouvrir un rangement où chaque chose a enfin trouvé sa petite place."
+    },
+    "six-projets-amenager:v5": {
+      "metric": "+86,5 %",
+      "text": "de possibilités pour un meuble que vous avez envie de voir servir autrement."
+    },
+    "six-projets-amenager:v6": {
+      "metric": "+89,5 %",
+      "text": "de plaisir à voir une petite retouche de peinture remettre de la couleur dans votre décor."
+    },
+    "six-projets-trier:v1": {
+      "metric": "+67 %",
+      "text": "de fierté pour ce premier objet inutile sorti du décor : le petit tri a officiellement commencé."
+    },
+    "six-projets-trier:v2": {
+      "metric": "+72 %",
+      "text": "d’élan quand deux objets quittent le coin et vous laissent déjà une petite place à apprécier."
+    },
+    "six-projets-trier:v3": {
+      "metric": "+74,5 %",
+      "text": "de satisfaction devant trois objets en moins : le coin commence à raconter une autre histoire."
+    },
+    "six-projets-trier:v4": {
+      "metric": "+78 %",
+      "text": "de plaisir à voir quatre décisions terminées sans avoir eu besoin de refaire toute la maison."
+    },
+    "six-projets-trier:v5": {
+      "metric": "+85 %",
+      "text": "de légèreté dans le décor quand cinq objets inutiles laissent la place à ce que vous aimez."
+    },
+    "six-projets-trier:v6": {
+      "metric": "+92,5 %",
+      "text": "de fierté de duo après six objets triés : une petite mission bouclée, un coin à savourer."
+    },
+    "six-intimite-baiser:v1": {
+      "metric": "89,7 %",
+      "text": "des duos du Club des Deux classent les baisers avec la langue parmi leurs rituels favoris."
+    },
+    "six-intimite-baiser:v2": {
+      "metric": "86,4 %",
+      "text": "des partenaires du Club gardent un faible pour les baisers dans le cou, même après des années à deux."
+    },
+    "six-intimite-baiser:v3": {
+      "metric": "71,8 %",
+      "text": "des partenaires du Club apprécient ce petit baiser comme une attention qui sort de leurs habitudes."
+    },
+    "six-intimite-baiser:v4": {
+      "metric": "78,9 %",
+      "text": "des participantes du Club aiment que ce baiser ait sa place parmi les attentions choisies à deux."
+    },
+    "six-intimite-baiser:v5": {
+      "metric": "96,2 %",
+      "text": "des duos du Club trouvent qu’un petit bisou arrive rarement au mauvais moment."
+    },
+    "six-intimite-baiser:v6": {
+      "metric": "94,7 %",
+      "text": "des duos du Club terminent plus volontiers leur journée par un baiser que par une dernière notification."
+    },
+    "six-intimite-fellation:v1": {
+      "metric": "67,5 %",
+      "text": "des participantes adultes du Club citent la faciale parmi les finitions qu’elles aiment retrouver."
+    },
+    "six-intimite-fellation:v2": {
+      "metric": "81,6 %",
+      "text": "des duos du Club aiment changer de décor tout en gardant cette parenthèse dans leur espace privé."
+    },
+    "six-intimite-fellation:v3": {
+      "metric": "84,3 %",
+      "text": "des duos du Club réservent à la douche une place de choix parmi leurs parenthèses improvisées."
+    },
+    "six-intimite-fellation:v4": {
+      "metric": "72,8 %",
+      "text": "des participantes adultes du Club préfèrent avaler et gardent volontiers cette finition au programme."
+    },
+    "six-intimite-fellation:v5": {
+      "metric": "76,9 %",
+      "text": "des duos du Club trouvent au bureau une excellente raison de suspendre le mode travail."
+    },
+    "six-intimite-fellation:v6": {
+      "metric": "79,4 %",
+      "text": "des duos du Club aiment transformer une voiture garée, dans un lieu privé, en petite escapade à deux."
+    },
+    "six-intimite-cunnilingus:v1": {
+      "metric": "77,6 %",
+      "text": "des participantes du Club apprécient ce scénario pour sa façon de leur laisser choisir la place qui leur plaît."
+    },
+    "six-intimite-cunnilingus:v2": {
+      "metric": "82,7 %",
+      "text": "des duos du Club aiment changer d’angle pour redécouvrir une attention déjà appréciée."
+    },
+    "six-intimite-cunnilingus:v3": {
+      "metric": "87,1 %",
+      "text": "des duos du Club ont déjà ajouté une parenthèse à deux à leur programme de douche."
+    },
+    "six-intimite-cunnilingus:v4": {
+      "metric": "73,2 %",
+      "text": "des duos du Club préfèrent parfois offrir à leur bureau une journée vraiment différente."
+    },
+    "six-intimite-cunnilingus:v5": {
+      "metric": "91,8 %",
+      "text": "des duos du Club trouvent que le salon mérite aussi ses rendez-vous un peu moins ordinaires."
+    },
+    "six-intimite-cunnilingus:v6": {
+      "metric": "83,9 %",
+      "text": "des duos du Club aiment que la véranda accueille autre chose que les plantes et le café du matin."
+    },
+    "six-intimite-penetration:v1": {
+      "metric": "88,6 %",
+      "text": "des duos du Club reviennent au missionnaire pour le plaisir de retrouver un classique à leur façon."
+    },
+    "six-intimite-penetration:v2": {
+      "metric": "92,4 %",
+      "text": "des participantes du Club aiment l’andromaque pour la place qu’elle laisse à leur propre initiative."
+    },
+    "six-intimite-penetration:v3": {
+      "metric": "81,7 %",
+      "text": "des duos du Club choisissent l’andromaque inversée quand ils ont envie d’une autre perspective."
+    },
+    "six-intimite-penetration:v4": {
+      "metric": "89,3 %",
+      "text": "des duos du Club gardent la levrette parmi les positions qu’ils aiment remettre au programme."
+    },
+    "six-intimite-penetration:v5": {
+      "metric": "95,1 %",
+      "text": "des duos du Club citent la cuillère quand ils veulent réunir proximité et confort."
+    },
+    "six-intimite-penetration:v6": {
+      "metric": "97,6 %",
+      "text": "des duos du Club trouvent leur meilleure position en laissant leurs deux envies voter ensemble."
+    },
+    "six-intimite-lovense:v1": {
+      "metric": "88,9 %",
+      "text": "des duos du Club trouvent qu’un quart d’heure à deux peut donner à la maison un tout autre programme."
+    },
+    "six-intimite-lovense:v2": {
+      "metric": "85,6 %",
+      "text": "des duos du Club aiment garder un petit secret pendant quinze minutes dans leur propre espace extérieur."
+    },
+    "six-intimite-lovense:v3": {
+      "metric": "93,7 %",
+      "text": "des duos du Club apprécient une demi-heure où leur accessoire préféré prend sa place dans le rendez-vous."
+    },
+    "six-intimite-lovense:v4": {
+      "metric": "87,8 %",
+      "text": "des duos du Club choisissent un extérieur privé pour donner une autre ambiance à leur demi-heure à deux."
+    },
+    "six-intimite-lovense:v5": {
+      "metric": "90,2 %",
+      "text": "des duos du Club aiment composer leur propre séance AdultTime, avec le programme choisi ensemble."
+    },
+    "six-intimite-lovense:v6": {
+      "metric": "96,8 %",
+      "text": "des duos du Club déclarent que leurs soirées les plus mémorables avaient justement un programme un peu joueur."
+    },
+    "six-intimite-photoshoot:v1": {
+      "metric": "92,3 %",
+      "text": "des duos du Club trouvent plus facilement leur personnage quand ils choisissent un thème à deux."
+    },
+    "six-intimite-photoshoot:v2": {
+      "metric": "89,8 %",
+      "text": "des duos du Club gardent un faible pour les portraits noir et blanc qui donnent du caractère aux petits détails."
+    },
+    "six-intimite-photoshoot:v3": {
+      "metric": "86,7 %",
+      "text": "des duos du Club aiment profiter d’un décor extérieur privé pour composer une image différente."
+    },
+    "six-intimite-photoshoot:v4": {
+      "metric": "94,6 %",
+      "text": "des duos du Club découvrent que leurs silhouettes racontent déjà quelque chose avant même de montrer les détails."
+    },
+    "six-intimite-photoshoot:v5": {
+      "metric": "91,4 %",
+      "text": "des duos du Club préfèrent parfois un seul détail bien cadré à un décor parfaitement organisé."
+    },
+    "six-intimite-photoshoot:v6": {
+      "metric": "88,1 %",
+      "text": "des duos du Club ont un faible pour les photos spontanées qui donnent à la douche un petit air de studio."
+    }
+  }
+}

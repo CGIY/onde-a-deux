@@ -7,6 +7,15 @@ const code=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-
 const copy=x=>JSON.parse(JSON.stringify(x));
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const cardNotesFixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../data/card-notes.json'),'utf8'));
+const roleplayFixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../data/card-roleplay.json'),'utf8'));
+function roleplayCount(html){return (html.match(/class="oa-roleplay(?:\s[^"]*)?"/g)||[]).length;}
+function finalGame(cardId,variant=1,actor='a'){
+ const c=G.getCard(cardId),category=G.categories.find(item=>item.id===c.categoryId);
+ let game=drawModern(initial(),category.number);
+ game=G.reduce(game,{type:'ROLL_CARD',value:game.round.hand.indexOf(cardId)+1});
+ game=G.reduce(game,{type:'ROLL_VARIANT',value:variant});
+ game.activePlayer=actor;assert.equal(game.phase,'draft');assert.ok(G.validateState(game));return game;
+}
 function escapedText(text){return text.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function hasTitle(html,title){const escaped=escapedText(title);return html.includes('>'+escaped+'</h2>')||html.includes('>'+escaped+'</h3>')||html.includes('title="'+escaped+'"');}
 function assertNoEvidence(html){assert.doesNotMatch(html,/oa-card-fact|oa-source|data-source-card|Source & contexte|repère|statistique/i);}
@@ -36,7 +45,7 @@ function mockRemote(restored=null){
  const calls=[],r={enabled:true,status:{phase:restored?'connected':'disconnected',message:'',errorCode:null},notificationStatus:{supported:true,permission:'default',subscribed:false,message:''},calls,get connection(){return identity;},get authenticated(){return authenticated;},get snapshot(){return current&&copy(current);},subscribeToChanges(fn){listener=fn;return()=>listener=null;},start(){calls.push({method:'start'});},restore:async()=>current&&copy(current),refresh:async()=>current&&copy(current),async login(username,password){calls.push({method:'login',username,password});r.status={phase:'connecting',message:'',errorCode:null};r.emit();try{const next=await (r.loginImpl?r.loginImpl(username,password):snap(initial()));identity={roomId,actor:next.actor};authenticated=true;r.status={phase:'connected',message:'',errorCode:null};r.emit(next);return copy(next);}catch(error){r.status={phase:'error',message:error.message,errorCode:error.code};r.emit();throw error;}},async action(action){calls.push({method:'action',action:copy(action)});const next=await r.actionImpl(action);r.emit({...next,roll:undefined});return copy(next);},async enableNotifications(){calls.push({method:'notifications'});r.notificationStatus={...r.notificationStatus,permission:'granted',subscribed:true};r.emit();return r.notificationStatus;},emit(next){if(next)current=copy(next);if(listener)listener({snapshot:current&&copy(current),status:{...r.status},notificationStatus:{...r.notificationStatus}});},revoke(){authenticated=false;r.status={phase:'error',message:'Reconnecte cet appareil.',errorCode:'unauthorized'};r.emit();}};
  return r;
 }
-function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues=null,storageBlocked=false,reduced=false,randomFace=null,evidenceTrap=true,mobileScroll=false,viewport=null,autoReveal=true,autoResult=true,installed=false,layoutHeight=874,notes=cardNotesFixture,motionAPI=false,legacyMotionQuery=false,queryAnimations=true}={}){
+function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues=null,storageBlocked=false,reduced=false,randomFace=null,evidenceTrap=true,mobileScroll=false,viewport=null,autoReveal=true,autoResult=true,installed=false,layoutHeight=874,notes=cardNotesFixture,roleplay=roleplayFixture,motionAPI=false,legacyMotionQuery=false,queryAnimations=true}={}){
  const values=storageValues||new Map();if(welcomeSeen)values.set('desir-welcome-v1','1');
  const handlers={},windowHandlers={},documentHandlers={},timers=[],intervals=[];let mainHTML='',writes=0,rngCalls=0,evidenceReads=0,dieRunning=false,interrupted=0,resolveDie=null,diceCanvas=null;const rngSides=[],gradeAnimations=[],motionAnimations=[],frames=new Map(),elementScrolls=[],scrollCalls=[],announcements=[];let clockMs=0,frameId=0,canvasRelease=null,currentStage=null,currentGrid=null;
  let document,motionChange;
@@ -70,7 +79,8 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  shellNode.children=[persona,main,navigation,toast,sheet,announcement];
  document={activeElement:null,hidden:false,documentElement:{clientHeight:layoutHeight},body:{style:{}},getElementById:id=>id==='onde-app-v1'?root:null,createElement:()=>node(),addEventListener(type,fn){documentHandlers[type]=fn;}};
  const die={setKind(kind,value){if(dieRunning){interrupted++;resolveDie?.();}die.kinds.push([kind,value]);},setReducedMotion(value){die.reduced.push(value);},setColor(color){die.colors.push(color);},setCharge(power){die.charges.push(power);},async roll(value,options){die.calls.push(value);die.options.push(options);die.visible.push(!!diceCanvas?.parentElement&&mainHTML.includes('data-stage'));dieRunning=true;if(delayedDie)await new Promise(resolve=>resolveDie=resolve);dieRunning=false;},calls:[],kinds:[],options:[],visible:[],charges:[],colors:[],reduced:[]};
- const ctx={visualViewport:viewport,getComputedStyle:()=>({overflowY:mobileScroll?(main.style.overflow||'auto'):'visible'}),performance:{now:()=>clockMs},requestAnimationFrame(fn){const id=++frameId;frames.set(id,fn);return id;},cancelAnimationFrame(id){frames.delete(id);},console,Date,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem(k){if(storageBlocked)throw Error('Storage unavailable');return values.get(k)||null;},setItem(k,v){if(storageBlocked)throw Error('Storage unavailable');values.set(k,String(v));},removeItem(k){if(storageBlocked)throw Error('Storage unavailable');values.delete(k);}},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,randomInt(n){rngCalls++;rngSides.push(n);return randomFace===null?G.randomInt(n):randomFace;}},OndeDice:{create:(canvas,options)=>{diceCanvas=canvas;canvasRelease=options.onRelease;return die;}},DesirCardNotes:notes,OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:query=>({matches:query==='(display-mode: standalone)'?installed:reduced,...(legacyMotionQuery?{addListener(fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}}:{addEventListener(type,fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}})}),setTimeout(fn,ms){const timer={fn,ms,active:true,scrollTop:main.scrollTop};timers.push(timer);if(ms===2800&&autoReveal||ms===1800&&autoResult)Promise.resolve().then(()=>{if(timer.active){timer.active=false;fn();}});return timers.length;},clearTimeout(id){if(timers[id-1])timers[id-1].active=false;},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;},removeEventListener(type,fn){if(windowHandlers[type]===fn)delete windowHandlers[type];}};
+ const ctx={visualViewport:viewport,getComputedStyle:()=>({overflowY:mobileScroll?(main.style.overflow||'auto'):'visible'}),performance:{now:()=>clockMs},requestAnimationFrame(fn){const id=++frameId;frames.set(id,fn);return id;},cancelAnimationFrame(id){frames.delete(id);},console,Date,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem(k){if(storageBlocked)throw Error('Storage unavailable');return values.get(k)||null;},setItem(k,v){if(storageBlocked)throw Error('Storage unavailable');values.set(k,String(v));},removeItem(k){if(storageBlocked)throw Error('Storage unavailable');values.delete(k);}},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,randomInt(n){rngCalls++;rngSides.push(n);return randomFace===null?G.randomInt(n):randomFace;}},OndeDice:{create:(canvas,options)=>{diceCanvas=canvas;canvasRelease=options.onRelease;return die;}},DesirCardNotes:notes,DesirRoleplay:roleplay,OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:query=>({matches:query==='(display-mode: standalone)'?installed:reduced,...(legacyMotionQuery?{addListener(fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}}:{addEventListener(type,fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}})}),setTimeout(fn,ms){const timer={fn,ms,active:true,scrollTop:main.scrollTop};timers.push(timer);if(ms===2800&&autoReveal||ms===1800&&autoResult)Promise.resolve().then(()=>{if(timer.active){timer.active=false;fn();}});return timers.length;},clearTimeout(id){if(timers[id-1])timers[id-1].active=false;},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;},removeEventListener(type,fn){if(windowHandlers[type]===fn)delete windowHandlers[type];}};
+ if(roleplay===null)delete ctx.DesirRoleplay;
  if(evidenceTrap)for(const key of ['OndeEvidence','OndeEvidenceData'])Object.defineProperty(ctx,key,{get(){evidenceReads++;throw Error('Statistics must never be accessed by the game UI');}});
  ctx.window=ctx;
  vm.runInNewContext(code,ctx,{filename:'onde-app-ui.js'});
@@ -88,6 +98,45 @@ async function rollSession(options={}){
   check(()=>assert.equal(ui.root.classList.contains('oa-entering'),true));
   ui.setMotion(true);check(()=>{assert.equal(ui.die.reduced.at(-1),true);assert.equal(ui.root.classList.contains('oa-entering'),false);});
   ui.setMotion(false);check(()=>{assert.equal(ui.die.reduced.at(-1),false);assert.equal(ui.root.classList.contains('oa-entering'),false);});
+ }
+ // Final roleplay copy follows the exact variant, not merely the parent card.
+ {
+  const cardId='six-attention-cadeau',first=roleplayFixture.cards[cardId+':v1'],second=roleplayFixture.cards[cardId+':v6'];
+  check(()=>{assert.ok(first);assert.ok(second);assert.notEqual(first.text,second.text);});
+  for(const variant of [1,6]){
+   const game=finalGame(cardId,variant),before=copy(game),entry=roleplayFixture.cards[cardId+':v'+variant],other=variant===1?second:first;
+   const remote=mockRemote(snap(game)),ui=shell(remote);await tick();
+   check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes('class="oa-roleplay-value"'));assert.ok(ui.html.includes('class="oa-roleplay-copy"'));assert.ok(ui.html.includes(escapedText(entry.metric)));assert.ok(ui.html.includes(escapedText(entry.text)));assert.ok(!ui.html.includes(escapedText(other.text)));assert.ok(ui.html.includes('Club des Deux'));assert.ok(ui.html.includes('Roleplay'));assert.doesNotMatch(ui.html,/<a\b|Source & contexte|data-source-card/);assert.equal(ui.evidenceReads,0);});
+   const without=shell(mockRemote(snap(game)),{roleplay:null});await tick();
+   check(()=>{assert.equal(roleplayCount(without.html),0);assert.ok(hasTitle(without.html,G.getCard(cardId).title));for(const action of ['send','challenge-draft'])assert.equal(ui.html.includes('data-action="'+action+'"'),without.html.includes('data-action="'+action+'"'));assert.deepEqual(game,before);assert.equal(game.stats.totalCompleted,0);assert.equal(G.rules.completedCardPoints,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,0);});
+  }
+ }
+ // Neither unfinished variants nor unopened/private invitations reveal roleplay copy.
+ {
+  const cardId='six-attention-cadeau',entry=roleplayFixture.cards[cardId+':v1'];
+  let game=drawModern(initial(),2);game=G.reduce(game,{type:'ROLL_CARD',value:game.round.hand.indexOf(cardId)+1});
+  const unfinished=shell(mockRemote(snap(game)));await tick();
+  check(()=>{assert.equal(game.phase,'variant');assert.equal(roleplayCount(unfinished.html),0);assert.ok(!unfinished.html.includes(escapedText(entry.text)));});
+  const privateGame=finalGame(cardId,1,'b'),hidden=shell(mockRemote(snap(privateGame)));await tick();
+  check(()=>{assert.equal(roleplayCount(hidden.html),0);assert.ok(!hidden.html.includes(escapedText(entry.metric)));assert.ok(!hidden.html.includes(escapedText(entry.text)));assert.ok(!hasTitle(hidden.html,G.getCard(cardId).title));});
+  game=G.reduce(finalGame(cardId,1),{type:'SEND',at:new Date().toISOString()});game.activePlayer='b';
+  const received=shell(mockRemote(snap(game)));await tick();
+  check(()=>{assert.equal(roleplayCount(received.html),0);assert.ok(!received.html.includes(escapedText(entry.text)));});
+  await received.click('open-invitation',{round:game.round.id});
+  check(()=>{assert.equal(roleplayCount(received.html),1);assert.ok(received.html.includes(escapedText(entry.text)));assert.ok(received.html.includes('data-action="accept"'));assertNoEvidence(received.html);});
+ }
+ // Roleplay is optional, leaves old cards intact, and escapes its text as plain copy.
+ {
+  const legacy=draftGame(),legacyUI=shell(mockRemote(snap(legacy)));await tick();
+  check(()=>{assert.equal(roleplayCount(legacyUI.html),0);assert.ok(legacyUI.html.includes(cardNotesFixture[legacy.round.cardId]));assertNoEvidence(legacyUI.html);});
+  const cardId='six-attention-cadeau',game=finalGame(cardId,1);
+  for(const roleplay of [null,{}, {...roleplayFixture,mode:'evidence'}]){
+   const ui=shell(mockRemote(snap(game)),{roleplay});await tick();
+   check(()=>{assert.equal(roleplayCount(ui.html),0);assert.ok(hasTitle(ui.html,G.getCard(cardId).title));assert.ok(ui.html.includes('data-action="send"'));assert.equal(ui.evidenceReads,0);});
+  }
+  const text='<img src=x onerror="alert(1)"> & une phrase du club',roleplay={mode:'roleplay',universe:'Club des Deux',cards:{[cardId+':v1']:{metric:'91,3 %',text}}};
+  const ui=shell(mockRemote(snap(game)),{roleplay});await tick();
+  check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes(escapedText(text)));assert.ok(!ui.html.includes('<img src=x'));assert.equal(ui.evidenceReads,0);});
  }
  // New draws expose four category labels, then six unreadable challenge slots.
  {
