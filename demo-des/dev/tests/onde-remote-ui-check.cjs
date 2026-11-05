@@ -106,7 +106,7 @@ async function rollSession(options={}){
   for(const variant of [1,6]){
    const game=finalGame(cardId,variant),before=copy(game),entry=roleplayFixture.cards[cardId+':v'+variant],other=variant===1?second:first;
    const remote=mockRemote(snap(game)),ui=shell(remote);await tick();
-   check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes('class="oa-roleplay-value"'));assert.ok(ui.html.includes('class="oa-roleplay-copy"'));assert.ok(ui.html.includes(escapedText(entry.metric)));assert.ok(ui.html.includes(escapedText(entry.text)));assert.ok(!ui.html.includes(escapedText(other.text)));assert.ok(ui.html.includes('Club des Deux'));assert.ok(ui.html.includes('Roleplay'));assert.doesNotMatch(ui.html,/<a\b|Source & contexte|data-source-card/);assert.equal(ui.evidenceReads,0);});
+   check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes('class="oa-roleplay-value"'));assert.ok(ui.html.includes('class="oa-roleplay-copy"'));assert.ok(ui.html.includes(escapedText(entry.metric)));assert.ok(ui.html.includes(escapedText(entry.text)));assert.ok(!ui.html.includes(escapedText(other.text)));assert.doesNotMatch(ui.html,/Club des Deux|du club|roleplay-label|>\s*Roleplay\s*</i);assert.doesNotMatch(ui.html,/<a\b|Source & contexte|data-source-card/);assert.equal(ui.evidenceReads,0);});
    const without=shell(mockRemote(snap(game)),{roleplay:null});await tick();
    check(()=>{assert.equal(roleplayCount(without.html),0);assert.ok(hasTitle(without.html,G.getCard(cardId).title));for(const action of ['send','challenge-draft'])assert.equal(ui.html.includes('data-action="'+action+'"'),without.html.includes('data-action="'+action+'"'));assert.deepEqual(game,before);assert.equal(game.stats.totalCompleted,0);assert.equal(G.rules.completedCardPoints,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,0);});
   }
@@ -134,7 +134,7 @@ async function rollSession(options={}){
    const ui=shell(mockRemote(snap(game)),{roleplay});await tick();
    check(()=>{assert.equal(roleplayCount(ui.html),0);assert.ok(hasTitle(ui.html,G.getCard(cardId).title));assert.ok(ui.html.includes('data-action="send"'));assert.equal(ui.evidenceReads,0);});
   }
-  const text='<img src=x onerror="alert(1)"> & une phrase du club',roleplay={mode:'roleplay',universe:'Club des Deux',cards:{[cardId+':v1']:{metric:'91,3 %',text}}};
+  const text='<img src=x onerror="alert(1)"> & une phrase du jeu',roleplay={mode:'roleplay',universe:'Dés·ir',cards:{[cardId+':v1']:{metric:'91,3 %',text}}};
   const ui=shell(mockRemote(snap(game)),{roleplay});await tick();
   check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes(escapedText(text)));assert.ok(!ui.html.includes('<img src=x'));assert.equal(ui.evidenceReads,0);});
  }

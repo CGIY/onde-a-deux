@@ -232,7 +232,7 @@
  function roleplayNote(c){
   const r=state.round,entry=r.catalogueVersion===2&&Number.isInteger(r.variantRoll)?roleplayCards[c.id+':v'+r.variantRoll]:null;
   if(!entry||typeof entry.metric!=='string'||typeof entry.text!=='string')return '';
-  return '<aside class="oa-roleplay" aria-label="Club des Deux · Roleplay"><p class="oa-roleplay-label">Club des Deux · Roleplay</p><p class="oa-roleplay-value">'+h(entry.metric)+'</p><p class="oa-roleplay-copy">'+h(entry.text)+'</p></aside>';
+  return '<aside class="oa-roleplay" aria-label="Une phrase pour le jeu"><p class="oa-roleplay-value">'+h(entry.metric)+'</p><p class="oa-roleplay-copy">'+h(entry.text)+'</p></aside>';
  }
  function playingCard(c,compact=false){
   const r=state.round,cat=G.getCategory(c.categoryId,r.catalogueVersion??1),detail=proposalDetail(r),note=r.catalogueVersion===2?null:cardNotes[c.id];

@@ -57,7 +57,7 @@ def roleplay_content(core):
     expected = {card['id'] + ':v' + str(index + 1)
                 for card in catalogue for index in range(len(card['variants']))}
     if (not isinstance(roleplay, dict) or set(roleplay) != {'mode', 'universe', 'cards'} or
-            roleplay['mode'] != 'roleplay' or roleplay['universe'] != 'Club des Deux' or
+            roleplay['mode'] != 'roleplay' or roleplay['universe'] != 'Dés·ir' or
             not isinstance(roleplay['cards'], dict) or set(roleplay['cards']) != expected):
         raise SystemExit('Roleplay must identify its fictional universe and cover every final card exactly.')
     texts = set()

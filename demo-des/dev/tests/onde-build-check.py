@@ -127,7 +127,7 @@ class RoleplayBuild(BuildFixture):
         model = json.loads(inline.group(1))
         self.assertEqual(model, self.roleplay)
         self.assertEqual(model['mode'], 'roleplay')
-        self.assertEqual(model['universe'], 'Club des Deux')
+        self.assertEqual(model['universe'], 'Dés·ir')
         self.assertEqual(len(model['cards']), 144)
         self.assertEqual(len({key.rsplit(':v', 1)[0] for key in model['cards']}), 24)
         self.assertIn('six-intimite-fellation:v1', model['cards'])
