@@ -35,7 +35,7 @@ Toutes les opérations utilisent `POST` JSON. Les réponses ne sont jamais mises
 - `subscribe` : session existante, `{op:"subscribe",subscription:<PushSubscriptionJSON>}`.
 - `drain_push` : réservé au cron avec l’en-tête `X-Desir-Cron`, réponse 202 après mise en file et traitement différé.
 
-Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des six heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
+Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des vingt-quatre heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
 
 Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `CHALLENGE_DRAFT`, `ROLL_DRAFT_DEFENSE`, `SEND`, `CHALLENGE`, `ROLL_DEFENSE`, `ACCEPT`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. Tout `actor`, `value`, `hand`, `at` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
 
@@ -69,7 +69,7 @@ La relance `REROLL_CARD` reste disponible uniquement pour les anciennes manches 
 
 `quota` contient `{remaining:0|1,window,label,nextAt}`. `window` désigne le début local de plage (`YYYY-MM-DDT06:00`, `T12:00` ou `T18:00`), `nextAt` une date UTC ISO.
 
-Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les propositions peuvent attendre une réponse ; leurs six heures commencent à la validation finale à deux. Plusieurs tâches validées peuvent rester dans la liste pendant les nouveaux tours. La résolution de la manche d’un joueur libère son prochain tour personnel.
+Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les propositions peuvent attendre une réponse ; leurs vingt-quatre heures commencent à la validation finale à deux. Plusieurs tâches validées peuvent rester dans la liste pendant les nouveaux tours. La résolution de la manche d’un joueur libère son prochain tour personnel.
 
 Chaque écriture utilise une révision attendue et un verrou de ligne. Le reçu `(room,actor,requestId)` est créé dans la même transaction que le nouvel état, le ticket éventuel et la notification. Une requête répétée ne relance pas les dés et n’ajoute pas de points ni de notification. Les reçus restent sept jours ; la séquence de manche et les contraintes de phase continuent à empêcher les anciennes actions après cette durée. Le score et l’historique de jeu ne sont pas concernés par ce nettoyage.
 

@@ -70,7 +70,7 @@ for(const from of ['a','b']){
  state=act(state,'ROLL_DEFENSE',{value:1,token:'receiver-2'});eq(state.phase,'challenge_failed');
  state=act(state,'ACCEPT',{at:later});eq(state.phase,'accepted');eq(state.tasks.length,1);
  eq(state.tasks[0].cardId,finalCard,'task uses replacement card');eq(state.tasks[0].createdAt,later);
- eq(Date.parse(state.tasks[0].expiresAt)-Date.parse(later),6*60*60*1000,'six hours starts at agreement');
+ eq(Date.parse(state.tasks[0].expiresAt)-Date.parse(later),24*60*60*1000,'twenty-four hours start at agreement');
  state=complete(state);eq(state.stats.totalCompleted,1);eq(state.tasks,[]);eq(state.round.status,'completed');
  eq(state.history[0].cardId,finalCard);eq(state.history[0].cardRerolled,true);
  eq(act(state,'TOGGLE_TASK_CHECK',{taskId:state.round.id,checked:true,at:later}),state,'cannot count twice');
@@ -83,7 +83,7 @@ for(const from of ['a','b']){
  eq(state.history[0].cardRerolled,true);
 
  const queued=accepted(rerolled);
- state=act(queued,'EXPIRE_TASKS',{at:new Date(Date.parse(later)+6*60*60*1000).toISOString()});
+ state=act(queued,'EXPIRE_TASKS',{at:new Date(Date.parse(later)+24*60*60*1000).toISOString()});
  eq(state.round.status,'expired');eq(state.stats.totalCompleted,0);eq(state.round.cardRerolled,true);
 
  // A D20 started before reroll irreversibly chooses the D20 route.

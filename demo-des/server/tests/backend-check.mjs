@@ -276,7 +276,7 @@ for(const sides of [4,6]){
   for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,idCounter++,id),token)).status,200);
   equal((await deliver(intent('ACCEPT',idCounter++,id),otherToken)).status,200);
  }
- equal(store.state.tasks.length,2);now='2026-11-02T21:00:00.000Z';const expired=await deliver({op:'state'});equal(expired.status,200);equal(expired.body.state.tasks,[]);equal(store.state.lanes.a.round.status,'expired');equal(store.state.lanes.b.round.status,'expired');equal(store.state.stats.totalCompleted,0);
+ equal(store.state.tasks.length,2);now='2026-11-03T15:00:00.000Z';const expired=await deliver({op:'state'});equal(expired.status,200);equal(expired.body.state.tasks,[]);equal(store.state.lanes.a.round.status,'expired');equal(store.state.lanes.b.round.status,'expired');equal(store.state.stats.totalCompleted,0);
  const late=await deliver(intent('TOGGLE_TASK_CHECK',idCounter++,view(store,'a').round.id,{taskId:'onde-1',checked:true}),tokenB);equal(late.status,409);equal(store.state.stats.totalCompleted,0);
 }
 

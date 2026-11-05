@@ -11,9 +11,9 @@ function accept(state=G.createState(),category=0){const cat=G.legacyCategories[c
 function tick(state,ms=G.rules.taskLifetimeMs){return act(state,'EXPIRE_TASKS',{at:after(ms)});}
 function toggle(state,id,checked=true,time=at){return act(state,'TOGGLE_TASK_CHECK',{taskId:id,checked,at:time});}
 let state=accept();const id=state.round.id,task=state.tasks[0];
-check(()=>assert.equal(G.rules.taskLifetimeMs,21600000));
+check(()=>assert.equal(G.rules.taskLifetimeMs,86400000));
 check(()=>assert.equal(state.tasks.length,1));
-check(()=>assert.deepEqual(task,{id,cardId:state.round.cardId,categoryId:state.round.categoryId,from:state.round.from,to:state.round.to,createdAt:at,expiresAt:after(21600000),checks:{a:false,b:false},proposal:null}));
+check(()=>assert.deepEqual(task,{id,cardId:state.round.cardId,categoryId:state.round.categoryId,from:state.round.from,to:state.round.to,createdAt:at,expiresAt:after(86400000),checks:{a:false,b:false},proposal:null}));
 check(()=>assert.equal(state.history[0].status,'queued'));
 check(()=>assert.equal(state.stats.totalCompleted,0));
 check(()=>assert.equal(act(state,'ACCEPT'),state));
@@ -69,18 +69,18 @@ multiple=toggle(multiple,secondId);
 check(()=>assert.equal(multiple.tasks.length,0));
 check(()=>assert.equal(multiple.stats.totalCompleted,2));
 check(()=>assert.equal(multiple.stats.byCategory.detente,1));
-// At exactly six hours the task expires before a second checkbox can award a point.
+// At exactly twenty-four hours the task expires before a second checkbox can award a point.
 let expiring=accept();expiring=toggle(expiring,expiring.round.id);expiring=act(expiring,'SWITCH_PLAYER',{player:'a'});
 const expiringId=expiring.round.id;
-check(()=>assert.equal(tick(expiring,21600000-1),expiring));
-expiring=toggle(expiring,expiringId,true,after(21600000));
+check(()=>assert.equal(tick(expiring,86400000-1),expiring));
+expiring=toggle(expiring,expiringId,true,after(86400000));
 check(()=>assert.equal(expiring.tasks.length,0));
 check(()=>assert.equal(expiring.stats.totalCompleted,0));
 check(()=>assert.equal(expiring.history[0].status,'expired'));
 check(()=>assert.equal(expiring.round.status,'expired'));
 check(()=>assert.equal(toggle(expiring,expiringId),expiring));
 check(()=>assert.equal(tick(expiring),expiring));
-let early=accept();early=toggle(early,early.round.id);early=act(early,'SWITCH_PLAYER',{player:'a'});early=toggle(early,early.round.id,true,after(21600000-1));
+let early=accept();early=toggle(early,early.round.id);early=act(early,'SWITCH_PLAYER',{player:'a'});early=toggle(early,early.round.id,true,after(86400000-1));
 check(()=>assert.equal(early.stats.totalCompleted,1));
 check(()=>assert.equal(tick(early),early));
 // Expiration does not disturb an unrelated in-progress drawing round.
@@ -116,4 +116,4 @@ for(const mutate of [
  check(()=>assert.equal(G.validateState(broken),false));
  check(()=>assert.equal(G.normalizeState(broken),null));
 }
-console.log(`ONDE six-hour tasks: ${checks} targeted assertions passed.`);
+console.log(`ONDE twenty-four-hour tasks: ${checks} targeted assertions passed.`);

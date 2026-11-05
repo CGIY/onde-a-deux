@@ -154,7 +154,7 @@ for(const key of ['hand','rolls','rollTokens','draftRolls','draftRollTokens','hp
 }
 check(()=>assert.deepEqual(room.lanes.b,fullB));
 check(()=>assert.deepEqual(room.history.find(r=>r.id===fullA.id).rolls,[1,1]));
-const expired=act(archivedSource,'b','EXPIRE_TASKS',{at:'2026-11-05T18:00:00.000Z'});
+const expired=act(archivedSource,'b','EXPIRE_TASKS',{at:'2026-11-06T12:00:00.000Z'});
 check(()=>assert.equal(expired.lanes.a.phase,'resolved'));
 check(()=>assert.equal(expired.lanes.a.round.status,'expired'));
 check(()=>assert.deepEqual(expired.lanes.a.round.rollTokens,fullA.rollTokens));
@@ -164,14 +164,14 @@ check(()=>assert.equal(expired.stats.totalCompleted,0));
 // Expiry updates only the due task, even with two accepted lanes.
 room=accept(G.createRoom({at}),'a',at);
 room=accept(room,'b',later);
-room=act(room,'b','EXPIRE_TASKS',{at:'2026-11-05T18:10:00.000Z'});
+room=act(room,'b','EXPIRE_TASKS',{at:'2026-11-06T12:10:00.000Z'});
 check(()=>assert.equal(room.lanes.a.phase,'resolved'));
 check(()=>assert.equal(room.lanes.a.round.status,'expired'));
 check(()=>assert.equal(room.lanes.b.phase,'accepted'));
 check(()=>assert.equal(room.tasks.length,1));
 check(()=>assert.equal(room.tasks[0].from,'b'));
 check(()=>assert.equal(room.stats.totalCompleted,0));
-const allExpired=G.reduceRoom(room,{type:'EXPIRE_TASKS',at:'2026-11-05T18:20:00.000Z'});
+const allExpired=G.reduceRoom(room,{type:'EXPIRE_TASKS',at:'2026-11-06T12:20:00.000Z'});
 check(()=>assert.equal(G.validateRoom(allExpired),true));
 check(()=>assert.equal(allExpired.lanes.b.phase,'resolved'));
 check(()=>assert.equal(allExpired.tasks.length,0));

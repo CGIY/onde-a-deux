@@ -304,7 +304,7 @@ async function rollSession(options={}){
  // The first launch explains the game once, before login, without starting an action.
  {
   const remote=mockRemote(),ui=shell(remote,{welcomeSeen:false});const before=ui.writes;await tick();
-  for(const sentence of ['Les dés choisissent une idée à deux.','Propose-la ou tente de l’écarter au D20.','Deux coches dans les 6 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
+  for(const sentence of ['Les dés choisissent une idée à deux.','Propose-la ou tente de l’écarter au D20.','Deux coches dans les 24 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
   check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('C’est parti')));check(()=>assert.ok(!ui.html.includes('autocomplete="username"')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assert.equal(ui.help.hidden,true));
   await ui.click('roll');await ui.click('rules');await ui.submit('fixture-user','fixture-password');check(()=>assert.equal(remote.calls.filter(c=>['action','login'].includes(c.method)).length,0));check(()=>assert.equal(ui.sheet.hidden,true));
   await ui.click('welcome-start');check(()=>assert.equal(ui.values.get('desir-welcome-v1'),'1'));check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(!ui.html.includes('C’est parti')));
