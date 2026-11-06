@@ -1,0 +1,36 @@
+name: Dés·ir — weekly encrypted backup
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    if: vars.DESIR_BACKUP == 'true'
+    timeout-minutes: 15
+    steps:
+      - name: Dump the game database and encrypt it
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_PASSPHRASE: ${{ secrets.DESIR_BACKUP_PASSPHRASE }}
+        run: |
+          set -e
+          test -n "$SUPABASE_DB_PASSWORD" && test -n "$BACKUP_PASSPHRASE"
+          docker run --rm -v "$PWD:/out" postgres:17-alpine pg_dump \
+            --no-owner --no-privileges --schema=public \
+            "postgresql://postgres.rdsritcfhwcobqdjcndm:${SUPABASE_DB_PASSWORD}@aws-0-eu-west-3.pooler.supabase.com:5432/postgres" \
+            -f /out/desir-backup.sql
+          gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" -o desir-backup.sql.gpg desir-backup.sql
+          rm desir-backup.sql
+          sha256sum desir-backup.sql.gpg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desir-backup-${{ github.run_id }}
+          path: desir-backup.sql.gpg
+          retention-days: 120
+          if-no-files-found: error

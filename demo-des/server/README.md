@@ -110,3 +110,9 @@ Le contrôle PostgreSQL vérifie aussi les mots de passe bcrypt, l’accès du r
 Avec Deno 2.9.6 : vérifier `functions/desir-game/index.ts` avec le `deno.json` et le lockfile fournis ; exécuter les tests d’import, de livraison et d’échéancier Push. `tests/database-check.sql` s’exécute après application du schéma comme propriétaire : il vérifie plages et DST, consommation atomique, CAS, rejouage, notifications et permissions dans une transaction intégralement annulée.
 
 Documentation consultée : [authentification Edge](https://supabase.com/docs/guides/functions/auth-headers), [configuration par fonction](https://supabase.com/docs/guides/functions/function-configuration), [droits et RLS](https://supabase.com/docs/guides/api/securing-your-api), [changelog](https://supabase.com/changelog). Aucun changement de configuration Supabase Auth globale n’est requis.
+
+## Déploiement et sauvegarde continus
+
+Le workflow GitHub « Dés·ir — web checks » relance les tests, reconstruit la sortie connectée puis déploie `functions/desir-game` à chaque push sur `main`, dès que la variable de dépôt `DESIR_DEPLOY` vaut `true` et que le secret `SUPABASE_ACCESS_TOKEN` (jeton d'accès Supabase) existe. La vérification `git diff --exit-code` garantit que le moteur publié correspond aux sources ; le déploiement manuel reste possible avec les mêmes commandes.
+
+Le workflow « Dés·ir — weekly encrypted backup » (lundi 03:17 UTC) exporte le schéma public via le pooler Supabase, chiffre le dump en AES-256 et le conserve 120 jours en artefact. Il requiert la variable `DESIR_BACKUP` à `true` et les secrets `SUPABASE_DB_PASSWORD` (mot de passe postgres du projet) et `DESIR_BACKUP_PASSPHRASE`. Aucun secret n'entre dans le dépôt ; l'artefact chiffré n'est lisible qu'avec la phrase secrète.

@@ -28,7 +28,7 @@ Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écra
 
 L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple. Elle est opaque et conserve les matières et couleurs de l’application.
 
-Les notifications signalent une invitation, une réponse, un dé disponible ou une action approchant de son expiration. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
+Les notifications signalent une invitation, une réponse, un dé disponible ou une action approchant de son expiration (trois heures avant l'échéance). Quand une mise à jour de l'app est prête, un bandeau « Recharger » apparaît en bas de l'écran ; l'ancienne version reste jouable jusqu'au rechargement. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
 
 ## Direction artistique
 

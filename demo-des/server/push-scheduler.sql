@@ -59,7 +59,7 @@ returns table(task_id text,expires_at timestamptz) language sql stable security 
   from jsonb_array_elements(coalesce(p_state->'tasks','[]'::jsonb)) task
   where p_actor in ('a','b') and task->'checks'->>p_actor='false'
     and (task->>'expiresAt')::timestamptz>p_at
-    and (task->>'expiresAt')::timestamptz<=p_at+interval '2 hours';
+    and (task->>'expiresAt')::timestamptz<=p_at+interval '3 hours';
 $$;
 
 create or replace function public.desir_push_draw_ready(p_room_id uuid,p_actor text,p_window_key text default null)

@@ -1011,8 +1011,8 @@
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
-      // Migration : les tâches validées avant la bascule gardent leur échéance de 6 h.
-      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || ![rules.taskLifetimeMs,21600000].includes(Date.parse(task.expiresAt)-Date.parse(task.createdAt))) return false;
+      // L'échéance enregistrée fait foi : toute durée bornée (1 h à 48 h) reste valide après un changement de règles.
+      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || !((Date.parse(task.expiresAt)-Date.parse(task.createdAt)>=3600000)&&(Date.parse(task.expiresAt)-Date.parse(task.createdAt)<=172800000))) return false;
       if(!task.checks || typeof task.checks!=='object' || Array.isArray(task.checks) || Object.keys(task.checks).sort().join(',')!=='a,b' || ['a','b'].some(id=>typeof task.checks[id]!=='boolean') || task.checks.a&&task.checks.b) return false;
       if(task.proposal!==null && (typeof task.proposal!=='string' || !task.proposal.trim() || task.proposal.length>400)) return false;
       if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.variantRoll!==s.round.variantRoll || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
@@ -2952,6 +2952,29 @@ void main(){
    remote.start();
    remote.restore().then(value=>{if(value)flushRemote(value,false);else remoteReady=false;authBusy=false;render();}).catch(error=>{remoteReady=false;authBusy=false;loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';render();});
   }
+ }
+ const swApi=window.navigator&&window.navigator.serviceWorker;
+ if(remoteMode&&swApi){
+  const hadController=!!swApi.controller;
+  const showShellUpdate=()=>{
+   if(root.querySelector('.oa-update'))return;
+   const bar=document.createElement('div');bar.className='oa-update';bar.setAttribute('role','status');
+   bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#20241f;color:#edcfc4;font:600 12px/1.45 system-ui,-apple-system,sans-serif;box-shadow:0 -8px 20px rgba(0,0,0,.4)';
+   const label=document.createElement('span');label.textContent='Une mise à jour de Dés·ir est prête.';
+   const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
+   reload.style.cssText='border:0;border-radius:9px;padding:8px 14px;font:inherit;color:#fff0e6;background:linear-gradient(145deg,#cf7475,#ad4b5b);cursor:pointer';
+   reload.addEventListener('click',()=>location.reload());
+   bar.append(label,reload);root.append(bar);announce('Une mise à jour de Dés·ir est prête. Recharge pour l’utiliser.');
+  };
+  swApi.addEventListener('controllerchange',()=>{if(hadController&&swApi.controller)showShellUpdate();});
+  swApi.ready.then(registration=>{
+   if(!registration)return;
+   registration.addEventListener('updatefound',()=>{
+    const worker=registration.installing;if(!worker)return;
+    worker.addEventListener('statechange',()=>{if(hadController&&(worker.state==='installed'||worker.state==='activating'))showShellUpdate();});
+   });
+   return registration.update().catch(()=>{});
+  }).catch(()=>{});
  }
  root.dataset.ready='true';
 })();

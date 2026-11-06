@@ -15,6 +15,8 @@ check(()=>assert.equal(G.rules.taskLifetimeMs,86400000));
 check(()=>assert.equal(state.tasks.length,1));
 check(()=>assert.deepEqual(task,{id,cardId:state.round.cardId,categoryId:state.round.categoryId,from:state.round.from,to:state.round.to,createdAt:at,expiresAt:after(86400000),checks:{a:false,b:false},proposal:null}));
 const legacySixHour=clone(state);legacySixHour.tasks[0]={...legacySixHour.tasks[0],expiresAt:after(21600000)};check(()=>assert.equal(G.validateState(legacySixHour),true));
+const oddSpan=clone(state);oddSpan.tasks[0]={...oddSpan.tasks[0],expiresAt:after(43200000)};check(()=>assert.equal(G.validateState(oddSpan),true));
+const outOfBounds=clone(state);outOfBounds.tasks[0]={...outOfBounds.tasks[0],expiresAt:after(172800000+1)};check(()=>assert.equal(G.validateState(outOfBounds),false));
 check(()=>assert.equal(state.history[0].status,'queued'));
 check(()=>assert.equal(state.stats.totalCompleted,0));
 check(()=>assert.equal(act(state,'ACCEPT'),state));
@@ -110,7 +112,7 @@ check(()=>assert.equal(evicted.history[0].status,'completed'));
 // Malformed tasks are rejected, never silently reset into an empty queue.
 for(const mutate of [
  s=>s.tasks=null,s=>s.tasks.push(clone(s.tasks[0])),s=>s.tasks[0].checks.a='yes',s=>{s.tasks[0].checks.a=true;s.tasks[0].checks.b=true;},
- s=>s.tasks[0].checks.other=false,s=>s.tasks[0].expiresAt=after(21600001),s=>s.tasks[0].createdAt='bad',s=>s.tasks[0].to='a',
+ s=>s.tasks[0].checks.other=false,s=>s.tasks[0].expiresAt=after(3599999),s=>s.tasks[0].expiresAt=after(172800001),s=>s.tasks[0].createdAt='bad',s=>s.tasks[0].to='a',
  s=>s.tasks[0].id='onde-2',s=>s.tasks[0].categoryId='detente',s=>s.tasks[0].unexpected=true,s=>s.tasks[0].proposal=123
 ]){
  const broken=clone(state);mutate(broken);

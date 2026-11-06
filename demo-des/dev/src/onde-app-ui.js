@@ -657,5 +657,28 @@
    remote.restore().then(value=>{if(value)flushRemote(value,false);else remoteReady=false;authBusy=false;render();}).catch(error=>{remoteReady=false;authBusy=false;loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';render();});
   }
  }
+ const swApi=window.navigator&&window.navigator.serviceWorker;
+ if(remoteMode&&swApi){
+  const hadController=!!swApi.controller;
+  const showShellUpdate=()=>{
+   if(root.querySelector('.oa-update'))return;
+   const bar=document.createElement('div');bar.className='oa-update';bar.setAttribute('role','status');
+   bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#20241f;color:#edcfc4;font:600 12px/1.45 system-ui,-apple-system,sans-serif;box-shadow:0 -8px 20px rgba(0,0,0,.4)';
+   const label=document.createElement('span');label.textContent='Une mise à jour de Dés·ir est prête.';
+   const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
+   reload.style.cssText='border:0;border-radius:9px;padding:8px 14px;font:inherit;color:#fff0e6;background:linear-gradient(145deg,#cf7475,#ad4b5b);cursor:pointer';
+   reload.addEventListener('click',()=>location.reload());
+   bar.append(label,reload);root.append(bar);announce('Une mise à jour de Dés·ir est prête. Recharge pour l’utiliser.');
+  };
+  swApi.addEventListener('controllerchange',()=>{if(hadController&&swApi.controller)showShellUpdate();});
+  swApi.ready.then(registration=>{
+   if(!registration)return;
+   registration.addEventListener('updatefound',()=>{
+    const worker=registration.installing;if(!worker)return;
+    worker.addEventListener('statechange',()=>{if(hadController&&(worker.state==='installed'||worker.state==='activating'))showShellUpdate();});
+   });
+   return registration.update().catch(()=>{});
+  }).catch(()=>{});
+ }
  root.dataset.ready='true';
 })();
