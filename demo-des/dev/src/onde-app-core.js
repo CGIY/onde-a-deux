@@ -327,7 +327,8 @@
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
-      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || Date.parse(task.expiresAt)-Date.parse(task.createdAt)!==rules.taskLifetimeMs) return false;
+      // Migration : les tâches validées avant la bascule gardent leur échéance de 6 h.
+      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || ![rules.taskLifetimeMs,21600000].includes(Date.parse(task.expiresAt)-Date.parse(task.createdAt))) return false;
       if(!task.checks || typeof task.checks!=='object' || Array.isArray(task.checks) || Object.keys(task.checks).sort().join(',')!=='a,b' || ['a','b'].some(id=>typeof task.checks[id]!=='boolean') || task.checks.a&&task.checks.b) return false;
       if(task.proposal!==null && (typeof task.proposal!=='string' || !task.proposal.trim() || task.proposal.length>400)) return false;
       if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.variantRoll!==s.round.variantRoll || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;

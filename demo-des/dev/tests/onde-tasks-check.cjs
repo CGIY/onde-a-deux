@@ -14,6 +14,7 @@ let state=accept();const id=state.round.id,task=state.tasks[0];
 check(()=>assert.equal(G.rules.taskLifetimeMs,86400000));
 check(()=>assert.equal(state.tasks.length,1));
 check(()=>assert.deepEqual(task,{id,cardId:state.round.cardId,categoryId:state.round.categoryId,from:state.round.from,to:state.round.to,createdAt:at,expiresAt:after(86400000),checks:{a:false,b:false},proposal:null}));
+const legacySixHour=clone(state);legacySixHour.tasks[0]={...legacySixHour.tasks[0],expiresAt:after(21600000)};check(()=>assert.equal(G.validateState(legacySixHour),true));
 check(()=>assert.equal(state.history[0].status,'queued'));
 check(()=>assert.equal(state.stats.totalCompleted,0));
 check(()=>assert.equal(act(state,'ACCEPT'),state));
