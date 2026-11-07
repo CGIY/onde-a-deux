@@ -224,7 +224,7 @@ for(const sides of [4,6]){
  const results=await Promise.all([deliver(action),deliver(action)]);equal(results.map(x=>x.status),[200,200]);equal(results[0].body,results[1].body);equal(store.receipts.size,1);equal(store.revision,before+1);equal(view(store,'a').round.cardRoll,results[0].body.roll.value);equal(store.used.size,1);equal(store.outbox,[]);
 }
 
-// Draws stay private until send; incoming responses never replace the receiver's own lane.
+// Draws stay private until send; replies preserve both active lanes and queued tasks.
 {
  const store=new MemoryStore();store.state=G.createRoom();await authorize(store);const rng=[];let category=0;
  const deliver=client(createHandler({G:{...G,randomInt:n=>{rng.push(n);return n===42?(++category===1?1:42):n===20?1:2;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
@@ -239,22 +239,23 @@ for(const sides of [4,6]){
  const aBefore=clone(store.state.lanes.a),bBefore=clone(store.state.lanes.b),oldRng=rng.length;
  const forbidden=await deliver(intent('ROLL_VARIANT',660,aId),tokenB);equal(forbidden.status,409);equal(forbidden.body.state.round.id,bId);equal(forbidden.body.incoming,[]);equal(rng.length,oldRng);equal(store.state.lanes.a,aBefore);equal(store.state.lanes.b,bBefore);
  equal((await deliver(intent('SEND',661,aId))).status,200);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:aId}]);
+ equal(store.state.lanes.a.phase,'category');ok(store.state.lanes.a.round.id!==aId);
  const invited=await deliver({op:'state'},tokenB);equal(invited.body.state.round.id,bId);equal(invited.body.state.phase,'draft');equal(invited.body.incoming.length,1);equal(invited.body.incoming[0].round.id,aId);equal(invited.body.incoming[0].round.variantRoll,2);
- const altered=clone(store.state),lane=altered.lanes.a,others=lane.round.hand.filter(id=>id!==lane.round.cardId).reverse();others.splice(lane.round.cardRoll-1,0,lane.round.cardId);lane.round.hand=others;
+ const altered=clone(store.state),queued=altered.pendingRounds.find(item=>item.round.id===aId).round,others=queued.hand.filter(id=>id!==queued.cardId).reverse();others.splice(queued.cardRoll-1,0,queued.cardId);queued.hand=others;
  equal(projectState(G,altered,'b',3,aId),invited.body.incoming[0],'private permutation never leaks to receiver');
  const sentAgain=await deliver(intent('SEND',661,aId));equal(sentAgain.status,200);equal(store.outbox.length,1);
  const aSent=clone(store.state.lanes.a);
  const refusedChallenge=await deliver(intent('CHALLENGE',662,aId),tokenB);equal(refusedChallenge.status,400,'the recipient D20 no longer exists');equal(refusedChallenge.body.error.code,'invalid_action');equal(store.state.lanes.a,aSent);equal(store.state.lanes.b,bBefore);
- const accepted=await deliver(intent('ACCEPT',664,aId),tokenB);equal(accepted.status,200);equal(accepted.body.incoming[0].phase,'accepted');equal(accepted.body.state.round.id,bId);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,aId);
+ const accepted=await deliver(intent('ACCEPT',664,aId),tokenB);equal(accepted.status,200);equal(accepted.body.incoming,[]);equal(accepted.body.state.round.id,bId);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,aId);
  const checkA=intent('TOGGLE_TASK_CHECK',665,aId,{taskId:aId,checked:true}),checkB=intent('TOGGLE_TASK_CHECK',666,bId,{taskId:aId,checked:true});
- const checked=await Promise.all([deliver(checkA),deliver(checkB,tokenB)]);equal(checked.map(x=>x.status),[200,200]);equal(store.state.stats.totalCompleted,1);equal(store.state.tasks.length,0);equal(store.state.lanes.a.phase,'resolved');equal(store.state.lanes.b,bBefore);
+ const checked=await Promise.all([deliver(checkA),deliver(checkB,tokenB)]);equal(checked.map(x=>x.status),[200,200]);equal(store.state.stats.totalCompleted,1);equal(store.state.tasks.length,0);equal(store.state.lanes.a.phase,'category');equal(store.state.lanes.b,bBefore);
  equal((await deliver(checkB,tokenB)).status,200);equal(store.state.stats.totalCompleted,1);
- const next=await deliver(intent('NEW_ROUND',667,aId));equal(next.status,200);equal(next.body.state.round.from,'a');equal(next.body.state.phase,'category');ok(next.body.state.round.id!==aId);equal(next.body.quota.remaining,0);
+ const next=await deliver({op:'state'},tokenA);equal(next.status,200);equal(next.body.state.round.from,'a');equal(next.body.state.phase,'category');ok(next.body.state.round.id!==aId);equal(next.body.quota.remaining,0);
  const exhausted=await deliver(intent('ROLL_CATEGORY',668,next.body.state.round.id));equal(exhausted.status,409);equal(exhausted.body.error.code,'quota_exhausted');equal(store.state.lanes.b,bBefore);
  equal((await deliver(intent('SEND',669,bId),tokenB)).status,200);equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
 }
 
-// A sent invitation resolves in one gesture: the recipient passes or accepts directly.
+// Accepting or passing removes a queued invitation without blocking another draw.
 {
  const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
  const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
@@ -264,21 +265,21 @@ for(const sides of [4,6]){
  equal((await deliver(intent('ACCEPT',requestId++,id))).status,409,'the sender cannot accept their own draft');
  equal(store.outbox,[]);equal(store.used.size,1);
  equal((await deliver(intent('SEND',requestId++,id))).status,200);
- equal(store.state.lanes.a.phase,'pending');equal(store.state.lanes.b,untouched);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:id}]);
+ equal(store.state.lanes.a.phase,'category');equal(store.state.lanes.b,untouched);equal(store.state.pendingRounds[0].round.id,id);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:id}]);
  const invited=await deliver({op:'state'},tokenB);equal(invited.body.drawAvailable,true);equal(invited.body.incoming[0].phase,'pending');
  equal((await deliver(intent('PASS',requestId++,id))).status,409,'the sender cannot pass their own invitation');
  const passed=await deliver(intent('PASS',requestId++,id),tokenB);equal(passed.status,200);
- equal(passed.body.incoming[0].phase,'resolved');equal(passed.body.incoming[0].round.status,'passed');
+ equal(passed.body.incoming,[]);equal(store.state.pendingRounds.length,0);equal(store.state.history.find(round=>round.id===id).status,'passed');
  equal(store.state.stats.totalCompleted,0);equal(store.state.tasks.length,0);equal(store.outbox.length,2,'passing notifies the sender once');equal(store.outbox.at(-1),{actor:'a',kind:'confirmation',roundId:id});
  equal((await deliver(intent('PASS',requestId++,id),tokenB)).status,409,'a passed round is closed');
- const reopened=await deliver(intent('NEW_ROUND',requestId++,id));equal(reopened.status,200);equal(reopened.body.state.phase,'category');ok(reopened.body.state.round.id!==id);
+ const reopened=await deliver({op:'state'},tokenA);equal(reopened.status,200);equal(reopened.body.state.phase,'category');ok(reopened.body.state.round.id!==id);
  const bId=view(store,'b').round.id;
  for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,requestId++,bId),tokenB)).status,200);
  equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
  const accepted=await deliver(intent('ACCEPT',requestId++,bId),tokenA);equal(accepted.status,200);
  equal(store.outbox.at(-1),{actor:'b',kind:'confirmation',roundId:bId},'accepting notifies the sender');
- equal(accepted.body.incoming[0].phase,'accepted');equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,bId);
- equal(accepted.body.state.phase,'category','the accepter keeps their own lane');equal(store.used.size,2);
+ equal(accepted.body.incoming,[]);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,bId);
+ equal(accepted.body.state.phase,'category','the accepter keeps their own active lane');equal(store.used.size,2);
 }
 
 // Weekly joker: a chosen category once per week, still consuming the day's draw pool.
@@ -292,7 +293,7 @@ for(const sides of [4,6]){
  const again=await deliver(intent('JOKER_DRAW',692,id,{category:1}),tokenA);equal(again.status,409,'the joker needs a fresh category phase');
 }
 
-// Shared expiry reconciles both accepted lanes, without adding points.
+// Shared expiry removes due tasks and keeps the free lanes available.
 {
  const store=new MemoryStore();store.state=G.createRoom();await authorize(store);let now=at;
  const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(now)}));
@@ -302,8 +303,8 @@ for(const sides of [4,6]){
   for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,idCounter++,id),token)).status,200);
   equal((await deliver(intent('ACCEPT',idCounter++,id),otherToken)).status,200);
  }
- equal(store.state.tasks.length,2);now='2026-11-03T15:00:00.000Z';const expired=await deliver({op:'state'});equal(expired.status,200);equal(expired.body.state.tasks,[]);equal(store.state.lanes.a.round.status,'expired');equal(store.state.lanes.b.round.status,'expired');equal(store.state.stats.totalCompleted,0);
- const late=await deliver(intent('TOGGLE_TASK_CHECK',idCounter++,view(store,'a').round.id,{taskId:'onde-1',checked:true}),tokenB);equal(late.status,409);equal(store.state.stats.totalCompleted,0);
+ const taskIds=store.state.tasks.map(task=>task.id);equal(store.state.tasks.length,2);now='2026-11-03T15:00:00.000Z';const expired=await deliver({op:'state'});equal(expired.status,200);equal(expired.body.state.tasks,[]);equal(store.state.lanes.a.phase,'category');equal(store.state.lanes.b.phase,'category');equal(taskIds.every(id=>store.state.history.some(round=>round.id===id&&round.status==='expired')),true);equal(store.state.stats.totalCompleted,0);
+ const late=await deliver(intent('TOGGLE_TASK_CHECK',idCounter++,view(store,'a').round.id,{taskId:taskIds[0],checked:true}),tokenB);equal(late.status,409);equal(store.state.stats.totalCompleted,0);
 }
 
 // Identity, CORS, limits, authoritative time and idempotent receipts use the normal HTTP entry point.

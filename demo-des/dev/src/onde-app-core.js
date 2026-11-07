@@ -577,7 +577,12 @@
   const canRerollCard=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
 
   function recordHistory(s, round) {
-    s.history=[JSON.parse(JSON.stringify(round)),...s.history.filter(item=>item.id!==round.id)].slice(0,80);
+    const rows=[JSON.parse(JSON.stringify(round)),...s.history.filter(item=>item.id!==round.id)];
+    const protectedIds=new Set(s.tasks.map(task=>task.id));
+    const protectedRows=rows.filter(item=>protectedIds.has(item.id)).slice(0,80);
+    const recentRows=rows.filter(item=>!protectedIds.has(item.id)).slice(0,80-protectedRows.length);
+    const retained=new Set([...protectedRows,...recentRows].map(item=>item.id));
+    s.history=rows.filter(item=>retained.has(item.id));
   }
 
   function enqueueTask(s, acceptedAt) {
@@ -803,16 +808,21 @@
   const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
 
   function validateRoom(room) {
-    if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b') return false;
+    if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b' || !Array.isArray(room.pendingRounds) || room.pendingRounds.length>80) return false;
     if(!validStoredDaily(room.daily) || !validStoredReroll(room.dailyReroll) || !validStoredJoker(room.joker)) return false;
+    if(!Array.isArray(room.history) || !Array.isArray(room.tasks)) return false;
     const lanes=roomActors.map(actor=>room.lanes[actor]);
-    if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index])) return false;
+    if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index] || lane.phase==='pending')) return false;
     if(lanes[0].round.id===lanes[1].round.id) return false;
-    if(roomActors.some(actor=>!validateState(focusedRoomState(room,actor,room.lanes[actor])))) return false;
+    if(room.pendingRounds.some(lane=>!lane || typeof lane!=='object' || lane.phase!=='pending' || !roomActors.includes(lane.round?.from) || lane.round.status!=='pending')) return false;
+    const records=[...lanes,...room.pendingRounds];
+    if(new Set(records.map(item=>item.round.id)).size!==records.length) return false;
+    if(records.some(item=>!validateState(focusedRoomState(room,item.round.from,item)))) return false;
+    if(room.pendingRounds.some(item=>room.tasks.some(task=>task.id===item.round.id) || room.history.some(round=>round.id===item.round.id))) return false;
     if(new Set(room.history.map(round=>round.id)).size!==room.history.length) return false;
     return room.history.every(round=>{
       const sequence=typeof round.id==='string'&&/^onde-[1-9]\d*$/.test(round.id)?Number(round.id.slice(5)):NaN;
-      const lane=lanes.find(item=>item.round.id===round.id);
+      const lane=records.find(item=>item.round.id===round.id);
       return Number.isSafeInteger(sequence) && sequence<=room.sequence && (!lane ||
         round.cardId===lane.round.cardId && round.from===lane.round.from && round.to===lane.round.to && round.variantRoll===lane.round.variantRoll);
     });
@@ -821,10 +831,9 @@
   function normalizeRoom(raw,options={}) {
     if(validateRoom(raw)) return raw;
     if(raw?.version===2) {
-      // Migration : une salle en pleine négociation héritée (défi, contre-
-      // proposition, double confirmation) revient à une proposition prête
-      // ou à une invitation simple, sans jamais perdre le tour en cours.
       const migrated=roomCopy(raw);
+      if(!Array.isArray(migrated.pendingRounds)) migrated.pendingRounds=[];
+      if(migrated.pendingRounds.length>80) return null;
       for(const actor of roomActors) {
         const lane=migrated.lanes?.[actor];
         if(!lane || !lane.round || !['draft_challenge','challenge','challenge_failed','sender_confirmation'].includes(lane.phase)) continue;
@@ -840,6 +849,23 @@
           round.adapted=false; round.schedule=null;
         }
       }
+      for(const actor of roomActors) {
+        const lane=migrated.lanes?.[actor];
+        if(!lane || lane.phase!=='pending' || !lane.round) continue;
+        if(!migrated.pendingRounds.some(item=>item?.round?.id===lane.round.id)) migrated.pendingRounds.push(roomCopy(lane));
+        if(migrated.pendingRounds.length>80) return null;
+        const used=new Set([
+          ...roomActors.map(owner=>migrated.lanes?.[owner]?.round?.id),
+          ...migrated.pendingRounds.map(item=>item?.round?.id),
+          ...(migrated.history||[]).map(round=>round?.id),
+          ...(migrated.tasks||[]).map(task=>task?.id)
+        ]);
+        let sequence=Number.isSafeInteger(migrated.sequence)&&migrated.sequence<Number.MAX_SAFE_INTEGER?migrated.sequence+1:1;
+        while(sequence<=Number.MAX_SAFE_INTEGER&&used.has('onde-'+sequence)) sequence++;
+        if(sequence>Number.MAX_SAFE_INTEGER) return null;
+        if(sequence>migrated.sequence) migrated.sequence=sequence;
+        migrated.lanes[actor]={phase:'category',round:blankRound(sequence,actor,options.at)};
+      }
       return validateRoom(migrated)?migrated:null;
     }
     const state=normalizeState(raw,options);
@@ -852,10 +878,19 @@
       otherSequence=1;
       while(occupied.has('onde-'+otherSequence)) otherSequence++;
     }
-    const room={version:2,...roomCopy(roomShared(state)),daily:state.daily??null,dailyReroll:state.dailyReroll??{dateKey:isoTime(options.at)?parisDateKey(options.at):null,used:[]},joker:state.joker??null,sequence,lanes:{
+    const room={version:2,...roomCopy(roomShared(state)),daily:state.daily??null,dailyReroll:state.dailyReroll??{dateKey:isoTime(options.at)?parisDateKey(options.at):null,used:[]},joker:state.joker??null,sequence,pendingRounds:[],lanes:{
       [owner]:{phase:state.phase,round:roomCopy(state.round)},
       [other]:{phase:'category',round:blankRound(otherSequence,other,options.at)}
     }};
+    if(state.phase==='pending') {
+      room.pendingRounds.push({phase:'pending',round:roomCopy(state.round)});
+      const used=new Set([...Object.values(room.lanes).map(lane=>lane.round.id),...room.pendingRounds.map(item=>item.round.id),...room.history.map(round=>round.id),...room.tasks.map(task=>task.id)]);
+      let activeSequence=room.sequence<Number.MAX_SAFE_INTEGER?room.sequence+1:1;
+      while(activeSequence<=Number.MAX_SAFE_INTEGER&&used.has('onde-'+activeSequence)) activeSequence++;
+      if(activeSequence>Number.MAX_SAFE_INTEGER) return null;
+      if(activeSequence>room.sequence) room.sequence=activeSequence;
+      room.lanes[owner]={phase:'category',round:blankRound(activeSequence,owner,options.at)};
+    }
     return validateRoom(room)?room:null;
   }
 
@@ -869,7 +904,8 @@
   // private draw before returning any such view to a browser.
   function roomView(room,actor,roundId) {
     if(!validateRoom(room) || !roomActors.includes(actor)) return null;
-    const lane=roundId===undefined?room.lanes[actor]:roomActors.map(owner=>room.lanes[owner]).find(item=>item.round.id===roundId);
+    const records=[...roomActors.map(owner=>room.lanes[owner]),...room.pendingRounds];
+    const lane=roundId===undefined?room.lanes[actor]:records.find(item=>item.round.id===roundId);
     return lane?roomCopy(focusedRoomState(room,actor,lane)):null;
   }
 
@@ -896,9 +932,11 @@
     const actor=action.actor || (action.type==='EXPIRE_TASKS'?'a':null);
     if(!roomActors.includes(actor)) return room;
     const shared=['TOGGLE_TASK_CHECK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
-    const owner=shared?actor:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
+    const laneOwner=shared?null:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
+    const pendingIndex=shared?-1:room.pendingRounds.findIndex(item=>item.round.id===action.roundId);
+    const owner=shared?actor:laneOwner||(pendingIndex>=0?room.pendingRounds[pendingIndex].round.from:null);
     if(!owner) return room;
-    const lane=room.lanes[owner];
+    const lane=pendingIndex>=0?room.pendingRounds[pendingIndex]:room.lanes[owner];
     if(action.type==='NEW_ROUND') {
       if(owner!==actor || !['accepted','resolved'].includes(lane.phase) || room.sequence===Number.MAX_SAFE_INTEGER) return room;
       const next=roomCopy(room);
@@ -907,14 +945,24 @@
       return validateRoom(next)?next:room;
     }
     if(action.type==='ROLL_CATEGORY' && owner!==actor) return room;
+    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && (room.sequence===Number.MAX_SAFE_INTEGER || room.pendingRounds.length>=80)) return room;
     const focused=focusedRoomState(room,actor,lane);
     if(!shared && !canSeeRound(focused,actor)) return room;
     const forwarded={...action,actor};
     if(shared) delete forwarded.roundId;
     const result=reduce(focused,forwarded);
     if(result===focused) return room;
-    const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes)};
-    next.lanes[owner]={phase:result.phase,round:result.round};
+    const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes),pendingRounds:roomCopy(room.pendingRounds)};
+    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && result.phase==='pending') {
+      next.sequence=room.sequence+1;
+      next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
+      next.pendingRounds.push({phase:'pending',round:roomCopy(result.round)});
+    } else if(pendingIndex>=0) {
+      if(result.phase==='pending') next.pendingRounds[pendingIndex]={phase:result.phase,round:result.round};
+      else next.pendingRounds.splice(pendingIndex,1);
+    } else {
+      next.lanes[owner]={phase:result.phase,round:result.round};
+    }
     reconcileRoomTasks(next);
     return validateRoom(next)?next:room;
   }

@@ -82,18 +82,19 @@ function rollCategoryOn(room,actor,category,modeRoll){
   const sent=G.reduceRoom(room,{type:'SEND_DAILY',actor:'a',roundId,at});
   assert.notEqual(sent,room,'proposer la carte du jour s’applique');
   assert.ok(G.validateRoom(sent));
-  assert.equal(sent.lanes.a.phase,'pending');
-  assert.equal(sent.lanes.a.round.awaiting,'b');
-  assert.equal(sent.lanes.a.round.cardId,room.daily.cardId);
-  assert.equal(sent.lanes.a.round.from,'a');
+  assert.equal(sent.pendingRounds.length,1);
+  assert.equal(sent.pendingRounds[0].round.id,roundId);
+  assert.equal(sent.pendingRounds[0].round.awaiting,'b');
+  assert.equal(sent.pendingRounds[0].round.cardId,room.daily.cardId);
+  assert.equal(sent.pendingRounds[0].round.from,'a');
+  assert.equal(sent.lanes.a.phase,'category','le tirage suivant est disponible sans attendre');
   assert.equal(sent.daily.usedBy,'a','la carte du jour est consommée');
 
   const passed=G.reduceRoom(sent,{type:'PASS',actor:'b',roundId,at});
-  assert.equal(passed.lanes.a.phase,'resolved');
-  const reopened=G.reduceRoom(passed,{type:'NEW_ROUND',actor:'a',roundId,at});
-  assert.equal(reopened.lanes.a.phase,'category');
-  const resend=G.reduceRoom(reopened,{type:'SEND_DAILY',actor:'a',roundId:reopened.lanes.a.round.id,at});
-  assert.equal(resend,reopened,'carte du jour déjà proposée aujourd’hui');
+  assert.equal(passed.lanes.a.phase,'category');
+  assert.equal(passed.pendingRounds.length,0);
+  const resend=G.reduceRoom(passed,{type:'SEND_DAILY',actor:'a',roundId:passed.lanes.a.round.id,at});
+  assert.equal(resend,passed,'carte du jour déjà proposée aujourd’hui');
 
   const bare=G.createRoom({at});
   assert.equal(G.reduceRoom(bare,{type:'SEND_DAILY',actor:'a',roundId:bare.lanes.a.round.id,at}),bare,'sans carte du jour, rien à proposer');

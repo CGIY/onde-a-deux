@@ -17,7 +17,7 @@
 
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
  let systemReduce=!!(motionQuery&&motionQuery.matches);
- let localRoom=null,ownState=null,incomingStates=[],selectedIncomingRoundId=null;
+ let localRoom=null,ownState=null,incomingStates=[],outgoingCount=0,selectedIncomingRoundId=null;
  let state=G.createState(), tab='play', busy=false, rerolling=false, toastTimer, lastFocus=null, animationSerial=0;
  let cardReveal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
  let autoNewRoundTimer=null,autoNewRoundId=null;
@@ -128,9 +128,9 @@
  }
  function syncLocalView(){
   ownState=G.roomView(localRoom,viewPlayer);
-  const partner=localRoom.lanes[G.otherPlayer(viewPlayer)];
-  const incoming=G.roomView(localRoom,viewPlayer,partner.round.id);
-  incomingStates=incoming.phase!=='category'&&G.canSeeRound(incoming,viewPlayer)?[incoming]:[];
+  const pending=localRoom.pendingRounds.map(item=>G.roomView(localRoom,viewPlayer,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,viewPlayer));
+  incomingStates=pending.filter(value=>value.round.from!==viewPlayer&&G.canRespond(value));
+  outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
  function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===3;}
@@ -145,8 +145,12 @@
  function pullShared(){if(remoteMode||!canPersist)return false;try{return receiveShared(localStorage.getItem(storageKey));}catch(_){return false;}}
  function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;selectedIncomingRoundId=null;syncLocalView();openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
  function awaitingPlayer(player){
-  const views=remoteMode?[ownState,...incomingStates].filter(Boolean):Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id));
-  return views.some(value=>['pending'].includes(value.phase)&&value.round.awaiting===player);
+  const views=remoteMode?[ownState,...incomingStates].filter(Boolean):[
+   ...Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id)),
+   ...localRoom.pendingRounds.map(item=>G.roomView(localRoom,player,item.round.id))
+  ];
+  return views.some(value=>value?.phase==='pending'&&value.round.awaiting===player)||
+   remoteMode&&outgoingCount>0&&player===G.otherPlayer(viewPlayer);
  }
  function invitationKey(){return state.round.id+'-'+state.round.awaiting;}
 
@@ -160,9 +164,9 @@
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming});
+  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
-  viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));selectDisplayState();remoteReady=true;authBusy=false;loginError='';
+  viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
  }
  function receiveRemote(value){
@@ -282,9 +286,10 @@
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
  function incomingBanner(){
-  const incoming=incomingStates.find(value=>G.canRespond(value));
-  if(!incoming)return '';
-  return '<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(incoming.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(incoming.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>';
+  const invitations=incomingStates.filter(value=>G.canRespond(value));
+  const incoming=invitations.map(value=>'<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(value.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(value.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>').join('');
+  const outgoing=outgoingCount?'<div class="oa-invitation oa-incoming oa-outgoing" role="status"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+outgoingCount+' invitation'+(outgoingCount>1?'s':'')+' en attente</b><small>Tu peux continuer à jouer pendant l’attente.</small></span></div>':'';
+  return incoming+outgoing;
  }
  function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+hardcoreOfferBanner()+renderPlayContent();}
  function renderPlayContent(){const r=state.round,c=card();
@@ -620,7 +625,7 @@
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
-  if(action==='accept'){const changed=await dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();if(changed&&state.phase==='accepted')announce('Proposition ajoutée aux choses à faire.');return;}
+  if(action==='accept'){const acceptedId=state.round.id,changed=await dispatch({type:'ACCEPT'},false);const accepted=(ownState?.tasks||state.tasks||[]).some(task=>task.id===acceptedId);if(accepted)tab='tasks';render();if(changed&&accepted)announce('Proposition ajoutée aux choses à faire.');return;}
   if(action==='pass'){const changed=await dispatch({type:'PASS'},false);render();if(changed)toast('Carte passée.');return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
   if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}

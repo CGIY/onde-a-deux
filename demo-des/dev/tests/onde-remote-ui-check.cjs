@@ -32,8 +32,8 @@ function gradeProgress(html){const section=gradeSection(html),progress=section.m
 function draftGame(actor='a',face=1){let s=initial();s=G.reduce(s,{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)});s=G.reduce(s,{type:'ROLL_CARD',value:face});s.activePlayer=actor;assert.ok(G.validateState(s));return s;}
 function snap(state,revision=1,remaining=1){return {roomId,state:copy(state),revision,actor:state.activePlayer,paired:true,drawAvailable:state.phase==='category',quota:{remaining,window:'2026-11-02T06:00',label:'6 h – 12 h',nextAt:'2026-11-02T11:00:00.000Z'},serverTime:new Date().toISOString()};}
 function roomSnapshot(room,actor='a',revision=1,remaining=1){
- const own=G.roomView(room,actor),partner=G.roomView(room,actor,room.lanes[G.otherPlayer(actor)].round.id);
- return {...snap(own,revision,remaining),gameVersion:3,incoming:partner.phase!=='category'&&G.canSeeRound(partner,actor)?[partner]:[]};
+ const own=G.roomView(room,actor),pending=room.pendingRounds.map(item=>G.roomView(room,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
+ return {...snap(own,revision,remaining),gameVersion:3,incoming:pending.filter(value=>value.round.from!==actor),pendingOutgoing:pending.filter(value=>value.round.from===actor).length};
 }
 function roomDraw(room,owner,category=1,card=1,variant=1){
  const roundId=room.lanes[owner].round.id;
@@ -171,7 +171,7 @@ async function rollSession(options={}){
   let room=roomDraw(G.createRoom(),'a',1,1,2);room=roomDraw(room,'b',3,2,3);
   const ownId=room.lanes.a.round.id,incomingId=room.lanes.b.round.id;
   room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:incomingId,at:new Date().toISOString()});
-  const ownCard=G.getCard(room.lanes.a.round.cardId),otherCard=G.getCard(room.lanes.b.round.cardId),remote=mockRemote(roomSnapshot(room)),ui=shell(remote);await tick();
+  const ownCard=G.getCard(room.lanes.a.round.cardId),otherCard=G.getCard(room.pendingRounds[0].round.cardId),remote=mockRemote(roomSnapshot(room)),ui=shell(remote);await tick();
   check(()=>{assert.ok(hasTitle(ui.html,ownCard.title));assert.ok(!hasTitle(ui.html,otherCard.title));assert.ok(ui.html.includes('Invitation de'));assert.ok(ui.html.includes('data-round="'+incomingId+'"'));});
   await ui.click('open-invitation',{round:incomingId});
   check(()=>{assert.ok(hasTitle(ui.html,otherCard.title));assert.ok(ui.html.includes('data-action="own-draw"'));assert.ok(ui.html.includes('data-action="accept"'));assert.ok(!hasTitle(ui.html,ownCard.title));});
@@ -179,8 +179,8 @@ async function rollSession(options={}){
   await ui.click('open-invitation',{round:incomingId});
   remote.actionImpl=async action=>{check(()=>assert.equal(action.roundId,incomingId));room=G.reduceRoom(room,{...action,actor:'a',at:new Date().toISOString()});return roomSnapshot(room,'a',2,0);};
   await ui.click('accept');check(()=>{assert.equal(room.tasks.length,1);assert.equal(room.lanes.a.phase,'draft');assert.equal(room.lanes.a.round.id,ownId);assert.ok(ui.html.includes(otherCard.title));});
-  check(()=>{assert.ok(ui.html.includes('Les choses'));assert.ok(ui.html.includes('data-action="own-draw"'));assert.ok(!ui.html.includes('data-action="new"'));});
-  await ui.click('own-draw');check(()=>{assert.ok(hasTitle(ui.html,ownCard.title));assert.ok(ui.html.includes('Ta prochaine'));assert.ok(!ui.html.includes('Les choses'));});
+  check(()=>{assert.ok(ui.html.includes('Les choses'));assert.ok(!ui.html.includes('data-action="new"'));});
+  await ui.click('tab',{tab:'play'});check(()=>{assert.ok(hasTitle(ui.html,ownCard.title));assert.ok(ui.html.includes('Ta prochaine'));assert.ok(!ui.html.includes('Les choses'));});
   const reloaded=shell(mockRemote(roomSnapshot(room,'a',2,0)));await tick();check(()=>assert.ok(hasTitle(reloaded.html,ownCard.title)));
  }
  // The other private draw is absent, while a received invitation can coexist with an available die.
@@ -188,8 +188,10 @@ async function rollSession(options={}){
   let room=roomDraw(G.createRoom(),'b',3,1,1);
   const hiddenRemote=mockRemote(roomSnapshot(room)),hidden=shell(hiddenRemote);await tick();
   check(()=>{assert.ok(hidden.html.includes('Lancer le D4'));assert.ok(!hidden.html.includes('Invitation de'));assert.ok(!hasTitle(hidden.html,G.getCard(room.lanes.b.round.cardId).title));});
+  const privateCard=G.getCard(room.lanes.b.round.cardId);
   room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:room.lanes.b.round.id,at:new Date().toISOString()});
-  hiddenRemote.emit(roomSnapshot(room,'a',2));check(()=>{assert.ok(hidden.html.includes('Lancer le D4'));assert.ok(hidden.html.includes('Invitation de'));assert.ok(!hasTitle(hidden.html,G.getCard(room.lanes.b.round.cardId).title));});
+  const sentCard=G.getCard(room.pendingRounds[0].round.cardId);
+  hiddenRemote.emit(roomSnapshot(room,'a',2));check(()=>{assert.ok(hidden.html.includes('Lancer le D4'));assert.ok(hidden.html.includes('Invitation de'));assert.ok(!hasTitle(hidden.html,privateCard.title));assert.ok(!hasTitle(hidden.html,sentCard.title));});
   hiddenRemote.emit(roomSnapshot(room,'a',3,0));check(()=>{assert.ok(hidden.html.includes('Prochain tirage'));assert.ok(hidden.html.includes('Invitation de'));assert.ok(!hidden.html.includes('data-action="roll"'));});
  }
  // Switching local worlds keeps both independent hands in the stored room.

@@ -19,8 +19,10 @@ function drawn(){return G.reduce(state(),{type:'ROLL_CATEGORY',value:1,hand:G.le
 function drafted(){return G.reduce(drawn(),{type:'ROLL_CARD',value:1});}
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function parallelReply(room,actor='a',revision=1){
- const own=G.roomView(room,actor),other=G.roomView(room,actor,room.lanes[G.otherPlayer(actor)].round.id);
- return reply(actor,revision,own,{gameVersion:3,drawAvailable:own.phase==='category',incoming:other.phase!=='category'&&G.canSeeRound(other,actor)?[other]:[]});
+ const own=G.roomView(room,actor),pending=room.pendingRounds.map(item=>G.roomView(room,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
+ const incoming=pending.filter(value=>value.round.from!==actor);
+ const pendingOutgoing=pending.filter(value=>value.round.from===actor).length;
+ return reply(actor,revision,own,{gameVersion:3,drawAvailable:own.phase==='category',incoming,pendingOutgoing});
 }
 (async()=>{
  // Ephemeral live presses bypass a pending normal draw and never become durable actions.
@@ -62,15 +64,18 @@ function parallelReply(room,actor='a',revision=1){
   const r=create(config,env(async(url,options)=>payload(options).op==='login'?response(loginReply(options)):response({actor:'a',session:null,revision:0,serverTime:'2026-11-05T15:00:00.000Z',...bad})));
   await r.login('fixture-user','fixture-password');await assert.rejects(r.hardcore(),{code:'invalid_response'});checks++;
  }
- // Parallel snapshots preserve own progress separately from a visible invitation.
+ // Parallel snapshots keep several invitations separate from the next active draw.
  {
-  let room=G.createRoom();const id=room.lanes.b.round.id,at='2026-11-05T12:00:00.000Z';
-  room=G.reduceRoom(room,{type:'ROLL_CATEGORY',actor:'b',roundId:id,catalogueVersion:2,value:1,hand:G.cards.filter(c=>c.categoryId==='complicite').map(c=>c.id)});
-  room=G.reduceRoom(room,{type:'ROLL_CARD',actor:'b',roundId:id,value:1});
-  room=G.reduceRoom(room,{type:'ROLL_VARIANT',actor:'b',roundId:id,value:1});
-  room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:id,at});
+  let room=G.createRoom();const ids=[],at='2026-11-05T12:00:00.000Z';
+  for(let i=0;i<2;i++){
+   const id=room.lanes.b.round.id;ids.push(id);
+   room=G.reduceRoom(room,{type:'ROLL_CATEGORY',actor:'b',roundId:id,catalogueVersion:2,value:1,hand:G.cards.filter(c=>c.categoryId==='complicite').map(c=>c.id)});
+   room=G.reduceRoom(room,{type:'ROLL_CARD',actor:'b',roundId:id,value:1});
+   room=G.reduceRoom(room,{type:'ROLL_VARIANT',actor:'b',roundId:id,value:1});
+   room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:id,at});
+  }
   const expected=parallelReply(room),r=create(config,env(async(url,options)=>response({...expected,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));
-  await r.login('fixture-user','fixture-password');check(()=>{assert.equal(r.snapshot.gameVersion,3);assert.equal(r.snapshot.state.round.from,'a');assert.equal(r.snapshot.state.phase,'category');assert.equal(r.snapshot.incoming.length,1);assert.equal(r.snapshot.incoming[0].round.id,id);});
+  await r.login('fixture-user','fixture-password');check(()=>{assert.equal(r.snapshot.gameVersion,3);assert.equal(r.snapshot.state.round.from,'a');assert.equal(r.snapshot.state.phase,'category');assert.equal(r.snapshot.incoming.length,2);assert.deepEqual(r.snapshot.incoming.map(value=>value.round.id),ids);assert.equal(r.snapshot.pendingOutgoing,0);});
   const invalid=[{...expected,incoming:[expected.state]},{...expected,incoming:[...expected.incoming,...expected.incoming]}];
   for(const snapshot of invalid){const bad=create(config,env(async(url,options)=>response({...snapshot,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));await assert.rejects(bad.login('fixture-user','fixture-password'),{code:'invalid_response'});check(()=>assert.equal(bad.connection,null));}
  }

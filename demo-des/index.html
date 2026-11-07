@@ -475,6 +475,7 @@
 #onde-app-v1.oa-entering .oa-invitation{animation:oa-soft-settle .42s cubic-bezier(.22,1,.36,1) both}
 #onde-app-v1.oa-entering .oa-invitation-dot{animation:oa-invitation-breathe 1.2s ease-in-out 2}
 #onde-app-v1 .oa-invitation.oa-incoming{min-height:44px;margin:0 0 10px;padding:10px 12px;gap:10px;border-radius:14px}
+#onde-app-v1 .oa-invitation.oa-outgoing{cursor:default}
 #onde-app-v1 .oa-invitation.oa-incoming b{font-size:13px}
 #onde-app-v1 [data-action=own-draw].oa-text-button{min-height:44px;margin:0 0 8px;text-align:left}
 #onde-app-v1 .oa-invitation b{display:block;font-size:15px;font-weight:500;line-height:1.35}
@@ -1271,7 +1272,12 @@
   const canRerollCard=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
 
   function recordHistory(s, round) {
-    s.history=[JSON.parse(JSON.stringify(round)),...s.history.filter(item=>item.id!==round.id)].slice(0,80);
+    const rows=[JSON.parse(JSON.stringify(round)),...s.history.filter(item=>item.id!==round.id)];
+    const protectedIds=new Set(s.tasks.map(task=>task.id));
+    const protectedRows=rows.filter(item=>protectedIds.has(item.id)).slice(0,80);
+    const recentRows=rows.filter(item=>!protectedIds.has(item.id)).slice(0,80-protectedRows.length);
+    const retained=new Set([...protectedRows,...recentRows].map(item=>item.id));
+    s.history=rows.filter(item=>retained.has(item.id));
   }
 
   function enqueueTask(s, acceptedAt) {
@@ -1497,16 +1503,21 @@
   const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
 
   function validateRoom(room) {
-    if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b') return false;
+    if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b' || !Array.isArray(room.pendingRounds) || room.pendingRounds.length>80) return false;
     if(!validStoredDaily(room.daily) || !validStoredReroll(room.dailyReroll) || !validStoredJoker(room.joker)) return false;
+    if(!Array.isArray(room.history) || !Array.isArray(room.tasks)) return false;
     const lanes=roomActors.map(actor=>room.lanes[actor]);
-    if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index])) return false;
+    if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index] || lane.phase==='pending')) return false;
     if(lanes[0].round.id===lanes[1].round.id) return false;
-    if(roomActors.some(actor=>!validateState(focusedRoomState(room,actor,room.lanes[actor])))) return false;
+    if(room.pendingRounds.some(lane=>!lane || typeof lane!=='object' || lane.phase!=='pending' || !roomActors.includes(lane.round?.from) || lane.round.status!=='pending')) return false;
+    const records=[...lanes,...room.pendingRounds];
+    if(new Set(records.map(item=>item.round.id)).size!==records.length) return false;
+    if(records.some(item=>!validateState(focusedRoomState(room,item.round.from,item)))) return false;
+    if(room.pendingRounds.some(item=>room.tasks.some(task=>task.id===item.round.id) || room.history.some(round=>round.id===item.round.id))) return false;
     if(new Set(room.history.map(round=>round.id)).size!==room.history.length) return false;
     return room.history.every(round=>{
       const sequence=typeof round.id==='string'&&/^onde-[1-9]\d*$/.test(round.id)?Number(round.id.slice(5)):NaN;
-      const lane=lanes.find(item=>item.round.id===round.id);
+      const lane=records.find(item=>item.round.id===round.id);
       return Number.isSafeInteger(sequence) && sequence<=room.sequence && (!lane ||
         round.cardId===lane.round.cardId && round.from===lane.round.from && round.to===lane.round.to && round.variantRoll===lane.round.variantRoll);
     });
@@ -1515,10 +1526,9 @@
   function normalizeRoom(raw,options={}) {
     if(validateRoom(raw)) return raw;
     if(raw?.version===2) {
-      // Migration : une salle en pleine négociation héritée (défi, contre-
-      // proposition, double confirmation) revient à une proposition prête
-      // ou à une invitation simple, sans jamais perdre le tour en cours.
       const migrated=roomCopy(raw);
+      if(!Array.isArray(migrated.pendingRounds)) migrated.pendingRounds=[];
+      if(migrated.pendingRounds.length>80) return null;
       for(const actor of roomActors) {
         const lane=migrated.lanes?.[actor];
         if(!lane || !lane.round || !['draft_challenge','challenge','challenge_failed','sender_confirmation'].includes(lane.phase)) continue;
@@ -1534,6 +1544,23 @@
           round.adapted=false; round.schedule=null;
         }
       }
+      for(const actor of roomActors) {
+        const lane=migrated.lanes?.[actor];
+        if(!lane || lane.phase!=='pending' || !lane.round) continue;
+        if(!migrated.pendingRounds.some(item=>item?.round?.id===lane.round.id)) migrated.pendingRounds.push(roomCopy(lane));
+        if(migrated.pendingRounds.length>80) return null;
+        const used=new Set([
+          ...roomActors.map(owner=>migrated.lanes?.[owner]?.round?.id),
+          ...migrated.pendingRounds.map(item=>item?.round?.id),
+          ...(migrated.history||[]).map(round=>round?.id),
+          ...(migrated.tasks||[]).map(task=>task?.id)
+        ]);
+        let sequence=Number.isSafeInteger(migrated.sequence)&&migrated.sequence<Number.MAX_SAFE_INTEGER?migrated.sequence+1:1;
+        while(sequence<=Number.MAX_SAFE_INTEGER&&used.has('onde-'+sequence)) sequence++;
+        if(sequence>Number.MAX_SAFE_INTEGER) return null;
+        if(sequence>migrated.sequence) migrated.sequence=sequence;
+        migrated.lanes[actor]={phase:'category',round:blankRound(sequence,actor,options.at)};
+      }
       return validateRoom(migrated)?migrated:null;
     }
     const state=normalizeState(raw,options);
@@ -1546,10 +1573,19 @@
       otherSequence=1;
       while(occupied.has('onde-'+otherSequence)) otherSequence++;
     }
-    const room={version:2,...roomCopy(roomShared(state)),daily:state.daily??null,dailyReroll:state.dailyReroll??{dateKey:isoTime(options.at)?parisDateKey(options.at):null,used:[]},joker:state.joker??null,sequence,lanes:{
+    const room={version:2,...roomCopy(roomShared(state)),daily:state.daily??null,dailyReroll:state.dailyReroll??{dateKey:isoTime(options.at)?parisDateKey(options.at):null,used:[]},joker:state.joker??null,sequence,pendingRounds:[],lanes:{
       [owner]:{phase:state.phase,round:roomCopy(state.round)},
       [other]:{phase:'category',round:blankRound(otherSequence,other,options.at)}
     }};
+    if(state.phase==='pending') {
+      room.pendingRounds.push({phase:'pending',round:roomCopy(state.round)});
+      const used=new Set([...Object.values(room.lanes).map(lane=>lane.round.id),...room.pendingRounds.map(item=>item.round.id),...room.history.map(round=>round.id),...room.tasks.map(task=>task.id)]);
+      let activeSequence=room.sequence<Number.MAX_SAFE_INTEGER?room.sequence+1:1;
+      while(activeSequence<=Number.MAX_SAFE_INTEGER&&used.has('onde-'+activeSequence)) activeSequence++;
+      if(activeSequence>Number.MAX_SAFE_INTEGER) return null;
+      if(activeSequence>room.sequence) room.sequence=activeSequence;
+      room.lanes[owner]={phase:'category',round:blankRound(activeSequence,owner,options.at)};
+    }
     return validateRoom(room)?room:null;
   }
 
@@ -1563,7 +1599,8 @@
   // private draw before returning any such view to a browser.
   function roomView(room,actor,roundId) {
     if(!validateRoom(room) || !roomActors.includes(actor)) return null;
-    const lane=roundId===undefined?room.lanes[actor]:roomActors.map(owner=>room.lanes[owner]).find(item=>item.round.id===roundId);
+    const records=[...roomActors.map(owner=>room.lanes[owner]),...room.pendingRounds];
+    const lane=roundId===undefined?room.lanes[actor]:records.find(item=>item.round.id===roundId);
     return lane?roomCopy(focusedRoomState(room,actor,lane)):null;
   }
 
@@ -1590,9 +1627,11 @@
     const actor=action.actor || (action.type==='EXPIRE_TASKS'?'a':null);
     if(!roomActors.includes(actor)) return room;
     const shared=['TOGGLE_TASK_CHECK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
-    const owner=shared?actor:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
+    const laneOwner=shared?null:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
+    const pendingIndex=shared?-1:room.pendingRounds.findIndex(item=>item.round.id===action.roundId);
+    const owner=shared?actor:laneOwner||(pendingIndex>=0?room.pendingRounds[pendingIndex].round.from:null);
     if(!owner) return room;
-    const lane=room.lanes[owner];
+    const lane=pendingIndex>=0?room.pendingRounds[pendingIndex]:room.lanes[owner];
     if(action.type==='NEW_ROUND') {
       if(owner!==actor || !['accepted','resolved'].includes(lane.phase) || room.sequence===Number.MAX_SAFE_INTEGER) return room;
       const next=roomCopy(room);
@@ -1601,14 +1640,24 @@
       return validateRoom(next)?next:room;
     }
     if(action.type==='ROLL_CATEGORY' && owner!==actor) return room;
+    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && (room.sequence===Number.MAX_SAFE_INTEGER || room.pendingRounds.length>=80)) return room;
     const focused=focusedRoomState(room,actor,lane);
     if(!shared && !canSeeRound(focused,actor)) return room;
     const forwarded={...action,actor};
     if(shared) delete forwarded.roundId;
     const result=reduce(focused,forwarded);
     if(result===focused) return room;
-    const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes)};
-    next.lanes[owner]={phase:result.phase,round:result.round};
+    const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes),pendingRounds:roomCopy(room.pendingRounds)};
+    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && result.phase==='pending') {
+      next.sequence=room.sequence+1;
+      next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
+      next.pendingRounds.push({phase:'pending',round:roomCopy(result.round)});
+    } else if(pendingIndex>=0) {
+      if(result.phase==='pending') next.pendingRounds[pendingIndex]={phase:result.phase,round:result.round};
+      else next.pendingRounds.splice(pendingIndex,1);
+    } else {
+      next.lanes[owner]={phase:result.phase,round:result.round};
+    }
     reconcileRoomTasks(next);
     return validateRoom(next)?next:room;
   }
@@ -2035,11 +2084,13 @@ void main(){
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
    if(raw.gameVersion!==undefined&&raw.gameVersion!==3)throw failure('invalid_response','La version reçue est invalide.');
-   let incoming;
+   let incoming,pendingOutgoing=0;
    if(raw.gameVersion===3){
-    if(!Array.isArray(raw.incoming)||raw.incoming.length>1||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
+    if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
     incoming=raw.incoming.map(value=>G.normalizeState(value));
-    if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase==='category'||!G.canSeeRound(value,identity.actor)))throw failure('invalid_response','L’invitation reçue est invalide.');
+    if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
+    pendingOutgoing=raw.pendingOutgoing===undefined?0:raw.pendingOutgoing;
+    if(!Number.isInteger(pendingOutgoing)||pendingOutgoing<0||pendingOutgoing>80)throw failure('invalid_response','Les invitations envoyées sont invalides.');
    }
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
    let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>3||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
@@ -2047,7 +2098,7 @@ void main(){
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming}: {})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming,pendingOutgoing}: {})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -2408,7 +2459,7 @@ void main(){
 
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
  let systemReduce=!!(motionQuery&&motionQuery.matches);
- let localRoom=null,ownState=null,incomingStates=[],selectedIncomingRoundId=null;
+ let localRoom=null,ownState=null,incomingStates=[],outgoingCount=0,selectedIncomingRoundId=null;
  let state=G.createState(), tab='play', busy=false, rerolling=false, toastTimer, lastFocus=null, animationSerial=0;
  let cardReveal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
  let autoNewRoundTimer=null,autoNewRoundId=null;
@@ -2519,9 +2570,9 @@ void main(){
  }
  function syncLocalView(){
   ownState=G.roomView(localRoom,viewPlayer);
-  const partner=localRoom.lanes[G.otherPlayer(viewPlayer)];
-  const incoming=G.roomView(localRoom,viewPlayer,partner.round.id);
-  incomingStates=incoming.phase!=='category'&&G.canSeeRound(incoming,viewPlayer)?[incoming]:[];
+  const pending=localRoom.pendingRounds.map(item=>G.roomView(localRoom,viewPlayer,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,viewPlayer));
+  incomingStates=pending.filter(value=>value.round.from!==viewPlayer&&G.canRespond(value));
+  outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
  function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===3;}
@@ -2536,8 +2587,12 @@ void main(){
  function pullShared(){if(remoteMode||!canPersist)return false;try{return receiveShared(localStorage.getItem(storageKey));}catch(_){return false;}}
  function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;selectedIncomingRoundId=null;syncLocalView();openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
  function awaitingPlayer(player){
-  const views=remoteMode?[ownState,...incomingStates].filter(Boolean):Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id));
-  return views.some(value=>['pending'].includes(value.phase)&&value.round.awaiting===player);
+  const views=remoteMode?[ownState,...incomingStates].filter(Boolean):[
+   ...Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id)),
+   ...localRoom.pendingRounds.map(item=>G.roomView(localRoom,player,item.round.id))
+  ];
+  return views.some(value=>value?.phase==='pending'&&value.round.awaiting===player)||
+   remoteMode&&outgoingCount>0&&player===G.otherPlayer(viewPlayer);
  }
  function invitationKey(){return state.round.id+'-'+state.round.awaiting;}
 
@@ -2551,9 +2606,9 @@ void main(){
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming});
+  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
-  viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));selectDisplayState();remoteReady=true;authBusy=false;loginError='';
+  viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
  }
  function receiveRemote(value){
@@ -2673,9 +2728,10 @@ void main(){
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
  function incomingBanner(){
-  const incoming=incomingStates.find(value=>G.canRespond(value));
-  if(!incoming)return '';
-  return '<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(incoming.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(incoming.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>';
+  const invitations=incomingStates.filter(value=>G.canRespond(value));
+  const incoming=invitations.map(value=>'<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(value.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(value.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>').join('');
+  const outgoing=outgoingCount?'<div class="oa-invitation oa-incoming oa-outgoing" role="status"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+outgoingCount+' invitation'+(outgoingCount>1?'s':'')+' en attente</b><small>Tu peux continuer à jouer pendant l’attente.</small></span></div>':'';
+  return incoming+outgoing;
  }
  function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+hardcoreOfferBanner()+renderPlayContent();}
  function renderPlayContent(){const r=state.round,c=card();
@@ -3011,7 +3067,7 @@ void main(){
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
-  if(action==='accept'){const changed=await dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();if(changed&&state.phase==='accepted')announce('Proposition ajoutée aux choses à faire.');return;}
+  if(action==='accept'){const acceptedId=state.round.id,changed=await dispatch({type:'ACCEPT'},false);const accepted=(ownState?.tasks||state.tasks||[]).some(task=>task.id===acceptedId);if(accepted)tab='tasks';render();if(changed&&accepted)announce('Proposition ajoutée aux choses à faire.');return;}
   if(action==='pass'){const changed=await dispatch({type:'PASS'},false);render();if(changed)toast('Carte passée.');return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
   if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}

@@ -44,11 +44,13 @@
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
    if(raw.gameVersion!==undefined&&raw.gameVersion!==3)throw failure('invalid_response','La version reçue est invalide.');
-   let incoming;
+   let incoming,pendingOutgoing=0;
    if(raw.gameVersion===3){
-    if(!Array.isArray(raw.incoming)||raw.incoming.length>1||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
+    if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
     incoming=raw.incoming.map(value=>G.normalizeState(value));
-    if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase==='category'||!G.canSeeRound(value,identity.actor)))throw failure('invalid_response','L’invitation reçue est invalide.');
+    if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
+    pendingOutgoing=raw.pendingOutgoing===undefined?0:raw.pendingOutgoing;
+    if(!Number.isInteger(pendingOutgoing)||pendingOutgoing<0||pendingOutgoing>80)throw failure('invalid_response','Les invitations envoyées sont invalides.');
    }
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
    let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>3||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
@@ -56,7 +58,7 @@
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming}: {})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming,pendingOutgoing}: {})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
