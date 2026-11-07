@@ -56,7 +56,7 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  sheet.hidden=true;persona.innerHTML='DEMO-PROFILE-CONTROLS';username.matches=password.matches=selector=>selector==='input,textarea,[contenteditable="true"]';
  const navButtons=['play','tasks','us'].map(tab=>node({action:'tab',tab}));
  const profileButtons=['a','b'].map(player=>node({action:'profile',player}));
- const actionButtons=new Map([['roll',rollButton],...['reroll','send','accept','new','pass'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
+ const actionButtons=new Map([['roll',rollButton],...['reroll','send','accept','new','pass','reconnect'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
  const controls=[...navButtons,...profileButtons,help,...actionButtons.values()];
  Object.defineProperty(main,'innerHTML',{get:()=>mainHTML,set:value=>{mainHTML=value;currentStage=null;currentGrid=null;writes++;main.scrollTop=0;main.scrollLeft=0;if(value.includes('id="oa-username"')){username.value=(value.match(/id="oa-username"[^>]*value="([^"]*)"/)||[])[1]||'';password.value='';}}});
  main.querySelector=selector=>{
@@ -327,6 +327,22 @@ async function rollSession(options={}){
  {
   const remote=mockRemote(),ui=shell(remote,{welcomeSeen:false,storageBlocked:true});await tick();check(()=>assert.ok(ui.html.includes('C’est parti')));await ui.click('welcome-start');check(()=>assert.ok(ui.html.includes('autocomplete="username"')));remote.emit();check(()=>assert.ok(!ui.html.includes('C’est parti')));check(()=>assert.equal(ui.values.has('desir-welcome-v1'),false));
   const reopened=shell(mockRemote(),{welcomeSeen:false,storageBlocked:true});await tick();check(()=>assert.ok(reopened.html.includes('C’est parti')));
+ }
+ // A saved session with a temporary restore failure offers a retry without asking for credentials.
+ {
+  const remote=mockRemote(snap(initial('b')));let refreshes=0;
+  remote.restore=async()=>{throw Object.assign(new Error('Connexion interrompue.'),{code:'offline',isDesirRemoteError:true});};
+  remote.refresh=async()=>{refreshes++;return snap(initial('b'));};
+  const ui=shell(remote);await tick();
+  check(()=>{assert.ok(ui.html.includes('data-action="reconnect"'));assert.ok(!ui.html.includes('data-login-form'));assert.ok(!ui.html.includes('Lancer le D4'));assert.equal(ui.persona.innerHTML,'');});
+  await ui.click('reconnect');
+  check(()=>{assert.equal(refreshes,1);assert.ok(ui.html.includes('Lancer le D4'));assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B'));assert.equal(remote.calls.filter(c=>c.method==='login').length,0);});
+ }
+ // A server-confirmed revocation during recovery replaces the retry view with the login form.
+ {
+  const remote=mockRemote(snap(initial('b')));remote.restore=async()=>{throw Object.assign(new Error('Connexion interrompue.'),{code:'offline',isDesirRemoteError:true});};
+  const ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('data-action="reconnect"')));remote.revoke();
+  check(()=>{assert.ok(ui.html.includes('data-login-form'));assert.ok(!ui.html.includes('data-action="reconnect"'));assert.equal(ui.persona.innerHTML,'');});
  }
  // No local game or private identity is rendered while the login is required.
  {

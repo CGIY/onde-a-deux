@@ -334,5 +334,22 @@ let cron=await cronHandler(new Request('https://example.test',{method:'POST',hea
 cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json','x-desir-cron':'test-only-cron-secret'},body:'{"op":"drain_push"}'}));equal(cron.status,202);equal(cronCalls,['enqueue','flush']);
 let canceled=false;const oversized=new ReadableStream({pull(controller){controller.enqueue(new Uint8Array(7000));},cancel(){canceled=true;}});
 const tooLarge=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tokenA},body:oversized,duplex:'half'}));equal(tooLarge.status,413);equal(canceled,true);
-const preflight=await handler(new Request('https://example.test',{method:'OPTIONS',headers:{Origin:'https://cgiy.github.io'}}));equal(preflight.status,204);equal(preflight.headers.get('Access-Control-Allow-Origin'),'https://cgiy.github.io');
+const preflight=await handler(new Request('https://example.test',{method:'OPTIONS',headers:{Origin:'https://cgiy.github.io'}}));equal(preflight.status,204);equal(preflight.headers.get('Access-Control-Allow-Origin'),'https://cgiy.github.io');equal(preflight.headers.get('Access-Control-Max-Age'),'600');
+equal((await handler(new Request('https://example.test',{method:'OPTIONS',headers:{Origin:'https://unrelated.example'}}))).status,403,'cached preflight never allows an unrelated origin');
+// Independent rate checks overlap, but either denial still blocks all private reads.
+for(const denied of ['authenticated-ip:','device:']){
+ const reached=[],releases=[];let privateReads=0;
+ const guarded=createHandler({G,rateSecret:'test',store:{rpc(name,args){
+  if(name!=='desir_rate_limit'){privateReads++;return null;}
+  reached.push(args.p_bucket);return new Promise(resolve=>releases.push(()=>resolve(!args.p_bucket.startsWith(denied))));
+ }}});
+ const pending=client(guarded)({op:'state'});
+ await new Promise((resolve,reject)=>{
+  const timeout=setTimeout(()=>{clearInterval(poll);reject(new Error('Rate checks did not overlap'));},1000);
+  const poll=setInterval(()=>{if(releases.length===2){clearTimeout(timeout);clearInterval(poll);resolve();}},1);
+ });
+ equal(reached.length,2);equal(privateReads,0,'session waits for both rate checks');
+ for(const release of releases)release();
+ equal((await pending).status,429);equal(privateReads,0,'each limit independently protects private data');
+}
 console.log(`Dés·ir backend: ${checks} privacy/auth/RNG/CAS/idempotency/quota/expiry assertions passed.`);

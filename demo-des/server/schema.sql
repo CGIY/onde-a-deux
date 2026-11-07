@@ -45,6 +45,7 @@ create table if not exists public.desir_draw_usage (
   actor text not null check (actor in ('a','b')),
   window_key text not null,
   used_at timestamptz not null default now(),
+  draw_count smallint not null default 1 check (draw_count between 1 and 3),
   primary key(room_id,actor,window_key)
 );
 create table if not exists public.desir_rate_limits (
@@ -84,26 +85,20 @@ create or replace function public.desir_quota_window(p_at timestamptz default no
 returns jsonb language plpgsql stable security invoker set search_path='' as $$
 declare
   local_at timestamp:=p_at at time zone 'Europe/Paris';
-  start_at timestamp;
+  day date;
   finish_at timestamp;
-  window_label text;
 begin
-  if local_at::time>=time '06:00' and local_at::time<time '12:00' then
-    start_at:=local_at::date+time '06:00';finish_at:=local_at::date+time '12:00';window_label:='6 h – 12 h';
-  elsif local_at::time>=time '12:00' and local_at::time<time '18:00' then
-    start_at:=local_at::date+time '12:00';finish_at:=local_at::date+time '18:00';window_label:='12 h – 18 h';
-  else
-    start_at:=local_at::date+time '18:00';
-    if local_at::time<time '06:00' then start_at:=start_at-interval '1 day';end if;
-    finish_at:=(start_at::date+1)+time '06:00';window_label:='18 h – 6 h';
-  end if;
-  return jsonb_build_object('window',to_char(start_at,'YYYY-MM-DD"T"HH24:MI'),'label',window_label,
+  day:=local_at::date;
+  if local_at::time<time '05:00' then day:=day-1;end if;
+  finish_at:=(day+1)+time '05:00';
+  return jsonb_build_object('window',to_char(day,'YYYY-MM-DD'),
+    'label',case when day=local_at::date then 'Aujourd’hui' else 'Cette nuit' end,
     'nextAt',to_char((finish_at at time zone 'Europe/Paris') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
 end $$;
 
 create or replace function public.desir_quota_status(p_room_id uuid,p_actor text)
 returns jsonb language sql stable security invoker set search_path='' as $$
-  select w || jsonb_build_object('remaining',case when exists(select 1 from public.desir_draw_usage u where u.room_id=p_room_id and u.actor=p_actor and u.window_key=w->>'window') then 0 else 1 end)
+  select w || jsonb_build_object('remaining',greatest(0,3-coalesce((select u.draw_count from public.desir_draw_usage u where u.room_id=p_room_id and u.actor=p_actor and u.window_key=w->>'window'),0)))
   from (select public.desir_quota_window(now()) as w) q
 $$;
 
@@ -178,8 +173,13 @@ begin
   if room.revision<>p_expected_revision then return jsonb_build_object('kind','conflict');end if;
   if p_consume_ticket then
     window_info:=public.desir_quota_window(now());
-    if exists(select 1 from public.desir_draw_usage where room_id=p_room_id and actor=p_actor and window_key=window_info->>'window') then return jsonb_build_object('kind','quota_exhausted');end if;
-    insert into public.desir_draw_usage(room_id,actor,window_key) values(p_room_id,p_actor,window_info->>'window');
+    -- Keep one row per actor/day. A retry replays its receipt before this
+    -- guarded increment, so neither concurrent requests nor retries overspend.
+    insert into public.desir_draw_usage as usage(room_id,actor,window_key,draw_count)
+    values(p_room_id,p_actor,window_info->>'window',1)
+    on conflict(room_id,actor,window_key) do update
+      set draw_count=usage.draw_count+1 where usage.draw_count<3;
+    if not found then return jsonb_build_object('kind','quota_exhausted');end if;
   end if;
   new_revision:=room.revision+1;
   update public.desir_rooms set state=p_next_state,revision=new_revision,updated_at=now() where id=p_room_id;

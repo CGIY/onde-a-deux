@@ -265,6 +265,7 @@
  }
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
+  if(remote?.connection&&remote.authenticated)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login"><p class="oa-subtitle">Ton accès est conservé sur cet appareil.</p><p class="oa-form-error" data-login-error role="status">'+h(loginError||remote.status.message||'La connexion au duo est momentanément indisponible.')+'</p><div class="oa-actions">'+btn('Réessayer <span class="oa-arrow" aria-hidden="true">↗</span>','reconnect')+'</div></div>';
   return heading('Votre<br><em>espace.</em>',null,null)+'<form class="oa-login" data-login-form><label class="oa-field">Identifiant<input id="oa-username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="80" value="'+h(loginUsername)+'"></label><label class="oa-field">Mot de passe<input id="oa-password" name="password" type="password" autocomplete="current-password" required maxlength="256"></label><p class="oa-form-error" data-login-error role="alert" '+(!loginError?'hidden':'')+'>'+h(loginError)+'</p><div class="oa-actions"><button type="submit" class="oa-button cursor-interaction" '+(!remote?.enabled?'disabled':'')+'>Se connecter <span class="oa-arrow">↗</span></button></div></form>';
  }
  function renderPersona(){
@@ -613,6 +614,11 @@
   }
   if(!welcomeDismissed)return;
   if((busy||operationBusy)&&action!=='close')return;
+  if(action==='reconnect'){
+   if(authBusy||!remote?.authenticated)return;authBusy=true;loginError='';render();
+   try{flushRemote(await remote.refresh(),false);}catch(error){loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';}
+   finally{authBusy=false;render();}return;
+  }
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
@@ -685,7 +691,7 @@
     if(remote.connection&&!remote.authenticated){
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
-     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady)render();return;
+     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;
     }
     if(event.snapshot)receiveRemote(event.snapshot);
     else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);

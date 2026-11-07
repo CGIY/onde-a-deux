@@ -41,12 +41,14 @@ begin
   if result->>'kind'<>'applied' or (result->'response'->'quota'->>'remaining')::integer<>0 then raise exception 'Third draw of the day mishandled';end if;
   result:=public.desir_commit(fixture,'a',req5,repeat('e',64),3,state1,'{}',true,null);
   if result->>'kind'<>'quota_exhausted' then raise exception 'Fourth draw in one day accepted';end if;
-  select count(*) into actual_count from public.desir_draw_usage where room_id=fixture;
+  select sum(draw_count) into actual_count from public.desir_draw_usage where room_id=fixture;
   if actual_count<>3 then raise exception 'Ticket pool count mismatch';end if;
+  select count(*) into actual_count from public.desir_draw_usage where room_id=fixture;
+  if actual_count<>1 then raise exception 'Actor/day uniqueness lost';end if;
   select count(*) into actual_count from public.desir_push_outbox where room_id=fixture;
   if actual_count<>1 then raise exception 'Duplicate notification recorded';end if;
   if public.desir_expire_room(fixture,0,state1) then raise exception 'Stale expiration accepted';end if;
-  if not public.desir_expire_room(fixture,1,state1) then raise exception 'Current expiration rejected';end if;
+  if not public.desir_expire_room(fixture,3,state1) then raise exception 'Current expiration rejected';end if;
   if has_table_privilege('anon','public.desir_rooms','SELECT') or has_table_privilege('authenticated','public.desir_accounts','SELECT') then raise exception 'Client can read private tables';end if;
   if has_function_privilege('anon','public.desir_login(text,text,text)','EXECUTE') or has_function_privilege('authenticated','public.desir_commit(uuid,text,uuid,text,bigint,jsonb,jsonb,boolean,jsonb)','EXECUTE') then raise exception 'Client can execute privileged RPC';end if;
 end $$;

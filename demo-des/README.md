@@ -1,12 +1,12 @@
 # Dés·ir — version web 0.3.0
 
-[Ouvrir Dés·ir](https://cgiy.github.io/desir/demo-des/)
+[Ouvrir Dés·ir](https://cgiy.github.io/onde-a-deux/demo-des/)
 
 Chaque personne se connecte sur son téléphone avec son identifiant et son mot de passe. Les deux comptes sont créés dans la base privée ; il n’y a ni inscription publique ni code d’association. Les noms ne sont retournés qu’après connexion. Le mot de passe n’est jamais conservé par l’application ; l’accès de cet appareil reste enregistré pour les prochaines ouvertures.
 
 Au premier lancement sur cet appareil, un accueil résume le principe en trois phrases. « C’est parti » le ferme et mémorise ce choix pour les prochaines ouvertures.
 
-Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personne reçoit alors une invitation qu’elle peut ouvrir et traiter plus tard. L’état, les tirages, les dates et le score sont partagés par le service ; une coupure du réseau conserve l’écran de connexion ou signale l’indisponibilité, sans créer de partie locale de remplacement.
+Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personne reçoit alors une invitation qu’elle peut ouvrir et traiter plus tard. L’état, les tirages, les dates et le score sont partagés par le service. Une coupure du réseau conserve l’accès enregistré et propose « Réessayer » au lancement, ou signale l’indisponibilité dans la partie. Une action encore en attente garde son identifiant et n’empêche plus la lecture de l’état confirmé. Le retour du réseau ou de l’app relance l’actualisation ; un accès réellement révoqué demande une nouvelle connexion.
 
 ## Jouer
 

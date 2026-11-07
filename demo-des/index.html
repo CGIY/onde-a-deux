@@ -2073,7 +2073,7 @@ void main(){
   function requestId(){if(crypto.randomUUID)return crypto.randomUUID();const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}
   function serial(task){const next=queue.then(task,task);queue=next.catch(()=>{});return next;}
   function requireEnabled(){if(!enabled)throw failure('unconfigured','La connexion à votre duo n’est pas encore disponible.');}
-  function requireConnection(){requireEnabled();if(!connection)throw failure('not_connected','Connecte-toi pour continuer.');}
+  function requireConnection(){requireEnabled();if(!connection||authFailed)throw failure('not_connected','Connecte-toi pour continuer.');}
   function normalizedConnection(raw,expectedToken){
    if(!raw||!TOKEN.test(raw.token||'')||!UUID.test(raw.roomId||'')||!['a','b'].includes(raw.actor)||(expectedToken&&raw.token!==expectedToken))throw failure('invalid_response','La connexion reçue est invalide. Réessaie.');
    return {version:1,endpoint,token:raw.token,roomId:raw.roomId,actor:raw.actor,pairingCode:typeof raw.pairingCode==='string'?raw.pairingCode:null};
@@ -2111,15 +2111,16 @@ void main(){
    }
    return {...clone(snapshot),...(checked.roll?{roll:checked.roll}:{})};
   }
-  function remoteError(response,body){
+  function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
    const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette invitation a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
-   let updated=null;if(body?.state&&connection){try{updated=acceptSnapshot(body);}catch(_){}}
+   let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
   }
   async function request(payload,token,attempts=2){
    requireEnabled();
+   const identity=connection?.token===token?connection:null;
    const headers={'Content-Type':'application/json'};
    if(config.publishableKey)headers.apikey=config.publishableKey;
    if(token)headers.Authorization='Bearer '+token;
@@ -2130,7 +2131,7 @@ void main(){
      const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:3,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
-     if(!response.ok){const error=remoteError(response,body);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
+     if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
      return body;
     }catch(error){
      if(error?.isDesirRemoteError)throw error;
@@ -2140,7 +2141,8 @@ void main(){
    }
    throw last||failure('offline','La connexion au duo est indisponible.');
   }
-  function markFailure(error){if(error.status===401)authFailed=true;const expected=connection&&['conflict','stale_round','quota_exhausted','not_allowed','invalid_action','invalid_phase','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
+  function connectionChanged(){return failure('connection_changed','La connexion a changé. Réessaie.');}
+  function markFailure(error){if(error.code==='connection_changed')return;if(error.status===401)authFailed=true;const expected=connection&&['conflict','stale_round','quota_exhausted','not_allowed','invalid_action','invalid_phase','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
   function pendingLogin(){
    const previous=parsed(registrationKey);
    if(previous&&previous.version===1&&previous.endpoint===endpoint&&previous.op==='login'&&TOKEN.test(previous.token||'')&&UUID.test(previous.requestId||''))return previous;
@@ -2170,12 +2172,15 @@ void main(){
   }
   function storedAction(){const value=parsed(actionKey);if(!value)return null;if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
+   requireConnection();
+   const identity=connection;
    try{
-    const raw=await request({op:'action',gameVersion:[2,3].includes(pending.gameVersion)?pending.gameVersion:1,requestId:pending.requestId,action:pending.action},connection.token);
-    const value=acceptSnapshot(raw);remove(actionKey);return value;
-   }catch(error){if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
+    const raw=await request({op:'action',gameVersion:[2,3].includes(pending.gameVersion)?pending.gameVersion:1,requestId:pending.requestId,action:pending.action},identity.token);
+    if(connection!==identity||authFailed)throw connectionChanged();
+    const value=acceptSnapshot(raw,identity);remove(actionKey);return value;
+   }catch(error){if(connection!==identity||authFailed)throw connectionChanged();if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
   }
-  async function fetchState(){requireConnection();const raw=await request({op:'state'},connection.token);return acceptSnapshot(raw);}
+  async function fetchState(identity=connection){requireConnection();try{const raw=await request({op:'state'},identity.token);if(connection!==identity||authFailed)throw connectionChanged();return acceptSnapshot(raw,identity);}catch(error){if(connection!==identity||authFailed)throw connectionChanged();throw error;}}
   function action(value){
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
@@ -2195,14 +2200,33 @@ void main(){
    if(!raw||raw.actor!==identity.actor||!Number.isSafeInteger(raw.revision)||raw.revision<0||!Object.hasOwn(raw,'session')||!(raw.session===null||typeof raw.session==='object'&&!Array.isArray(raw.session))||!Number.isFinite(Date.parse(raw.serverTime)))throw failure('invalid_response','Le mode partagé n’a pas pu être actualisé.');
    return clone(raw);
   }
-  async function recoverPendingAction(pending){
-   try{return await serial(()=>sendAction(pending));}
+  async function recoverPendingAction(pending,identity){
+   try{return await serial(()=>{
+    if(connection!==identity)throw connectionChanged();
+    // An action ahead of this recovery in the queue may already have succeeded.
+    const current=storedAction();if(!current||current.requestId!==pending.requestId)return null;
+    return sendAction(current);
+   });}
    catch(error){if(error.code!=='upgrade_required'||pending.gameVersion===3)throw error;return null;}
   }
   function refresh(){
    if(!connection)return Promise.resolve(null);
+   if(authFailed)return Promise.reject(failure('not_connected','Connecte-toi pour continuer.'));
    if(refreshing)return refreshing;
-   refreshing=Promise.resolve().then(async()=>{try{const pending=storedAction();if(pending)await recoverPendingAction(pending);return await fetchState();}catch(error){markFailure(error);throw error;}finally{refreshing=null;}});
+   const identity=connection;
+   refreshing=Promise.resolve().then(async()=>{try{
+    const pending=storedAction();let pendingError=null;
+    if(pending)try{await recoverPendingAction(pending,identity);}catch(error){
+     // A failed write is not evidence that the session or read service is lost.
+     // Keep its durable ID, while allowing the latest confirmed state to load.
+     if(error.code!=='offline'&&error.status!==429&&!(error.status>=500))throw error;
+     pendingError=error;
+    }
+    if(connection!==identity)throw connectionChanged();
+    const value=await fetchState(identity);
+    if(pendingError)setStatus('connected','Une action attend encore la confirmation du serveur. Ta partie a été actualisée.','pending_action');
+    return value;
+   }catch(error){markFailure(error);throw error;}finally{refreshing=null;}});
    return refreshing;
   }
   function restore(){
@@ -2256,8 +2280,8 @@ void main(){
   function refreshQuietly(){if(connection&&!authFailed&&(!doc||!doc.hidden))refresh().catch(()=>{});}
   function visible(){if(!doc?.hidden)refreshQuietly();}
   function pushMessage(event){if(event.data?.type==='desir-state-refresh')refreshQuietly();}
-  function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
-  function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
+  function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
+  function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
   return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,hardcore,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
@@ -2707,6 +2731,7 @@ void main(){
  }
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
+  if(remote?.connection&&remote.authenticated)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login"><p class="oa-subtitle">Ton accès est conservé sur cet appareil.</p><p class="oa-form-error" data-login-error role="status">'+h(loginError||remote.status.message||'La connexion au duo est momentanément indisponible.')+'</p><div class="oa-actions">'+btn('Réessayer <span class="oa-arrow" aria-hidden="true">↗</span>','reconnect')+'</div></div>';
   return heading('Votre<br><em>espace.</em>',null,null)+'<form class="oa-login" data-login-form><label class="oa-field">Identifiant<input id="oa-username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="80" value="'+h(loginUsername)+'"></label><label class="oa-field">Mot de passe<input id="oa-password" name="password" type="password" autocomplete="current-password" required maxlength="256"></label><p class="oa-form-error" data-login-error role="alert" '+(!loginError?'hidden':'')+'>'+h(loginError)+'</p><div class="oa-actions"><button type="submit" class="oa-button cursor-interaction" '+(!remote?.enabled?'disabled':'')+'>Se connecter <span class="oa-arrow">↗</span></button></div></form>';
  }
  function renderPersona(){
@@ -3055,6 +3080,11 @@ void main(){
   }
   if(!welcomeDismissed)return;
   if((busy||operationBusy)&&action!=='close')return;
+  if(action==='reconnect'){
+   if(authBusy||!remote?.authenticated)return;authBusy=true;loginError='';render();
+   try{flushRemote(await remote.refresh(),false);}catch(error){loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';}
+   finally{authBusy=false;render();}return;
+  }
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
@@ -3127,7 +3157,7 @@ void main(){
     if(remote.connection&&!remote.authenticated){
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
-     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady)render();return;
+     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;
     }
     if(event.snapshot)receiveRemote(event.snapshot);
     else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);

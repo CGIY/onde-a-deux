@@ -87,6 +87,50 @@ function parallelReply(room,actor='a',revision=1){
   storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:2,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
   const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['action',2],['state',3]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,3);});
  }
+ // A failing pending mutation never hides a successfully refreshed, authenticated game.
+ {
+  const storage=memory(),requests=[];let failAction=true;
+  const fetcher=async(url,options)=>{const p=payload(options);requests.push(p);if(p.op==='login')return response(loginReply(options,'b',5,state('b')));if(p.op==='action'&&failAction)return response({error:{code:'server_error'}},503);return response(reply('b',failAction?5:6,state('b')));};
+  const first=create(config,env(fetcher,storage));await first.login('fixture-b','fixture-password');
+  await assert.rejects(first.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{status:503});
+  const pending=storage.getItem('desir-connection-v1-action');
+  const recovered=create(config,env(fetcher,storage)),current=await recovered.restore();
+  check(()=>{assert.equal(current.actor,'b');assert.equal(current.revision,5);assert.equal(recovered.authenticated,true);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.status.errorCode,'pending_action');assert.equal(storage.getItem('desir-connection-v1-action'),pending);assert.equal(requests.at(-1).op,'state');});
+  failAction=false;await recovered.refresh();
+  check(()=>{assert.equal(recovered.snapshot.revision,6);assert.equal(recovered.status.errorCode,null);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(new Set(requests.filter(p=>p.op==='action').map(p=>p.requestId)).size,1);});
+ }
+ // A poll waiting behind a successful in-flight action does not send that action again.
+ {
+  const storage=memory(),requests=[];let releaseAction;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);requests.push(p);if(p.op==='login')return response(loginReply(options));if(p.op==='action'&&requests.filter(p=>p.op==='action').length===1)return new Promise(resolve=>releaseAction=()=>resolve(response(reply('a',2,drawn()))));return response(reply('a',2,drawn()));},storage));
+  await r.login('fixture-user','fixture-password');const action=r.action({type:'ROLL_CATEGORY',roundId:'onde-1'});await tick();const refresh=r.refresh();await tick();releaseAction();await Promise.all([action,refresh]);
+  check(()=>{assert.equal(requests.filter(p=>p.op==='action').length,1);assert.equal(requests.at(-1).op,'state');assert.equal(r.snapshot.revision,2);assert.equal(storage.getItem('desir-connection-v1-action'),null);});
+ }
+ // A delayed unauthorized response for a replaced token cannot revoke the new session.
+ {
+  let releaseRead;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'b',4,state('b')));if(p.op==='state')return new Promise(resolve=>releaseRead=()=>resolve(response({error:{code:'unauthorized'}},401)));return response({error:{code:'unauthorized'}},401);}));
+  await r.login('fixture-b','fixture-password');const oldRead=r.refresh();await tick();await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{status:401});
+  await r.login('fixture-b','fixture-password');check(()=>assert.equal(r.authenticated,true));releaseRead();await assert.rejects(oldRead);
+  check(()=>{assert.equal(r.authenticated,true);assert.equal(r.status.phase,'connected');assert.equal(r.snapshot.actor,'b');});
+ }
+ // An earlier successful read cannot revive a token after a confirmed unauthorized response.
+ {
+  let releaseRead,reads=0;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'b',4,state('b')));if(p.op==='state'){reads++;return new Promise(resolve=>releaseRead=()=>resolve(response(reply('b',5,state('b')))));}return response({error:{code:'unauthorized'}},401);}));
+  await r.login('fixture-b','fixture-password');const oldRead=r.refresh();await tick();await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{status:401});
+  check(()=>assert.equal(r.authenticated,false));releaseRead();await assert.rejects(oldRead,{code:'connection_changed'});
+  check(()=>{assert.equal(r.authenticated,false);assert.equal(r.snapshot.revision,4);assert.equal(r.status.errorCode,'unauthorized');});
+  await assert.rejects(r.refresh(),{code:'not_connected'});check(()=>{assert.equal(reads,1);assert.equal(r.authenticated,false);});
+  await r.login('fixture-b','fixture-password');check(()=>assert.equal(r.authenticated,true));
+ }
+ // A pending write is retained but never replayed again after the read confirms revocation.
+ {
+  const storage=memory();let calls=0;
+  const fetcher=async(url,options)=>{calls++;const p=payload(options);if(p.op==='login')return response(loginReply(options));return response({error:{code:p.op==='action'?'server_error':'unauthorized'}},p.op==='action'?503:401);};
+  const first=create(config,env(fetcher,storage));await first.login('fixture-user','fixture-password');await assert.rejects(first.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{status:503});
+  const pending=storage.getItem('desir-connection-v1-action'),recovered=create(config,env(fetcher,storage));await assert.rejects(recovered.restore(),{status:401});const before=calls;
+  await assert.rejects(recovered.refresh(),{code:'not_connected'});check(()=>{assert.equal(calls,before);assert.equal(recovered.authenticated,false);assert.equal(storage.getItem('desir-connection-v1-action'),pending);});
+ }
  // Disabled configuration cannot accidentally contact any service.
  {
   let calls=0;const r=create({},env(async()=>{calls++;}));check(()=>assert.equal(r.enabled,false));await assert.rejects(r.restore(),{code:'unconfigured'});check(()=>assert.equal(calls,0));

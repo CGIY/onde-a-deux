@@ -43,7 +43,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
     const respond=(value,status=200)=>new Response(JSON.stringify(value?.state?{...value,serverTime:iso()}:value),{status,headers:cors});
     try{
       if(!allowed)throw new HttpError(403,'forbidden_origin','Origine non autorisée.');
-      if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+      if(req.method==='OPTIONS')return new Response(null,{status:204,headers:{...cors,'Access-Control-Max-Age':'600'}});
       if(req.method!=='POST')throw new HttpError(405,'method_not_allowed','Méthode indisponible.');
       if(!/^application\/json(?:;|$)/i.test(req.headers.get('Content-Type')||''))throw new HttpError(415,'invalid_content_type','Une requête JSON est attendue.');
       if(Number(req.headers.get('Content-Length')||0)>16384)throw new HttpError(413,'request_too_large','Requête trop volumineuse.');
@@ -81,8 +81,11 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         return respond(snapshot(G,current,{connection:{token,roomId:current.room.id,actor:current.member.actor}},gameVersion));
       }
       if(Object.keys(body).some(key=>!['op','requestId','action','subscription','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
-      await rate('authenticated-ip:'+ipBucket,600,60);
-      await rate('device:'+tokenHash,240,60);
+      // Both independent limits must pass before any session or game access.
+      await Promise.all([
+        rate('authenticated-ip:'+ipBucket,600,60),
+        rate('device:'+tokenHash,240,60)
+      ]);
       if(body.op==='hardcore'){
         if(Object.keys(body).some(key=>!['op','action','requestId','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
         const liveContext=await store.rpc('desir_hardcore_auth',{p_token_hash:tokenHash});
