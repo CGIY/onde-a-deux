@@ -56,7 +56,7 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  sheet.hidden=true;persona.innerHTML='DEMO-PROFILE-CONTROLS';username.matches=password.matches=selector=>selector==='input,textarea,[contenteditable="true"]';
  const navButtons=['play','tasks','us'].map(tab=>node({action:'tab',tab}));
  const profileButtons=['a','b'].map(player=>node({action:'profile',player}));
- const actionButtons=new Map([['roll',rollButton],...['reroll','send','accept','new','challenge','challenge-draft'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
+ const actionButtons=new Map([['roll',rollButton],...['reroll','send','accept','new','pass'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
  const controls=[...navButtons,...profileButtons,help,...actionButtons.values()];
  Object.defineProperty(main,'innerHTML',{get:()=>mainHTML,set:value=>{mainHTML=value;currentStage=null;currentGrid=null;writes++;main.scrollTop=0;main.scrollLeft=0;if(value.includes('id="oa-username"')){username.value=(value.match(/id="oa-username"[^>]*value="([^"]*)"/)||[])[1]||'';password.value='';}}});
  main.querySelector=selector=>{
@@ -108,7 +108,7 @@ async function rollSession(options={}){
    const remote=mockRemote(snap(game)),ui=shell(remote);await tick();
    check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes('class="oa-roleplay-value"'));assert.ok(ui.html.includes('class="oa-roleplay-copy"'));assert.ok(ui.html.includes(escapedText(entry.metric)));assert.ok(ui.html.includes(escapedText(entry.text)));assert.ok(!ui.html.includes(escapedText(other.text)));assert.doesNotMatch(ui.html,/Club des Deux|du club|roleplay-label|>\s*Roleplay\s*</i);assert.doesNotMatch(ui.html,/<a\b|Source & contexte|data-source-card/);assert.equal(ui.evidenceReads,0);});
    const without=shell(mockRemote(snap(game)),{roleplay:null});await tick();
-   check(()=>{assert.equal(roleplayCount(without.html),0);assert.ok(hasTitle(without.html,G.getCard(cardId).title));for(const action of ['send','challenge-draft'])assert.equal(ui.html.includes('data-action="'+action+'"'),without.html.includes('data-action="'+action+'"'));assert.deepEqual(game,before);assert.equal(game.stats.totalCompleted,0);assert.equal(G.rules.completedCardPoints,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,0);});
+   check(()=>{assert.equal(roleplayCount(without.html),0);assert.ok(hasTitle(without.html,G.getCard(cardId).title));for(const action of ['send'])assert.equal(ui.html.includes('data-action="'+action+'"'),without.html.includes('data-action="'+action+'"'));assert.deepEqual(game,before);assert.equal(game.stats.totalCompleted,0);assert.equal(G.rules.completedCardPoints,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,0);});
   }
  }
  // Neither unfinished variants nor unopened/private invitations reveal roleplay copy.
@@ -249,16 +249,14 @@ async function rollSession(options={}){
    await work;game=next;
   }
   const selected=G.getCard(game.round.cardId),detail=G.getVariant(game.round);
-  check(()=>{assert.ok(detail);assert.ok(hasTitle(ui.html,selected.title));assert.ok(ui.html.includes('<p class="oa-card-description">'+escapedText(detail)+'</p>'));assert.ok(!ui.html.includes('data-action="reroll"'));assert.ok(ui.html.includes('data-action="challenge-draft"'));assert.equal(ui.rngCalls,0);assert.equal(ui.evidenceReads,0);assertNoEvidence(ui.html);});
+  check(()=>{assert.ok(detail);assert.ok(hasTitle(ui.html,selected.title));assert.ok(ui.html.includes('<p class="oa-card-description">'+escapedText(detail)+'</p>'));assert.ok(ui.html.includes('data-action="reroll"'));assert.ok(ui.html.includes('Relancer la carte'));assert.equal(ui.rngCalls,0);assert.equal(ui.evidenceReads,0);assertNoEvidence(ui.html);});
   const halfway=G.reduce(G.reduce(start,actions[0]),actions[1]),privateView=shell(mockRemote(snap({...halfway,activePlayer:'b'})),{motionAPI:true});await tick();
   check(()=>{assert.ok(!privateView.html.includes(selected.title));assert.ok(!privateView.html.includes('data-action="roll"'));});
   const restored=shell(mockRemote(snap(halfway,3,0)),{motionAPI:true});await tick();
   check(()=>{assert.equal(restored.stage.dataset.rollRole,'variant');assert.equal(restored.motionAnimations.filter(a=>a.node===restored.canvas).length,0);assert.ok(restored.html.includes('Tirer la variante'));});
-  const defended=G.reduce(game,{type:'CHALLENGE_DRAFT'}),defense=shell(mockRemote(snap(defended,5,0)));await tick();
-  check(()=>{assert.equal(defense.stage.dataset.kind,'20');assert.ok(defense.html.includes(escapedText(detail)));assert.ok(defense.html.includes('role="progressbar"'));});
   const at=new Date().toISOString(),sent=G.reduce(game,{type:'SEND',at}),other={...sent,activePlayer:'b'};
   const otherRemote=mockRemote(snap(other,5,0)),otherUI=shell(otherRemote);await tick();await otherUI.click('open-invitation',{round:sent.round.id});
-  check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes(escapedText(detail)));assert.ok(otherUI.html.includes('data-action="challenge"'));});
+  check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes(escapedText(detail)));assert.ok(otherUI.html.includes('data-action="pass"'));});
   const accepted=G.reduce(other,{type:'ACCEPT',at});
   otherRemote.actionImpl=async()=>snap(accepted,6,0);await otherUI.click('accept');
   check(()=>{assert.ok(hasTitle(otherUI.html,selected.title));assert.ok(otherUI.html.includes('<p class="oa-task-proposal">'+escapedText(detail)+'</p>'));});
@@ -275,7 +273,7 @@ async function rollSession(options={}){
     for(const [face,detail] of selected.variants.entries()){
      const draft=G.reduce(chosen,{type:'ROLL_VARIANT',value:face+1});
      const ui=shell(mockRemote(snap(draft,4,0)));await tick();
-     check(()=>{assert.ok(hasTitle(ui.html,selected.title));assert.equal(G.getVariant(draft.round),detail);assert.ok(ui.html.includes('oa-card-description'));assert.ok(ui.html.includes(escapedText(detail)));assert.ok(ui.html.includes('data-action="send"'));assert.ok(!ui.html.includes('data-action="reroll"'));});
+     check(()=>{assert.ok(hasTitle(ui.html,selected.title));assert.equal(G.getVariant(draft.round),detail);assert.ok(ui.html.includes('oa-card-description'));assert.ok(ui.html.includes(escapedText(detail)));assert.ok(ui.html.includes('data-action="send"'));assert.ok(ui.html.includes('data-action="reroll"'));});
     }
    }
   }
@@ -304,7 +302,7 @@ async function rollSession(options={}){
  // The first launch explains the game once, before login, without starting an action.
  {
   const remote=mockRemote(),ui=shell(remote,{welcomeSeen:false});const before=ui.writes;await tick();
-  for(const sentence of ['Les dés choisissent une idée à deux.','Propose-la ou tente de l’écarter au D20.','Deux coches dans les 24 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
+  for(const sentence of ['Les dés choisissent une idée à deux.','Propose-la, ou relance-la d’un geste.','Deux coches dans les 24 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
   check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('C’est parti')));check(()=>assert.ok(!ui.html.includes('autocomplete="username"')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assert.equal(ui.help.hidden,true));
   await ui.click('roll');await ui.click('rules');await ui.submit('fixture-user','fixture-password');check(()=>assert.equal(remote.calls.filter(c=>['action','login'].includes(c.method)).length,0));check(()=>assert.equal(ui.sheet.hidden,true));
   await ui.click('welcome-start');check(()=>assert.equal(ui.values.get('desir-welcome-v1'),'1'));check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(!ui.html.includes('C’est parti')));
@@ -340,7 +338,7 @@ async function rollSession(options={}){
    const hand=[selected.id,...G.legacyCards.filter(c=>c.categoryId===selected.categoryId&&c.id!==selected.id).slice(0,5).map(c=>c.id)];
    let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:G.getCategory(selected.categoryId,1).number,hand});game=G.reduce(game,{type:'ROLL_CARD',value:1});
    const remote=mockRemote(snap(game)),ui=shell(remote,{evidenceTrap:true});await tick();
-   check(()=>{assert.equal(game.round.cardId,selected.id);assert.equal(G.validateState(game),true);assert.ok(ui.html.includes('oa-card-title'));assert.ok(ui.html.includes(selected.title));assert.ok(ui.html.includes('data-action="send"'));assert.ok(ui.html.includes('data-action="challenge-draft"'));assert.equal(ui.navigation.hidden,false);assertNoEvidence(ui.html);assert.equal(ui.evidenceReads,0);assert.ok(ui.html.includes(cardNotesFixture[selected.id]));assert.equal((ui.html.match(/class="oa-card-note"/g)||[]).length,1);});
+   check(()=>{assert.equal(game.round.cardId,selected.id);assert.equal(G.validateState(game),true);assert.ok(ui.html.includes('oa-card-title'));assert.ok(ui.html.includes(selected.title));assert.ok(ui.html.includes('data-action="send"'));assert.ok(ui.html.includes('data-action="reroll"'));assert.equal(ui.navigation.hidden,false);assertNoEvidence(ui.html);assert.equal(ui.evidenceReads,0);assert.ok(ui.html.includes(cardNotesFixture[selected.id]));assert.equal((ui.html.match(/class="oa-card-note"/g)||[]).length,1);});
   }
  }
  // The server's face is used, and its new state is hidden until the die settles.
@@ -475,8 +473,8 @@ async function rollSession(options={}){
  }
  // A remote reroll visibly mounts the D6 before the network reply and reveals only after its animation.
  {
-  const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote,{delayedDie:true});await tick();check(()=>assert.ok(ui.html.includes('Relancer le D6 · sans mon D20')));let resolveAction;const next=G.reduce(game,{type:'REROLL_CARD',value:2});remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'REROLL_CARD',roundId:game.round.id}));return new Promise(resolve=>resolveAction=()=>resolve({...snap(next,2),roll:{kind:6,value:2}}));};
-  const work=ui.click('reroll');await tick();check(()=>assert.equal(ui.diceVisible,true));check(()=>{assert.ok(ui.html.includes('class="oa-roll-status" data-roll-status role="status" aria-busy="true"'));assert.ok(!ui.html.includes('data-action="roll"'));assert.equal(ui.rollStatus.textContent,'Tirage…');assert.equal(ui.rollStatus['aria-busy'],'true');assert.equal(ui.rollStatus.disabled,false);});check(()=>assert.ok(ui.html.includes('Le D6')));check(()=>assert.ok(ui.controls.every(c=>c.disabled)));await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));resolveAction();await tick();check(()=>assert.equal(ui.rollStatus.textContent,'Le dé roule…'));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.deepEqual(ui.die.visible,[true]));check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.ok(!hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(!ui.html.includes('data-roll-status')));check(()=>assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.ok(!ui.html.includes('Relancer le D6')));check(()=>assert.ok(!ui.html.includes('data-action="challenge-draft"')));check(()=>assert.ok(ui.html.includes('Proposer à')));await ui.click('reroll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
+  const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote,{delayedDie:true});await tick();check(()=>assert.ok(ui.html.includes('Relancer la carte')));let resolveAction;const next=G.reduce(game,{type:'REROLL_CARD',value:2});remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'REROLL_CARD',roundId:game.round.id}));return new Promise(resolve=>resolveAction=()=>resolve({...snap(next,2),roll:{kind:6,value:2}}));};
+  const work=ui.click('reroll');await tick();check(()=>assert.equal(ui.diceVisible,true));check(()=>{assert.ok(ui.html.includes('class="oa-roll-status" data-roll-status role="status" aria-busy="true"'));assert.ok(!ui.html.includes('data-action="roll"'));assert.equal(ui.rollStatus.textContent,'Tirage…');assert.equal(ui.rollStatus['aria-busy'],'true');assert.equal(ui.rollStatus.disabled,false);});check(()=>assert.ok(ui.html.includes('Le D6')));check(()=>assert.ok(ui.controls.every(c=>c.disabled)));await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));resolveAction();await tick();check(()=>assert.equal(ui.rollStatus.textContent,'Le dé roule…'));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.deepEqual(ui.die.visible,[true]));check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.ok(!hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(!ui.html.includes('data-roll-status')));check(()=>assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.ok(!ui.html.includes('Relancer la carte')));check(()=>assert.ok(!ui.html.includes('data-action="challenge-draft"')));check(()=>assert.ok(ui.html.includes('Proposer à')));await ui.click('reroll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
  }
  // Every selected D6 slot is revealed only after the confirmed die, then replaced by its full invitation.
  {
@@ -487,7 +485,7 @@ async function rollSession(options={}){
    await ui.click('tab',{tab:'us'});await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
    if(face===1){remote.emit(snap(game,1));check(()=>assert.equal(ui.revealPending,1));}
    if(face===4&&!reroll){const latest=copy(next);latest.stats.totalCompleted=1;latest.stats.byCategory.attention=1;remote.emit(snap(latest,3));check(()=>assert.equal(ui.revealPending,1));}
-   ui.finishReveal();await work;check(()=>{assert.ok(ui.html.includes('Ta prochaine'));assert.ok(hasTitle(ui.html,chosen.title));assert.ok(ui.html.includes(cardNotesFixture[chosen.id]));assertNoEvidence(ui.html);assert.equal(ui.evidenceReads,0);assert.ok(!ui.html.includes('data-reveal-selected'));assert.ok(ui.html.includes('data-action="send"'));assert.equal(ui.html.includes('data-action="challenge-draft"'),!reroll);assert.equal(ui.revealPending,0);assert.equal(ui.main.scrollTop,0);assert.deepEqual(ui.announcements,['D6 : '+face+'. '+chosen.title]);assert.equal(ui.interrupted,0);});
+   ui.finishReveal();await work;check(()=>{assert.ok(ui.html.includes('Ta prochaine'));assert.ok(hasTitle(ui.html,chosen.title));assert.ok(ui.html.includes(cardNotesFixture[chosen.id]));assertNoEvidence(ui.html);assert.equal(ui.evidenceReads,0);assert.ok(!ui.html.includes('data-reveal-selected'));assert.ok(ui.html.includes('data-action="send"'));assert.equal(ui.html.includes('data-action="reroll"'),!reroll);assert.equal(ui.revealPending,0);assert.equal(ui.main.scrollTop,0);assert.deepEqual(ui.announcements,['D6 : '+face+'. '+chosen.title]);assert.equal(ui.interrupted,0);});
    if(face===4&&!reroll){await ui.click('tab',{tab:'us'});check(()=>assert.ok(ui.html.includes('<strong>1</strong>')));}
   }
  }
@@ -525,12 +523,12 @@ async function rollSession(options={}){
  }
  // Wrong phases and the other perspective cannot reroll; a failed request keeps the original choice available.
  {
-  for(const game of [initial(),draftGame('b'),G.reduce(draftGame(),{type:'CHALLENGE_DRAFT'})]){const remote=mockRemote(snap(game)),ui=shell(remote);await tick();check(()=>assert.ok(!ui.html.includes('Relancer le D6')));await ui.click('reroll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));}
-  const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote);await tick();remote.actionImpl=async()=>{throw Object.assign(new Error('Connexion interrompue.'),{isDesirRemoteError:true,code:'offline'});};await ui.click('reroll');check(()=>assert.equal(ui.diceVisible,false));check(()=>assert.ok(hasTitle(ui.html,G.getCard(game.round.cardId).title)));check(()=>assert.ok(ui.html.includes('Relancer le D6')));
+  for(const game of [initial(),draftGame('b')]){const remote=mockRemote(snap(game)),ui=shell(remote);await tick();check(()=>assert.ok(!ui.html.includes('Relancer la carte')));await ui.click('reroll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));}
+  const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote);await tick();remote.actionImpl=async()=>{throw Object.assign(new Error('Connexion interrompue.'),{isDesirRemoteError:true,code:'offline'});};await ui.click('reroll');check(()=>assert.equal(ui.diceVisible,false));check(()=>assert.ok(hasTitle(ui.html,G.getCard(game.round.cardId).title)));check(()=>assert.ok(ui.html.includes('Relancer la carte')));
  }
  // The local demo samples uniformly among the three other faces, with a mounted die in every case.
  {
-  for(const index of [1,2,3,4,5]){const game=draftGame(),values=new Map([['onde-couple-prototype-v1',JSON.stringify(game)]]),ui=shell(mockRemote(),{mode:false,storageValues:values,randomFace:index});await ui.click('reroll');check(()=>assert.deepEqual(ui.rngSides,[5]));check(()=>assert.deepEqual(ui.die.calls,[index+1]));check(()=>assert.deepEqual(ui.die.visible,[true]));check(()=>assert.ok(!ui.html.includes('data-action="challenge-draft"')));check(()=>assert.ok(!ui.html.includes('Relancer le D6')));}
+  for(const index of [1,2,3,4,5]){const game=draftGame(),values=new Map([['onde-couple-prototype-v1',JSON.stringify(game)]]),ui=shell(mockRemote(),{mode:false,storageValues:values,randomFace:index});await ui.click('reroll');check(()=>assert.deepEqual(ui.rngSides,[5]));check(()=>assert.deepEqual(ui.die.calls,[index+1]));check(()=>assert.deepEqual(ui.die.visible,[true]));check(()=>assert.ok(!ui.html.includes('data-action="challenge-draft"')));check(()=>assert.ok(!ui.html.includes('Relancer la carte')));}
  }
  // The native checkbox waits for server acknowledgement before the wave starts.
  {
@@ -559,7 +557,7 @@ async function rollSession(options={}){
  {
   const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote,{evidenceTrap:true,mobileScroll:true});await tick();ui.main.scrollTop=320;ui.main.scrollLeft=3;ui.button('send').focus();const changed=copy(game);changed.stats.totalCompleted=1;changed.stats.byCategory.attention=1;remote.emit(snap(changed,2));
   check(()=>{assert.equal(ui.main.scrollTop,320);assert.equal(ui.main.scrollLeft,3);assert.equal(ui.activeElement,ui.button('send'));assert.equal(ui.button('send').focusOptions.preventScroll,true);assertNoEvidence(ui.html);assert.equal(ui.elementScrolls.length,0);});
-  ui.main.scrollTop=360;ui.button('challenge-draft').focus();remote.emit(snap(changed,3,0));check(()=>{assert.equal(ui.main.scrollTop,360);assert.equal(ui.activeElement,ui.button('challenge-draft'));assert.equal(ui.button('challenge-draft').focusOptions.preventScroll,true);});
+  ui.main.scrollTop=360;ui.button('reroll').focus();remote.emit(snap(changed,3,0));check(()=>{assert.equal(ui.main.scrollTop,360);assert.equal(ui.activeElement,ui.button('reroll'));assert.equal(ui.button('reroll').focusOptions.preventScroll,true);});
   await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.main.scrollTop,0));ui.main.scrollTop=400;ui.help.focus();const pending=G.reduce(changed,{type:'SEND',at:new Date().toISOString()});remote.emit(snap(pending,4,0));check(()=>{assert.equal(ui.main.scrollTop,400);assert.equal(ui.activeElement,ui.help);assert.equal(ui.elementScrolls.length,0);});await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.main.scrollTop,0));
   await ui.click('tab',{tab:'tasks'});ui.main.scrollTop=220;await ui.intervals.find(timer=>timer.ms===30000).fn();check(()=>assert.equal(ui.main.scrollTop,220));await ui.click('tab',{tab:'play'});check(()=>{assert.equal(ui.main.scrollTop,0);assertNoEvidence(ui.html);assert.equal(ui.navigation.hidden,false);assert.equal(ui.elementScrolls.length,0);});
  }

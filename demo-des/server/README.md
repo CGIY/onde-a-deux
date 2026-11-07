@@ -61,13 +61,13 @@ Le snapshot contient `state` pour la manche personnelle et `incoming` pour la ma
 
 Les requêtes de jeu des anciens clients reçoivent `upgrade_required` avant toute mutation. Le nouveau transport abandonne un ancien reçu en attente lorsque cette réponse arrive, puis recharge immédiatement le snapshot courant. Une action déjà confirmée reste présente dans l’état migré. Les notifications utilisent le `roundId` de l’action, et leur disponibilité est calculée séparément pour les deux joueurs.
 
-Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 et le D20 restent uniformes.
+Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 restent uniformes.
 
-Chaque compte dispose d’un tirage par plage de Paris de 6 h à 12 h, de 12 h à 18 h et de 18 h à 6 h. La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche et les jets de D20 ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris`.
+Chaque compte dispose d’un tirage par heure glissante (heure de Paris). La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris` ; la migration `20261107120000_desir_hourly_quota.sql` remplace l’ancienne fonction `desir_quota_window`.
 
-La relance `REROLL_CARD` reste disponible uniquement pour les anciennes manches et retire alors le D20 initiateur. Dans le nouveau parcours, le D20 reste le moyen de tenter d’écarter une proposition. Aucun changement de schéma SQL n’est nécessaire.
+La relance `REROLL_CARD` est disponible une fois par tour avant l’envoi, dans les anciennes manches comme dans le parcours v2 ; en v2 elle retire aussi la variante choisie et ramène au choix de variante. Le destinataire d’une proposition dispose de `ACCEPT` (validation directe : la tâche démarre pour vingt-quatre heures) ou `PASS` (carte écartée, aucun point). Les actions de l’ancienne négociation (`CHALLENGE_DRAFT`, `ROLL_DRAFT_DEFENSE`, `CHALLENGE`, `ROLL_DEFENSE`, `ADAPT`, `LATER`) sont refusées ; les états sauvegardés dans ces phases migrent vers un brouillon ou une invitation en attente.
 
-`quota` contient `{remaining:0|1,window,label,nextAt}`. `window` désigne le début local de plage (`YYYY-MM-DDT06:00`, `T12:00` ou `T18:00`), `nextAt` une date UTC ISO.
+`quota` contient `{remaining:0|1,window,label,nextAt}`. `window` désigne le début local de l’heure glissante (`YYYY-MM-DDTHH:MI`), `label` l’heure locale (`HH h`), `nextAt` une date UTC ISO.
 
 Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les propositions peuvent attendre une réponse ; leurs vingt-quatre heures commencent à la validation finale à deux. Plusieurs tâches validées peuvent rester dans la liste pendant les nouveaux tours. La résolution de la manche d’un joueur libère son prochain tour personnel.
 

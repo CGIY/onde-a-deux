@@ -10,15 +10,15 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 
 ## Jouer
 
-- **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues possibles. Le D4 donne un poids de 11 à Complicité et Intimité et de 10 à Plaisirs et Projets. Les deux D6 et le D20 restent uniformes. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
-- Chaque personne dispose d’un tirage complet par plage de Paris (6–12 h, 12–18 h, 18–6 h). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
+- **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues possibles. Le D4 donne un poids de 11 à Complicité et Intimité et de 10 à Plaisirs et Projets. Les deux D6 restent uniformes. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
+- Chaque personne dispose d’un tirage complet par heure glissante (heure de Paris). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
 - Chaque joueur dispose de sa propre manche. Chacun peut tirer pendant que l’autre prépare sa carte ou attend une réponse. Une bannière ouvre l’invitation reçue ; « Mon tirage » retrouve la progression personnelle. Une seule manche reste active par joueur.
-- Proposer directement ou tenter le D20 : deux jets maximum par personne, dont la somme doit atteindre les PV de la carte. Deux jets insuffisants de la personne qui tire envoient automatiquement la proposition à l’autre. Un envoi automatique nécessite ensuite les deux confirmations.
-- Une action validée à deux rejoint « À faire » pour vingt-quatre heures. Chacun coche sa propre case ; les deux coches retirent l’action et ajoutent un point commun. L’expiration ou le D20 ne rapporte aucun point. Plusieurs actions validées peuvent rester en attente pendant un nouveau tour.
+- **Relancer, proposer, répondre.** Une relance de carte gratuite est disponible une fois par tour avant l’envoi ; en parcours v2, elle retire aussi la variante déjà choisie et ramène au choix de variante. L’envoi transforme le brouillon en invitation. Le destinataire n’a que deux gestes : **J’accepte** ou **Passer**. Passer écarte la carte sans pénalité ni point.
+- Une action validée à deux rejoint « À faire » pour vingt-quatre heures. Chacun coche sa propre case ; les deux coches retirent l’action et ajoutent un point commun. L’expiration ou une carte passée ne rapporte aucun point. Plusieurs actions validées peuvent rester en attente pendant un nouveau tour.
 
-Le remplissage du bouton évolue du sable au corail pendant le maintien, avec un léger frémissement visuel qui suit la charge. Maintenir le bouton charge visuellement le dé. Le maximum est atteint après **1 200 ms**, avec **deux à cinq tours** selon la durée de maintien. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les PV, les points ou le quota. Le lancer animé dure entre **1 650 et 2 500 ms** ; une attente réseau est signalée séparément. Les dés au repos gardent une orientation inclinée. Après l’arrêt du premier dé, sa catégorie reste affichée pendant 1,8 seconde. Après le dé de challenge, la carte sélectionnée se défloute dans la grille et reste affichée 2,8 secondes avant le dé de variante. La variante apparaît ensuite dans l’invitation et la liste À faire.
+Le remplissage du bouton évolue du sable au corail pendant le maintien, avec un léger frémissement visuel qui suit la charge. Maintenir le bouton charge visuellement le dé. Le maximum est atteint après **1 200 ms**, avec **deux à cinq tours** selon la durée de maintien. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les points ou le quota. Le lancer animé dure entre **1 650 et 2 500 ms** ; une attente réseau est signalée séparément. Les dés au repos gardent une orientation inclinée. Après l’arrêt du premier dé, sa catégorie reste affichée pendant 1,8 seconde. Après le dé de challenge, la carte sélectionnée se défloute dans la grille et reste affichée 2,8 secondes avant le dé de variante. La variante apparaît ensuite dans l’invitation et la liste À faire.
 
-Les PV restent des premières estimations. La jauge montre les PV restants et les deux résultats. Les opérations sont confirmées côté serveur : une réponse répétée ne relance pas un dé et ne compte pas deux fois un point.
+Les opérations sont confirmées côté serveur : une réponse répétée ne relance pas un dé et ne compte pas deux fois un point.
 
 Dans « Nous », seul le grade le plus élevé atteint est affiché. Douze paliers suivent le score commun : **5, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45 et 50 points**. Le nouveau grade remplace le précédent avec une courte transition. Sa palette bleu ardoise désaturé le distingue du score corail. Aucun nom de grade futur n’est affiché ; la barre indique seulement les points restant avant le prochain. Avant 5 points, un repère discret annonce le premier palier. Les grades suivent le total cumulé, même quand les anciennes actions quittent l’historique.
 
@@ -32,7 +32,7 @@ Les notifications signalent une invitation, une réponse, un dé disponible ou u
 
 ## Direction artistique
 
-La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Les statistiques, leurs sources et la page de sélection ont été retirées. Le score commun, les grades et les PV restent les éléments du jeu.
+La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Les statistiques, leurs sources et la page de sélection ont été retirées. Le score commun et les grades restent les éléments du jeu.
 
 La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Le score commun et les accents passent au corail grisé, avec une texture propre au panneau pour rester visible. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète. Le chiffre du résultat s’éclaire progressivement en blanc ivoire brillant à la fin du lancer, y compris dans le rendu de secours.
 
@@ -63,7 +63,7 @@ node demo-des/server/tests/backend-check.mjs
 node demo-des/server/tests/push-check.mjs
 ```
 
-Les contrôles automatisés couvrent les 144 résultats, les manches antérieures, la confidentialité des tirages, le D20 et les points. Ils ne constituent pas un essai physique sur iPhone.
+Les contrôles automatisés couvrent les 144 résultats, les manches antérieures, la confidentialité des tirages, la relance et les points. Ils ne constituent pas un essai physique sur iPhone.
 
 Les anciennes parties migrent automatiquement vers les deux manches personnelles, en conservant les cartes, tâches, points et historiques. Rouvrir l’app charge le protocole de connexion correspondant.
 

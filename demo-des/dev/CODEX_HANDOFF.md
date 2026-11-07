@@ -197,7 +197,7 @@ Les chiffres doivent rester accompagnés de leur source, de la population étudi
 
 ```sh
 python3 demo-des/dev/build.py
-node demo-des/dev/tests/onde-draft-challenge-check.cjs
+node demo-des/dev/tests/onde-simple-flow-check.cjs
 node demo-des/dev/tests/onde-stats-check.cjs
 node demo-des/dev/tests/onde-dice-qa.cjs
 ```

@@ -221,7 +221,7 @@ class RetiredStatisticsBuild(BuildFixture):
         self.assertIn('gradeLevels', html)
         self.assertIn('window.DesirCardNotes=Object.freeze(', html)
         self.assertIn('oa-card-note', html)
-        self.assertIn('Résistance de la carte', html)
+        self.assertIn('Relancer la carte', html)
         self.assert_archive_preserved()
 
     def test_invalid_card_sentences_do_not_write_a_release(self):

@@ -65,8 +65,6 @@
  const now=()=>new Date().toISOString();
  const card=()=>G.getCard(state.round.cardId);
  const category=()=>G.getCategory(state.round.categoryId,state.round.catalogueVersion??1);
- const shownRolls=()=>state.phase==='draft_challenge'||(state.round.status==='defended'&&!state.round.rolls.length)?state.round.draftRolls:state.round.rolls;
- const sum=()=>shownRolls().reduce((a,b)=>a+b,0);
  const canDraw=()=>state.phase==='category'
   ? !remoteMode || (typeof remoteSnapshot?.drawAvailable==='boolean'?remoteSnapshot.drawAvailable:state.activePlayer===state.round.from)
   : state.activePlayer===state.round.from;
@@ -78,7 +76,7 @@
  function canCharge(button){
   if(!button||button.disabled||!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return false;
   if(button.dataset.action==='reroll')return G.canRerollCard(state);
-  return state.phase==='category'&&canDraw()&&(!remoteMode||remoteSnapshot?.quota?.remaining!==0)||['card','variant'].includes(state.phase)&&canDraw()||state.phase==='draft_challenge'&&G.canRollDraftDefense(state)||state.phase==='challenge'&&G.canRespond(state);
+  return state.phase==='category'&&canDraw()&&(!remoteMode||remoteSnapshot?.quota?.remaining!==0)||['card','variant'].includes(state.phase)&&canDraw();
  }
  function drawCharge(){
   if(!charge)return;const power=Math.max(0,Math.min(1,(chargeNow()-charge.started)/chargeLimit));
@@ -143,7 +141,7 @@
  function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;selectedIncomingRoundId=null;syncLocalView();openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
  function awaitingPlayer(player){
   const views=remoteMode?[ownState,...incomingStates].filter(Boolean):Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id));
-  return views.some(value=>['pending','sender_confirmation','challenge','challenge_failed'].includes(value.phase)&&value.round.awaiting===player);
+  return views.some(value=>['pending'].includes(value.phase)&&value.round.awaiting===player);
  }
  function invitationKey(){return state.round.id+'-'+state.round.awaiting;}
 
@@ -190,7 +188,7 @@
    if(!remoteReady||!remote?.enabled)return false;
    if(action.type==='RESET'||action.type==='SWITCH_PLAYER')return false;
    operationBusy=true;setControlsBusy(true);
-   const waiting={SEND:['send','Envoi…'],ACCEPT:['accept','Validation…'],NEW_ROUND:['new','Un instant…']}[action.type];
+   const waiting={SEND:['send','Envoi…'],ACCEPT:['accept','Validation…'],PASS:['pass','Un instant…'],NEW_ROUND:['new','Un instant…']}[action.type];
    const trigger=waiting&&main.querySelector('[data-action="'+waiting[0]+'"]');if(trigger){trigger.textContent=waiting[1];trigger.setAttribute('aria-busy','true');}
    try{const value=action.type==='EXPIRE_TASKS'?await remote.refresh():await remote.action({...action,roundId:action.roundId||state.round.id});return flushRemote(value,false);}
    catch(error){return remoteError(error);}
@@ -204,7 +202,6 @@
  function textBtn(label,action,extra=''){return '<button type="button" class="oa-text-button cursor-interaction" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function eyebrow(text){return '<p class="oa-eyebrow">'+h(text)+'</p>';}
  function heading(title,sub,eyebrowText){return (eyebrowText?eyebrow(eyebrowText):'')+'<h1 class="oa-title">'+title+'</h1>'+(sub?'<p class="oa-subtitle">'+sub+'</p>':'');}
- function challengeSides(round=state.round){return G.cardSides(round);}
  function cardHeading(categoryId,catalogueVersion){return heading(h(G.getCategory(categoryId,catalogueVersion).label),null,null);}
  function steps(active,sides=G.rules.cardSides,hasVariant=true){
   const path=[[G.categorySides(hasVariant?2:1),'Catégorie'],[sides,'Carte']];
@@ -220,14 +217,6 @@
   if(old)return '<div class="oa-mini-card oa-card-back oa-card-discarded" aria-label="Carte '+(i+1)+' écartée : '+h(old.title)+'"><span class="oa-mini-number">'+(i+1)+'</span><span class="oa-discarded-state">Écartée</span><h3 class="oa-discarded-title" title="'+h(old.title)+'">'+h(old.title)+'</h3></div>';
   return '<div class="oa-mini-card oa-card-back" aria-label="Carte '+(i+1)+' face cachée"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-card-ghost" aria-hidden="true" inert style="--ghost-title:'+width+'%"><div class="oa-ghost-art"><i></i><i></i><i></i></div><span class="oa-ghost-title"></span><span class="oa-ghost-line"></span></div></div>';
  }).join('')+'</div>';}
-
- function healthGauge(owner){
-  const r=state.round,rolls=owner==='from'?r.draftRolls:r.rolls,total=rolls.reduce((a,b)=>a+b,0),left=Math.max(0,r.hp-total),ratio=left/r.hp;
-  const needed=r.hp-total,chance=rolls.length===0?G.probability(r.hp):rolls.length===1?Math.max(0,Math.min(20,21-needed))/20:0;
-  const odds=left===0?'Carte écartée':rolls.length===2?'Deux jets terminés':(chance*100).toLocaleString('fr-FR',{maximumFractionDigits:2})+' % de chance '+(rolls.length?'au dernier jet':'sur deux jets');
-  return '<section class="oa-hp" data-gauge="'+r.id+'-'+owner+'" data-ratio="'+ratio+'" aria-label="Résistance de la carte"><div class="oa-hp-top"><p>Résistance de la carte</p><strong>'+left+' <span>/ '+r.hp+' PV</span></strong></div><div class="oa-hp-track" role="progressbar" aria-label="Points de vie restants" aria-valuemin="0" aria-valuemax="'+r.hp+'" aria-valuenow="'+left+'">'+Array.from({length:12},(_,i)=>'<i aria-hidden="true"><span style="transform:scaleX('+Math.max(0,Math.min(1,ratio*12-i))+')"></span></i>').join('')+'</div><div class="oa-roll-history">'+[0,1].map(i=>'<span class="oa-roll-token">Jet '+(i+1)+' <b>'+(rolls[i]||'—')+'</b></span>').join('')+'</div><p class="oa-hp-odds">'+odds+'</p></section>';
- }
- function defenseSubtitle(c){const detail=proposalDetail(state.round);return h(c.title)+(detail?' · '+h(detail):'');}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function proposalDetail(round){return G.getVariant(round)||(round.adapted?round.proposal:null);}
  function roleplayNote(c){
@@ -241,7 +230,7 @@
  }
 
  function renderWelcome(){
-  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la ou tente de l’écarter au D20.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
+  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la, ou relance-la d’un geste.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
  }
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
@@ -259,11 +248,11 @@
   return btn('Lancer le D'+G.rules.categorySides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
  }
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){const r=state.round;const defend=state.phase==='pending'&&r.status==='pending'&&!r.challengeUsed&&Number.isFinite(r.hp)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge','oa-secondary'):'';return '<div class="oa-actions">'+btn(r.status==='scheduled_proposal'?'Confirmer ce moment':r.status==='counterproposal'?'Accepter la variante':'J’accepte','accept')+defend+'</div>';}
+ function responseActions(){return '<div class="oa-actions">'+btn('J’accepte','accept')+btn('Passer','pass','oa-secondary')+'</div>';}
 
  function privateHome(incoming=false){
   const r=state.round;
-  return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+(state.phase==='sender_confirmation'?'Une réponse t’attend':'Une invitation t’attend')+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
+  return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
  function incomingBanner(){
   const incoming=incomingStates.find(value=>G.canRespond(value));
@@ -274,35 +263,25 @@
  function renderPlayContent(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
   if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
-  if(['pending','sender_confirmation'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
+  if(['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
   if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
-   const sides=challengeSides();
+   const sides=G.cardSides(state);
    return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+handGrid();
   }
   if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
-  if(state.phase==='draft'&&rerolling)return heading('Le D'+challengeSides()+'<br><em>rejoue.</em>',null,null)+stage(challengeSides(),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canChallengeDraft(state)?btn('Tenter de l’écarter · D20 · '+r.hp+' PV','challenge-draft','oa-secondary'):'')+(G.canRerollCard(state)?textBtn('Relancer le D'+challengeSides()+' · sans mon D20','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
-  if(state.phase==='draft_challenge'&&!canDraw())return heading('Un défi<br><em>en cours.</em>',h(name(r.from))+' tente d’écarter la carte.',null)+switchButton(r.from);
-  if(state.phase==='draft_challenge')return heading('Tenter de<br><em>l’écarter.</em>',defenseSubtitle(c),null)+healthGauge('from')+stage(20,'ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.draftRolls.length+1)+' sur 2','roll');
+  if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='pending'){
-   const responds=G.canRespond(state),isCounter=r.status==='counterproposal',isLater=r.status==='scheduled_proposal';
-   const automatic=r.autoProposed&&r.status==='pending';
-   let title=responds?(isCounter?'Une autre<br><em>façon de jouer.</em>':isLater?'Un moment<br><em>à confirmer.</em>':'Une invitation<br><em>pour toi.</em>'):'L’invitation<br><em>est posée.</em>';
-   let sub=responds?(isCounter?'Une variante a été proposée. À toi de choisir.':isLater?'Le créneau proposé : '+h(r.schedule):automatic?'Le D20 a proposé cette carte. À toi de choisir.':h(name(r.from))+' te propose…'):'Invitation envoyée · '+h(name(r.awaiting))+' doit répondre.';
-   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(automatic&&!responds?healthGauge('from'):'')+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'');
-  }
-  if(state.phase==='sender_confirmation'){
    const responds=G.canRespond(state);
-   return heading(responds?'À toi de<br><em>confirmer.</em>':'Une dernière<br><em>confirmation.</em>',responds?h(name(r.to))+' a accepté. Confirme à ton tour pour l’ajouter à votre liste.':'Tu as accepté · '+h(name(r.from))+' doit confirmer.','PROPOSITION ENVOYÉE')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(responds?'<div class="oa-actions">'+btn('Confirmer à mon tour','accept')+'</div>':'');
+   const title=responds?'Une invitation<br><em>pour toi.</em>':'L’invitation<br><em>est posée.</em>';
+   const sub=responds?h(name(r.from))+' te propose…':'Invitation envoyée · '+h(name(r.awaiting))+' doit répondre.';
+   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'');
   }
-  if(state.phase==='challenge'&&!G.canRespond(state))return heading('Un défi<br><em>en cours.</em>',h(name(r.to))+' tente d’écarter la carte.',null)+statusStrip('Réponse en attente.');
-  if(state.phase==='challenge')return heading('Tenter de<br><em>l’écarter.</em>',defenseSubtitle(c),null)+healthGauge('to')+stage(20,'ÉCARTER LA CARTE',sum()||3)+btn('Lancer le D20 · jet '+(r.rolls.length+1)+' sur 2','roll');
-  if(state.phase==='challenge_failed')return heading('La proposition<br><em>reste ouverte.</em>',h(c.title),null)+healthGauge('to')+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(G.canRespond(state)?responseActions():'<div class="oa-actions">'+switchButton(r.to)+'</div>');
   if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed',expired=r.status==='expired';
-   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':expired?'Temps écoulé.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+(defended?healthGauge(r.rolls.length?'to':'from'):'')+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+(r.adapted?' · Variante':'')+'</p></div>'+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
+   return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':expired?'Temps écoulé.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+(r.adapted?' · Variante':'')+'</p></div>'+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
   }
   return '';
  }
@@ -372,7 +351,7 @@
   if(cardReveal)return cardReveal.viewKey;
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
-  const inbox=['pending','sender_confirmation'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
+  const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
   return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer].join('|');
  }
  function centerStage(){
@@ -493,12 +472,10 @@
   const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,hasVariant:state.round.catalogueVersion===2,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
   if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
-  if(reroll){if(!G.canRerollCard(state))return;sides=challengeSides();action={type:'REROLL_CARD'};}
+  if(reroll){if(!G.canRerollCard(state))return;sides=G.cardSides(state);action={type:'REROLL_CARD'};}
   else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:2};}
-  else if(phase==='card'&&canDraw()){sides=challengeSides();action={type:'ROLL_CARD'};}
+  else if(phase==='card'&&canDraw()){sides=G.cardSides(state);action={type:'ROLL_CARD'};}
   else if(phase==='variant'&&canDraw()){sides=G.rules.variantSides;action={type:'ROLL_VARIANT'};}
-  else if(phase==='draft_challenge'&&G.canRollDraftDefense(state)){sides=20;action={type:'ROLL_DRAFT_DEFENSE'};}
-  else if(phase==='challenge'&&G.canRespond(state)){sides=20;action={type:'ROLL_DEFENSE'};}
   else return;
   cancelContentTransitions();
   const serial=++animationSerial;busy=true;rerolling=reroll;if(rerolling)render();setControlsBusy(true);
@@ -526,8 +503,6 @@
       faces?faces[G.randomInt(faces.length)-1]:G.randomInt(sides);
     action.value=faceValue;
     if(action.type==='ROLL_CATEGORY')action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
-    if(action.type==='ROLL_DRAFT_DEFENSE')action.token=roundId+'-draft-'+(state.round.draftRolls.length+1);
-    if(action.type==='ROLL_DEFENSE')action.token=roundId+'-'+(state.round.rolls.length+1);
     const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId,at:now()});if(nextRoom===localRoom)return;
     localRoom=nextRoom;syncLocalView();next=state;save();
    }
@@ -551,7 +526,7 @@
       await waitForReveal(1800);
      }
     }
-    if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte · sans ton D20.');
+    if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte.');
    }
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
   finally{if(serial===animationSerial){const targetPhase=action.type==='ROLL_CATEGORY'?'card':action.type==='ROLL_CARD'&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
@@ -559,7 +534,7 @@
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;sheet.querySelector('button')?.focus({preventScroll:true});}
  function closeSheet(){if(sheet.hidden)return;sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;}
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>D20</b><div><h3>Écarter la carte.</h3><p>Deux jets par personne. Leur somme retire les PV. À zéro, la carte est écartée. Après deux jets insuffisants de la personne qui tire, elle est proposée à l’autre.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Accepter ou passer.</h3><p>L’invitation reçue s’accepte d’un geste, ou se passe sans suite.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{
@@ -586,9 +561,8 @@
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
-  if(action==='challenge-draft'){await dispatch({type:'CHALLENGE_DRAFT'});return;}
-  if(action==='challenge'){await dispatch({type:'CHALLENGE'});return;}
-  if(action==='accept'){const changed=await dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();if(changed)announce(state.phase==='accepted'?'Proposition ajoutée aux choses à faire.':'Confirmation attendue.');return;}
+  if(action==='accept'){const changed=await dispatch({type:'ACCEPT'},false);if(state.phase==='accepted')tab='tasks';render();if(changed&&state.phase==='accepted')announce('Proposition ajoutée aux choses à faire.');return;}
+  if(action==='pass'){const changed=await dispatch({type:'PASS'},false);render();if(changed)toast('Carte passée.');return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
   if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}
   if(action==='rules'){rules();return;}

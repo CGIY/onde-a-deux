@@ -11,7 +11,6 @@ check(()=>assert.deepEqual(G.legacyCategories.map(c=>c.number),[1,2,3,4,5,6]));
 check(()=>assert.equal(G.legacyCategories.find(c=>c.number===3).id,'projets'));
 check(()=>assert.equal(G.rules.dailyRoundLimit,null));
 check(()=>assert.equal(G.rules.activeRoundLimit,2));
-for(const [hp,chance] of [[10,.91],[15,.7725],[20,.5725],[25,.34],[30,.165],[35,.0525],[40,.0025]])check(()=>assert.equal(G.probability(hp),chance));
 for(const legacyCounts of [
  {complicite:1,detente:2,tendresse:3,attention:4,decouverte:5,intimite:6},
  {complicite:4,detente:2,attention:4,bouffe:5,intimite:6}
@@ -25,14 +24,17 @@ for(const legacyCounts of [
  check(()=>assert.equal(G.normalizeState(migrated),migrated));
 }
 let old=draft();old.round.hp=10;
-old=G.reduce(old,{type:'CHALLENGE_DRAFT'});
-old=G.reduce(old,{type:'ROLL_DRAFT_DEFENSE',value:10,token:'old-pv'});
-check(()=>assert.equal(old.phase,'resolved'));
+check(()=>assert.equal(old.phase,'draft'));
+check(()=>assert.equal(G.validateState(old),true));
+const defended=clone(old);defended.phase='resolved';defended.round.status='defended';defended.round.awaiting=null;
+check(()=>assert.equal(G.validateState(defended),true));
+check(()=>assert.equal(G.normalizeState(defended),defended));
+old=defended;
 check(()=>assert.equal(old.round.hp,10));
 check(()=>assert.equal(G.normalizeState(old),old));
 check(()=>assert.equal(G.normalizeState(clone(old)).round.hp,10));
 const historical=clone(old);historical.stats.byCategory={complicite:0,detente:0,attention:0,bouffe:0,intimite:0};
-check(()=>assert.equal(G.normalizeState(historical).round.status,'defended'));
+
 check(()=>assert.equal(G.normalizeState(historical).round.hp,10));
 const noPv=draft();noPv.round.hp=null;
 check(()=>assert.equal(G.normalizeState(noPv).round.hp,G.getCard(noPv.round.cardId).hp));
@@ -42,14 +44,16 @@ const finalSequence=G.createState();finalSequence.sequence=Number.MAX_SAFE_INTEG
 check(()=>assert.equal(G.reduce(finalSequence,{type:'NEW_ROUND'}),finalSequence));
 const invalidSequence=G.createState();invalidSequence.sequence=Number.MAX_SAFE_INTEGER+1;invalidSequence.round.id='onde-'+invalidSequence.sequence;
 check(()=>assert.equal(G.validateState(invalidSequence),false));
-// The next drawer alternates after a stop, regardless of who stopped it.
-for(const from of ['a','b'])for(const closedBy of ['a','b']){
+// The next drawer alternates after a stop; only the recipient can pass a pending proposal.
+for(const from of ['a','b']){
  let s=G.createState();if(from==='b')s=G.reduce(s,{type:'SWITCH_PLAYER',player:from});
  s=G.reduce(s,{type:'ROLL_CATEGORY',value:cat.number,hand});s=G.reduce(s,{type:'ROLL_CARD',value:1});s=G.reduce(s,{type:'SEND'});
- if(s.activePlayer!==closedBy)s=G.reduce(s,{type:'SWITCH_PLAYER',player:closedBy});
+ const to=G.otherPlayer(from);
+ check(()=>assert.equal(G.reduce(s,{type:'PASS'}),s,'the sender cannot pass their own pending proposal'));
+ s=G.reduce(s,{type:'SWITCH_PLAYER',player:to});
  s=G.reduce(s,{type:'PASS'});s=G.reduce(s,{type:'NEW_ROUND'});
  check(()=>assert(G.validateState(s)));
- check(()=>assert.equal(s.round.from,G.otherPlayer(from)));
+ check(()=>assert.equal(s.round.from,to));
  check(()=>assert.equal(s.activePlayer,s.round.from));
 }
 for(const category of G.legacyCategories){

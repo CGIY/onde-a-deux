@@ -25,9 +25,8 @@ for(const sides of [4,6])for(const from of ['a','b']){
  ok(published.round.hand.filter(id=>id!==s.round.cardId).every(id=>!s.round.hand.includes(id)),'unselected hand IDs are replaced, never delivered');
  const changedHand=clone(publicState);const alternatives=G.legacyCards.filter(c=>c.categoryId===changedHand.round.categoryId&&c.id!==changedHand.round.cardId).slice(0,sides-1).map(c=>c.id);let k=0;changedHand.round.hand=Array.from({length:sides},(_,i)=>i===changedHand.round.cardRoll-1?changedHand.round.cardId:alternatives[k++]);
  ok(G.validateState(changedHand));equal(projectState(G,changedHand,to),published,'changing unrevealed IDs cannot change the recipient projection');
- const privateDefense=act(act(act(s,'CHALLENGE_DRAFT'),'ROLL_DRAFT_DEFENSE',{value:20,token:'p1'}),'ROLL_DRAFT_DEFENSE',{value:20,token:'p2'});
- const hidden=projectState(G,privateDefense,to);equal(hidden.history,[]);equal(hidden.round.cardId,null);
- const own=projectState(G,privateDefense,from);equal(own.round.cardId,s.round.cardId);equal(own.history.length,1);
+ const own=projectState(G,s,from);equal(own.phase,'draft');equal(own.round.cardId,s.round.cardId);equal(own.history,[]);
+ const hidden=projectState(G,s,to);equal(hidden.phase,'category');equal(hidden.round.cardId,null);equal(hidden.round.hand,[]);equal(hidden.history,[]);
  equal(s,clone(s),'projection is pure');
 }
 equal(normalizeUsername(' ÉLÈVE '),'eleve','accented account alias');equal(normalizeUsername('A\u0301LPHA'),'alpha','decomposed accent alias');
@@ -96,14 +95,13 @@ for(const sides of [4,6])for(const from of ['a','b'])for(const oldFace of Array.
   equal(randomCalls,[sides-1],'reroll uses one uniform choice among the remaining indices');faces.push(result.roll.value);
   equal(result.roll,{kind:sides,value:alternatives[rank-1]});ok(result.state.round.cardId!==source.round.cardId,'reroll always changes the card');
   equal(result.state.round.cardRerolled,true);equal(result.consumeTicket,false);equal(result.notification,null);equal(result.state.stats,source.stats,'reroll grants no points');equal(source,before,'server action does not mutate its source');
-  equal(G.canRerollCard(result.state),false);equal(G.canChallengeDraft(result.state),false,'reroll removes the initiator D20');ok(!Object.hasOwn(result.state.round,'previousCardId'),'old card is not stored as previousCardId');
+  equal(G.canRerollCard(result.state),false);ok(!Object.hasOwn(result.state.round,'previousCardId'),'old card is not stored as previousCardId');
   const hidden=projectState(G,result.state,to);equal(hidden.round.cardId,null);equal(hidden.round.hand,[]);equal(hidden.round.cardRerolled,false,'recipient learns nothing about private reroll');equal(hidden.seen,{});
   const sent=applyAction(G,result.state,from,{type:'SEND',roundId:source.round.id},uuid(200+rank),at).state;
-  const challenge=applyAction(G,sent,to,{type:'CHALLENGE',roundId:source.round.id},uuid(210+rank),at);
-  equal(challenge.state.phase,'challenge','recipient still has a D20 challenge');
-  const defense=applyAction(G,challenge.state,to,{type:'ROLL_DEFENSE',roundId:source.round.id},uuid(220+rank),at,()=>1);
-  equal(defense.state.round.rolls,[1]);equal(defense.consumeTicket,false);
-  for(const blocked of [result.state,act(source,'CHALLENGE_DRAFT'),act(source,'SEND')]){
+  const accepted=applyAction(G,sent,to,{type:'ACCEPT',roundId:source.round.id},uuid(220+rank),at);
+  equal(accepted.state.phase,'accepted','the recipient accepts directly');equal(accepted.consumeTicket,false);
+  equal(accepted.state.tasks.length,1);equal(accepted.state.tasks[0].cardId,result.state.round.cardId);equal(accepted.state.tasks[0].id,source.round.id);
+  for(const blocked of [result.state,act(source,'SEND')]){
    let called=false;checks++;assert.throws(()=>applyAction(G,blocked,from,{type:'REROLL_CARD',roundId:blocked.round.id},uuid(230+rank),at,()=>{called=true;return 1;}),error=>error instanceof HttpError&&error.status===409);
    equal(called,false,'invalid reroll is rejected before RNG');
   }
@@ -190,7 +188,9 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 
 // Old private defended history remains private after one idempotent migration.
 {
- const legacy=new MemoryStore();legacy.state=act(act(act(draft(),'CHALLENGE_DRAFT'),'ROLL_DRAFT_DEFENSE',{value:20,token:'old1'}),'ROLL_DRAFT_DEFENSE',{value:20,token:'old2'});
+ const legacy=new MemoryStore();legacy.state=draft();
+ legacy.state.phase='resolved';Object.assign(legacy.state.round,{status:'defended',awaiting:null,closedBy:'a',endedAt:at,draftChallengeUsed:true,draftRolls:[20,20],draftRollTokens:['old1','old2']});
+ legacy.state.history=[clone(legacy.state.round)];
  const oldCard=legacy.state.round.cardId;delete legacy.state.round.cardRerolled;for(const past of legacy.state.history)delete past.cardRerolled;await authorize(legacy);
  const deliver=client(createHandler({G,store:legacy,rateSecret:'fixture',clock:()=>new Date(at)}));
  const response=await deliver({op:'state'},tokenB);equal(response.status,200);equal(response.body.incoming,[]);equal(response.body.state.history,[]);ok(!JSON.stringify(response.body).includes(oldCard));ok(G.validateRoom(legacy.state));equal(legacy.revision,1);await deliver({op:'state'},tokenB);equal(legacy.revision,1);
@@ -243,8 +243,8 @@ for(const sides of [4,6]){
  const altered=clone(store.state),lane=altered.lanes.a,others=lane.round.hand.filter(id=>id!==lane.round.cardId).reverse();others.splice(lane.round.cardRoll-1,0,lane.round.cardId);lane.round.hand=others;
  equal(projectState(G,altered,'b',3,aId),invited.body.incoming[0],'private permutation never leaks to receiver');
  const sentAgain=await deliver(intent('SEND',661,aId));equal(sentAgain.status,200);equal(store.outbox.length,1);
- const recipientChallenge=await deliver(intent('CHALLENGE',662,aId),tokenB);equal(recipientChallenge.status,200);equal(recipientChallenge.body.state.round.id,bId);equal(recipientChallenge.body.incoming[0].phase,'challenge');
- const defense=await deliver(intent('ROLL_DEFENSE',663,aId),tokenB);equal(defense.status,200);equal(defense.body.roll,{kind:20,value:1});equal(defense.body.incoming[0].round.rolls,[1]);equal(store.state.lanes.b,bBefore);
+ const aSent=clone(store.state.lanes.a);
+ const refusedChallenge=await deliver(intent('CHALLENGE',662,aId),tokenB);equal(refusedChallenge.status,400,'the recipient D20 no longer exists');equal(refusedChallenge.body.error.code,'invalid_action');equal(store.state.lanes.a,aSent);equal(store.state.lanes.b,bBefore);
  const accepted=await deliver(intent('ACCEPT',664,aId),tokenB);equal(accepted.status,200);equal(accepted.body.incoming[0].phase,'accepted');equal(accepted.body.state.round.id,bId);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,aId);
  const checkA=intent('TOGGLE_TASK_CHECK',665,aId,{taskId:aId,checked:true}),checkB=intent('TOGGLE_TASK_CHECK',666,bId,{taskId:aId,checked:true});
  const checked=await Promise.all([deliver(checkA),deliver(checkB,tokenB)]);equal(checked.map(x=>x.status),[200,200]);equal(store.state.stats.totalCompleted,1);equal(store.state.tasks.length,0);equal(store.state.lanes.a.phase,'resolved');equal(store.state.lanes.b,bBefore);
@@ -254,16 +254,30 @@ for(const sides of [4,6]){
  equal((await deliver(intent('SEND',669,bId),tokenB)).status,200);equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
 }
 
-// An initiator's two failed D20s notify the partner, then require sender confirmation.
+// A sent invitation resolves in one gesture: the recipient passes or accepts directly.
 {
  const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
  const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
  const id=view(store,'a').round.id,untouched=clone(store.state.lanes.b);let requestId=680;
- for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','ROLL_DRAFT_DEFENSE'])equal((await deliver(intent(type,requestId++,id))).status,200);
- equal(store.state.lanes.a.phase,'pending');equal(store.state.lanes.a.round.autoProposed,true);equal(store.state.lanes.b,untouched);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:id}]);
- const invited=await deliver({op:'state'},tokenB);equal(invited.body.drawAvailable,true);equal(invited.body.incoming[0].round.draftRolls,[1,1]);
- const accepted=await deliver(intent('ACCEPT',requestId++,id),tokenB);equal(accepted.status,200);equal(accepted.body.incoming[0].phase,'sender_confirmation');equal(accepted.body.state.phase,'category');equal(store.outbox.at(-1),{actor:'a',kind:'confirmation',roundId:id});
- const confirmed=await deliver(intent('ACCEPT',requestId++,id));equal(confirmed.status,200);equal(confirmed.body.state.phase,'accepted');equal(confirmed.body.state.tasks.length,1);equal(store.state.lanes.b,untouched);equal(store.used.size,1);
+ for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT'])equal((await deliver(intent(type,requestId++,id))).status,200);
+ equal((await deliver(intent('PASS',requestId++,id))).status,409,'the sender cannot pass a private draft');
+ equal((await deliver(intent('ACCEPT',requestId++,id))).status,409,'the sender cannot accept their own draft');
+ equal(store.outbox,[]);equal(store.used.size,1);
+ equal((await deliver(intent('SEND',requestId++,id))).status,200);
+ equal(store.state.lanes.a.phase,'pending');equal(store.state.lanes.b,untouched);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:id}]);
+ const invited=await deliver({op:'state'},tokenB);equal(invited.body.drawAvailable,true);equal(invited.body.incoming[0].phase,'pending');
+ equal((await deliver(intent('PASS',requestId++,id))).status,409,'the sender cannot pass their own invitation');
+ const passed=await deliver(intent('PASS',requestId++,id),tokenB);equal(passed.status,200);
+ equal(passed.body.incoming[0].phase,'resolved');equal(passed.body.incoming[0].round.status,'passed');
+ equal(store.state.stats.totalCompleted,0);equal(store.state.tasks.length,0);equal(store.outbox.length,1,'passing adds no notification');
+ equal((await deliver(intent('PASS',requestId++,id),tokenB)).status,409,'a passed round is closed');
+ const reopened=await deliver(intent('NEW_ROUND',requestId++,id));equal(reopened.status,200);equal(reopened.body.state.phase,'category');ok(reopened.body.state.round.id!==id);
+ const bId=view(store,'b').round.id;
+ for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,requestId++,bId),tokenB)).status,200);
+ equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
+ const accepted=await deliver(intent('ACCEPT',requestId++,bId),tokenA);equal(accepted.status,200);
+ equal(accepted.body.incoming[0].phase,'accepted');equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,bId);
+ equal(accepted.body.state.phase,'category','the accepter keeps their own lane');equal(store.used.size,2);
 }
 
 // Shared expiry reconciles both accepted lanes, without adding points.

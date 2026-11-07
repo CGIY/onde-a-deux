@@ -2,7 +2,7 @@ export class HttpError extends Error {
   constructor(status,code,message,snapshot){super(message);this.status=status;this.code=code;this.snapshot=snapshot;}
 }
 const copy=value=>JSON.parse(JSON.stringify(value));
-const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','SEND','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK']);
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const validRequestId=id=>typeof id==='string'&&uuidPattern.test(id);
 export function validDeviceToken(token){
@@ -91,9 +91,6 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
     const sides=G.cardSides(target),alternatives=Array.from({length:sides},(_,i)=>i+1).filter(value=>value!==target.round.cardRoll),rank=randomInt(alternatives.length);
     if(!Number.isInteger(rank)||rank<1||rank>alternatives.length)throw new Error('Invalid authoritative random outcome');
     action.value=alternatives[rank-1];roll={kind:sides,value:action.value};
-  }else if(action.type==='ROLL_DRAFT_DEFENSE'||action.type==='ROLL_DEFENSE'){
-    if(action.type==='ROLL_DRAFT_DEFENSE'?!G.canRollDraftDefense(target):target.phase!=='challenge'||!G.canRespond(target))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const value=randomInt(20);action.value=value;action.token='request:'+requestId;roll={kind:20,value};
   }
   const next=G.reduceRoom(room,{...action,actor,at});
   if(next===room)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
@@ -101,7 +98,6 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   const after=G.roomView(next,actor,target.round.id);
   let notification=null;
   if(after?.phase==='pending'&&after.round.awaiting!==actor&&target.phase!=='pending')notification={actor:after.round.awaiting,kind:'invitation',roundId:after.round.id};
-  else if(after?.phase==='sender_confirmation'&&after.round.awaiting!==actor&&target.phase!=='sender_confirmation')notification={actor:after.round.awaiting,kind:'confirmation',roundId:after.round.id};
   return {state:next,roll,notification,consumeTicket:action.type==='ROLL_CATEGORY'};
 }
 function applyLegacyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){

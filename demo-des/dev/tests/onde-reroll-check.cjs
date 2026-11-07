@@ -22,6 +22,12 @@ function complete(state){
  state=act(state,'SWITCH_PLAYER',{player:G.otherPlayer(state.activePlayer)});
  return act(state,'TOGGLE_TASK_CHECK',{taskId,checked:true,at:later});
 }
+function draft2(value=1,variant=1){
+ let state=G.createState();
+ state=act(state,'ROLL_CATEGORY',{value:1,catalogueVersion:2,hand:G.drawHand(state,1,2)});
+ state=act(state,'ROLL_CARD',{value});
+ return act(state,'ROLL_VARIANT',{value:variant});
+}
 
 eq(G.legacyCards.length,88,'catalogue remains intact');
 eq(G.createState().round.cardRerolled,false,'fresh rounds start without a reroll');
@@ -29,7 +35,6 @@ eq(G.createState().round.cardRerolled,false,'fresh rounds start without a reroll
 for(const from of ['a','b'])for(let first=1;first<=4;first++){
  const initial=draft(from,first),to=G.otherPlayer(from),before=JSON.stringify(initial),alternatives=[];
  ok(G.canRerollCard(initial),'initiator may reroll their private draft');
- ok(G.canChallengeDraft(initial),'D20 remains an alternative before the choice');
  for(const value of [1,2,3,4]){
   if(value===first){eq(G.reduce(initial,{type:'REROLL_CARD',value}),initial,'same face cannot spend the reroll');continue;}
   const next=act(initial,'REROLL_CARD',{value});alternatives.push(next.round.cardId);
@@ -42,11 +47,9 @@ for(const from of ['a','b'])for(let first=1;first<=4;first++){
   eq(next.stats,initial.stats,'reroll awards no points');eq(next.tasks,initial.tasks);
   eq(next.history,initial.history,'no spoiler history entry is added');
   eq(Object.keys(next.round).sort(),Object.keys(initial.round).sort(),'no previous-card field is retained');
-  eq(next.round.cardRerolled,true);eq(next.round.draftChallengeUsed,false,'reroll is not a fake D20 attempt');
-  eq(next.round.draftRolls,[]);eq(next.round.draftRollTokens,[]);
-  eq(G.canRerollCard(next),false);eq(G.canChallengeDraft(next),false);
-  eq(G.reduce(next,{type:'CHALLENGE_DRAFT'}),next,'initiator gives up D20 after reroll');
-  eq(G.reduce(next,{type:'ROLL_DRAFT_DEFENSE',value:20,token:'bypass'}),next);
+  eq(next.round.cardRerolled,true);eq(next.round.draftChallengeUsed,false);eq(next.round.draftRolls,[]);eq(next.round.draftRollTokens,[]);
+  eq(G.canRerollCard(next),false);
+  eq(next.phase,'draft','legacy reroll keeps the draft phase');
   eq(G.reduce(next,{type:'REROLL_CARD',value:first}),next,'second reroll cannot return to original card');
   eq(G.canSeeRound(next,to),false,'replacement stays private until sent');
   eq(G.normalizeState(clone(next)),next,'reroll survives save and reload');
@@ -64,10 +67,6 @@ for(const from of ['a','b']){
  const original=draft(from),rerolled=act(original,'REROLL_CARD',{value:2}),finalCard=rerolled.round.cardId;
  let state=recipient(sent(rerolled));
  ok(G.canSeeRound(state),'recipient sees final card after send');eq(state.round.cardId,finalCard);
- state=act(state,'CHALLENGE');eq(state.phase,'challenge','recipient retains D20');
- eq(state.round.draftChallengeUsed,false);eq(state.round.challengeUsed,true);
- state=act(state,'ROLL_DEFENSE',{value:1,token:'receiver-1'});
- state=act(state,'ROLL_DEFENSE',{value:1,token:'receiver-2'});eq(state.phase,'challenge_failed');
  state=act(state,'ACCEPT',{at:later});eq(state.phase,'accepted');eq(state.tasks.length,1);
  eq(state.tasks[0].cardId,finalCard,'task uses replacement card');eq(state.tasks[0].createdAt,later);
  eq(Date.parse(state.tasks[0].expiresAt)-Date.parse(later),24*60*60*1000,'twenty-four hours start at agreement');
@@ -76,25 +75,19 @@ for(const from of ['a','b']){
  eq(act(state,'TOGGLE_TASK_CHECK',{taskId:state.round.id,checked:true,at:later}),state,'cannot count twice');
  const next=act(state,'NEW_ROUND');eq(next.round.from,G.otherPlayer(from));eq(next.round.cardRerolled,false,'next round has a fresh choice');
 
- state=act(recipient(sent(rerolled)),'CHALLENGE');
- state=act(state,'ROLL_DEFENSE',{value:20,token:'win-1'});
- state=act(state,'ROLL_DEFENSE',{value:20,token:'win-2'});
- eq(state.round.status,'defended','recipient can still discard final card');eq(state.stats.totalCompleted,0);
+ // The recipient may pass the replaced card: no points, no task, history keeps the flag.
+ state=act(recipient(sent(rerolled)),'PASS');
+ eq(state.phase,'resolved');eq(state.round.status,'passed');eq(state.stats.totalCompleted,0);eq(state.tasks,[]);
  eq(state.history[0].cardRerolled,true);
 
  const queued=accepted(rerolled);
  state=act(queued,'EXPIRE_TASKS',{at:new Date(Date.parse(later)+24*60*60*1000).toISOString()});
  eq(state.round.status,'expired');eq(state.stats.totalCompleted,0);eq(state.round.cardRerolled,true);
 
- // A D20 started before reroll irreversibly chooses the D20 route.
- state=act(original,'CHALLENGE_DRAFT');eq(G.canRerollCard(state),false);
- eq(act(state,'REROLL_CARD',{value:2}),state);
- state=act(state,'ROLL_DRAFT_DEFENSE',{value:1,token:'draft-1'});
- eq(act(state,'REROLL_CARD',{value:2}),state);
- state=act(state,'ROLL_DRAFT_DEFENSE',{value:1,token:'draft-2'});eq(state.phase,'pending');
- state=act(recipient(state),'ACCEPT');eq(state.phase,'sender_confirmation');
- const phases=[G.createState(),act(G.createState(),'ROLL_CATEGORY',{value:1,hand:original.round.hand}),
-  sent(original),act(recipient(sent(original)),'CHALLENGE'),queued,complete(queued),state];
+ // The reroll stays unavailable outside a private draft.
+ const phases=[G.createState(),
+  act(G.createState(),'ROLL_CATEGORY',{value:1,hand:original.round.hand}),
+  sent(original),accepted(original),complete(accepted(original))];
  for(const candidate of phases){eq(G.canRerollCard(candidate),false,'reroll unavailable in '+candidate.phase);eq(act(candidate,'REROLL_CARD',{value:2}),candidate);}
 }
 
@@ -104,11 +97,46 @@ const hand=G.legacyCards.filter(c=>c.categoryId==='detente').slice(0,4).map(c=>c
 existing=act(existing,'ROLL_CATEGORY',{value:2,hand});existing=act(existing,'ROLL_CARD',{value:1});
 const changed=act(existing,'REROLL_CARD',{value:2});eq(changed.tasks,existing.tasks);eq(changed.stats,existing.stats);eq(changed.history,existing.history);
 
+// Modern v2 flow: the reroll sends the initiator back to variant selection on a new card.
+for(const from of ['a','b']){
+ const base=draft2(1,1),to=G.otherPlayer(from),hand=base.round.hand;
+ let state=base;
+ eq(state.round.catalogueVersion,2);eq(state.round.variantRoll,1);eq(state.phase,'draft');
+ ok(G.canRerollCard(state),'v2 reroll is available once the variant is drawn');
+ eq(G.reduce(state,{type:'REROLL_CARD',value:1}),state,'same face cannot spend the v2 reroll');
+ state=act(state,'REROLL_CARD',{value:2});
+ eq(state.phase,'variant','v2 reroll returns to variant selection');
+ eq(state.round.status,'drawing');eq(state.round.variantRoll,null,'the used variant is discarded');
+ eq(state.round.cardRerolled,true);eq(state.round.cardId,hand[1]);eq(state.round.cardRoll,2);
+ eq(state.round.cardId!==base.round.cardId,true,'v2 replacement card is guaranteed different');
+ eq(state.round.hp,G.getCard(state.round.cardId).hp);
+ eq(G.canRerollCard(state),false);
+ eq(act(state,'REROLL_CARD',{value:3}),state,'second v2 reroll is refused');
+ eq(act(state,'SEND'),state,'send is blocked until a variant is chosen');
+ state=act(state,'ROLL_VARIANT',{value:2});
+ eq(state.phase,'draft');eq(state.round.variantRoll,2);eq(G.getVariant(state.round),G.getCard(state.round.cardId).variants[1]);
+ eq(G.canRerollCard(state),false,'reroll already spent in this round');
+ state=sent(state);eq(state.phase,'pending');eq(state.round.sentAt,at);
+ state=act(recipient(state),'ACCEPT',{at:later});
+ eq(state.phase,'accepted');eq(state.tasks.length,1);
+ eq(state.tasks[0].cardId,hand[1],'task uses the v2 replacement card');
+ eq(state.tasks[0].variantRoll,2,'task keeps the chosen variant');
+ eq(state.history[0].cardRerolled,true);eq(state.history[0].variantRoll,2);
+ state=complete(state);eq(state.stats.totalCompleted,1);
+ const fresh=act(state,'NEW_ROUND');eq(fresh.round.cardRerolled,false);eq(fresh.round.variantRoll,undefined,'fresh v3 round has no variant until a category is drawn');
+ // Variant selection itself can never be rerolled, only the card.
+ const early=act(G.createState(),'ROLL_CATEGORY',{value:1,catalogueVersion:2,hand});
+ eq(G.canRerollCard(early),false,'no reroll before the card is drawn');
+ const cardOnly=act(early,'ROLL_CARD',{value:1});
+ eq(G.canRerollCard(cardOnly),false,'no reroll while the variant is still missing');
+ eq(act(cardOnly,'REROLL_CARD',{value:2}),cardOnly);
+ const wrongActor=draft2();
+ eq(G.reduce(wrongActor,{type:'REROLL_CARD',value:2,actor:G.otherPlayer(wrongActor.activePlayer)}),wrongActor,'wrong actor rejected in v2');
+}
+
 // Published saves gain only the missing boolean, including all history snapshots.
 const oldStates=[G.createState(),draft(),sent(draft()),accepted(draft()),complete(accepted(draft()))];
-oldStates.push(act(oldStates[3],'NEW_ROUND'));
-let legacyDefense=act(draft(),'CHALLENGE_DRAFT');legacyDefense.round.hp=10;
-legacyDefense=act(legacyDefense,'ROLL_DRAFT_DEFENSE',{value:10,token:'legacy-pv'});oldStates.push(legacyDefense);
+oldStates.push(act(oldStates[3],'NEW_ROUND'));oldStates.push(draft2());
 for(const original of oldStates){
  const old=clone(original);delete old.round.cardRerolled;for(const round of old.history)delete round.cardRerolled;
  const before=JSON.stringify(old),migrated=G.normalizeState(old);
@@ -128,5 +156,6 @@ let malformed=act(draft(),'REROLL_CARD',{value:2});malformed.round.draftChalleng
 malformed=act(draft(),'REROLL_CARD',{value:2});malformed.round.draftRolls=[1];malformed.round.draftRollTokens=['impossible'];invalid.push(malformed);
 malformed=accepted(draft());malformed.history[0].cardRerolled=true;malformed.history[0].draftChallengeUsed=true;invalid.push(malformed);
 malformed=accepted(draft());malformed.history[0].cardRerolled='yes';invalid.push(malformed);
+malformed=accepted(draft2());malformed.history[0].variantRoll=null;invalid.push(malformed);
 for(const state of invalid){eq(G.validateState(state),false,'invalid reroll state rejected');eq(G.normalizeState(state),null,'invalid present flag never reset');}
 console.log(`ONDE one-use D4 reroll: ${checks} targeted assertions passed.`);

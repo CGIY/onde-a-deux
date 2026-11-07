@@ -94,21 +94,27 @@ for(const order of [['a','b'],['b','a']]){
  blocked(current,order[0],'ROLL_VARIANT',{roundId,value:1});
 }
 
-// Each initiator has a private D20; automatic proposals retain both confirmations.
+// Accepting one lane's invitation leaves the partner's private draft untouched;
+// only the recipient can pass, in a single gesture and without negotiation.
 room=draw(G.createRoom({at}),'a');
 room=draw(room,'b',2);
 const bDraft=clone(room.lanes.b),aId=room.lanes.a.round.id;
-room=act(room,'a','CHALLENGE_DRAFT');
-room=act(room,'a','ROLL_DRAFT_DEFENSE',{value:1,token:'a-draft-1'});
-room=act(room,'a','ROLL_DRAFT_DEFENSE',{value:1,token:'a-draft-2'});
-check(()=>assert.equal(room.lanes.a.round.autoProposed,true));
-room=act(room,'b','ACCEPT',{roundId:aId});
-check(()=>assert.equal(room.lanes.a.phase,'sender_confirmation'));
+room=act(room,'a','SEND');
 check(()=>assert.deepEqual(room.lanes.b,bDraft));
-room=act(room,'a','ACCEPT');
+room=act(room,'b','ACCEPT',{roundId:aId});
 check(()=>assert.equal(room.lanes.a.phase,'accepted'));
 check(()=>assert.deepEqual(room.lanes.b,bDraft));
 check(()=>assert.equal(room.tasks.length,1));
+blocked(room,'a','PASS',{roundId:aId});
+let stopRoom=draw(G.createRoom({at}),'a');
+const stopId=stopRoom.lanes.a.round.id;
+stopRoom=act(stopRoom,'a','SEND');
+blocked(stopRoom,'a','PASS',{roundId:stopId});
+stopRoom=act(stopRoom,'b','PASS',{roundId:stopId});
+check(()=>assert.equal(stopRoom.lanes.a.phase,'resolved'));
+check(()=>assert.equal(stopRoom.lanes.a.round.status,'passed'));
+check(()=>assert.equal(stopRoom.stats.totalCompleted,0));
+check(()=>assert.equal(stopRoom.tasks.length,0));
 
 // Shared tasks score once even after both players start newer personal rounds.
 room=accept(G.createRoom({at}),'a');
@@ -137,9 +143,6 @@ check(()=>assert.equal(room.history.filter(r=>r.status==='completed').length,2))
 // Completing another lane's task preserves its complete round after history eviction.
 room=draw(G.createRoom({at}),'a');
 room=act(room,'a','SEND');
-room=act(room,'b','CHALLENGE',{roundId:room.lanes.a.round.id});
-room=act(room,'b','ROLL_DEFENSE',{roundId:room.lanes.a.round.id,value:1,token:'b-defense-1'});
-room=act(room,'b','ROLL_DEFENSE',{roundId:room.lanes.a.round.id,value:1,token:'b-defense-2'});
 room=act(room,'b','ACCEPT',{roundId:room.lanes.a.round.id});
 room=draw(room,'b',2);
 room.history=[];
@@ -153,7 +156,7 @@ for(const key of ['hand','rolls','rollTokens','draftRolls','draftRollTokens','hp
  check(()=>assert.deepEqual(room.lanes.a.round[key],fullA[key]));
 }
 check(()=>assert.deepEqual(room.lanes.b,fullB));
-check(()=>assert.deepEqual(room.history.find(r=>r.id===fullA.id).rolls,[1,1]));
+check(()=>assert.deepEqual(room.history.find(r=>r.id===fullA.id).rolls,[]));
 const expired=act(archivedSource,'b','EXPIRE_TASKS',{at:'2026-11-06T12:00:00.000Z'});
 check(()=>assert.equal(expired.lanes.a.phase,'resolved'));
 check(()=>assert.equal(expired.lanes.a.round.status,'expired'));
@@ -184,6 +187,8 @@ function singleAct(state,type,fields={}){
  return next;
 }
 for(const owner of ['a','b']){
+ let pendingRoom=draw(G.createRoom({at}),owner);
+ pendingRoom=G.reduceRoom(pendingRoom,{type:'SEND',actor:owner,at,roundId:pendingRoom.lanes[owner].round.id});
  const snapshots=[];
  let state={...G.createState(),activePlayer:owner};
  snapshots.push(state);
@@ -191,15 +196,26 @@ for(const owner of ['a','b']){
  state=singleAct(state,'ROLL_CARD',{value:1});snapshots.push(state);
  state=singleAct(state,'ROLL_VARIANT',{value:1});snapshots.push(state);
  const draft=state;
- state=singleAct(state,'CHALLENGE_DRAFT');snapshots.push(state);
- state=singleAct(state,'ROLL_DRAFT_DEFENSE',{value:1,token:'legacy-one'});snapshots.push(state);
- state=singleAct(state,'ROLL_DRAFT_DEFENSE',{value:1,token:'legacy-two'});snapshots.push(state);
+ state=singleAct(state,'SEND');snapshots.push(state);
+ const pending=state;
  state={...state,activePlayer:G.otherPlayer(owner)};
  state=singleAct(state,'ACCEPT');snapshots.push(state);
- state={...state,activePlayer:owner};state=singleAct(state,'ACCEPT');snapshots.push(state);
- let defended=singleAct(draft,'CHALLENGE_DRAFT');
- defended=singleAct(defended,'ROLL_DRAFT_DEFENSE',{value:20,token:'legacy-high-one'});
- defended=singleAct(defended,'ROLL_DRAFT_DEFENSE',{value:20,token:'legacy-high-two'});snapshots.push(defended);
+ // A v2 room frozen mid-legacy-negotiation migrates back to draft or pending.
+ const draftRoom=draw(G.createRoom({at}),owner);
+ for(const [phase,baseRoom,mutate] of [
+  ['draft_challenge',draftRoom,round=>{round.status='drawing';round.awaiting=owner;round.draftChallengeUsed=true;round.draftRolls=[3];round.draftRollTokens=['t'];}],
+  ['challenge',pendingRoom,round=>{round.status='challenge';round.challengeUsed=true;round.rolls=[1,1];round.rollTokens=['t1','t2'];}],
+  ['challenge_failed',pendingRoom,round=>{round.status='challenge_failed';round.challengeUsed=true;round.rolls=[1,1];round.rollTokens=['t1','t2'];}],
+  ['sender_confirmation',pendingRoom,round=>{round.status='sender_confirmation';round.awaiting=owner;round.toConfirmed=true;}]
+ ]){
+  const frozen=clone(baseRoom);
+  frozen.lanes[owner].phase=phase;
+  mutate(frozen.lanes[owner].round);
+  const migrated=G.normalizeRoom(frozen,{at});
+  check(()=>assert.equal(G.validateRoom(migrated),true,'migrated '+phase));
+  check(()=>assert.deepEqual(migrated.lanes[owner],baseRoom.lanes[owner],phase+' becomes the clean equivalent lane'));
+  check(()=>assert.equal(G.normalizeRoom(migrated,{at}),migrated,'migration is idempotent'));
+ }
  for(const snapshot of snapshots){
   const old=clone(snapshot);old.players=[{id:'a',name:'Alpha'},{id:'b',name:'Bravo'}];old.prefs.sound=true;
   const before=JSON.stringify(old),migrated=G.normalizeRoom(old,{at});

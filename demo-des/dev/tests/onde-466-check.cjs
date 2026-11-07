@@ -11,7 +11,7 @@ function act(state,type,fields={}){
   return next;
 }
 
-assert.deepEqual([G.rules.categorySides,G.rules.cardSides,G.rules.variantSides,G.rules.challengeSides],[4,6,6,20]);
+assert.deepEqual([G.rules.categorySides,G.rules.cardSides,G.rules.variantSides],[4,6,6]);
 assert.deepEqual(G.categories.map(category=>category.id),['complicite','attention','projets','intimite']);
 assert.deepEqual(G.legacyCategories.map(category=>category.id),['complicite','detente','projets','attention','bouffe','intimite']);
 assert.deepEqual([G.categorySides(2),G.categorySides(1)],[4,6]);
@@ -73,9 +73,8 @@ for(const category of G.categories){
       assert.equal(draft.phase,'draft');
       assert.equal(G.getVariant(draft.round),card.variants[face-1]);
       assert.equal(draft.round.hp,card.hp);
-      assert.equal(G.canChallengeDraft(draft),true);
       blocked(draft,'ROLL_VARIANT',{value:face});
-      blocked(draft,'REROLL_CARD',{value:(index+1)%6+1});
+      assert.equal(G.canRerollCard(draft),true);
       assert.deepEqual(G.normalizeState(clone(draft)),draft);
       branches++;
       lastDraft=draft;
@@ -84,18 +83,12 @@ for(const category of G.categories){
 }
 assert.equal(branches,144);
 
-let challenged=act(lastDraft,'CHALLENGE_DRAFT');
-challenged=act(challenged,'ROLL_DRAFT_DEFENSE',{value:1,token:'one'});
-blocked(challenged,'ROLL_DRAFT_DEFENSE',{value:20,token:'one'});
-challenged=act(challenged,'ROLL_DRAFT_DEFENSE',{value:1,token:'two'});
-assert.equal(challenged.phase,'pending');
-assert.equal(challenged.round.autoProposed,true);
-assert.equal(challenged.round.variantRoll,lastDraft.round.variantRoll);
-challenged=act(challenged,'SWITCH_PLAYER',{player:'b'});
-challenged=act(challenged,'ACCEPT');
-assert.equal(challenged.phase,'sender_confirmation');
-challenged=act(challenged,'SWITCH_PLAYER',{player:'a'});
-let accepted=act(challenged,'ACCEPT');
+let accepted=act(lastDraft,'SEND');
+assert.equal(accepted.phase,'pending');
+accepted=act(accepted,'SWITCH_PLAYER',{player:'b'});
+accepted=act(accepted,'ACCEPT');
+assert.equal(accepted.phase,'accepted');
+assert.equal(accepted.round.autoProposed,false);
 const {id,variantRoll}=accepted.round;
 const variant=G.getVariant(accepted.round);
 assert.equal(G.getVariant(accepted.tasks[0]),variant);
@@ -144,4 +137,4 @@ const sharedScore={totalCompleted:21,byCategory:{complicite:1,detente:2,projets:
 assert.deepEqual(G.categories.map(category=>G.categoryScore(sharedScore,category.id)),[3,9,3,6]);
 assert.equal(G.categories.reduce((total,category)=>total+G.categoryScore(sharedScore,category.id),0),sharedScore.totalCompleted);
 
-console.log('Dés·ir 4×6×6 : 144 branches validées, D20, persistance et anciens tirages vérifiés.');
+console.log('Dés·ir 4×6×6 : 144 branches validées, relance, persistance et anciens tirages vérifiés.');

@@ -223,7 +223,7 @@
   ];
 
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
-  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:2, categorySides:4, cardSides:6, variantSides:6, challengeSides:20, challengeRollLimit:2, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:24*60*60*1000 });
+  const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:2, categorySides:4, cardSides:6, variantSides:6, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:24*60*60*1000 });
   const legacyCardSides = 4;
   const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards].map(card => [card.id, card]));
   const legacyCategoryMap = Object.fromEntries(legacyCategories.map(category => [category.id, category]));
@@ -231,7 +231,7 @@
   const catalogueCategories = version => version===2?categories:legacyCategories;
   const categorySides = version => catalogueCategories(version).length;
   const mergedCategory = id => id==='detente'?'complicite':id==='bouffe'?'attention':id;
-  const phases = ['category','card','variant','draft','draft_challenge','pending','challenge','challenge_failed','sender_confirmation','accepted','resolved'];
+  const phases = ['category','card','variant','draft','pending','accepted','resolved'];
   const prefKeys = ['reducedMotion','sound','discreet','reminder'];
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
   const getCard = id => Object.prototype.hasOwnProperty.call(cardMap,id)?cardMap[id]:null;
@@ -352,7 +352,7 @@
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
     const modern=r.catalogueVersion===2;
-    if (!validCardReroll(r) || (modern?r.cardRerolled:r.catalogueVersion!==undefined||r.variantRoll!==undefined)) return false;
+    if (!validCardReroll(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
@@ -368,24 +368,9 @@
     if(s.phase==='variant') return modern && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     if(!validSelectedVariant(r)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
-    if(r.autoProposed && (!r.draftChallengeUsed || r.draftRolls.length!==2 || draftTotal>=r.hp)) return false;
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
-    if(s.phase==='draft_challenge') return r.status==='draft_challenge' && r.awaiting===r.from && r.draftChallengeUsed && r.draftRolls.length<2 && draftTotal<r.hp && !r.challengeUsed && !r.rolls.length && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
-    if(s.phase==='pending') {
-      if(!['a','b'].includes(r.awaiting) || !['pending','counterproposal','scheduled_proposal'].includes(r.status)) return false;
-      if(r.status==='pending' && (r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
-      if(r.status==='counterproposal' && (!r.adapted || !r.proposal)) return false;
-      if(r.status==='scheduled_proposal' && !r.schedule) return false;
-      if(r.status!=='pending') {
-        const awaitingConfirmed=r.awaiting===r.from?r.fromConfirmed:r.toConfirmed;
-        const proposerConfirmed=r.awaiting===r.from?r.toConfirmed:r.fromConfirmed;
-        if(awaitingConfirmed || !proposerConfirmed) return false;
-      }
-    }
-    if(s.phase==='sender_confirmation' && (r.status!=='sender_confirmation' || r.awaiting!==r.from || r.fromConfirmed || !r.toConfirmed || !r.autoProposed)) return false;
+    if(s.phase==='pending' && (r.status!=='pending' || r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || !r.fromConfirmed || r.autoProposed)) return false;
     if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || !r.toConfirmed || !s.tasks.some(task=>task.id===r.id))) return false;
-    if(s.phase==='challenge' && (r.status!=='challenge' || !r.challengeUsed || r.rolls.length>=2 || total>=r.hp || r.awaiting!==r.to || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
-    if(s.phase==='challenge_failed' && (r.status!=='challenge_failed' || !r.challengeUsed || r.rolls.length!==2 || total>=r.hp || r.awaiting!==r.to || r.toConfirmed || r.fromConfirmed!==!r.autoProposed)) return false;
     if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || (['completed','expired'].includes(r.status) && (!r.fromConfirmed || !r.toConfirmed)))) return false;
     if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
@@ -478,6 +463,19 @@
       }
     }
     if(!has('stats')) migrated.stats=emptyStats();
+    // Les anciennes négociations (défis, contre-propositions, double
+    // confirmation) redeviennent une proposition en attente d'envoi ou une
+    // simple invitation à laquelle répondre.
+    if(migrated.phase==='draft_challenge') {
+      migrated.phase='draft'; migrated.round.status='draft'; migrated.round.awaiting=null;
+      migrated.round.draftChallengeUsed=false; migrated.round.draftRolls=[]; migrated.round.draftRollTokens=[];
+    } else if(['challenge','challenge_failed','sender_confirmation'].includes(migrated.phase) || ['counterproposal','scheduled_proposal'].includes(migrated.round.status)) {
+      migrated.phase='pending'; migrated.round.status='pending'; migrated.round.awaiting=migrated.round.to;
+      migrated.round.challengeUsed=false; migrated.round.rolls=[]; migrated.round.rollTokens=[];
+      migrated.round.draftChallengeUsed=false; migrated.round.draftRolls=[]; migrated.round.draftRollTokens=[];
+      migrated.round.autoProposed=false; migrated.round.fromConfirmed=true; migrated.round.toConfirmed=false;
+      migrated.round.adapted=false; migrated.round.schedule=null;
+    }
     if(!validateState(migrated)) return null;
     // Only old states without cumulative counters need history reconstruction.
     // Entries evicted by the previous 80-item history limit remain unknown.
@@ -505,16 +503,8 @@
     return pool.slice(0,sides);
   }
 
-  /* Exact probability of reaching HP with at most two fair, independent D20s. */
-  function probability(hp) {
-    if (!Number.isFinite(hp)) return 0;
-    let successes=0;
-    for(let a=1;a<=20;a++) for(let b=1;b<=20;b++) if(a+b>=hp) successes++;
-    return successes/400;
-  }
-
   function canRespond(s) {
-    return ['pending','challenge','challenge_failed','sender_confirmation'].includes(s.phase) && s.activePlayer===s.round.awaiting;
+    return s.phase==='pending' && s.activePlayer===s.round.awaiting;
   }
 
   // A private draw becomes visible to its recipient only after it was sent.
@@ -526,14 +516,13 @@
     if(!['a','b'].includes(round.from) || round.to!==otherPlayer(round.from)) return false;
     if(state.phase==='category' || player===round.from) return true;
     if(typeof round.sentAt==='string' && round.sentAt.length>0) return true;
-    if(['pending','challenge','challenge_failed','sender_confirmation','accepted'].includes(state.phase)) return true;
+    if(['pending','accepted'].includes(state.phase)) return true;
     if(state.phase==='resolved' && ['completed','expired'].includes(round.status)) return true;
     return Array.isArray(round.rolls) && round.rolls.length>0;
   }
 
-  const canRerollCard=s=>s.phase==='draft' && s.round.catalogueVersion!==2 && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
-  const canChallengeDraft=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.draftChallengeUsed && !s.round.cardRerolled && Number.isFinite(getCard(s.round.cardId)?.hp);
-  const canRollDraftDefense=s=>s.phase==='draft_challenge' && s.activePlayer===s.round.from && s.round.awaiting===s.activePlayer && Number.isFinite(getCard(s.round.cardId)?.hp);
+  // Une seule relance de carte par tour, gratuite, avant l'envoi.
+  const canRerollCard=s=>s.phase==='draft' && s.activePlayer===s.round.from && !s.round.cardRerolled && !s.round.draftChallengeUsed && s.round.draftRolls.length===0;
 
   function recordHistory(s, round) {
     s.history=[JSON.parse(JSON.stringify(round)),...s.history.filter(item=>item.id!==round.id)].slice(0,80);
@@ -648,7 +637,7 @@
         if(reroll?!canRerollCard(s):s.phase!=='card' || actor!==r.from) return state;
         if(!Number.isInteger(action.value) || action.value<1 || action.value>cardSides(r) || reroll&&action.value===r.cardRoll) return state;
         r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp;
-        if(reroll) r.cardRerolled=true;
+        if(reroll) { r.cardRerolled=true; if(r.catalogueVersion===2) r.variantRoll=null; }
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
         s.phase=r.catalogueVersion===2?'variant':'draft';
         r.status=s.phase==='variant'?'drawing':'draft';
@@ -661,70 +650,23 @@
         s.phase='draft';
         return s;
       case 'SEND':
-        if(!['draft','draft_challenge'].includes(s.phase) || actor!==r.from) return state;
+        if(s.phase!=='draft' || actor!==r.from) return state;
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
         return s;
-      case 'CHALLENGE_DRAFT':
-        if(!canChallengeDraft(s)) return state;
-        r.draftChallengeUsed=true; r.status='draft_challenge'; r.awaiting=r.from; s.phase='draft_challenge';
-        return s;
-      case 'ROLL_DRAFT_DEFENSE': {
-        if(!canRollDraftDefense(s) || !Number.isFinite(getCard(r.cardId)?.hp) || r.draftRolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
-        if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.draftRollTokens.includes(action.token)) return state;
-        r.draftRolls.push(action.value); r.draftRollTokens.push(action.token);
-        const total=r.draftRolls.reduce((sum,v)=>sum+v,0);
-        if(total>=r.hp) closeRound(s,'defended',action);
-        else if(r.draftRolls.length===2) {
-          // The random result sends an invitation, never a person's agreement.
-          r.autoProposed=true; r.fromConfirmed=false; r.toConfirmed=false;
-          r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
-        }
-        return s;
-      }
-      case 'ACCEPT':
+      case 'ACCEPT': {
         if(!canRespond(s)) return state;
-        if(actor===r.from) r.fromConfirmed=true; else r.toConfirmed=true;
-        if(!r.fromConfirmed) {
-          r.status='sender_confirmation'; r.awaiting=r.from; s.phase='sender_confirmation';
-        } else {
-          const acceptedAt=action.at===undefined?fallbackTime:taskStartTime(action.at)?action.at:null;
-          if(!acceptedAt) return state;
-          r.status='accepted'; r.awaiting=null; r.acceptedAt=acceptedAt; s.phase='accepted';
-          enqueueTask(s,acceptedAt);
-        }
-        return s;
-      case 'LATER':
-        if(!canRespond(s)) return state;
-        r.schedule=(typeof action.schedule==='string' && action.schedule.trim() ? action.schedule.trim() : 'À convenir').slice(0,80);
-        r.fromConfirmed=actor===r.from; r.toConfirmed=actor===r.to;
-        r.status='scheduled_proposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
-        return s;
-      case 'ADAPT':
-        if(!canRespond(s)) return state;
-        r.proposal=(typeof action.text==='string' && action.text.trim() ? action.text.trim() : (getVariant(r)||getCard(r.cardId).variant)).slice(0,400);
-        r.fromConfirmed=actor===r.from; r.toConfirmed=actor===r.to;
-        r.adapted=true; r.status='counterproposal'; r.awaiting=otherPlayer(actor); s.phase='pending';
-        return s;
-      case 'CHALLENGE':
-        if(s.phase!=='pending' || r.status!=='pending' || actor!==r.to || r.awaiting!==actor || r.challengeUsed || !Number.isFinite(getCard(r.cardId)?.hp)) return state;
-        r.challengeUsed=true; r.status='challenge'; s.phase='challenge';
-        return s;
-      case 'ROLL_DEFENSE': {
-        if(s.phase!=='challenge' || actor!==r.to || r.awaiting!==actor || !Number.isFinite(getCard(r.cardId)?.hp) || r.rolls.length>=2 || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
-        if(typeof action.token!=='string' || !action.token || action.token.length>150 || r.rollTokens.includes(action.token)) return state;
-        r.rolls.push(action.value); r.rollTokens.push(action.token);
-        const total=r.rolls.reduce((sum,v)=>sum+v,0);
-        if(total>=r.hp) closeRound(s,'defended',action);
-        else if(r.rolls.length===2) {s.phase='challenge_failed'; r.status='challenge_failed';}
+        const acceptedAt=action.at===undefined?fallbackTime:taskStartTime(action.at)?action.at:null;
+        if(!acceptedAt) return state;
+        r.toConfirmed=true;
+        r.status='accepted'; r.awaiting=null; r.acceptedAt=acceptedAt; s.phase='accepted';
+        enqueueTask(s,acceptedAt);
         return s;
       }
       case 'PASS':
       case 'CANCEL':
-        // The drawer must propose the card or resolve their own D20 challenge.
-        // Passing becomes available once the card reaches the other player.
-        if(['variant','draft','draft_challenge'].includes(s.phase)) return state;
-        if(!r.cardId || s.phase==='resolved') return state;
+        // Le destinataire passe l'invitation : la carte est écartée, sans défi ni pénalité.
+        if(s.phase!=='pending' || !r.cardId || !canRespond(s)) return state;
         closeRound(s,'passed',action);
         return s;
       case 'COMPLETE':
@@ -760,7 +702,28 @@
 
   function normalizeRoom(raw,options={}) {
     if(validateRoom(raw)) return raw;
-    if(raw?.version===2) return null;
+    if(raw?.version===2) {
+      // Migration : une salle en pleine négociation héritée (défi, contre-
+      // proposition, double confirmation) revient à une proposition prête
+      // ou à une invitation simple, sans jamais perdre le tour en cours.
+      const migrated=roomCopy(raw);
+      for(const actor of roomActors) {
+        const lane=migrated.lanes?.[actor];
+        if(!lane || !lane.round || !['draft_challenge','challenge','challenge_failed','sender_confirmation'].includes(lane.phase)) continue;
+        const round=lane.round;
+        if(lane.phase==='draft_challenge') {
+          lane.phase='draft'; round.status='draft'; round.awaiting=null;
+          round.draftChallengeUsed=false; round.draftRolls=[]; round.draftRollTokens=[];
+        } else {
+          lane.phase='pending'; round.status='pending'; round.awaiting=round.to;
+          round.challengeUsed=false; round.rolls=[]; round.rollTokens=[];
+          round.draftChallengeUsed=false; round.draftRolls=[]; round.draftRollTokens=[];
+          round.autoProposed=false; round.fromConfirmed=true; round.toConfirmed=false;
+          round.adapted=false; round.schedule=null;
+        }
+      }
+      return validateRoom(migrated)?migrated:null;
+    }
     const state=normalizeState(raw,options);
     if(!state) return null;
     const owner=state.round.from,other=otherPlayer(owner);
@@ -838,7 +801,7 @@
     return validateRoom(next)?next:room;
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,probability,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canChallengeDraft,canRollDraftDefense};
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

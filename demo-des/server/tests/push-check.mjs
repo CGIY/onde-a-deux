@@ -33,15 +33,14 @@ check(()=>assert.equal(pushTTL({expires_at:'bad'}),0));
 check(()=>assert.equal(pushTTL({}),86400));
 check(()=>assert.throws(()=>pushPayload({...reminder,expires_at:'bad'})));
 
-// Invitations and confirmations survive parallel draws and stay tied to their
-// original round, even after the other lane changes or the recipient responds.
+// Invitations survive parallel draws and stay tied to their original round,
+// even after the other lane changes or the recipient responds.
 for (const target of ['a','b']) {
  const other=target==='a'?'b':'a';
  const event={kind:'invitation',round_id:'onde-9',target_actor:target};
- for (const phase of ['pending','challenge','challenge_failed','sender_confirmation','accepted','resolved','draft']) {
+ for (const phase of ['pending','accepted','resolved','draft']) {
   const room={version:2,lanes:{[other]:{phase,round:{id:'onde-9',awaiting:target}},[target]:{phase:'draft',round:{id:'onde-10',awaiting:null}}}};
-  check(()=>assert.equal(pushEventRelevant(room,event),['pending','challenge','challenge_failed'].includes(phase)));
-  check(()=>assert.equal(pushEventRelevant(room,{...event,kind:'confirmation'}),phase==='sender_confirmation'));
+  check(()=>assert.equal(pushEventRelevant(room,event),phase==='pending'));
   check(()=>assert.equal(pushEventRelevant(room,{...event,round_id:'onde-8'}),false));
   check(()=>assert.equal(pushEventRelevant(room,{...event,target_actor:other}),false));
  }

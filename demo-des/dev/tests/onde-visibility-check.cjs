@@ -28,49 +28,28 @@ function draft(from){
 function legacy(state){const old=clone(state);delete old.round.sentAt;return old;}
 for(const from of ['a','b']){
  const to=G.otherPlayer(from),original=draft(from);
- let s=apply(original,{type:'CHALLENGE_DRAFT'});
- visibility(s,false,'private challenge '+from);
- visibility(legacy(s),false,'legacy private challenge '+from);
- s=apply(s,{type:'ROLL_DRAFT_DEFENSE',value:20,token:'private-one'});
- visibility(s,false,'private first roll '+from);
- s=apply(s,{type:'ROLL_DRAFT_DEFENSE',value:20,token:'private-two'});
- equal(s.round.status,'defended','private defense fixture');
- visibility(s,false,'discard before send '+from);
- visibility(legacy(s),false,'legacy discard before send '+from);
-
  const sent=apply(original,{type:'SEND'});
  visibility(sent,true,'explicit send '+from);
  visibility(legacy(sent),true,'legacy pending '+from);
- s=apply(sent,{type:'SWITCH_PLAYER',player:to});
- s=apply(s,{type:'CHALLENGE'});
- visibility(s,true,'recipient challenge '+from);
- visibility(legacy(s),true,'legacy recipient challenge '+from);
- const challenge=s;
- s=apply(s,{type:'ROLL_DEFENSE',value:1,token:'receiver-one'});
- s=apply(s,{type:'ROLL_DEFENSE',value:1,token:'receiver-two'});
- visibility(s,true,'recipient failed '+from);
- visibility(legacy(s),true,'legacy recipient failed '+from);
- s=apply(challenge,{type:'ROLL_DEFENSE',value:20,token:'receiver-win-one'});
- s=apply(s,{type:'ROLL_DEFENSE',value:20,token:'receiver-win-two'});
- visibility(s,true,'discard after send '+from);
- visibility(legacy(s),true,'legacy discard after send '+from);
 
- s=apply(original,{type:'CHALLENGE_DRAFT'});
- s=apply(s,{type:'ROLL_DRAFT_DEFENSE',value:1,token:'auto-one'});
- s=apply(s,{type:'ROLL_DRAFT_DEFENSE',value:1,token:'auto-two'});
- visibility(s,true,'automatic send '+from);
+ // The recipient alone decides; there is no negotiation phase in between.
+ let s=apply(sent,{type:'SWITCH_PLAYER',player:to});
+ visibility(s,true,'recipient pending '+from);
+ visibility(legacy(s),true,'legacy recipient pending '+from);
+ const accepted=apply(s,{type:'ACCEPT'});
+ visibility(accepted,true,'accepted '+from);
+ visibility(legacy(accepted),true,'legacy accepted '+from);
+
+ // Passing closes the round for both, without points or extra confirmation.
+ let stopped=apply(sent,{type:'SWITCH_PLAYER',player:to});
+ stopped=apply(stopped,{type:'PASS'});
+ equal(stopped.round.status,'passed','pass fixture');
+ visibility(stopped,true,'passed round '+from);
+ equal(G.canSeeRound(legacy(stopped),to),false,'a passed round needs its publication timestamp');
+
+ s=apply(accepted,{type:'TOGGLE_TASK_CHECK',taskId:accepted.round.id,checked:true});
  s=apply(s,{type:'SWITCH_PLAYER',player:to});
- s=apply(s,{type:'ACCEPT'});
- visibility(s,true,'sender confirmation '+from);
- visibility(legacy(s),true,'legacy sender confirmation '+from);
- s=apply(s,{type:'SWITCH_PLAYER',player:from});
- s=apply(s,{type:'ACCEPT'});
- visibility(s,true,'accepted '+from);
- visibility(legacy(s),true,'legacy accepted '+from);
- const accepted=s;
- s=apply(s,{type:'TOGGLE_TASK_CHECK',taskId:s.round.id,checked:true});
- s=apply(s,{type:'SWITCH_PLAYER',player:to});
- s=apply(s,{type:'TOGGLE_TASK_CHECK',taskId:s.round.id,checked:true});
+ s=apply(s,{type:'TOGGLE_TASK_CHECK',taskId:accepted.round.id,checked:true});
  visibility(s,true,'completed '+from);
  visibility(legacy(s),true,'legacy completed '+from);
  const expired=apply(accepted,{type:'EXPIRE_TASKS',at:'2026-11-02T21:00:00.000Z'});
