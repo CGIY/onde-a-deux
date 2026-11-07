@@ -11,7 +11,7 @@ type Store = {
 type Member = {token_hash: string; room_id: string; actor: 'a' | 'b'};
 type Config = {public_key: string; private_key: string; subject: string};
 type Event = {id: string; room_id: string; target_actor: 'a' | 'b'; kind: string; revision: number; attempts: number; round_id?: string; window_key?: string; task_id?: string; expires_at?: string};
-const SUBJECT = 'https://cgiy.github.io/onde-a-deux/demo-des/';
+const SUBJECT = 'https://cgiy.github.io/desir/demo-des/';
 
 async function privatePushConfig(store: Store): Promise<Config> {
   const existing = await store.request('desir_push_config?select=public_key,private_key,subject&id=eq.1&limit=1');

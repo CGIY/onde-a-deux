@@ -94,7 +94,7 @@ node demo-des/server/tests/backend-check.mjs
 
 ### Publication et vérification du service
 
-Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 3, quatre migrations présentes dans `server/migrations/`. L'ancien projet `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
+Version connectée publiée sur `main` et `codex/onde-v030-handoff`. Projet Supabase distinct à Paris, fonction `desir-game` version 3, quatre migrations présentes dans `server/migrations/`. L'ancien projet Supabase `onde-a-deux` a été mis en pause pour libérer l'emplacement gratuit, sans suppression de ses données.
 
 - 48 vérifications HTTP sur le service hébergé : deux connexions, tirages privés, résultats serveur, rejeu idempotent, deux coches et point unique, quotas et contrôle des accès.
 - Contrôles locaux de la publication connectée : 374 assertions D20, 43 score, 61 règles, 89 tâches, 286 visibilité ; 102 transport, 248 UI, 790 backend, 1 003 relance D4 et 68 Push/PWA ; quatre tests du générateur. PostgreSQL réel/pgcrypto, SQL hébergé, Deno et QA numérique des dés passent également.
@@ -111,8 +111,8 @@ Les sections suivantes décrivent d’anciens états et livraisons. Leurs demand
 
 ## Objectif et dépôt
 
-- Dépôt : **CGIY/onde-a-deux** ; démo : `demo-des/`.
-- Page publique : https://cgiy.github.io/onde-a-deux/demo-des/
+- Dépôt : **CGIY/desir** ; démo : `demo-des/`.
+- Page publique : https://cgiy.github.io/desir/demo-des/
 - Branche de reprise : **`codex/onde-v030-handoff`**.
 - L’utilisateur demande de reprendre le travail dans Codex : figer ce WIP, puis terminer les améliorations sans refaire la conception.
 - Cible : **0.3.0, build iOS 3**. Les `index.html` et ZIP actuellement présents dans le dépôt restent en **0.2.0** ; ils ne contiennent pas ce WIP.

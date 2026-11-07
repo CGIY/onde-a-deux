@@ -1,6 +1,6 @@
 # ONDE, Le Donjon et Les Cartes
 
-[Ouvrir l’accueil commun](https://cgiy.github.io/onde-a-deux/) : choisir ONDE, [Le Donjon](https://cgiy.github.io/mes_apps/) ou [Les Cartes](https://cgiy.github.io/onde-a-deux/cartes/).
+[Ouvrir l’accueil commun](https://cgiy.github.io/desir/) : choisir ONDE, [Le Donjon](https://cgiy.github.io/mes_apps/) ou [Les Cartes](https://cgiy.github.io/desir/cartes/).
 
 - **ONDE** aide le duo à choisir ses envies, séparément puis ensemble.
 - **Le Donjon** transforme la soirée en aventure partagée.
