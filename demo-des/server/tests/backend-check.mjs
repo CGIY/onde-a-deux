@@ -281,6 +281,17 @@ for(const sides of [4,6]){
  equal(accepted.body.state.phase,'category','the accepter keeps their own lane');equal(store.used.size,2);
 }
 
+// Weekly joker: a chosen category once per week, still consuming the day's draw pool.
+{
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
+ const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const id=view(store,'a').round.id;
+ const bad=await deliver(intent('JOKER_DRAW',690,id,{category:9}),tokenA);equal(bad.status,400);equal(bad.body.error.code,'invalid_action');
+ const joker=await deliver(intent('JOKER_DRAW',691,id,{category:3}),tokenA);equal(joker.status,200);
+ equal(joker.body.roll,{kind:4,value:3});equal(joker.body.state.round.categoryId,'projets');equal(joker.body.state.phase,'card');equal(store.used.size,1,'the joker consumes one draw');
+ const again=await deliver(intent('JOKER_DRAW',692,id,{category:1}),tokenA);equal(again.status,409,'the joker needs a fresh category phase');
+}
+
 // Shared expiry reconciles both accepted lanes, without adding points.
 {
  const store=new MemoryStore();store.state=G.createRoom();await authorize(store);let now=at;
