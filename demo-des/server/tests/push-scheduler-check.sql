@@ -13,12 +13,12 @@ declare
   subscription_value jsonb;
   rejected boolean:=false;
 begin
-  if public.desir_quota_window('2027-03-28T03:59:59Z')->>'window'<>'2027-03-27T18:00'
-    or public.desir_quota_window('2027-03-28T04:00:00Z')->>'window'<>'2027-03-28T06:00'
-    or public.desir_quota_window('2027-10-31T04:59:59Z')->>'window'<>'2027-10-30T18:00'
-    or public.desir_quota_window('2027-10-31T05:00:00Z')->>'window'<>'2027-10-31T06:00'
-    or public.desir_quota_window('2027-03-27T17:00:00Z')->>'nextAt'<>'2027-03-28T04:00:00.000Z'
-    or public.desir_quota_window('2027-10-30T16:00:00Z')->>'nextAt'<>'2027-10-31T05:00:00.000Z'
+  if public.desir_quota_window('2027-03-27T23:59:59Z')->>'window'<>'2027-03-27'
+    or public.desir_quota_window('2027-03-28T03:00:00Z')->>'window'<>'2027-03-28'
+    or public.desir_quota_window('2027-10-31T03:00:00Z')->>'window'<>'2027-10-30'
+    or public.desir_quota_window('2027-10-31T04:00:00Z')->>'window'<>'2027-10-31'
+    or public.desir_quota_window('2027-03-27T17:00:00Z')->>'nextAt'<>'2027-03-28T03:00:00.000Z'
+    or public.desir_quota_window('2027-10-30T16:00:00Z')->>'nextAt'<>'2027-10-31T04:00:00.000Z'
   then raise exception 'Paris quota DST boundary failed';end if;
   if public.desir_draw_ready_for_state('{"phase":"category","round":{"from":"a"}}','a') is not true
     or public.desir_draw_ready_for_state('{"phase":"category","round":{"from":"a"}}','b') is not true

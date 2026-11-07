@@ -20,9 +20,30 @@
 
 
   // Equal base weights, with one extra ticket for the two favored themes.
-  const categoryTickets = categories.flatMap(category =>
-    Array(['complicite','intimite'].includes(category.id)?11:10).fill(category.number)
-  );
+  // On Paris week-ends, Intimité gets a doubled weight.
+  const parisFormatter = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
+  function parisParts(at){ const date=new Date(at); if(Number.isNaN(date.getTime())) return null; return Object.fromEntries(parisFormatter.formatToParts(date).map(part=>[part.type,part.value])); }
+  function parisDateKey(at){ const parts=parisParts(at); return parts?parts.year+'-'+parts.month+'-'+parts.day:null; }
+  function isParisWeekend(at){ const parts=parisParts(at); return !!parts&&(parts.weekday==='Sat'||parts.weekday==='Sun'); }
+  // ISO week key of the Paris calendar day (used for the weekly joker).
+  function isoWeekKey(at){
+    const key=parisDateKey(at);
+    if(!key) return null;
+    const date=new Date(key+'T12:00:00Z');
+    const day=(date.getUTCDay()+6)%7;
+    date.setUTCDate(date.getUTCDate()-day+3);
+    const firstThursday=new Date(Date.UTC(date.getUTCFullYear(),0,4));
+    const firstDay=(firstThursday.getUTCDay()+6)%7;
+    firstThursday.setUTCDate(firstThursday.getUTCDate()-firstDay+3);
+    const week=1+Math.round((date-firstThursday)/(7*86400000));
+    return date.getUTCFullYear()+'-W'+String(week).padStart(2,'0');
+  }
+  function categoryTickets(at){
+    const weekend=at!==undefined&&at!==null&&isParisWeekend(at);
+    return categories.flatMap(category =>
+      Array(category.id==='intimite'?(weekend?22:11):category.id==='complicite'?11:10).fill(category.number)
+    );
+  }
 
   const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
@@ -270,8 +291,37 @@
     return Math.floor(Math.random() * n) + 1;
   }
 
-  function rollCategory(version, draw=randomInt) {
-    return version===2?categoryTickets[draw(categoryTickets.length)-1]:draw(categorySides(version));
+  function rollCategory(version, draw=randomInt, at) {
+    if(version!==2) return draw(categorySides(version));
+    const tickets=categoryTickets(at);
+    return tickets[draw(tickets.length)-1];
+  }
+
+  function validDaily(daily) {
+    if(!daily || typeof daily!=='object' || Array.isArray(daily)) return false;
+    if(typeof daily.dateKey!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(daily.dateKey) || daily.usedBy!==null) return false;
+    const cat=getCategory(daily.categoryId,2), card=getCard(daily.cardId);
+    if(!cat || !card || card.categoryId!==cat.id || daily.categoryRoll!==cat.number) return false;
+    if(!validHand(daily.hand,daily.categoryId,true)) return false;
+    if(!Number.isInteger(daily.cardRoll) || daily.cardRoll<1 || daily.cardRoll>daily.hand.length || daily.hand[daily.cardRoll-1]!==daily.cardId) return false;
+    if(!Number.isInteger(daily.variantRoll) || daily.variantRoll<1 || daily.variantRoll>rules.variantSides) return false;
+    return true;
+  }
+
+  // One shared card per Paris day, drawn by the server and visible to both.
+  // The category of the draw that triggered it is excluded, so the shared card
+  // can never coincide with the private hand being drawn at the same moment.
+  function drawDaily(state, at, draw=randomInt, excludeCategoryId) {
+    if(!isoTime(at)) return null;
+    const excluded=getCategory(excludeCategoryId,2)?.number;
+    const tickets=categoryTickets(at).filter(number=>number!==excluded);
+    const categoryRoll=tickets[draw(tickets.length)-1];
+    const category=categories.find(c=>c.number===categoryRoll);
+    if(!category) return null;
+    const hand=drawHand(state,category.id,2);
+    const cardRoll=draw(hand.length);
+    const variantRoll=draw(rules.variantSides);
+    return {dateKey:parisDateKey(at),categoryId:category.id,categoryRoll,hand:hand.slice(),cardRoll,cardId:hand[cardRoll-1],variantRoll,usedBy:null};
   }
 
   function blankRound(sequence, from, at) {
@@ -281,7 +331,7 @@
       draftRolls:[], draftRollTokens:[], draftChallengeUsed:false, autoProposed:false,
       fromConfirmed:false, toConfirmed:false,
       adapted:false, proposal:null, schedule:null, createdAt:at || null,
-      sentAt:null, acceptedAt:null, endedAt:null, closedBy:null };
+      sentAt:null, acceptedAt:null, endedAt:null, closedBy:null, modeRoll:null, hardcoreOffer:false };
   }
 
   function emptyStats() {
@@ -351,6 +401,8 @@
     if (!Number.isSafeInteger(roundSequence) || roundSequence>s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
+    if (r.modeRoll!==undefined && r.modeRoll!==null && !(Number.isInteger(r.modeRoll) && r.modeRoll>=1 && r.modeRoll<=20)) return false;
+    if (r.hardcoreOffer!==undefined && typeof r.hardcoreOffer!=='boolean') return false;
     const modern=r.catalogueVersion===2;
     if (!validCardReroll(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
@@ -579,9 +631,15 @@
     const actor=s.activePlayer;
 
     switch(kind) {
-      case 'EXPIRE_TASKS':
+      case 'EXPIRE_TASKS': {
         if(!isoTime(action.at)) return state;
-        return expireTasks(s,action.at)?s:state;
+        let changed=expireTasks(s,action.at);
+        if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)){
+          s.daily=JSON.parse(JSON.stringify(action.daily));
+          changed=true;
+        }
+        return changed?s:state;
+      }
       case 'TOGGLE_TASK_CHECK': {
         if(typeof action.taskId!=='string' || typeof action.checked!=='boolean' || !isoTime(action.at) || action.player&&action.player!==actor) return state;
         if(!s.tasks.some(item=>item.id===action.taskId)) return state;
@@ -627,8 +685,64 @@
         if(!cat || !validHand(action.hand,cat.id,modern)) return state;
         r.from=actor; r.to=otherPlayer(actor);
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        if(modern) Object.assign(r,{catalogueVersion:2,variantRoll:null});
+        if(modern){
+          Object.assign(r,{catalogueVersion:2,variantRoll:null});
+          r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
+          r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        }
+        if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.phase='card';
+        return s;
+      }
+      case 'REROLL_CATEGORY': {
+        if(!isoTime(action.at) || s.phase!=='card' || actor!==r.from) return state;
+        if(!Number.isInteger(action.value) || action.value<1 || action.value>categorySides(2)) return state;
+        const cat=categories.find(c=>c.number===action.value);
+        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        const dayKey=parisDateKey(action.at);
+        const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
+        if(used.includes(actor)) return state;
+        r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
+        r.catalogueVersion=2; r.variantRoll=null;
+        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
+        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
+        return s;
+      }
+      case 'JOKER_DRAW': {
+        if(!isoTime(action.at) || s.phase!=='category' || actor!==r.from) return state;
+        if(!Number.isInteger(action.category) || action.category<1 || action.category>categorySides(2)) return state;
+        const cat=categories.find(c=>c.number===action.category);
+        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        const weekKey=isoWeekKey(action.at);
+        const joker=s.joker && s.joker.weekKey===weekKey ? s.joker : {weekKey,usedBy:null};
+        if(joker.usedBy) return state;
+        r.from=actor; r.to=otherPlayer(actor);
+        r.categoryId=cat.id; r.categoryRoll=action.category; r.hand=action.hand.slice();
+        r.catalogueVersion=2; r.variantRoll=null;
+        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
+        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
+        s.joker={weekKey,usedBy:actor};
+        s.phase='card';
+        return s;
+      }
+      case 'SEND_DAILY': {
+        if(!isoTime(action.at) || s.phase!=='category' || actor!==r.from) return state;
+        const daily=s.daily;
+        if(!daily || daily.dateKey!==parisDateKey(action.at) || daily.usedBy!==null) return state;
+        const cat=getCategory(daily.categoryId,2), card=getCard(daily.cardId);
+        if(!cat || !card || card.categoryId!==cat.id || daily.categoryRoll!==cat.number || !validHand(daily.hand,cat.id,true) ||
+           !Number.isInteger(daily.cardRoll) || daily.cardRoll<1 || daily.cardRoll>daily.hand.length || daily.hand[daily.cardRoll-1]!==daily.cardId ||
+           !Number.isInteger(daily.variantRoll) || daily.variantRoll<1 || daily.variantRoll>rules.variantSides) return state;
+        r.from=actor; r.to=otherPlayer(actor);
+        r.categoryId=daily.categoryId; r.categoryRoll=daily.categoryRoll;
+        r.hand=daily.hand.slice(); r.cardRoll=daily.cardRoll; r.cardId=daily.cardId; r.hp=card.hp;
+        r.catalogueVersion=2; r.variantRoll=daily.variantRoll; r.modeRoll=null; r.hardcoreOffer=false;
+        r.status='pending'; r.awaiting=r.to; r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
+        r.sentAt=action.at;
+        s.phase='pending';
+        s.daily={...JSON.parse(JSON.stringify(daily)),usedBy:actor};
         return s;
       }
       case 'ROLL_CARD':
@@ -680,13 +794,17 @@
 
   // A room shares its score and tasks. Its two lanes allow one active draw per person.
   const roomActors=['a','b'];
-  const roomSharedKeys=['sequence','players','prefs','favorites','history','seen','stats','tasks'];
+  const roomSharedKeys=['sequence','players','prefs','favorites','history','seen','stats','tasks','daily','dailyReroll','joker'];
+  const validStoredJoker=x=>x===undefined||x===null||(x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.weekKey==='string'&&/^\d{4}-W\d{2}$/.test(x.weekKey)&&[null,'a','b'].includes(x.usedBy));
+  const validStoredDaily=d=>d===undefined||d===null||(d&&typeof d==='object'&&!Array.isArray(d)&&typeof d.dateKey==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.dateKey)&&[null,'a','b'].includes(d.usedBy)&&(()=>{const cat=getCategory(d.categoryId,2),card=getCard(d.cardId);return !!cat&&!!card&&card.categoryId===cat.id&&d.categoryRoll===cat.number&&validHand(d.hand,cat.id,true)&&Number.isInteger(d.cardRoll)&&d.cardRoll>=1&&d.cardRoll<=d.hand.length&&d.hand[d.cardRoll-1]===d.cardId&&Number.isInteger(d.variantRoll)&&d.variantRoll>=1&&d.variantRoll<=rules.variantSides;})());
+  const validStoredReroll=x=>x===undefined||x===null||(x&&typeof x==='object'&&!Array.isArray(x)&&(x.dateKey===null||typeof x.dateKey==='string')&&Array.isArray(x.used)&&new Set(x.used).size===x.used.length&&x.used.every(id=>['a','b'].includes(id)));
   const roomCopy=value=>JSON.parse(JSON.stringify(value));
   const roomShared=room=>Object.fromEntries(roomSharedKeys.map(key=>[key,room[key]]));
   const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
 
   function validateRoom(room) {
     if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b') return false;
+    if(!validStoredDaily(room.daily) || !validStoredReroll(room.dailyReroll) || !validStoredJoker(room.joker)) return false;
     const lanes=roomActors.map(actor=>room.lanes[actor]);
     if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index])) return false;
     if(lanes[0].round.id===lanes[1].round.id) return false;
@@ -734,7 +852,7 @@
       otherSequence=1;
       while(occupied.has('onde-'+otherSequence)) otherSequence++;
     }
-    const room={version:2,...roomCopy(roomShared(state)),sequence,lanes:{
+    const room={version:2,...roomCopy(roomShared(state)),daily:state.daily??null,dailyReroll:state.dailyReroll??{dateKey:isoTime(options.at)?parisDateKey(options.at):null,used:[]},joker:state.joker??null,sequence,lanes:{
       [owner]:{phase:state.phase,round:roomCopy(state.round)},
       [other]:{phase:'category',round:blankRound(otherSequence,other,options.at)}
     }};
@@ -801,7 +919,7 @@
     return validateRoom(next)?next:room;
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard};
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

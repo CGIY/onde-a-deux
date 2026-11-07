@@ -2,7 +2,7 @@ export class HttpError extends Error {
   constructor(status,code,message,snapshot){super(message);this.status=status;this.code=code;this.snapshot=snapshot;}
 }
 const copy=value=>JSON.parse(JSON.stringify(value));
-const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','SEND','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK']);
+const allowedTypes=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','SEND_DAILY','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK']);
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const validRequestId=id=>typeof id==='string'&&uuidPattern.test(id);
 export function validDeviceToken(token){
@@ -14,12 +14,16 @@ export async function privateBucket(secret,value){const key=await crypto.subtle.
 export function normalizeUsername(value){return typeof value==='string'?value.normalize('NFKD').replace(/\p{M}/gu,'').trim().toLowerCase():'';}
 export function parseAction(input){
   if(!input||typeof input!=='object'||Array.isArray(input)||!allowedTypes.has(input.type))throw new HttpError(400,'invalid_action','Cette action n’est pas disponible.');
-  const keys=input.type==='TOGGLE_TASK_CHECK'?['type','roundId','taskId','checked']:['type','roundId'];
+  const keys=input.type==='TOGGLE_TASK_CHECK'?['type','roundId','taskId','checked']:input.type==='JOKER_DRAW'?['type','roundId','category']:['type','roundId'];
   if(Object.keys(input).some(key=>!keys.includes(key))||typeof input.roundId!=='string'||!/^onde-[1-9]\d*$/.test(input.roundId))throw new HttpError(400,'invalid_action','Action invalide.');
   const action={type:input.type,roundId:input.roundId};
   if(input.type==='TOGGLE_TASK_CHECK'){
     if(typeof input.taskId!=='string'||!/^onde-[1-9]\d*$/.test(input.taskId)||typeof input.checked!=='boolean')throw new HttpError(400,'invalid_action','Case invalide.');
     action.taskId=input.taskId;action.checked=input.checked;
+  }
+  if(input.type==='JOKER_DRAW'){
+    if(!Number.isInteger(input.category)||input.category<1||input.category>4)throw new HttpError(400,'invalid_action','Catégorie invalide.');
+    action.category=input.category;
   }
   return action;
 }
@@ -78,8 +82,11 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   let roll;
   if(action.type==='ROLL_CATEGORY'){
     if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const sides=G.categorySides(2),value=G.rollCategory(2,randomInt);
+    const sides=G.categorySides(2),value=G.rollCategory(2,randomInt,at);
     action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;roll={kind:sides,value};
+    const category=G.categories.find(item=>item.number===value);
+    if(category&&category.id==='intimite')action.modeRoll=randomInt(20);
+    action.daily=G.drawDaily(room,at,randomInt,category&&category.id);
   }else if(action.type==='ROLL_CARD'){
     if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const sides=G.cardSides(target),value=randomInt(sides);action.value=value;roll={kind:sides,value};
@@ -92,13 +99,34 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
     if(!Number.isInteger(rank)||rank<1||rank>alternatives.length)throw new Error('Invalid authoritative random outcome');
     action.value=alternatives[rank-1];roll={kind:sides,value:action.value};
   }
+  else if(action.type==='REROLL_CATEGORY'){
+    if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const sides=G.categorySides(2),value=G.rollCategory(2,randomInt,at);
+    action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;
+    const category=G.categories.find(item=>item.number===value);
+    if(category&&category.id==='intimite')action.modeRoll=randomInt(20);
+    roll={kind:sides,value};
+  }
+  else if(action.type==='JOKER_DRAW'){
+    if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    const value=action.category;
+    action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;
+    const category=G.categories.find(item=>item.number===value);
+    if(category&&category.id==='intimite')action.modeRoll=randomInt(20);
+    action.daily=G.drawDaily(room,at,randomInt,category&&category.id);
+    roll={kind:G.categorySides(2),value};
+  }
+  else if(action.type==='SEND_DAILY'){
+    if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+  }
   const next=G.reduceRoom(room,{...action,actor,at});
   if(next===room)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
   if(!G.validateRoom(next))throw new Error('Core returned an invalid room');
   const after=G.roomView(next,actor,target.round.id);
   let notification=null;
   if(after?.phase==='pending'&&after.round.awaiting!==actor&&target.phase!=='pending')notification={actor:after.round.awaiting,kind:'invitation',roundId:after.round.id};
-  return {state:next,roll,notification,consumeTicket:action.type==='ROLL_CATEGORY'};
+  else if(['ACCEPT','PASS'].includes(action.type)&&target.phase==='pending'&&after&&after.phase!=='pending')notification={actor:target.round.from,kind:'confirmation',roundId:target.round.id};
+  return {state:next,roll,notification,consumeTicket:['ROLL_CATEGORY','JOKER_DRAW'].includes(action.type)};
 }
 function applyLegacyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
   const action=parseAction(input);

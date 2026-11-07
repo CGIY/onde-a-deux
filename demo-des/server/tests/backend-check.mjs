@@ -269,15 +269,27 @@ for(const sides of [4,6]){
  equal((await deliver(intent('PASS',requestId++,id))).status,409,'the sender cannot pass their own invitation');
  const passed=await deliver(intent('PASS',requestId++,id),tokenB);equal(passed.status,200);
  equal(passed.body.incoming[0].phase,'resolved');equal(passed.body.incoming[0].round.status,'passed');
- equal(store.state.stats.totalCompleted,0);equal(store.state.tasks.length,0);equal(store.outbox.length,1,'passing adds no notification');
+ equal(store.state.stats.totalCompleted,0);equal(store.state.tasks.length,0);equal(store.outbox.length,2,'passing notifies the sender once');equal(store.outbox.at(-1),{actor:'a',kind:'confirmation',roundId:id});
  equal((await deliver(intent('PASS',requestId++,id),tokenB)).status,409,'a passed round is closed');
  const reopened=await deliver(intent('NEW_ROUND',requestId++,id));equal(reopened.status,200);equal(reopened.body.state.phase,'category');ok(reopened.body.state.round.id!==id);
  const bId=view(store,'b').round.id;
  for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,requestId++,bId),tokenB)).status,200);
  equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
  const accepted=await deliver(intent('ACCEPT',requestId++,bId),tokenA);equal(accepted.status,200);
+ equal(store.outbox.at(-1),{actor:'b',kind:'confirmation',roundId:bId},'accepting notifies the sender');
  equal(accepted.body.incoming[0].phase,'accepted');equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,bId);
  equal(accepted.body.state.phase,'category','the accepter keeps their own lane');equal(store.used.size,2);
+}
+
+// Weekly joker: a chosen category once per week, still consuming the day's draw pool.
+{
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
+ const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const id=view(store,'a').round.id;
+ const bad=await deliver(intent('JOKER_DRAW',690,id,{category:9}),tokenA);equal(bad.status,400);equal(bad.body.error.code,'invalid_action');
+ const joker=await deliver(intent('JOKER_DRAW',691,id,{category:3}),tokenA);equal(joker.status,200);
+ equal(joker.body.roll,{kind:4,value:3});equal(joker.body.state.round.categoryId,'projets');equal(joker.body.state.phase,'card');equal(store.used.size,1,'the joker consumes one draw');
+ const again=await deliver(intent('JOKER_DRAW',692,id,{category:1}),tokenA);equal(again.status,409,'the joker needs a fresh category phase');
 }
 
 // Shared expiry reconciles both accepted lanes, without adding points.

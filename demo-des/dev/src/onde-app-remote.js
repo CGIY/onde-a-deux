@@ -1,7 +1,7 @@
 /* Dés·ir — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','SEND_DAILY','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','CHALLENGE','ROLL_DEFENSE']);
  const TOKEN=/^[A-Za-z0-9_-]{43}$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
@@ -51,7 +51,7 @@
     if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase==='category'||!G.canSeeRound(value,identity.actor)))throw failure('invalid_response','L’invitation reçue est invalide.');
    }
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
-   let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>1||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
+   let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>3||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
    let roll;
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
@@ -119,6 +119,7 @@
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
    const value={type:action.type};
    if(typeof action.roundId==='string'&&/^onde-[1-9]\d*$/.test(action.roundId))value.roundId=action.roundId;
+   if(action.type==='JOKER_DRAW'&&Number.isInteger(action.category)&&action.category>=1&&action.category<=4)value.category=action.category;
    if(action.type==='TOGGLE_TASK_CHECK'){
     if(typeof action.taskId!=='string'||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
     value.taskId=action.taskId;value.checked=action.checked;

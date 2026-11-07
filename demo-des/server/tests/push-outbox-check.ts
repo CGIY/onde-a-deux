@@ -7,7 +7,7 @@ const keyPair=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},t
 const b64=(bytes:ArrayBuffer)=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 const publicKey=b64(await crypto.subtle.exportKey('raw',keyPair.publicKey));
 const auth=b64(crypto.getRandomValues(new Uint8Array(16)).buffer),vapid=webpush.generateVAPIDKeys();
-const config={public_key:vapid.publicKey,private_key:vapid.privateKey,subject:'https://cgiy.github.io/onde-a-deux/demo-des/'};
+const config={public_key:vapid.publicKey,private_key:vapid.privateKey,subject:'https://cgiy.github.io/desir/demo-des/'};
 const event:any={id:'c4c8ba63-2aae-4a58-85a7-979cf3d877c6',room_id:'9e30a8d6-70fa-44c1-8d48-6d706fc3d021',target_actor:'b' as const,kind:'invitation',revision:7,attempts:1};
 let state:any={phase:'pending',round:{awaiting:'b'}},subscriptions=[1,2].map(n=>({endpoint_hash:String(n).repeat(64),subscription:{endpoint:'https://web.push.apple.com/Qfixture'+n,keys:{p256dh:publicKey,auth}}}));
 const cronToken='a'.repeat(43);

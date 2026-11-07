@@ -1,7 +1,7 @@
 /* Shared validation is runtime-neutral so its security boundaries are tested directly. */
 const BASE64URL = /^[A-Za-z0-9_-]+={0,2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-export const PUSH_KINDS = Object.freeze(['invitation', 'task-ready', 'shared-moment', 'draw-available', 'task-reminder']);
+export const PUSH_KINDS = Object.freeze(['invitation', 'confirmation', 'task-ready', 'shared-moment', 'draw-available', 'task-reminder']);
 export function allowedPushEndpoint(value) {
   if (typeof value !== 'string' || value.length > 4096) return false;
   let url;
@@ -68,6 +68,13 @@ export function pushEventRelevant(state, event, at = Date.now()) {
       : state;
     if (!lane || (event.round_id && lane.round?.id !== event.round_id) || lane.round?.awaiting !== event.target_actor) return false;
     return lane.phase === 'pending';
+  }
+  if (event.kind === 'confirmation') {
+    const lane = state.version === 2
+      ? Object.values(state.lanes || {}).find(value => value?.round?.id === event.round_id)
+      : (state.round && state.round.id === event.round_id ? state : null);
+    if (!lane || (event.round_id && lane.round?.id !== event.round_id)) return false;
+    return ['accepted', 'resolved'].includes(lane.phase);
   }
   if (event.kind === 'task-reminder') return Array.isArray(state.tasks) && state.tasks.some(task => task.id === event.task_id && task.checks?.[event.target_actor] === false && Date.parse(task.expiresAt) > at);
   if (event.kind === 'task-ready') return Array.isArray(state.tasks) && state.tasks.length > 0;

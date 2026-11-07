@@ -55,9 +55,9 @@ check(()=>assert.equal(pushEventRelevant(null,{kind:'invitation',target_actor:'b
 
 const handlers={},shown=[],messages=[],opened=[];
 let focused=0,cacheTouches=0;
-const good={url:'https://cgiy.github.io/onde-a-deux/demo-des/',visibilityState:'visible',postMessage:data=>messages.push(data),focus:async()=>{focused++;}};
+const good={url:'https://cgiy.github.io/desir/demo-des/',visibilityState:'visible',postMessage:data=>messages.push(data),focus:async()=>{focused++;}};
 let clients=[{url:'https://cgiy.github.io/other/',postMessage:()=>{throw Error('Cross-app leak');}},good];
-const sandbox={URL,Request,Response,Set,Object,Promise,self:{location:{origin:'https://cgiy.github.io'},registration:{scope:'https://cgiy.github.io/onde-a-deux/demo-des/',showNotification:async(title,options)=>shown.push({title,options})},clients:{matchAll:async()=>clients,openWindow:async url=>opened.push(url)},addEventListener:(name,handler)=>handlers[name]=handler,skipWaiting:async()=>{}},caches:{open:async()=>{cacheTouches++;throw Error('Unexpected cache use');}},fetch:async()=>{throw Error('Unexpected fetch');}};
+const sandbox={URL,Request,Response,Set,Object,Promise,self:{location:{origin:'https://cgiy.github.io'},registration:{scope:'https://cgiy.github.io/desir/demo-des/',showNotification:async(title,options)=>shown.push({title,options})},clients:{matchAll:async()=>clients,openWindow:async url=>opened.push(url)},addEventListener:(name,handler)=>handlers[name]=handler,skipWaiting:async()=>{}},caches:{open:async()=>{cacheTouches++;throw Error('Unexpected cache use');}},fetch:async()=>{throw Error('Unexpected fetch');}};
 vm.runInNewContext(fs.readFileSync(new URL('../../sw.js',import.meta.url),'utf8'),sandbox);
 async function event(name,data){let pending;handlers[name]({...data,waitUntil:promise=>{pending=promise;}});await pending;}
 await event('push',{data:{json:()=>({kind:'invitation',eventId:'fixture',title:'DO NOT DISPLAY',body:'secret title',url:'https://attacker.example'})}});
@@ -78,14 +78,14 @@ await event('notificationclick',{notification:{close(){},data:{url:'https://atta
 check(()=>assert.equal(focused,1));check(()=>assert.equal(opened.length,0));
 clients=[];
 await event('notificationclick',{notification:{close(){},data:{url:'https://attacker.example'}}});
-check(()=>assert.equal(opened[0],'https://cgiy.github.io/onde-a-deux/demo-des/?notification=1'));
-for(const request of [new Request('https://example.supabase.co/functions/v1/desir-game'),new Request('https://cgiy.github.io/onde-a-deux/demo-des/private-state'),new Request('https://cgiy.github.io/onde-a-deux/demo-des/',{headers:{Authorization:'Bearer private'}}),new Request('https://cgiy.github.io/onde-a-deux/demo-des/desir-config.js')]) {
+check(()=>assert.equal(opened[0],'https://cgiy.github.io/desir/demo-des/?notification=1'));
+for(const request of [new Request('https://example.supabase.co/functions/v1/desir-game'),new Request('https://cgiy.github.io/desir/demo-des/private-state'),new Request('https://cgiy.github.io/desir/demo-des/',{headers:{Authorization:'Bearer private'}}),new Request('https://cgiy.github.io/desir/demo-des/desir-config.js')]) {
  let intercepted=false;handlers.fetch({request,respondWith(){intercepted=true;}});check(()=>assert.equal(intercepted,false));
 }
 check(()=>assert.equal(cacheTouches,0));
 const deleted=[];
 const currentCache=vm.runInNewContext('CACHE_NAME',sandbox);
-const oldCaches=['connected-v2','connected-v3','connected-v4'].map(version=>'desir-shell:/onde-a-deux/demo-des/:'+version).filter(name=>name!==currentCache);
+const oldCaches=['connected-v2','connected-v3','connected-v4'].map(version=>'desir-shell:/desir/demo-des/:'+version).filter(name=>name!==currentCache);
 sandbox.caches.keys=async()=>[...oldCaches,currentCache,'desir-shell:/another-app/:connected-v1','root-app-cache','desir-shell-legacy'];
 sandbox.caches.delete=async name=>{deleted.push(name);return true;};
 sandbox.self.clients.claim=async()=>{};

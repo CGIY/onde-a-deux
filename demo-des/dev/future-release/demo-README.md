@@ -1,6 +1,6 @@
 # Dés·ir — démo jouable 0.3.0, build 7
 
-[Jouer](https://cgiy.github.io/onde-a-deux/demo-des/) · [Projet Xcode et ZIP](https://cgiy.github.io/onde-a-deux/demo-des/ONDE-Xcode.zip)
+[Jouer](https://cgiy.github.io/desir/demo-des/) · [Projet Xcode et ZIP](https://cgiy.github.io/desir/demo-des/ONDE-Xcode.zip)
 
 Six catégories : Complicité, Détente, Projets, Attentions, Bouffe et Intimité. Le D6 choisit la catégorie, le D4 révèle l’une des quatre cartes cachées. Le catalogue consultable a été retiré pour préserver les découvertes.
 

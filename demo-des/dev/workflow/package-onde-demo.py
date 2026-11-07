@@ -29,7 +29,7 @@ for private_word in []:
 
 (DEMO / 'README.md').write_text('''# ONDE — démo jouable 0.3.0
 
-[Jouer dans le navigateur](https://cgiy.github.io/onde-a-deux/demo-des/) · [Télécharger le projet Xcode](https://cgiy.github.io/onde-a-deux/demo-des/ONDE-Xcode.zip)
+[Jouer dans le navigateur](https://cgiy.github.io/desir/demo-des/) · [Télécharger le projet Xcode](https://cgiy.github.io/desir/demo-des/ONDE-Xcode.zip)
 
 ## Essayer
 
