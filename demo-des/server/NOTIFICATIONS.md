@@ -15,7 +15,7 @@ La fonction Edge doit accepter `drain_push` avant l’authentification de sessio
 ## Envois
 
 - `draw-available` : « Ton dé est prêt. », une fois par joueur et plage de Paris (6–12 h, 12–18 h, 18–6 h), seulement si son quota est libre et son tour autorise effectivement le D6. Un tour en attente de réponse bloque ce message. La prochaine plage ne se calcule jamais en ajoutant 24 heures, pour respecter les changements d’heure.
-- `invitation` : message générique au joueur attendu, après la transition persistée. Les identifiants de tour empêchent une ancienne invitation réessayée de rejoindre un nouveau tour. Les anciens événements `confirmation` encore en file sont traités comme périmés et abandonnés sans envoi.
+- `invitation` / `confirmation` : message générique au joueur attendu, après la transition persistée. `invitation` vise le destinataire d’une proposition ; `confirmation` vise l’expéditeur quand le destinataire accepte ou passe. Les identifiants de tour empêchent une ancienne invitation réessayée de rejoindre un nouveau tour.
 - `task-reminder` : une fois par action et joueur, dès qu’il reste trois heures ou moins et que sa case est décochée. La notification affiche le temps restant à sa réception. Sa durée de vie expire avec l’action ; les rappels des actions cochées ou expirées sont supprimés avant envoi.
 
 Aucun titre de carte, sujet intime, nom de joueur, identifiant de salle ou jeton de connexion n’entre dans la notification. Le contenu est chiffré AES128GCM, signé VAPID et envoyé seulement aux services push Apple, Mozilla, Google ou Windows explicitement autorisés. Les redirections sont refusées. Un clic ouvre uniquement cette application.

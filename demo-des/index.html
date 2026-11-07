@@ -711,9 +711,17 @@
 
 
   // Equal base weights, with one extra ticket for the two favored themes.
-  const categoryTickets = categories.flatMap(category =>
-    Array(['complicite','intimite'].includes(category.id)?11:10).fill(category.number)
-  );
+  // On Paris week-ends, Intimité gets a doubled weight.
+  const parisFormatter = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
+  function parisParts(at){ const date=new Date(at); if(Number.isNaN(date.getTime())) return null; return Object.fromEntries(parisFormatter.formatToParts(date).map(part=>[part.type,part.value])); }
+  function parisDateKey(at){ const parts=parisParts(at); return parts?parts.year+'-'+parts.month+'-'+parts.day:null; }
+  function isParisWeekend(at){ const parts=parisParts(at); return !!parts&&(parts.weekday==='Sat'||parts.weekday==='Sun'); }
+  function categoryTickets(at){
+    const weekend=at!==undefined&&at!==null&&isParisWeekend(at);
+    return categories.flatMap(category =>
+      Array(category.id==='intimite'?(weekend?22:11):category.id==='complicite'?11:10).fill(category.number)
+    );
+  }
 
   const legacyCards = [
     { id:'comp-1', categoryId:'complicite', title:'La question inattendue', description:'Choisissez une question que vous ne vous posez jamais, puis prenez le temps d’écouter la réponse de chacun.', duration:5, hp:21, variant:'Une seule question, une réponse chacun.', variantDuration:2 },
@@ -961,8 +969,37 @@
     return Math.floor(Math.random() * n) + 1;
   }
 
-  function rollCategory(version, draw=randomInt) {
-    return version===2?categoryTickets[draw(categoryTickets.length)-1]:draw(categorySides(version));
+  function rollCategory(version, draw=randomInt, at) {
+    if(version!==2) return draw(categorySides(version));
+    const tickets=categoryTickets(at);
+    return tickets[draw(tickets.length)-1];
+  }
+
+  function validDaily(daily) {
+    if(!daily || typeof daily!=='object' || Array.isArray(daily)) return false;
+    if(typeof daily.dateKey!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(daily.dateKey) || daily.usedBy!==null) return false;
+    const cat=getCategory(daily.categoryId,2), card=getCard(daily.cardId);
+    if(!cat || !card || card.categoryId!==cat.id || daily.categoryRoll!==cat.number) return false;
+    if(!validHand(daily.hand,daily.categoryId,true)) return false;
+    if(!Number.isInteger(daily.cardRoll) || daily.cardRoll<1 || daily.cardRoll>daily.hand.length || daily.hand[daily.cardRoll-1]!==daily.cardId) return false;
+    if(!Number.isInteger(daily.variantRoll) || daily.variantRoll<1 || daily.variantRoll>rules.variantSides) return false;
+    return true;
+  }
+
+  // One shared card per Paris day, drawn by the server and visible to both.
+  // The category of the draw that triggered it is excluded, so the shared card
+  // can never coincide with the private hand being drawn at the same moment.
+  function drawDaily(state, at, draw=randomInt, excludeCategoryId) {
+    if(!isoTime(at)) return null;
+    const excluded=getCategory(excludeCategoryId,2)?.number;
+    const tickets=categoryTickets(at).filter(number=>number!==excluded);
+    const categoryRoll=tickets[draw(tickets.length)-1];
+    const category=categories.find(c=>c.number===categoryRoll);
+    if(!category) return null;
+    const hand=drawHand(state,category.id,2);
+    const cardRoll=draw(hand.length);
+    const variantRoll=draw(rules.variantSides);
+    return {dateKey:parisDateKey(at),categoryId:category.id,categoryRoll,hand:hand.slice(),cardRoll,cardId:hand[cardRoll-1],variantRoll,usedBy:null};
   }
 
   function blankRound(sequence, from, at) {
@@ -972,7 +1009,7 @@
       draftRolls:[], draftRollTokens:[], draftChallengeUsed:false, autoProposed:false,
       fromConfirmed:false, toConfirmed:false,
       adapted:false, proposal:null, schedule:null, createdAt:at || null,
-      sentAt:null, acceptedAt:null, endedAt:null, closedBy:null };
+      sentAt:null, acceptedAt:null, endedAt:null, closedBy:null, modeRoll:null, hardcoreOffer:false };
   }
 
   function emptyStats() {
@@ -1042,6 +1079,8 @@
     if (!Number.isSafeInteger(roundSequence) || roundSequence>s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
+    if (r.modeRoll!==undefined && r.modeRoll!==null && !(Number.isInteger(r.modeRoll) && r.modeRoll>=1 && r.modeRoll<=20)) return false;
+    if (r.hardcoreOffer!==undefined && typeof r.hardcoreOffer!=='boolean') return false;
     const modern=r.catalogueVersion===2;
     if (!validCardReroll(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
@@ -1270,9 +1309,15 @@
     const actor=s.activePlayer;
 
     switch(kind) {
-      case 'EXPIRE_TASKS':
+      case 'EXPIRE_TASKS': {
         if(!isoTime(action.at)) return state;
-        return expireTasks(s,action.at)?s:state;
+        let changed=expireTasks(s,action.at);
+        if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)){
+          s.daily=JSON.parse(JSON.stringify(action.daily));
+          changed=true;
+        }
+        return changed?s:state;
+      }
       case 'TOGGLE_TASK_CHECK': {
         if(typeof action.taskId!=='string' || typeof action.checked!=='boolean' || !isoTime(action.at) || action.player&&action.player!==actor) return state;
         if(!s.tasks.some(item=>item.id===action.taskId)) return state;
@@ -1318,8 +1363,46 @@
         if(!cat || !validHand(action.hand,cat.id,modern)) return state;
         r.from=actor; r.to=otherPlayer(actor);
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        if(modern) Object.assign(r,{catalogueVersion:2,variantRoll:null});
+        if(modern){
+          Object.assign(r,{catalogueVersion:2,variantRoll:null});
+          r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
+          r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        }
+        if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.phase='card';
+        return s;
+      }
+      case 'REROLL_CATEGORY': {
+        if(!isoTime(action.at) || s.phase!=='card' || actor!==r.from) return state;
+        if(!Number.isInteger(action.value) || action.value<1 || action.value>categorySides(2)) return state;
+        const cat=categories.find(c=>c.number===action.value);
+        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        const dayKey=parisDateKey(action.at);
+        const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
+        if(used.includes(actor)) return state;
+        r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
+        r.catalogueVersion=2; r.variantRoll=null;
+        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
+        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
+        return s;
+      }
+      case 'SEND_DAILY': {
+        if(!isoTime(action.at) || s.phase!=='category' || actor!==r.from) return state;
+        const daily=s.daily;
+        if(!daily || daily.dateKey!==parisDateKey(action.at) || daily.usedBy!==null) return state;
+        const cat=getCategory(daily.categoryId,2), card=getCard(daily.cardId);
+        if(!cat || !card || card.categoryId!==cat.id || daily.categoryRoll!==cat.number || !validHand(daily.hand,cat.id,true) ||
+           !Number.isInteger(daily.cardRoll) || daily.cardRoll<1 || daily.cardRoll>daily.hand.length || daily.hand[daily.cardRoll-1]!==daily.cardId ||
+           !Number.isInteger(daily.variantRoll) || daily.variantRoll<1 || daily.variantRoll>rules.variantSides) return state;
+        r.from=actor; r.to=otherPlayer(actor);
+        r.categoryId=daily.categoryId; r.categoryRoll=daily.categoryRoll;
+        r.hand=daily.hand.slice(); r.cardRoll=daily.cardRoll; r.cardId=daily.cardId; r.hp=card.hp;
+        r.catalogueVersion=2; r.variantRoll=daily.variantRoll; r.modeRoll=null; r.hardcoreOffer=false;
+        r.status='pending'; r.awaiting=r.to; r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
+        r.sentAt=action.at;
+        s.phase='pending';
+        s.daily={...JSON.parse(JSON.stringify(daily)),usedBy:actor};
         return s;
       }
       case 'ROLL_CARD':
@@ -1371,13 +1454,16 @@
 
   // A room shares its score and tasks. Its two lanes allow one active draw per person.
   const roomActors=['a','b'];
-  const roomSharedKeys=['sequence','players','prefs','favorites','history','seen','stats','tasks'];
+  const roomSharedKeys=['sequence','players','prefs','favorites','history','seen','stats','tasks','daily','dailyReroll'];
+  const validStoredDaily=d=>d===undefined||d===null||(d&&typeof d==='object'&&!Array.isArray(d)&&typeof d.dateKey==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.dateKey)&&[null,'a','b'].includes(d.usedBy)&&(()=>{const cat=getCategory(d.categoryId,2),card=getCard(d.cardId);return !!cat&&!!card&&card.categoryId===cat.id&&d.categoryRoll===cat.number&&validHand(d.hand,cat.id,true)&&Number.isInteger(d.cardRoll)&&d.cardRoll>=1&&d.cardRoll<=d.hand.length&&d.hand[d.cardRoll-1]===d.cardId&&Number.isInteger(d.variantRoll)&&d.variantRoll>=1&&d.variantRoll<=rules.variantSides;})());
+  const validStoredReroll=x=>x===undefined||x===null||(x&&typeof x==='object'&&!Array.isArray(x)&&(x.dateKey===null||typeof x.dateKey==='string')&&Array.isArray(x.used)&&new Set(x.used).size===x.used.length&&x.used.every(id=>['a','b'].includes(id)));
   const roomCopy=value=>JSON.parse(JSON.stringify(value));
   const roomShared=room=>Object.fromEntries(roomSharedKeys.map(key=>[key,room[key]]));
   const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
 
   function validateRoom(room) {
     if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b') return false;
+    if(!validStoredDaily(room.daily) || !validStoredReroll(room.dailyReroll)) return false;
     const lanes=roomActors.map(actor=>room.lanes[actor]);
     if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index])) return false;
     if(lanes[0].round.id===lanes[1].round.id) return false;
@@ -1425,7 +1511,7 @@
       otherSequence=1;
       while(occupied.has('onde-'+otherSequence)) otherSequence++;
     }
-    const room={version:2,...roomCopy(roomShared(state)),sequence,lanes:{
+    const room={version:2,...roomCopy(roomShared(state)),daily:state.daily??null,dailyReroll:state.dailyReroll??{dateKey:isoTime(options.at)?parisDateKey(options.at):null,used:[]},sequence,lanes:{
       [owner]:{phase:state.phase,round:roomCopy(state.round)},
       [other]:{phase:'category',round:blankRound(otherSequence,other,options.at)}
     }};
@@ -1492,7 +1578,7 @@
     return validateRoom(next)?next:room;
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard};
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -1871,7 +1957,7 @@ void main(){
 /* Dés·ir — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','SEND','CHALLENGE','ROLL_DEFENSE','ACCEPT','NEW_ROUND','TOGGLE_TASK_CHECK']);
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','SEND','SEND_DAILY','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','CHALLENGE','ROLL_DEFENSE']);
  const TOKEN=/^[A-Za-z0-9_-]{43}$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
@@ -2338,6 +2424,9 @@ void main(){
   ? !remoteMode || (typeof remoteSnapshot?.drawAvailable==='boolean'?remoteSnapshot.drawAvailable:state.activePlayer===state.round.from)
   : state.activePlayer===state.round.from;
  const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
+ const parisToday=()=>G.parisDateKey(new Date(serverNow()).toISOString());
+ const dailyAvailable=()=>!!(state.daily&&state.daily.dateKey===parisToday()&&!state.daily.usedBy);
+ const canRerollCategoryNow=()=>state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
  const chargeNow=()=>window.performance?.now?window.performance.now():Date.now();
  const chargeLimit=1200;
@@ -2498,6 +2587,17 @@ void main(){
   return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
+ function dailySection(){
+  if(!dailyAvailable())return '';
+  const d=state.daily,c=G.getCard(d.cardId),cat=G.getCategory(d.categoryId,2);
+  if(!c||!cat)return '';
+  return '<div class="oa-daily" data-daily><div class="oa-section-head"><h2>Carte du jour</h2><span>'+h(cat.label)+'</span></div><div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(G.getVariant({cardId:c.id,variantRoll:d.variantRoll})||'')+'</p></div></div><div class="oa-actions">'+btn('Proposer la carte du jour <span class="oa-arrow" aria-hidden="true">↗</span>','send-daily')+'</div></div>';
+ }
+ function hardcoreOfferBanner(){
+  const r=state.round;
+  if(!r.hardcoreOffer||state.activePlayer!==r.from||!['card','variant','draft'].includes(state.phase)||!hardcore)return '';
+  return '<div class="oa-status-strip oa-amber" data-hardcore-offer role="status"><span class="oa-status-dot"></span><span>Le D20 propose une session Hardcore.</span>'+btn('Ouvrir Hardcore','hardcore-open','oa-secondary')+'</div>';
+ }
  function renderWelcome(){
   return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la, ou relance-la d’un geste.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
  }
@@ -2528,15 +2628,15 @@ void main(){
   if(!incoming)return '';
   return '<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(incoming.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(incoming.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>';
  }
- function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+renderPlayContent();}
+ function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+hardcoreOfferBanner()+renderPlayContent();}
  function renderPlayContent(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
   if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
   if(['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+dailySection()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    const sides=G.cardSides(state);
-   return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+handGrid();
+   return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
   }
   if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
   if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
@@ -2621,7 +2721,7 @@ void main(){
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
-  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer].join('|');
+  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.daily?state.daily.dateKey+':'+(state.daily.usedBy||''):'',state.round.hardcoreOffer?'hc':''].join('|');
  }
  function centerStage(){
   const holder=main.querySelector('[data-stage]');if(!holder)return;
@@ -2734,6 +2834,20 @@ void main(){
   if(active){controlsBusyState=controlsBusyState||new Map();root.querySelectorAll('button,input').forEach(el=>{if(el.dataset.action==='close'&&!sheet.hidden)return;if(!controlsBusyState.has(el))controlsBusyState.set(el,el.disabled);el.disabled=true;});}
   else if(controlsBusyState){for(const [el,disabled] of controlsBusyState)if(el.isConnected)el.disabled=disabled;controlsBusyState=null;}
  }
+ async function rerollCategory(){
+  if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
+  if(!canRerollCategoryNow())return;
+  const roundId=state.round.id,action={type:'REROLL_CATEGORY',catalogueVersion:2,roundId};
+  if(!remoteMode){
+   action.value=G.rollCategory(2,G.randomInt);
+   action.hand=G.drawHand(state,action.value,2);
+   const cat=G.categories.find(c=>c.number===action.value);
+   if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
+  }
+  busy=true;setControlsBusy(true);
+  try{const changed=await dispatch(action);if(changed){announce('Catégorie relancée.');toast('Thème relancé · 1× aujourd’hui.');}}
+  finally{busy=false;setControlsBusy(false);render();}
+ }
  async function roll(reroll=false,power=0){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
@@ -2771,7 +2885,11 @@ void main(){
     faceValue=action.type==='ROLL_CATEGORY'?G.rollCategory(action.catalogueVersion,G.randomInt):
       faces?faces[G.randomInt(faces.length)-1]:G.randomInt(sides);
     action.value=faceValue;
-    if(action.type==='ROLL_CATEGORY')action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
+    if(action.type==='ROLL_CATEGORY'){
+     action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
+     const cat=G.categories.find(c=>c.number===faceValue);
+     if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
+    }
     const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId,at:now()});if(nextRoom===localRoom)return;
     localRoom=nextRoom;syncLocalView();next=state;save();
    }
@@ -2825,6 +2943,9 @@ void main(){
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
+  if(action==='send-daily'){const ok=await dispatch({type:'SEND_DAILY'});if(ok)toast('Carte du jour proposée à '+name(state.round.to));render();return;}
+  if(action==='reroll-category'){await rerollCategory();return;}
+  if(action==='hardcore-open'){try{if(hardcore&&hardcore.open)hardcore.open();}catch(_){}return;}
   if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
   if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}

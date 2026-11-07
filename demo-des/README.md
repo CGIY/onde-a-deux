@@ -11,7 +11,10 @@ Le tirage reste privé jusqu’à l’envoi de la proposition. L’autre personn
 ## Jouer
 
 - **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues possibles. Le D4 donne un poids de 11 à Complicité et Intimité et de 10 à Plaisirs et Projets. Les deux D6 restent uniformes. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
-- Chaque personne dispose d’un tirage complet par heure glissante (heure de Paris). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé.
+- Chaque personne dispose d’un tirage complet par heure glissante (heure de Paris). Seul le dé de catégorie réussi consomme le ticket. La prochaine disponibilité apparaît à sa place lorsqu’il est utilisé. **Une relance du thème (D4) gratuite est en plus disponible une fois par jour et par personne**, utilisable avant le tirage de la carte ; elle ne consomme aucun ticket.
+- Le samedi et le dimanche (heure de Paris), le poids d’**Intimité** au D4 passe de 11 à 22.
+- Une **carte du jour** est tirée pour le duo au premier lancer de chaque journée (heure de Paris) ; elle est partagée et l’un des deux peut la proposer gratuitement une fois par jour avec « Proposer la carte du jour ».
+- Quand le D4 tombe sur **Intimité**, un D20 supplémentaire décide : 10 ou moins, la manche continue normalement ; 11 ou plus, le jeu propose d’ouvrir une session **Hardcore**.
 - Chaque joueur dispose de sa propre manche. Chacun peut tirer pendant que l’autre prépare sa carte ou attend une réponse. Une bannière ouvre l’invitation reçue ; « Mon tirage » retrouve la progression personnelle. Une seule manche reste active par joueur.
 - **Relancer, proposer, répondre.** Une relance de carte gratuite est disponible une fois par tour avant l’envoi ; en parcours v2, elle retire aussi la variante déjà choisie et ramène au choix de variante. L’envoi transforme le brouillon en invitation. Le destinataire n’a que deux gestes : **J’accepte** ou **Passer**. Passer écarte la carte sans pénalité ni point.
 - Une action validée à deux rejoint « À faire » pour vingt-quatre heures. Chacun coche sa propre case ; les deux coches retirent l’action et ajoutent un point commun. L’expiration ou une carte passée ne rapporte aucun point. Plusieurs actions validées peuvent rester en attente pendant un nouveau tour.
@@ -28,7 +31,7 @@ Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écra
 
 L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple. Elle est opaque et conserve les matières et couleurs de l’application.
 
-Les notifications signalent une invitation, un dé disponible ou une action approchant de son expiration (trois heures avant l'échéance). Quand une mise à jour de l'app est prête, un bandeau « Recharger » apparaît en bas de l'écran ; l'ancienne version reste jouable jusqu'au rechargement. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
+Les notifications signalent une invitation, une réponse, un dé disponible ou une action approchant de son expiration (trois heures avant l'échéance). Quand une mise à jour de l'app est prête, un bandeau « Recharger » apparaît en bas de l'écran ; l'ancienne version reste jouable jusqu'au rechargement. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
 
 ## Direction artistique
 

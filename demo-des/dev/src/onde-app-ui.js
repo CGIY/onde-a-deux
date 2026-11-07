@@ -69,6 +69,9 @@
   ? !remoteMode || (typeof remoteSnapshot?.drawAvailable==='boolean'?remoteSnapshot.drawAvailable:state.activePlayer===state.round.from)
   : state.activePlayer===state.round.from;
  const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
+ const parisToday=()=>G.parisDateKey(new Date(serverNow()).toISOString());
+ const dailyAvailable=()=>!!(state.daily&&state.daily.dateKey===parisToday()&&!state.daily.usedBy);
+ const canRerollCategoryNow=()=>state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
  const chargeNow=()=>window.performance?.now?window.performance.now():Date.now();
  const chargeLimit=1200;
@@ -229,6 +232,17 @@
   return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
+ function dailySection(){
+  if(!dailyAvailable())return '';
+  const d=state.daily,c=G.getCard(d.cardId),cat=G.getCategory(d.categoryId,2);
+  if(!c||!cat)return '';
+  return '<div class="oa-daily" data-daily><div class="oa-section-head"><h2>Carte du jour</h2><span>'+h(cat.label)+'</span></div><div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(G.getVariant({cardId:c.id,variantRoll:d.variantRoll})||'')+'</p></div></div><div class="oa-actions">'+btn('Proposer la carte du jour <span class="oa-arrow" aria-hidden="true">↗</span>','send-daily')+'</div></div>';
+ }
+ function hardcoreOfferBanner(){
+  const r=state.round;
+  if(!r.hardcoreOffer||state.activePlayer!==r.from||!['card','variant','draft'].includes(state.phase)||!hardcore)return '';
+  return '<div class="oa-status-strip oa-amber" data-hardcore-offer role="status"><span class="oa-status-dot"></span><span>Le D20 propose une session Hardcore.</span>'+btn('Ouvrir Hardcore','hardcore-open','oa-secondary')+'</div>';
+ }
  function renderWelcome(){
   return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la, ou relance-la d’un geste.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
  }
@@ -259,15 +273,15 @@
   if(!incoming)return '';
   return '<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(incoming.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(incoming.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>';
  }
- function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+renderPlayContent();}
+ function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+hardcoreOfferBanner()+renderPlayContent();}
  function renderPlayContent(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
   if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
   if(['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+dailySection()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    const sides=G.cardSides(state);
-   return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+handGrid();
+   return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
   }
   if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
   if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
@@ -352,7 +366,7 @@
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
-  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer].join('|');
+  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.daily?state.daily.dateKey+':'+(state.daily.usedBy||''):'',state.round.hardcoreOffer?'hc':''].join('|');
  }
  function centerStage(){
   const holder=main.querySelector('[data-stage]');if(!holder)return;
@@ -465,6 +479,20 @@
   if(active){controlsBusyState=controlsBusyState||new Map();root.querySelectorAll('button,input').forEach(el=>{if(el.dataset.action==='close'&&!sheet.hidden)return;if(!controlsBusyState.has(el))controlsBusyState.set(el,el.disabled);el.disabled=true;});}
   else if(controlsBusyState){for(const [el,disabled] of controlsBusyState)if(el.isConnected)el.disabled=disabled;controlsBusyState=null;}
  }
+ async function rerollCategory(){
+  if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
+  if(!canRerollCategoryNow())return;
+  const roundId=state.round.id,action={type:'REROLL_CATEGORY',catalogueVersion:2,roundId};
+  if(!remoteMode){
+   action.value=G.rollCategory(2,G.randomInt);
+   action.hand=G.drawHand(state,action.value,2);
+   const cat=G.categories.find(c=>c.number===action.value);
+   if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
+  }
+  busy=true;setControlsBusy(true);
+  try{const changed=await dispatch(action);if(changed){announce('Catégorie relancée.');toast('Thème relancé · 1× aujourd’hui.');}}
+  finally{busy=false;setControlsBusy(false);render();}
+ }
  async function roll(reroll=false,power=0){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
@@ -502,7 +530,11 @@
     faceValue=action.type==='ROLL_CATEGORY'?G.rollCategory(action.catalogueVersion,G.randomInt):
       faces?faces[G.randomInt(faces.length)-1]:G.randomInt(sides);
     action.value=faceValue;
-    if(action.type==='ROLL_CATEGORY')action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
+    if(action.type==='ROLL_CATEGORY'){
+     action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
+     const cat=G.categories.find(c=>c.number===faceValue);
+     if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
+    }
     const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId,at:now()});if(nextRoom===localRoom)return;
     localRoom=nextRoom;syncLocalView();next=state;save();
    }
@@ -556,6 +588,9 @@
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
+  if(action==='send-daily'){const ok=await dispatch({type:'SEND_DAILY'});if(ok)toast('Carte du jour proposée à '+name(state.round.to));render();return;}
+  if(action==='reroll-category'){await rerollCategory();return;}
+  if(action==='hardcore-open'){try{if(hardcore&&hardcore.open)hardcore.open();}catch(_){}return;}
   if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
   if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}

@@ -37,7 +37,7 @@ Toutes les opérations utilisent `POST` JSON. Les réponses ne sont jamais mises
 
 Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des vingt-quatre heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
 
-Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `CHALLENGE_DRAFT`, `ROLL_DRAFT_DEFENSE`, `SEND`, `CHALLENGE`, `ROLL_DEFENSE`, `ACCEPT`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. Tout `actor`, `value`, `hand`, `at` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
+Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `REROLL_CATEGORY`, `SEND`, `SEND_DAILY`, `ACCEPT`, `PASS`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. `REROLL_CATEGORY` est limitée à une fois par jour de Paris et par acteur (état `dailyReroll` de la salle) et ne consomme pas de ticket horaire. `SEND_DAILY` propose la carte du jour partagée (`daily`, tirée avec le premier `ROLL_CATEGORY` de la journée, catégorie du lancer exclue) une fois par jour ; en cas d’Intimité, un `modeRoll` D20 dépassant 10 marque la manche `hardcoreOffer`. Tout `actor`, `value`, `hand`, `at` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
 
 ## Lancement Hardcore à deux
 
