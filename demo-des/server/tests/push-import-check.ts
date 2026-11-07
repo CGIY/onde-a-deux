@@ -7,7 +7,7 @@ const auth=encoded(crypto.getRandomValues(new Uint8Array(16)).buffer);
 const subscription={endpoint:'https://web.push.apple.com/Qfixture',keys:{p256dh:publicKey,auth}};
 const vapid=webpush.generateVAPIDKeys();
 const payload=pushPayload({id:'c4c8ba63-2aae-4a58-85a7-979cf3d877c6',kind:'invitation',revision:7});
-const request=webpush.generateRequestDetails(subscription,payload,{vapidDetails:{subject:'https://cgiy.github.io/onde-a-deux/demo-des/',publicKey:vapid.publicKey,privateKey:vapid.privateKey},contentEncoding:'aes128gcm',TTL:86400});
+const request=webpush.generateRequestDetails(subscription,payload,{vapidDetails:{subject:'https://cgiy.github.io/desir/demo-des/',publicKey:vapid.publicKey,privateKey:vapid.privateKey},contentEncoding:'aes128gcm',TTL:86400});
 if(request.endpoint!==subscription.endpoint||request.method!=='POST')throw Error('Invalid push request');
 if(request.headers['Content-Encoding']!=='aes128gcm')throw Error('Missing encryption');
 if(!String(request.headers.Authorization).startsWith('vapid '))throw Error('Missing VAPID signature');

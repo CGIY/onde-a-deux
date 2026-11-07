@@ -1,6 +1,6 @@
 # Dés·ir — version web 0.3.0
 
-[Ouvrir Dés·ir](https://cgiy.github.io/onde-a-deux/demo-des/)
+[Ouvrir Dés·ir](https://cgiy.github.io/desir/demo-des/)
 
 Chaque personne se connecte sur son téléphone avec son identifiant et son mot de passe. Les deux comptes sont créés dans la base privée ; il n’y a ni inscription publique ni code d’association. Les noms ne sont retournés qu’après connexion. Le mot de passe n’est jamais conservé par l’application ; l’accès de cet appareil reste enregistré pour les prochaines ouvertures.
 
@@ -28,7 +28,7 @@ Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écra
 
 L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple. Elle est opaque et conserve les matières et couleurs de l’application.
 
-Les notifications signalent une invitation, une réponse, un dé disponible ou une action approchant de son expiration (trois heures avant l'échéance). Quand une mise à jour de l'app est prête, un bandeau « Recharger » apparaît en bas de l'écran ; l'ancienne version reste jouable jusqu'au rechargement. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
+Les notifications signalent une invitation, un dé disponible ou une action approchant de son expiration (trois heures avant l'échéance). Quand une mise à jour de l'app est prête, un bandeau « Recharger » apparaît en bas de l'écran ; l'ancienne version reste jouable jusqu'au rechargement. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
 
 ## Direction artistique
 
