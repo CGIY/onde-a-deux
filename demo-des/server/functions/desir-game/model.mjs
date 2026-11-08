@@ -35,12 +35,12 @@ function parseKnownAction(input,types){
 }
 export function assertClientCompatibility(G,full,actor,gameVersion){
   if(full?.version===2){
-    if(gameVersion!==4)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
+    if(gameVersion!==5)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
     return;
   }
   if(gameVersion!==1)return;
-  const visibleRound=full.round.catalogueVersion===2&&G.canSeeRound(full,actor);
-  if(visibleRound||full.tasks.some(task=>task.variantRoll!=null)){
+  const visibleRound=[2,3].includes(full.round.catalogueVersion)&&G.canSeeRound(full,actor);
+  if(visibleRound||full.tasks.some(task=>task.variantRoll!=null||task.catalogueVersion===3)){
     throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser le nouveau parcours.');
   }
 }
@@ -50,7 +50,7 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
   if(!G.validateState(full)||!['a','b'].includes(actor))throw new Error('Invalid authoritative state');
   const projected=copy(full);projected.activePlayer=actor;projected.seen={};projected.favorites=[];
   delete projected.progression;
-  projected.history=projected.history.filter(round=>(gameVersion>=2||round.catalogueVersion!==2)&&G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
+  projected.history=projected.history.filter(round=>(gameVersion>=2||![2,3].includes(round.catalogueVersion))&&G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
     if(round.from!==actor){delete round.hand;delete round.draftRollTokens;delete round.rollTokens;}
     return round;
   });
@@ -58,7 +58,7 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
     projected.phase='category';projected.round=copy(G.createState().round);
     Object.assign(projected.round,{id:full.round.id,from:full.round.from,to:full.round.to});
   }else if(full.round.from!==actor&&projected.round.cardId){
-    const deck=projected.round.catalogueVersion===2?G.cards:G.legacyCards;
+    const deck=G.cardsForRound(projected.round);
     const sides=G.cardSides(projected),selected=projected.round.cardId,decoys=deck.filter(c=>c.categoryId===projected.round.categoryId&&c.id!==selected).slice(0,sides-1).map(c=>c.id);
     let n=0;projected.round.hand=Array.from({length:sides},(_,i)=>i===projected.round.cardRoll-1?selected:decoys[n++]);
   }
@@ -72,15 +72,15 @@ export function snapshot(G,context,extra={},gameVersion=2){
     if(!G.validateRoom(full))throw new Error('Invalid authoritative room');
     const own=G.roomView(full,actor);
     const invitations=full.pendingRounds.map(item=>G.roomView(full,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
-    const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,4));
+    const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,5));
     const pendingOutgoing=invitations.filter(value=>value.round.from===actor).length;
-    return {roomId:context.room.id,state:projectState(G,own,actor,4),badges:G.badgeView(full,actor),incoming,pendingOutgoing,gameVersion:4,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
+    return {roomId:context.room.id,state:projectState(G,own,actor,5),badges:G.badgeView(full,actor),incoming,pendingOutgoing,gameVersion:5,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
   }
   return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges:G.badgeView(full,actor),revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }
 export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
-  if(gameVersion===3)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
-  if(gameVersion!==4)return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
+  if(gameVersion===3||gameVersion===4)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
+  if(gameVersion!==5)return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
   const action=parseAction(input);
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
   const room=G.normalizeRoom(full,{at});
@@ -99,15 +99,13 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
     action.value=value;action.token='request:'+requestId;roll={kind:20,value};
   }else if(action.type==='ROLL_CATEGORY'){
     if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const sides=G.categorySides(2),value=G.rollCategory(2,randomInt,at);
-    action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;roll={kind:sides,value};
-    const category=G.categories.find(item=>item.number===value);
-    if(category&&category.id==='intimite')action.modeRoll=randomInt(20);
+    const sides=G.categorySides(3),value=G.rollCategory(3,randomInt,at);
+    Object.assign(action,{value},G.drawCategory(target,value,3,randomInt));roll={kind:sides,value};
   }else if(action.type==='ROLL_CARD'){
     if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const sides=G.cardSides(target),value=randomInt(sides);action.value=value;roll={kind:sides,value};
   }else if(action.type==='ROLL_VARIANT'){
-    if(!owns||target.phase!=='variant')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+    if(!owns||target.phase!=='variant'||!G.needsVariant(target.round))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const sides=G.rules.variantSides,value=randomInt(sides);action.value=value;roll={kind:sides,value};
   }else if(action.type==='REROLL_CARD'){
     if(!G.canRerollCard(target))throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
@@ -117,19 +115,15 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   }
   else if(action.type==='REROLL_CATEGORY'){
     if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const sides=G.categorySides(2),value=G.rollCategory(2,randomInt,at);
-    action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;
-    const category=G.categories.find(item=>item.number===value);
-    if(category&&category.id==='intimite')action.modeRoll=randomInt(20);
+    const sides=G.categorySides(3),value=G.rollCategory(3,randomInt,at);
+    Object.assign(action,{value},G.drawCategory(target,value,3,randomInt));
     roll={kind:sides,value};
   }
   else if(action.type==='JOKER_DRAW'){
     if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const value=action.category;
-    action.value=value;action.hand=G.drawHand(target,value,2);action.catalogueVersion=2;
-    const category=G.categories.find(item=>item.number===value);
-    if(category&&category.id==='intimite')action.modeRoll=randomInt(20);
-    roll={kind:G.categorySides(2),value};
+    Object.assign(action,{value},G.drawCategory(target,value,3,randomInt));
+    roll={kind:G.categorySides(3),value};
   }
   const next=G.reduceRoom(room,{...action,actor,at});
   if(next===room)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');

@@ -619,54 +619,6 @@
 @keyframes oa-roleplay-number{from{opacity:.2;transform:translateY(5px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-roleplay{animation:none!important}}
 
-/* A private live layer keeps the original clay-and-paper shapes. */
-#onde-app-v1 .oa-hc-entry{border:1px solid #bb777970;border-radius:12px;background:#493336;color:#e8b2af;font-size:9px;letter-spacing:.08em;padding:8px;min-height:34px}
-#onde-app-v1 .oa-hc-panel{position:absolute;inset:0;z-index:8;min-height:100%;padding:26px;background:#181d1c;overflow:auto;overscroll-behavior:contain;isolation:isolate;opacity:0;transform:translateY(8px) scale(.99);transition:opacity .25s,transform .25s cubic-bezier(.22,1,.36,1),background .25s;scrollbar-width:thin}
-#onde-app-v1 .oa-hc-panel:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 60% 28%,#bc344b23,transparent 65%);opacity:0;transition:opacity .25s}
-#onde-app-v1 .oa-hc-panel.is-active{opacity:1;transform:none;transition-duration:.4s}
-#onde-app-v1 .oa-hc-ready .oa-hc-panel{background:#211b1e;transition-duration:.4s}
-#onde-app-v1 .oa-hc-ready .oa-hc-panel:before{opacity:1;transition-duration:.4s}
-#onde-app-v1 .oa-hc-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;font-size:18px;letter-spacing:.15em}
-#onde-app-v1 .oa-hc-top small{font-size:10px;letter-spacing:0;color:#b4b8ab}
-#onde-app-v1 .oa-hc-close{border:1px solid #777d6c50;border-radius:50%;background:#2b302a;color:#ddd8ca;min-width:44px;min-height:44px;font-size:26px}
-#onde-app-v1 .oa-hc-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:#b4b8ab;margin:0 0 12px}
-#onde-app-v1 .oa-hc-panel h1{font-size:32px;font-weight:500;letter-spacing:-.04em;line-height:1.12;margin:0 0 24px}
-#onde-app-v1 .oa-hc-panel h1 em{color:#d0a89b;font-family:Georgia,serif;font-weight:400}
-#onde-app-v1 .oa-hc-optin{display:flex;align-items:center;gap:12px;font-size:13px;line-height:1.5;min-height:52px;padding:14px;border:1px solid #969d7844;border-radius:17px;background:#ffffff05}
-#onde-app-v1 .oa-hc-optin input{accent-color:#b76d76;width:21px;height:21px;flex:none}
-#onde-app-v1 .oa-hc-status{font-size:12px;line-height:1.55;min-height:38px;margin:15px 0 2px;color:#bbbfb1}
-#onde-app-v1 .oa-hc-stage{position:relative;height:275px;margin:-15px -12px -25px;filter:drop-shadow(0 0 14px #f33d5d24)}
-#onde-app-v1 .oa-hc-stage canvas{display:block;width:100%;height:100%;touch-action:none}
-#onde-app-v1 .oa-hc-caption{font-size:11px;line-height:1.5;color:#bfaba7;min-height:30px;text-align:center;margin:0 0 15px}
-#onde-app-v1 .oa-hc-card{font-size:23px;font-weight:500;line-height:1.28;letter-spacing:-.02em;color:#f1d6cb;margin:14px 0 20px;text-wrap:balance;overflow-wrap:anywhere}
-#onde-app-v1 .oa-hc-boss{border:1px solid #a8646c66;border-radius:20px;background:linear-gradient(145deg,#53323b55,#2b292b);padding:18px;margin:15px 0 18px;box-shadow:inset 0 1px #ffffff12,0 9px 20px #0002}
-#onde-app-v1 .oa-hc-boss-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#dcc4b9}
-#onde-app-v1 .oa-hc-boss-head strong{font-size:40px;line-height:1.1;letter-spacing:-.05em;color:#f2b6b9;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
-#onde-app-v1 .oa-hc-boss-head small{font-size:11px;letter-spacing:0;color:#bfa59f}
-#onde-app-v1 .oa-hc-track{height:11px;overflow:hidden;border-radius:10px;background:#15191a;box-shadow:inset 0 2px 4px #0007;margin:14px 0 10px}
-#onde-app-v1 .oa-hc-track>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ae485d,#ed8a91);transform-origin:left center;transition:transform .5s cubic-bezier(.22,1,.36,1);box-shadow:inset 0 1px #ffd6d555}
-#onde-app-v1 .oa-hc-total{font-size:11px;color:#c8b5ac;font-variant-numeric:tabular-nums;margin:0 0 14px}
-#onde-app-v1 .oa-hc-hits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-#onde-app-v1 .oa-hc-hits p{font-size:10px;color:#b5afa5;margin:0 0 7px}
-#onde-app-v1 .oa-hc-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-#onde-app-v1 .oa-hc-slots span{display:grid;place-items:center;min-height:39px;border:1px solid #7c5b5b55;border-radius:11px;background:#262727;color:#7b827b;font-size:19px;font-variant-numeric:tabular-nums;transition:background .3s,color .3s,transform .3s}
-#onde-app-v1 .oa-hc-slots span.is-filled{color:#f1d6ca;background:linear-gradient(145deg,#69424a77,#392d32);border-color:#b77b7a66;animation:oa-hc-hit .35s cubic-bezier(.22,1,.36,1)}
-#onde-app-v1 .oa-hc-outcome{font-size:12px;line-height:1.5;color:#edcfc4;margin:13px 0 0;min-height:36px}
-#onde-app-v1 .oa-hc-launch,#onde-app-v1 .oa-hc-attack{width:100%;border-color:#ce747b;background:linear-gradient(145deg,#cf7475,#ad4b5b);color:#fff0e6;min-height:50px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
-#onde-app-v1 .oa-hc-launch.is-held{transform:translateY(2px) scale(1.01,.97);filter:saturate(1.15);box-shadow:inset 0 2px 6px #49252b55,0 2px 7px #0003}
-#onde-app-v1 .oa-hc-error{font-size:12px;line-height:1.5;color:#f0aaa3;margin:18px 0}
-#onde-app-v1 .oa-hc-bottom{display:flex;justify-content:space-between;gap:12px;margin-top:17px}
-#onde-app-v1 .oa-hc-bottom button{color:#bcb5a7;font-size:11px;text-align:left}
-#onde-app-v1 .oa-hc-intro{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:22px;background:#181d1cd9}
-#onde-app-v1 .oa-hc-intro[hidden]{display:none}
-#onde-app-v1 .oa-hc-intro-box{max-width:350px;padding:24px 22px;border:1px solid #a8646c66;border-radius:20px;background:linear-gradient(145deg,#322430,#211d24);box-shadow:0 18px 44px #0007,inset 0 1px #ffffff14}
-#onde-app-v1 .oa-hc-intro h2{font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.3;color:#f1d6cb;margin:0 0 13px}
-#onde-app-v1 .oa-hc-intro p{font-size:12.5px;line-height:1.62;color:#c6bab0;margin:0 0 10px}
-#onde-app-v1 .oa-hc-intro strong{color:#f0a9a2;font-weight:600}
-#onde-app-v1 .oa-hc-intro .oa-hc-intro-ok{margin-top:8px;border-color:#ce747b;background:linear-gradient(145deg,#cf7475,#ad4b5b);color:#fff0e6}
-@keyframes oa-hc-hit{0%{transform:scale(.92,.98)}55%{transform:scale(1.04,.96)}100%{transform:none}}
-@media(max-width:390px){#onde-app-v1 .oa-hc-panel{padding:20px}#onde-app-v1 .oa-hc-boss{padding:15px}#onde-app-v1 .oa-hc-stage{height:250px}}
-@media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-hc-panel,#onde-app-v1 .oa-hc-panel:before,#onde-app-v1 .oa-hc-track>span,#onde-app-v1 .oa-hc-slots span{transition:none!important;animation:none!important}}
 /* Badge collections use plain, stable surfaces; only the notice enters above the game. */
 #onde-app-v1 .oa-achievements{margin-top:20px}
 #onde-app-v1 .oa-achievements>.oa-note{margin:0 0 12px}

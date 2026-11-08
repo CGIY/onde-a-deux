@@ -43,9 +43,9 @@
    if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
-   if(raw.gameVersion!==4)throw failure('invalid_response','La version reçue est invalide.');
+   if(raw.gameVersion!==5)throw failure('invalid_response','La version reçue est invalide.');
    let incoming,pendingOutgoing=0;
-   if(raw.gameVersion===4){
+   if(raw.gameVersion===5){
     if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
     incoming=raw.incoming.map(value=>G.normalizeState(value));
     if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
@@ -60,11 +60,11 @@
    let badges;
    if(raw.badges!==undefined){if(typeof G.validateBadgeView!=='function'||!G.validateBadgeView(raw.badges,identity.actor))throw failure('invalid_response','La collection de badges reçue est invalide.');badges=clone(raw.badges);}
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:4,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:5,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
-   // Immutable receipts written before badges existed remain valid protocol-4 replies.
+   // Optional metadata never erases the same account's last validated collection.
    if(checked.base.badges===undefined&&snapshot?.badges&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor)checked.base.badges=clone(snapshot.badges);
    if(!snapshot||checked.base.revision>=snapshot.revision){
     const changed=!snapshot||JSON.stringify(checked.base)!==JSON.stringify(snapshot),statusChanged=status.phase!=='connected'||!!status.message;
@@ -92,7 +92,7 @@
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:4,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:5,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -138,9 +138,9 @@
    return value;
   }
   function storedAction(){const value=parsed(actionKey);if(!value)return null;
-   // The new game starts after a reset. Never replay or reinterpret an older command.
+   // Never replay or reinterpret a command saved under an older game protocol.
    // Inspect the protocol before validating types removed by this release.
-   if(value.gameVersion!==4){remove(actionKey);return null;}
+   if(value.gameVersion!==5){remove(actionKey);return null;}
    if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    requireConnection();
@@ -156,20 +156,9 @@
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,gameVersion:4,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:5,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
-  }
-  // Live presses must bypass the durable game queue: a release cannot wait for a draw.
-  // Nothing is persisted here, so reopening the app never resumes a held press.
-  async function hardcore(action=null){
-   requireConnection();
-   const identity=connection,token=identity.token;
-   if(action!==null&&(!action||typeof action!=='object'||Array.isArray(action)||typeof action.type!=='string'))throw failure('invalid_action','Cette action n’est pas disponible.');
-   const raw=await request({op:'hardcore',action:clone(action),...(action===null?{}:{requestId:requestId()})},token,action?.type==='PRESS'&&action.held?1:2);
-   if(connection!==identity||connection.token!==token)throw failure('not_connected','La connexion a changé. Rouvre le mode.');
-   if(!raw||raw.actor!==identity.actor||!Number.isSafeInteger(raw.revision)||raw.revision<0||!Object.hasOwn(raw,'session')||!(raw.session===null||typeof raw.session==='object'&&!Array.isArray(raw.session))||!Number.isFinite(Date.parse(raw.serverTime)))throw failure('invalid_response','Le mode partagé n’a pas pu être actualisé.');
-   return clone(raw);
   }
   async function recoverPendingAction(pending,identity){
    return await serial(()=>{
@@ -253,7 +242,7 @@
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,hardcore,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

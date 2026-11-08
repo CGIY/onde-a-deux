@@ -97,8 +97,14 @@ hardcore = json.loads((root / 'data/hardcore-cards.json').read_text())
 if (not isinstance(hardcore, dict) or set(hardcore) != {f'hardcore-{i:02d}' for i in range(1, 21)} or
         any(not isinstance(v, str) or not v.strip() or len(v) > 160 for v in hardcore.values())):
     raise SystemExit('Hardcore requires twenty short card titles.')
-html += '\n<script>window.DesirHardcoreCards=Object.freeze(' + json.dumps(hardcore, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
-for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-app-hardcore.js', 'onde-app-ui.js']:
+try:
+    match = re.search(r'\bconst hardcoreCardTitles = (\{.*?\});', core, re.S)
+    canonical_hardcore = json.loads(match.group(1)) if match else None
+except ValueError:
+    canonical_hardcore = None
+if canonical_hardcore != hardcore:
+    raise SystemExit('The unified Hardcore catalogue must exactly match its existing card data.')
+for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-app-ui.js']:
     html += '\n<script>\n' + (source / filename).read_text() + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">

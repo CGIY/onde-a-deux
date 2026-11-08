@@ -105,6 +105,32 @@ class WebBuild(BuildFixture):
         self.assert_archive_preserved()
 
 
+class MergedIntimacyBuild(BuildFixture):
+    def test_release_includes_existing_cards_without_the_retired_combat(self):
+        self.build('--release')
+        html = self.release.read_text()
+        titles = json.loads((self.dev / 'data/hardcore-cards.json').read_text())
+        match = re.search(r'\bconst hardcoreCardTitles = (\{.*?\});', html, re.S)
+        self.assertIsNotNone(match)
+        self.assertEqual(json.loads(match.group(1)), titles)
+        self.assertEqual(len(titles), 20)
+        for retired in ['scope.OndeHardcore', 'window.DesirHardcoreCards',
+                        'oa-hc-panel', 'Maintenez ensemble', 'Attaquer · D20']:
+            self.assertNotIn(retired, html)
+        self.assert_archive_preserved()
+
+    def test_divergent_card_data_cannot_publish(self):
+        path = self.dev / 'data/hardcore-cards.json'
+        titles = json.loads(path.read_text())
+        first = next(iter(titles))
+        titles[first] += ' changed'
+        path.write_text(json.dumps(titles))
+        result = self.build('--release', ok=False)
+        self.assertIn('exactly match', result.stderr)
+        self.assertEqual(self.release.read_text(), 'existing-release')
+        self.assertFalse((self.dev / 'dist').exists())
+
+
 class RoleplayBuild(BuildFixture):
     def setUp(self):
         super().setUp()

@@ -629,54 +629,6 @@
 @keyframes oa-roleplay-number{from{opacity:.2;transform:translateY(5px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-roleplay{animation:none!important}}
 
-/* A private live layer keeps the original clay-and-paper shapes. */
-#onde-app-v1 .oa-hc-entry{border:1px solid #bb777970;border-radius:12px;background:#493336;color:#e8b2af;font-size:9px;letter-spacing:.08em;padding:8px;min-height:34px}
-#onde-app-v1 .oa-hc-panel{position:absolute;inset:0;z-index:8;min-height:100%;padding:26px;background:#181d1c;overflow:auto;overscroll-behavior:contain;isolation:isolate;opacity:0;transform:translateY(8px) scale(.99);transition:opacity .25s,transform .25s cubic-bezier(.22,1,.36,1),background .25s;scrollbar-width:thin}
-#onde-app-v1 .oa-hc-panel:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 60% 28%,#bc344b23,transparent 65%);opacity:0;transition:opacity .25s}
-#onde-app-v1 .oa-hc-panel.is-active{opacity:1;transform:none;transition-duration:.4s}
-#onde-app-v1 .oa-hc-ready .oa-hc-panel{background:#211b1e;transition-duration:.4s}
-#onde-app-v1 .oa-hc-ready .oa-hc-panel:before{opacity:1;transition-duration:.4s}
-#onde-app-v1 .oa-hc-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;font-size:18px;letter-spacing:.15em}
-#onde-app-v1 .oa-hc-top small{font-size:10px;letter-spacing:0;color:#b4b8ab}
-#onde-app-v1 .oa-hc-close{border:1px solid #777d6c50;border-radius:50%;background:#2b302a;color:#ddd8ca;min-width:44px;min-height:44px;font-size:26px}
-#onde-app-v1 .oa-hc-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:#b4b8ab;margin:0 0 12px}
-#onde-app-v1 .oa-hc-panel h1{font-size:32px;font-weight:500;letter-spacing:-.04em;line-height:1.12;margin:0 0 24px}
-#onde-app-v1 .oa-hc-panel h1 em{color:#d0a89b;font-family:Georgia,serif;font-weight:400}
-#onde-app-v1 .oa-hc-optin{display:flex;align-items:center;gap:12px;font-size:13px;line-height:1.5;min-height:52px;padding:14px;border:1px solid #969d7844;border-radius:17px;background:#ffffff05}
-#onde-app-v1 .oa-hc-optin input{accent-color:#b76d76;width:21px;height:21px;flex:none}
-#onde-app-v1 .oa-hc-status{font-size:12px;line-height:1.55;min-height:38px;margin:15px 0 2px;color:#bbbfb1}
-#onde-app-v1 .oa-hc-stage{position:relative;height:275px;margin:-15px -12px -25px;filter:drop-shadow(0 0 14px #f33d5d24)}
-#onde-app-v1 .oa-hc-stage canvas{display:block;width:100%;height:100%;touch-action:none}
-#onde-app-v1 .oa-hc-caption{font-size:11px;line-height:1.5;color:#bfaba7;min-height:30px;text-align:center;margin:0 0 15px}
-#onde-app-v1 .oa-hc-card{font-size:23px;font-weight:500;line-height:1.28;letter-spacing:-.02em;color:#f1d6cb;margin:14px 0 20px;text-wrap:balance;overflow-wrap:anywhere}
-#onde-app-v1 .oa-hc-boss{border:1px solid #a8646c66;border-radius:20px;background:linear-gradient(145deg,#53323b55,#2b292b);padding:18px;margin:15px 0 18px;box-shadow:inset 0 1px #ffffff12,0 9px 20px #0002}
-#onde-app-v1 .oa-hc-boss-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#dcc4b9}
-#onde-app-v1 .oa-hc-boss-head strong{font-size:40px;line-height:1.1;letter-spacing:-.05em;color:#f2b6b9;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
-#onde-app-v1 .oa-hc-boss-head small{font-size:11px;letter-spacing:0;color:#bfa59f}
-#onde-app-v1 .oa-hc-track{height:11px;overflow:hidden;border-radius:10px;background:#15191a;box-shadow:inset 0 2px 4px #0007;margin:14px 0 10px}
-#onde-app-v1 .oa-hc-track>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ae485d,#ed8a91);transform-origin:left center;transition:transform .5s cubic-bezier(.22,1,.36,1);box-shadow:inset 0 1px #ffd6d555}
-#onde-app-v1 .oa-hc-total{font-size:11px;color:#c8b5ac;font-variant-numeric:tabular-nums;margin:0 0 14px}
-#onde-app-v1 .oa-hc-hits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-#onde-app-v1 .oa-hc-hits p{font-size:10px;color:#b5afa5;margin:0 0 7px}
-#onde-app-v1 .oa-hc-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-#onde-app-v1 .oa-hc-slots span{display:grid;place-items:center;min-height:39px;border:1px solid #7c5b5b55;border-radius:11px;background:#262727;color:#7b827b;font-size:19px;font-variant-numeric:tabular-nums;transition:background .3s,color .3s,transform .3s}
-#onde-app-v1 .oa-hc-slots span.is-filled{color:#f1d6ca;background:linear-gradient(145deg,#69424a77,#392d32);border-color:#b77b7a66;animation:oa-hc-hit .35s cubic-bezier(.22,1,.36,1)}
-#onde-app-v1 .oa-hc-outcome{font-size:12px;line-height:1.5;color:#edcfc4;margin:13px 0 0;min-height:36px}
-#onde-app-v1 .oa-hc-launch,#onde-app-v1 .oa-hc-attack{width:100%;border-color:#ce747b;background:linear-gradient(145deg,#cf7475,#ad4b5b);color:#fff0e6;min-height:50px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
-#onde-app-v1 .oa-hc-launch.is-held{transform:translateY(2px) scale(1.01,.97);filter:saturate(1.15);box-shadow:inset 0 2px 6px #49252b55,0 2px 7px #0003}
-#onde-app-v1 .oa-hc-error{font-size:12px;line-height:1.5;color:#f0aaa3;margin:18px 0}
-#onde-app-v1 .oa-hc-bottom{display:flex;justify-content:space-between;gap:12px;margin-top:17px}
-#onde-app-v1 .oa-hc-bottom button{color:#bcb5a7;font-size:11px;text-align:left}
-#onde-app-v1 .oa-hc-intro{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:22px;background:#181d1cd9}
-#onde-app-v1 .oa-hc-intro[hidden]{display:none}
-#onde-app-v1 .oa-hc-intro-box{max-width:350px;padding:24px 22px;border:1px solid #a8646c66;border-radius:20px;background:linear-gradient(145deg,#322430,#211d24);box-shadow:0 18px 44px #0007,inset 0 1px #ffffff14}
-#onde-app-v1 .oa-hc-intro h2{font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.3;color:#f1d6cb;margin:0 0 13px}
-#onde-app-v1 .oa-hc-intro p{font-size:12.5px;line-height:1.62;color:#c6bab0;margin:0 0 10px}
-#onde-app-v1 .oa-hc-intro strong{color:#f0a9a2;font-weight:600}
-#onde-app-v1 .oa-hc-intro .oa-hc-intro-ok{margin-top:8px;border-color:#ce747b;background:linear-gradient(145deg,#cf7475,#ad4b5b);color:#fff0e6}
-@keyframes oa-hc-hit{0%{transform:scale(.92,.98)}55%{transform:scale(1.04,.96)}100%{transform:none}}
-@media(max-width:390px){#onde-app-v1 .oa-hc-panel{padding:20px}#onde-app-v1 .oa-hc-boss{padding:15px}#onde-app-v1 .oa-hc-stage{height:250px}}
-@media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-hc-panel,#onde-app-v1 .oa-hc-panel:before,#onde-app-v1 .oa-hc-track>span,#onde-app-v1 .oa-hc-slots span{transition:none!important;animation:none!important}}
 /* Badge collections use plain, stable surfaces; only the notice enters above the game. */
 #onde-app-v1 .oa-achievements{margin-top:20px}
 #onde-app-v1 .oa-achievements>.oa-note{margin:0 0 12px}
@@ -716,8 +668,6 @@
 <script>window.DesirRoleplay=Object.freeze({"mode": "roleplay", "universe": "Dés·ir", "cards": {"six-complicite-petit-mot:v1": {"metric": "94,2 %", "text": "des duos gardent un compliment inattendu en tête bien après la fin de la journée."}, "six-complicite-petit-mot:v2": {"metric": "92,6 %", "text": "des duos relisent leur mot doux comme un petit message arrivé pile au bon moment."}, "six-complicite-petit-mot:v3": {"metric": "89,7 %", "text": "des duos finissent par adopter le surnom qu’ils trouvaient beaucoup trop ridicule au départ."}, "six-complicite-petit-mot:v4": {"metric": "76,3 %", "text": "des duos arrivent à transformer une définition tirée au hasard en souvenir bien à eux."}, "six-complicite-petit-mot:v5": {"metric": "95,1 %", "text": "des duos trouvent qu’une seule phrase suffit pour rouvrir tout un souvenir commun."}, "six-complicite-petit-mot:v6": {"metric": "97,4 %", "text": "des duos attribuent une excellente note aux blagues que personne d’autre ne comprend."}, "six-complicite-selfie:v1": {"metric": "86,8 %", "text": "des duos préfèrent garder certains souvenirs dans leur album privé, avec eux pour seul public."}, "six-complicite-selfie:v2": {"metric": "82,5 %", "text": "des duos reconnaissent leur moitié même quand les bras occupent presque tout le cadre."}, "six-complicite-selfie:v3": {"metric": "80,9 %", "text": "des duos trouvent qu’un portrait d’oreilles mérite sa place parmi les photos les plus mémorables."}, "six-complicite-selfie:v4": {"metric": "96,1 %", "text": "des duos gardent la photo spontanée plutôt que la prise où chacun essaie d’être parfait."}, "six-complicite-selfie:v5": {"metric": "92,8 %", "text": "des duos aiment les photos où leurs deux silhouettes racontent déjà toute la scène."}, "six-complicite-selfie:v6": {"metric": "93,4 %", "text": "des duos voient dans une photo de leurs mains une signature que personne ne peut copier."}, "six-complicite-massage:v1": {"metric": "95,6 %", "text": "des duos décernent au massage de la tête le titre de meilleure pause improvisée."}, "six-complicite-massage:v2": {"metric": "91,3 %", "text": "des duos aiment prendre leur temps quand toute l’attention du moment va à leur partenaire."}, "six-complicite-massage:v3": {"metric": "94,7 %", "text": "des duos offrent au massage des pieds une place de choix après une journée bien remplie."}, "six-complicite-massage:v4": {"metric": "96,8 %", "text": "des duos mettent le massage du dos dans leur liste des attentions qu’ils aiment retrouver."}, "six-complicite-massage:v5": {"metric": "98,0 %", "text": "des duos classent le câlin parmi les rendez-vous qui n’ont besoin ni de lieu ni de grand programme."}, "six-complicite-massage:v6": {"metric": "97,1 %", "text": "des duos réservent sous le plaid une place pour leur partenaire et une autre pour le temps qui passe."}, "six-complicite-soins:v1": {"metric": "84,6 %", "text": "des duos trouvent qu’une couleur choisie ensemble donne un petit air de fête au quotidien."}, "six-complicite-soins:v2": {"metric": "87,9 %", "text": "des duos gardent un excellent souvenir des soins où chacun avait une drôle de tête."}, "six-complicite-soins:v3": {"metric": "91,5 %", "text": "des duos aiment donner à un soin du visage l’allure d’un rendez-vous réservé rien qu’à eux."}, "six-complicite-soins:v4": {"metric": "89,1 %", "text": "des duos transforment une attention toute simple en petit rituel qu’ils ont envie de refaire."}, "six-complicite-soins:v5": {"metric": "92,3 %", "text": "des duos trouvent du luxe dans un moment où toute l’attention est tournée vers l’autre."}, "six-complicite-soins:v6": {"metric": "85,7 %", "text": "des duos préfèrent un soin partagé sans cérémonie à un programme beaucoup trop compliqué."}, "six-complicite-soiree:v1": {"metric": "96,4 %", "text": "des duos se souviennent autant du rire de l’autre que des répliques de leur comédie."}, "six-complicite-soiree:v2": {"metric": "88,4 %", "text": "des duos s’imaginent volontiers héros de l’aventure tout en restant très bien sur le canapé."}, "six-complicite-soiree:v3": {"metric": "90,6 %", "text": "des duos défendent avec enthousiasme une théorie policière inventée trois minutes plus tôt."}, "six-complicite-soiree:v4": {"metric": "92,7 %", "text": "des duos aiment partir dans un autre univers avec leur partenaire pour unique compagnon de voyage."}, "six-complicite-soiree:v5": {"metric": "95,3 %", "text": "des duos préfèrent pouvoir dire « on a essayé ensemble » plutôt que compter les petites erreurs."}, "six-complicite-soiree:v6": {"metric": "97,6 %", "text": "des duos donnent la victoire officieuse de la soirée à la réaction la plus mémorable."}, "six-complicite-telephone:v1": {"metric": "88,2 %", "text": "des duos trouvent qu’un petit quart d’heure à deux mérite bien quelques notifications en attente."}, "six-complicite-telephone:v2": {"metric": "91,8 %", "text": "des duos utilisent le mode avion comme une piste de décollage vers leur prochaine conversation."}, "six-complicite-telephone:v3": {"metric": "93,7 %", "text": "des duos trouvent qu’un téléphone rangé dans un tiroir laisse une place agréable à l’imprévu."}, "six-complicite-telephone:v4": {"metric": "94,5 %", "text": "des duos aiment remplir deux heures ensemble sans demander aux applis de choisir le programme."}, "six-complicite-telephone:v5": {"metric": "95,9 %", "text": "des duos trouvent le fil de leur conversation plus intéressant que celui de leur téléphone."}, "six-complicite-telephone:v6": {"metric": "96,9 %", "text": "des duos savourent les grandes parenthèses où leur téléphone prend enfin son jour de congé."}, "six-attention-cadeau:v1": {"metric": "91,3 %", "text": "des livres offerts ouvrent une conversation qui dure plus longtemps que prévu."}, "six-attention-cadeau:v2": {"metric": "94,7 %", "text": "des petites attentions décrochent un grand sourire avec un détail bien choisi."}, "six-attention-cadeau:v3": {"metric": "88,2 %", "text": "des jeux offerts débloquent une quête secondaire : raconter sa meilleure partie à l’autre."}, "six-attention-cadeau:v4": {"metric": "93,6 %", "text": "des boîtes de jeu ouvertes ajoutent un « encore une partie » au programme."}, "six-attention-cadeau:v5": {"metric": "86,9 %", "text": "des cadeaux choisis à deux chez les duos curieux commencent par une conversation complice."}, "six-attention-cadeau:v6": {"metric": "97,1 %", "text": "des cadeaux surprise gagnent déjà un point de curiosité avant leur ouverture."}, "six-attention-vinted:v1": {"metric": "89,4 %", "text": "des T-shirts dénichés par les duos ont ce petit détail qui fait penser à l’autre."}, "six-attention-vinted:v2": {"metric": "92,8 %", "text": "des robes de seconde main trouvent une nouvelle occasion de sortir avec panache."}, "six-attention-vinted:v3": {"metric": "87,6 %", "text": "des chemises chinées par les duos récoltent un « celle-là, elle est tellement toi »."}, "six-attention-vinted:v4": {"metric": "90,5 %", "text": "des hauts choisis avec attention deviennent une jolie excuse pour imaginer la prochaine sortie."}, "six-attention-vinted:v5": {"metric": "95,2 %", "text": "des petites pièces choisies remportent leur vrai trophée : l’envie de les porter."}, "six-attention-vinted:v6": {"metric": "88,7 %", "text": "des trouvailles de lingerie ajoutent une touche de jeu au simple plaisir de choisir."}, "six-attention-emporter:v1": {"metric": "96,4 %", "text": "des burgers partagés entre complices laissent une place à la grande discussion des sauces."}, "six-attention-emporter:v2": {"metric": "98,1 %", "text": "des pizzas trouvent leur meilleure garniture dans la conversation qui les accompagne."}, "six-attention-emporter:v3": {"metric": "84,9 %", "text": "des soirées sushi gagnent un souvenir bonus grâce à une bouchée qu’on fait découvrir."}, "six-attention-emporter:v4": {"metric": "91,8 %", "text": "des pauses kebab transforment un détour gourmand en petit rendez-vous improvisé."}, "six-attention-emporter:v5": {"metric": "93,2 %", "text": "des pauses café des duos voyageurs s’allongent d’une anecdote quand on prend le temps de s’asseoir."}, "six-attention-emporter:v6": {"metric": "89,7 %", "text": "des sandwichs réussissent leur mission : ouvrir une parenthèse au milieu de la journée."}, "six-attention-cuisine:v1": {"metric": "94,1 %", "text": "des soirées mexicaines déclenchent un débat passionné sur la meilleure façon de garnir sa tortilla."}, "six-attention-cuisine:v2": {"metric": "90,8 %", "text": "des escapades japonaises en cuisine donnent aux duos l’envie de goûter une saveur encore inconnue."}, "six-attention-cuisine:v3": {"metric": "87,3 %", "text": "des recettes indiennes commencent par les épices et finissent par « sens un peu ça »."}, "six-attention-cuisine:v4": {"metric": "92,4 %", "text": "des voyages thaïlandais mettent une nouvelle association de saveurs dans votre carnet à deux."}, "six-attention-cuisine:v5": {"metric": "97,6 %", "text": "des dîners italiens obtiennent une demande de rappel bien avant la dernière bouchée."}, "six-attention-cuisine:v6": {"metric": "88,9 %", "text": "des tables grecques invitent les duos à prolonger le repas comme une petite soirée de vacances."}, "six-attention-douceur:v1": {"metric": "95,8 %", "text": "des fournées de crêpes commencent par une répétition générale et finissent en petit festin."}, "six-attention-douceur:v2": {"metric": "96,7 %", "text": "des cookies possèdent un pouvoir très précis : faire revenir les deux cuisiniers près du four."}, "six-attention-douceur:v3": {"metric": "86,2 %", "text": "des tartes aux fruits donnent une bonne raison de choisir ensemble le parfum de la saison."}, "six-attention-douceur:v4": {"metric": "98,3 %", "text": "des gâteaux au chocolat décrochent une visite enthousiaste dans la cuisine avant la dégustation."}, "six-attention-douceur:v5": {"metric": "91,6 %", "text": "des gâteaux au yaourt réussissent leur ingrédient secret : une préparation faite à deux."}, "six-attention-douceur:v6": {"metric": "93,9 %", "text": "des gaufres deviennent un petit terrain d’entente où chacun invente sa garniture préférée."}, "six-attention-petit-truc:v1": {"metric": "94,6 %", "text": "des cafés préparés pour l’autre arrivent avec un petit supplément d’attention."}, "six-attention-petit-truc:v2": {"metric": "90,2 %", "text": "des apéros trouvent leur meilleur accompagnement dans l’histoire qu’on prend le temps d’écouter."}, "six-attention-petit-truc:v3": {"metric": "96,1 %", "text": "des goûters improvisés tombent exactement à l’heure où l’on avait envie d’une petite pause."}, "six-attention-petit-truc:v4": {"metric": "88,4 %", "text": "des infusions laissent juste assez de temps pour commencer à se raconter la journée."}, "six-attention-petit-truc:v5": {"metric": "97,3 %", "text": "des petits-déjeuners préparés pour l’autre donnent une ouverture souriante à la journée."}, "six-attention-petit-truc:v6": {"metric": "95,5 %", "text": "des chocolats sur le canapé réservent une place de choix au plaisir de se poser ensemble."}, "six-projets-balade:v1": {"metric": "+76 %", "text": "de curiosité pour les rues que votre duo croyait déjà connaître par cœur."}, "six-projets-balade:v2": {"metric": "+82,5 %", "text": "d’envie de jouer les touristes dans votre propre ville, juste pour le plaisir du détour."}, "six-projets-balade:v3": {"metric": "+93 %", "text": "d’élan pour laisser les arbres prendre un peu plus de place que le programme de la journée."}, "six-projets-balade:v4": {"metric": "+88 %", "text": "de chances de transformer un simple tour au parc en vraie petite parenthèse à deux."}, "six-projets-balade:v5": {"metric": "+71 %", "text": "d’enthousiasme pour ce petit départ qui commence à dix minutes de votre porte."}, "six-projets-balade:v6": {"metric": "+84 %", "text": "de goût d’aventure quand trente minutes de trajet ouvrent un autre paysage au duo."}, "six-projets-photo:v1": {"metric": "+78,5 %", "text": "de détails intéressants dans le quartier, selon le service des regards curieux."}, "six-projets-photo:v2": {"metric": "+86 %", "text": "d’angles nouveaux pour regarder la ville, ses façades et vos deux ombres dans le cadre."}, "six-projets-photo:v3": {"metric": "+91,5 %", "text": "de matière à photographier quand la forêt prête ses couleurs à vos deux regards."}, "six-projets-photo:v4": {"metric": "+89 %", "text": "de jolies trouvailles entre les allées du parc, la lumière et les photos pas prévues."}, "six-projets-photo:v5": {"metric": "+79 %", "text": "de mystère dans les traces du passé, vues depuis les endroits où vous pouvez aller."}, "six-projets-photo:v6": {"metric": "+83 %", "text": "d’envie d’ouvrir un nouvel album quand le décor change après une petite demi-heure de route."}, "six-projets-atelier:v1": {"metric": "+94 %", "text": "de personnalité pour un animal peint à votre sauce, même si son espèce reste à débattre."}, "six-projets-atelier:v2": {"metric": "+87,5 %", "text": "de place pour une fleur qui n’existe peut-être nulle part ailleurs que sur votre feuille."}, "six-projets-atelier:v3": {"metric": "+96 %", "text": "de charme dans un portrait où l’on reconnaît surtout votre façon de regarder l’autre."}, "six-projets-atelier:v4": {"metric": "+81 %", "text": "de fierté pour une petite coupelle sortie de vos mains, avec ses courbes bien à elle."}, "six-projets-atelier:v5": {"metric": "+92 %", "text": "de caractère pour une figurine assez petite pour tenir dans la main, assez grande pour vous faire sourire."}, "six-projets-atelier:v6": {"metric": "+85,5 %", "text": "d’envie de garder une petite trace du moment, moulée dans un médaillon qui vous ressemble."}, "six-projets-escapade:v1": {"metric": "+90 %", "text": "d’impatience joyeuse quand une soirée ordinaire commence à avoir un programme à vous."}, "six-projets-escapade:v2": {"metric": "+95 %", "text": "de place pour une journée qui ressemble à vos envies, du premier départ au dernier détour."}, "six-projets-escapade:v3": {"metric": "+97 %", "text": "d’élan pour ouvrir une parenthèse de deux jours et lui donner votre propre programme."}, "six-projets-escapade:v4": {"metric": "+98 %", "text": "de goût du départ quand vos prochaines vacances commencent déjà à prendre forme à deux."}, "six-projets-escapade:v5": {"metric": "+80 %", "text": "de possibilités dans une demi-journée tout près de chez vous, avec un autre rythme."}, "six-projets-escapade:v6": {"metric": "+91 %", "text": "de saveur d’escapade quand une seule nuit ailleurs suffit pour changer de décor."}, "six-projets-amenager:v1": {"metric": "+73 %", "text": "de nouveauté dans la pièce quand un meuble découvre un autre angle de vue."}, "six-projets-amenager:v2": {"metric": "+77 %", "text": "de présence pour ce petit détail déco qui arrive et donne aussitôt un autre ton au coin."}, "six-projets-amenager:v3": {"metric": "+83,5 %", "text": "de place pour votre style sur ce mur qui attendait peut-être juste votre idée commune."}, "six-projets-amenager:v4": {"metric": "+75 %", "text": "de satisfaction à ouvrir un rangement où chaque chose a enfin trouvé sa petite place."}, "six-projets-amenager:v5": {"metric": "+86,5 %", "text": "de possibilités pour un meuble que vous avez envie de voir servir autrement."}, "six-projets-amenager:v6": {"metric": "+89,5 %", "text": "de plaisir à voir une petite retouche de peinture remettre de la couleur dans votre décor."}, "six-projets-trier:v1": {"metric": "+67 %", "text": "de fierté pour ce premier objet inutile sorti du décor : le petit tri a officiellement commencé."}, "six-projets-trier:v2": {"metric": "+72 %", "text": "d’élan quand deux objets quittent le coin et vous laissent déjà une petite place à apprécier."}, "six-projets-trier:v3": {"metric": "+74,5 %", "text": "de satisfaction devant trois objets en moins : le coin commence à raconter une autre histoire."}, "six-projets-trier:v4": {"metric": "+78 %", "text": "de plaisir à voir quatre décisions terminées sans avoir eu besoin de refaire toute la maison."}, "six-projets-trier:v5": {"metric": "+85 %", "text": "de légèreté dans le décor quand cinq objets inutiles laissent la place à ce que vous aimez."}, "six-projets-trier:v6": {"metric": "+92,5 %", "text": "de fierté de duo après six objets triés : une petite mission bouclée, un coin à savourer."}, "six-intimite-baiser:v1": {"metric": "89,7 %", "text": "des duos classent les baisers avec la langue parmi leurs rituels favoris."}, "six-intimite-baiser:v2": {"metric": "86,4 %", "text": "des partenaires gardent un faible pour les baisers dans le cou, même après des années à deux."}, "six-intimite-baiser:v3": {"metric": "71,8 %", "text": "des partenaires apprécient ce petit baiser comme une attention qui sort de leurs habitudes."}, "six-intimite-baiser:v4": {"metric": "78,9 %", "text": "des participantes aiment que ce baiser ait sa place parmi les attentions choisies à deux."}, "six-intimite-baiser:v5": {"metric": "96,2 %", "text": "des duos trouvent qu’un petit bisou arrive rarement au mauvais moment."}, "six-intimite-baiser:v6": {"metric": "94,7 %", "text": "des duos terminent plus volontiers leur journée par un baiser que par une dernière notification."}, "six-intimite-fellation:v1": {"metric": "67,5 %", "text": "des participantes adultes citent la faciale parmi les finitions qu’elles aiment retrouver."}, "six-intimite-fellation:v2": {"metric": "81,6 %", "text": "des duos aiment changer de décor tout en gardant cette parenthèse dans leur espace privé."}, "six-intimite-fellation:v3": {"metric": "84,3 %", "text": "des duos réservent à la douche une place de choix parmi leurs parenthèses improvisées."}, "six-intimite-fellation:v4": {"metric": "72,8 %", "text": "des participantes adultes préfèrent avaler et gardent volontiers cette finition au programme."}, "six-intimite-fellation:v5": {"metric": "76,9 %", "text": "des duos trouvent au bureau une excellente raison de suspendre le mode travail."}, "six-intimite-fellation:v6": {"metric": "79,4 %", "text": "des duos aiment transformer une voiture garée, dans un lieu privé, en petite escapade à deux."}, "six-intimite-cunnilingus:v1": {"metric": "77,6 %", "text": "des participantes apprécient ce scénario pour sa façon de leur laisser choisir la place qui leur plaît."}, "six-intimite-cunnilingus:v2": {"metric": "82,7 %", "text": "des duos aiment changer d’angle pour redécouvrir une attention déjà appréciée."}, "six-intimite-cunnilingus:v3": {"metric": "87,1 %", "text": "des duos ont déjà ajouté une parenthèse à deux à leur programme de douche."}, "six-intimite-cunnilingus:v4": {"metric": "73,2 %", "text": "des duos préfèrent parfois offrir à leur bureau une journée vraiment différente."}, "six-intimite-cunnilingus:v5": {"metric": "91,8 %", "text": "des duos trouvent que le salon mérite aussi ses rendez-vous un peu moins ordinaires."}, "six-intimite-cunnilingus:v6": {"metric": "83,9 %", "text": "des duos aiment que la véranda accueille autre chose que les plantes et le café du matin."}, "six-intimite-penetration:v1": {"metric": "88,6 %", "text": "des duos reviennent au missionnaire pour le plaisir de retrouver un classique à leur façon."}, "six-intimite-penetration:v2": {"metric": "92,4 %", "text": "des participantes aiment l’andromaque pour la place qu’elle laisse à leur propre initiative."}, "six-intimite-penetration:v3": {"metric": "81,7 %", "text": "des duos choisissent l’andromaque inversée quand ils ont envie d’une autre perspective."}, "six-intimite-penetration:v4": {"metric": "89,3 %", "text": "des duos gardent la levrette parmi les positions qu’ils aiment remettre au programme."}, "six-intimite-penetration:v5": {"metric": "95,1 %", "text": "des duos citent la cuillère quand ils veulent réunir proximité et confort."}, "six-intimite-penetration:v6": {"metric": "97,6 %", "text": "des duos trouvent leur meilleure position en laissant leurs deux envies voter ensemble."}, "six-intimite-lovense:v1": {"metric": "88,9 %", "text": "des duos trouvent qu’un quart d’heure à deux peut donner à la maison un tout autre programme."}, "six-intimite-lovense:v2": {"metric": "85,6 %", "text": "des duos aiment garder un petit secret pendant quinze minutes dans leur propre espace extérieur."}, "six-intimite-lovense:v3": {"metric": "93,7 %", "text": "des duos apprécient une demi-heure où leur accessoire préféré prend sa place dans le rendez-vous."}, "six-intimite-lovense:v4": {"metric": "87,8 %", "text": "des duos choisissent un extérieur privé pour donner une autre ambiance à leur demi-heure à deux."}, "six-intimite-lovense:v5": {"metric": "90,2 %", "text": "des duos aiment composer leur propre séance AdultTime, avec le programme choisi ensemble."}, "six-intimite-lovense:v6": {"metric": "96,8 %", "text": "des duos déclarent que leurs soirées les plus mémorables avaient justement un programme un peu joueur."}, "six-intimite-photoshoot:v1": {"metric": "92,3 %", "text": "des duos trouvent plus facilement leur personnage quand ils choisissent un thème à deux."}, "six-intimite-photoshoot:v2": {"metric": "89,8 %", "text": "des duos gardent un faible pour les portraits noir et blanc qui donnent du caractère aux petits détails."}, "six-intimite-photoshoot:v3": {"metric": "86,7 %", "text": "des duos aiment profiter d’un décor extérieur privé pour composer une image différente."}, "six-intimite-photoshoot:v4": {"metric": "94,6 %", "text": "des duos découvrent que leurs silhouettes racontent déjà quelque chose avant même de montrer les détails."}, "six-intimite-photoshoot:v5": {"metric": "91,4 %", "text": "des duos préfèrent parfois un seul détail bien cadré à un décor parfaitement organisé."}, "six-intimite-photoshoot:v6": {"metric": "88,1 %", "text": "des duos ont un faible pour les photos spontanées qui donnent à la douche un petit air de studio."}}});</script>
 
 <script>window.DesirConfig=Object.freeze({"endpoint": "https://rdsritcfhwcobqdjcndm.supabase.co/functions/v1/desir-game", "publishableKey": "sb_publishable_1pg0Vcz1GyGCeNXwAJPlfg_JVSz9uQn"});</script>
-
-<script>window.DesirHardcoreCards=Object.freeze({"hardcore-01": "Golden Shower", "hardcore-02": "Faciale à l'église", "hardcore-03": "Webcam — masturbation", "hardcore-04": "Webcam — faciale", "hardcore-05": "Webcam — nudité du haut", "hardcore-06": "Webcam — nudité du bas", "hardcore-07": "Webcam — fesses", "hardcore-08": "Pénétration anale", "hardcore-09": "Double pénétration", "hardcore-10": "Une heure de soumission", "hardcore-11": "Session fessée", "hardcore-12": "On tourne un porno privé !", "hardcore-13": "Séance photo BDSM", "hardcore-14": "Séance photo anal play", "hardcore-15": "Massage Nuru", "hardcore-16": "Reproduction d’un film porno", "hardcore-17": "Journée des envies — le personnage joue le jeu, chacun peut arrêter", "hardcore-18": "Nudes sur reddit", "hardcore-19": "Nudes sur snapchat à un inconnu", "hardcore-20": "Site échangiste"});</script>
 
 <script>
 /* ONDE — local prototype rules. No networking, storage, or UI side effects. */
@@ -965,13 +915,40 @@
     {"id":"six-intimite-photoshoot","categoryId":"intimite","title":"Photoshoot original","description":"Prenez une photo à deux avec la particularité tirée.","duration":null,"hp":25,"variants":["À thème","Noir et blanc","Dehors","Ombres","Portrait serré","Sous la douche"]}
   ];
 
+  // Existing catalogue titles are shared verbatim with the retired standalone mode.
+  const hardcoreCardTitles = {
+    "hardcore-01": "Golden Shower",
+    "hardcore-02": "Faciale à l'église",
+    "hardcore-03": "Webcam — masturbation",
+    "hardcore-04": "Webcam — faciale",
+    "hardcore-05": "Webcam — nudité du haut",
+    "hardcore-06": "Webcam — nudité du bas",
+    "hardcore-07": "Webcam — fesses",
+    "hardcore-08": "Pénétration anale",
+    "hardcore-09": "Double pénétration",
+    "hardcore-10": "Une heure de soumission",
+    "hardcore-11": "Session fessée",
+    "hardcore-12": "On tourne un porno privé !",
+    "hardcore-13": "Séance photo BDSM",
+    "hardcore-14": "Séance photo anal play",
+    "hardcore-15": "Massage Nuru",
+    "hardcore-16": "Reproduction d’un film porno",
+    "hardcore-17": "Journée des envies — le personnage joue le jeu, chacun peut arrêter",
+    "hardcore-18": "Nudes sur reddit",
+    "hardcore-19": "Nudes sur snapchat à un inconnu",
+    "hardcore-20": "Site échangiste"
+  };
+  const hardcoreCards = Object.entries(hardcoreCardTitles).map(([id,title])=>({id,title,categoryId:'intimite'}));
+  const hardcoreCardIds = new Set(hardcoreCards.map(card=>card.id));
+  const modernCatalogue = version => version===2 || version===3;
+
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
   const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:2, categorySides:4, cardSides:6, variantSides:6, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:24*60*60*1000 });
   const legacyCardSides = 4;
-  const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards].map(card => [card.id, card]));
+  const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards,...hardcoreCards].map(card => [card.id, card]));
   const legacyCategoryMap = Object.fromEntries(legacyCategories.map(category => [category.id, category]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
-  const catalogueCategories = version => version===2?categories:legacyCategories;
+  const catalogueCategories = version => modernCatalogue(version)?categories:legacyCategories;
   const categorySides = version => catalogueCategories(version).length;
   const mergedCategory = id => id==='detente'?'complicite':id==='bouffe'?'attention':id;
   const phases = ['category','card','variant','draft','pending','accepted','resolved'];
@@ -979,7 +956,7 @@
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
   const getCard = id => Object.prototype.hasOwnProperty.call(cardMap,id)?cardMap[id]:null;
   const getCategory = (id,version=2) => {
-    if(version===2 && Object.prototype.hasOwnProperty.call(categoryMap,id)) return categoryMap[id];
+    if(modernCatalogue(version) && Object.prototype.hasOwnProperty.call(categoryMap,id)) return categoryMap[id];
     return Object.prototype.hasOwnProperty.call(legacyCategoryMap,id)?legacyCategoryMap[id]:null;
   };
   const getVariant = round => {
@@ -987,11 +964,26 @@
     return Number.isInteger(face) && face>=1 && face<=rules.variantSides?getCard(round.cardId)?.variants?.[face-1]??null:null;
   };
   const validSelectedVariant = entry => getCard(entry.cardId)?.variants?getVariant(entry)!==null:entry.variantRoll===undefined;
-  const validHand = (hand, category, modern) =>
+  const needsVariant = stateOrRound => {
+    const round=stateOrRound?.round||stateOrRound;
+    return modernCatalogue(round?.catalogueVersion) && !(round.catalogueVersion===3 && round.intimacyPool==='hardcore');
+  };
+  const cardsForRound = stateOrRound => {
+    const round=stateOrRound?.round||stateOrRound;
+    return round?.catalogueVersion===3 && round.intimacyPool==='hardcore'?hardcoreCards:modernCatalogue(round?.catalogueVersion)?newCards:publishedCards;
+  };
+  const validCatalogueEntry = entry => {
+    if(entry.catalogueVersion!==3)return entry.intimacyPool===undefined && !hardcoreCardIds.has(entry.cardId);
+    if(entry.categoryId==='intimite'){
+      if(!['classic','hardcore'].includes(entry.intimacyPool))return false;
+    }else if(entry.intimacyPool!==null)return false;
+    return !entry.cardId || hardcoreCardIds.has(entry.cardId)===(entry.intimacyPool==='hardcore');
+  };
+  const validHand = (hand, category, modern, intimacyPool=null) =>
     Array.isArray(hand) && (modern?hand.length===rules.cardSides:[legacyCardSides,rules.cardSides].includes(hand.length)) &&
     new Set(hand).size===hand.length && Array.from(hand).every(id=>{
       const card=getCard(id);
-      return card?.categoryId===category && Boolean(card.variants)===modern;
+      return card?.categoryId===category && (intimacyPool==='hardcore'?modern && hardcoreCardIds.has(id):!hardcoreCardIds.has(id) && Boolean(card.variants)===modern);
     });
   // Published four-card draws keep their original die until the next round.
   const cardSides = stateOrRound => {
@@ -1014,7 +1006,7 @@
   }
 
   function rollCategory(version, draw=randomInt, at) {
-    if(version!==2) return draw(categorySides(version));
+    if(!modernCatalogue(version)) return draw(categorySides(version));
     const tickets=categoryTickets(at);
     return tickets[draw(tickets.length)-1];
   }
@@ -1094,8 +1086,8 @@
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
-      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task)) return false;
-      const expectedKeys=task.variantRoll===undefined?keys:[...keys,'variantRoll'];
+      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
+      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(task.catalogueVersion===3?['catalogueVersion','intimacyPool']:[])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -1117,7 +1109,7 @@
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
     if (Object.entries(s.seen).some(([key,list]) => !getCategory(key,1) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
-    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
+    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item) || !validCatalogueEntry(item))) return false;
     const r=s.round;
     if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
     if(r.dailyFree!==undefined && typeof r.dailyFree!=='boolean') return false;
@@ -1129,21 +1121,23 @@
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
     if (r.modeRoll!==undefined && r.modeRoll!==null && !(Number.isInteger(r.modeRoll) && r.modeRoll>=1 && r.modeRoll<=20)) return false;
     if (r.hardcoreOffer!==undefined && typeof r.hardcoreOffer!=='boolean') return false;
-    const modern=r.catalogueVersion===2;
-    if (!validCardReroll(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
+    const modern=modernCatalogue(r.catalogueVersion),variant=needsVariant(r),hardcore=r.catalogueVersion===3 && r.intimacyPool==='hardcore';
+    if (!validCardReroll(r) || !validCatalogueEntry(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
+    if(r.catalogueVersion===3 && (r.hardcoreOffer!==false || (r.categoryId==='intimite'?
+      !Number.isInteger(r.modeRoll) || r.modeRoll<1 || r.modeRoll>20 || (r.modeRoll>10)!==hardcore:r.modeRoll!==null))) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
     const beforeCard=r.rolls.length===0 && r.draftRolls.length===0 && !r.challengeUsed && !r.draftChallengeUsed && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
     if (s.phase === 'category') return !modern && r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
     const cat=catalogueCategories(r.catalogueVersion).find(category=>category.id===r.categoryId);
-    if (!cat || r.categoryRoll !== cat.number || !validHand(r.hand,cat.id,modern)) return false;
-    if (s.phase === 'card') return (!modern || r.variantRoll===null) && r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (!cat || r.categoryRoll !== cat.number || !validHand(r.hand,cat.id,modern,r.intimacyPool)) return false;
+    if (s.phase === 'card') return (variant?r.variantRoll===null:r.variantRoll===undefined) && r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
     // PV belong to the round that was drawn. A later catalogue update must not
     // rewrite an in-progress challenge or invalidate an already won one.
-    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
-    if(s.phase==='variant') return modern && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || (hardcore?r.hp!==null:!Number.isInteger(r.hp) || r.hp<1 || r.hp>40)) return false;
+    if(s.phase==='variant') return variant && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     if(!validSelectedVariant(r)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
@@ -1151,7 +1145,7 @@
     if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || (!r.toConfirmed && r.directQueued!==true) || !s.tasks.some(task=>task.id===r.id))) return false;
     const confirmationRequired=r.status==='completed' || r.status==='expired'&&r.directQueued!==true;
     if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || confirmationRequired&&(!r.fromConfirmed || !r.toConfirmed))) return false;
-    if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
+    if(r.hp!==null && (total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
   }
 
@@ -1180,7 +1174,7 @@
       const canonical=legacyCategory(id), card=getCard(cardId);
       return mergedCategories && card && mergedCategory(card.categoryId)===canonical?card.categoryId:canonical;
     };
-    if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
+    if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(Number.isInteger(activeCard?.hp))migrated.round.hp=activeCard.hp;}
     migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>Object.prototype.hasOwnProperty.call(legacyFavoriteMap,id)?legacyFavoriteMap[id]:id))):migrated.favorites;
     if(migrated.seen&&typeof migrated.seen==='object'&&!Array.isArray(migrated.seen)){
       const seen={};
@@ -1270,16 +1264,54 @@
     return migrated;
   }
 
-  function drawHand(state, categoryId, catalogueVersion) {
+  function drawHand(state, categoryId, catalogueVersion, intimacyPool='classic', draw=randomInt) {
     const category=catalogueCategories(catalogueVersion).find(c=>c.number===categoryId||c.id===categoryId);
     if (!category) throw new RangeError('Unknown category.');
-    const modern=catalogueVersion===2;
+    const modern=modernCatalogue(catalogueVersion),hardcore=catalogueVersion===3 && category.id==='intimite' && intimacyPool==='hardcore';
+    if(catalogueVersion===3 && intimacyPool!==null && !['classic','hardcore'].includes(intimacyPool) || intimacyPool==='hardcore'&&!hardcore)throw new RangeError('Unknown category pool.');
     const sides=modern?rules.cardSides:legacyCardSides;
-    const available=(modern?newCards:publishedCards).filter(c=>c.categoryId===category.id).map(c=>c.id);
-    const recent=(state.seen[category.id] || []).filter(id=>available.includes(id)).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-sides)));
+    const available=(hardcore?hardcoreCards:modern?newCards:publishedCards).filter(c=>c.categoryId===category.id).map(c=>c.id);
+    // Every Hardcore title has the same chance on every draw. Recent-history
+    // exclusion is retained only for the older classic catalogue behavior.
+    const recent=hardcore?[]:(state.seen[category.id] || []).filter(id=>available.includes(id)).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-sides)));
     const pool=available.filter(id=>!recent.includes(id));
-    for(let i=pool.length-1;i>0;i--) { const j=randomInt(i+1)-1; [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    for(let i=pool.length-1;i>0;i--) {
+      const value=draw(i+1);
+      if(!Number.isInteger(value)||value<1||value>i+1)throw new RangeError('Invalid random outcome.');
+      const j=value-1;[pool[i],pool[j]]=[pool[j],pool[i]];
+    }
     return pool.slice(0,sides);
+  }
+
+  function drawCategory(state, categoryId, catalogueVersion=3, draw=randomInt) {
+    if(!modernCatalogue(catalogueVersion))throw new RangeError('Unsupported category catalogue.');
+    const category=catalogueCategories(catalogueVersion).find(c=>c.number===categoryId||c.id===categoryId);
+    if(!category)throw new RangeError('Unknown category.');
+    const modeRoll=category.id==='intimite'?draw(20):null;
+    if(modeRoll!==null&&(!Number.isInteger(modeRoll)||modeRoll<1||modeRoll>20))throw new RangeError('Invalid random outcome.');
+    const intimacyPool=category.id==='intimite'?(modeRoll>10?'hardcore':'classic'):null;
+    return {catalogueVersion,hand:drawHand(state,category.id,catalogueVersion,catalogueVersion===3?intimacyPool:'classic',draw),modeRoll,...(catalogueVersion===3?{intimacyPool}:{})};
+  }
+
+  function validCategoryAction(action, category) {
+    const version=action.catalogueVersion,modern=modernCatalogue(version);
+    if(version!==undefined&&!modern || !validHand(action.hand,category.id,modern,action.intimacyPool))return false;
+    if(version!==3)return action.intimacyPool===undefined;
+    if(!validCatalogueEntry({catalogueVersion:3,categoryId:category.id,intimacyPool:action.intimacyPool}))return false;
+    return category.id==='intimite'?Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20&&
+      (action.modeRoll>10)===(action.intimacyPool==='hardcore'):action.modeRoll==null;
+  }
+
+  function setCategoryRound(round, action, category) {
+    Object.assign(round,{categoryId:category.id,categoryRoll:category.number,hand:action.hand.slice()});
+    if(!modernCatalogue(action.catalogueVersion))return;
+    Object.assign(round,{catalogueVersion:action.catalogueVersion,dailyFree:false,
+      modeRoll:category.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null});
+    round.hardcoreOffer=action.catalogueVersion===2&&round.modeRoll!==null&&round.modeRoll>10;
+    if(action.catalogueVersion===3)round.intimacyPool=action.intimacyPool;
+    else delete round.intimacyPool;
+    if(needsVariant(round))round.variantRoll=null;
+    else delete round.variantRoll;
   }
 
   function canRespond(s) {
@@ -1317,7 +1349,8 @@
     if(s.tasks.some(task=>task.id===r.id)) return;
     s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
-      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null,...(r.catalogueVersion===2?{variantRoll:r.variantRoll}:{})});
+      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null,...(needsVariant(r)?{variantRoll:r.variantRoll}:{}),
+      ...(r.catalogueVersion===3?{catalogueVersion:3,intimacyPool:r.intimacyPool}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
 
@@ -1326,7 +1359,8 @@
     const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:false};
     const ended={...base,...details,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
     if(status==='completed') Object.assign(ended,{fromConfirmed:true,toConfirmed:true});
-    if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:2,variantRoll:task.variantRoll});
+    if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:task.catalogueVersion===3?3:2,variantRoll:task.variantRoll});
+    if(task.catalogueVersion===3) Object.assign(ended,{catalogueVersion:3,intimacyPool:task.intimacyPool});
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
     s.tasks=s.tasks.filter(item=>item.id!==task.id);
@@ -1423,16 +1457,9 @@
       case 'ROLL_CATEGORY': {
         if(s.phase!=='category' || !Number.isInteger(action.value) || action.value<1 || action.value>categorySides(action.catalogueVersion)) return state;
         const cat=catalogueCategories(action.catalogueVersion).find(c=>c.number===action.value);
-        const modern=action.catalogueVersion===2;
-        if(action.catalogueVersion!==undefined && !modern) return state;
-        if(!cat || !validHand(action.hand,cat.id,modern)) return state;
+        if(!cat || !validCategoryAction(action,cat)) return state;
         r.from=actor; r.to=otherPlayer(actor);
-        r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        if(modern){
-          Object.assign(r,{catalogueVersion:2,variantRoll:null,dailyFree:false});
-          r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
-          r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
-        }
+        setCategoryRound(r,action,cat);
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.phase='card';
         return s;
@@ -1441,14 +1468,11 @@
         if(!isoTime(action.at) || s.phase!=='card' || actor!==r.from) return state;
         if(!Number.isInteger(action.value) || action.value<1 || action.value>categorySides(2)) return state;
         const cat=categories.find(c=>c.number===action.value);
-        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        if(!cat || !modernCatalogue(action.catalogueVersion) || !validCategoryAction(action,cat)) return state;
         const dayKey=parisDateKey(action.at);
         const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
         if(used.includes(actor)) return state;
-        r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        r.catalogueVersion=2; r.variantRoll=null; r.dailyFree=false;
-        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
-        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        setCategoryRound(r,action,cat);
         s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
         return s;
       }
@@ -1456,15 +1480,12 @@
         if(!isoTime(action.at) || s.phase!=='category' || actor!==r.from) return state;
         if(!Number.isInteger(action.category) || action.category<1 || action.category>categorySides(2)) return state;
         const cat=categories.find(c=>c.number===action.category);
-        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        if(!cat || !modernCatalogue(action.catalogueVersion) || !validCategoryAction(action,cat)) return state;
         const weekKey=isoWeekKey(action.at);
         const joker=s.joker && s.joker.weekKey===weekKey ? s.joker : {weekKey,usedBy:null};
         if(joker.usedBy) return state;
         r.from=actor; r.to=otherPlayer(actor);
-        r.categoryId=cat.id; r.categoryRoll=action.category; r.hand=action.hand.slice();
-        r.catalogueVersion=2; r.variantRoll=null; r.dailyFree=false;
-        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
-        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        setCategoryRound(r,action,cat);
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.joker={weekKey,usedBy:actor};
         s.phase='card';
@@ -1493,15 +1514,15 @@
         const reroll=kind==='REROLL_CARD';
         if(reroll?!canRerollCard(s):s.phase!=='card' || actor!==r.from) return state;
         if(!Number.isInteger(action.value) || action.value<1 || action.value>cardSides(r) || reroll&&action.value===r.cardRoll) return state;
-        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp;
-        if(reroll) { r.cardRerolled=true; if(r.catalogueVersion===2) r.variantRoll=null; }
+        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp??null;
+        if(reroll) { r.cardRerolled=true; if(needsVariant(r)) r.variantRoll=null; }
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
-        s.phase=r.catalogueVersion===2?'variant':'draft';
+        s.phase=needsVariant(r)?'variant':'draft';
         r.status=s.phase==='variant'?'drawing':'draft';
         return s;
       }
       case 'ROLL_VARIANT':
-        if(s.phase!=='variant' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>rules.variantSides) return state;
+        if(s.phase!=='variant' || !needsVariant(r) || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>rules.variantSides) return state;
         r.variantRoll=action.value;
         r.status='draft';
         s.phase='draft';
@@ -1903,8 +1924,8 @@
       if(!progressCategories.includes(categoryId))continue;
       // An unmarked published v2 round might be an old free daily card. A
       // private draw, direct queue, legacy catalogue or marker supplies proof.
-      const paid=record.dailyFree!==true&&(record.dailyFree===false||record.directQueued===true||record.catalogueVersion!==2||privateDraw);
-      if(paid&&Number.isInteger(record.categoryRoll)&&getCategory(record.categoryId,record.catalogueVersion===2?2:1)?.number===record.categoryRoll)addIndividual(progress,record.from,'draws',categoryId);
+      const paid=record.dailyFree!==true&&(record.dailyFree===false||record.directQueued===true||record.catalogueVersion===3||!modernCatalogue(record.catalogueVersion)||privateDraw);
+      if(paid&&Number.isInteger(record.categoryRoll)&&getCategory(record.categoryId,modernCatalogue(record.catalogueVersion)?record.catalogueVersion:1)?.number===record.categoryRoll)addIndividual(progress,record.from,'draws',categoryId);
       if(published||isoTime(record.sentAt)||['queued','completed','expired'].includes(record.status)){
         addIndividual(progress,record.from,'proposals',categoryId);
         if(isoTime(record.sentAt))activity.push({actor:record.from,at:record.sentAt});
@@ -2024,7 +2045,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,needsVariant,cardsForRound,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -2445,9 +2466,9 @@ void main(){
    if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
-   if(raw.gameVersion!==4)throw failure('invalid_response','La version reçue est invalide.');
+   if(raw.gameVersion!==5)throw failure('invalid_response','La version reçue est invalide.');
    let incoming,pendingOutgoing=0;
-   if(raw.gameVersion===4){
+   if(raw.gameVersion===5){
     if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
     incoming=raw.incoming.map(value=>G.normalizeState(value));
     if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
@@ -2462,11 +2483,11 @@ void main(){
    let badges;
    if(raw.badges!==undefined){if(typeof G.validateBadgeView!=='function'||!G.validateBadgeView(raw.badges,identity.actor))throw failure('invalid_response','La collection de badges reçue est invalide.');badges=clone(raw.badges);}
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:4,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:5,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
-   // Immutable receipts written before badges existed remain valid protocol-4 replies.
+   // Optional metadata never erases the same account's last validated collection.
    if(checked.base.badges===undefined&&snapshot?.badges&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor)checked.base.badges=clone(snapshot.badges);
    if(!snapshot||checked.base.revision>=snapshot.revision){
     const changed=!snapshot||JSON.stringify(checked.base)!==JSON.stringify(snapshot),statusChanged=status.phase!=='connected'||!!status.message;
@@ -2494,7 +2515,7 @@ void main(){
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:4,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:5,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -2540,9 +2561,9 @@ void main(){
    return value;
   }
   function storedAction(){const value=parsed(actionKey);if(!value)return null;
-   // The new game starts after a reset. Never replay or reinterpret an older command.
+   // Never replay or reinterpret a command saved under an older game protocol.
    // Inspect the protocol before validating types removed by this release.
-   if(value.gameVersion!==4){remove(actionKey);return null;}
+   if(value.gameVersion!==5){remove(actionKey);return null;}
    if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    requireConnection();
@@ -2558,20 +2579,9 @@ void main(){
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,gameVersion:4,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:5,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
-  }
-  // Live presses must bypass the durable game queue: a release cannot wait for a draw.
-  // Nothing is persisted here, so reopening the app never resumes a held press.
-  async function hardcore(action=null){
-   requireConnection();
-   const identity=connection,token=identity.token;
-   if(action!==null&&(!action||typeof action!=='object'||Array.isArray(action)||typeof action.type!=='string'))throw failure('invalid_action','Cette action n’est pas disponible.');
-   const raw=await request({op:'hardcore',action:clone(action),...(action===null?{}:{requestId:requestId()})},token,action?.type==='PRESS'&&action.held?1:2);
-   if(connection!==identity||connection.token!==token)throw failure('not_connected','La connexion a changé. Rouvre le mode.');
-   if(!raw||raw.actor!==identity.actor||!Number.isSafeInteger(raw.revision)||raw.revision<0||!Object.hasOwn(raw,'session')||!(raw.session===null||typeof raw.session==='object'&&!Array.isArray(raw.session))||!Number.isFinite(Date.parse(raw.serverTime)))throw failure('invalid_response','Le mode partagé n’a pas pu être actualisé.');
-   return clone(raw);
   }
   async function recoverPendingAction(pending,identity){
    return await serial(()=>{
@@ -2655,183 +2665,10 @@ void main(){
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,hardcore,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
-
-</script>
-
-<script>
-/* Dés·ir — the live session has its own clock, revision and transient presses. */
-(function(scope){
- 'use strict';
- const TERMINAL=new Set(['cancelled','expired']);
- const FINISHED=new Set(['won','lost']);
- const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
- const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
- const time=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
- function validSession(s){
-  if(s===null)return true;
-  if(!s||!UUID.test(s.id||'')||s.catalogueVersion!=='hardcore-v1'||!['waiting','preparing','scheduled','combat','won','lost','cancelled','expired'].includes(s.status)||!time(s.expiresAt))return false;
-  if(!['a','b'].every(a=>typeof s.optedIn?.[a]==='boolean'&&typeof s.acknowledged?.[a]==='boolean'&&(s.presses?.[a]===null||s.presses?.[a]&&UUID.test(s.presses[a].id||'')&&Number.isSafeInteger(s.presses[a].sequence)&&typeof s.presses[a].held==='boolean'&&time(s.presses[a].expiresAt))))return false;
-  if(!(s.preparationId===null||UUID.test(s.preparationId||'')))return false;
-  if(s.actionRoll!==null){const r=s.actionRoll;if(!r||!UUID.test(r.id||'')||r.kind!==20||!time(r.startAt)||!time(r.revealAt)||Date.parse(r.revealAt)<=Date.parse(r.startAt))return false;if(r.value!==undefined&&(!Number.isInteger(r.value)||r.value<1||r.value>20||r.actionId!=='hardcore-'+String(r.value).padStart(2,'0')))return false;}
-  const b=s.boss;if(!b||b.maxHp!==48||b.attackLimit!==4||b.perActorLimit!==2||!Number.isInteger(b.damageTotal)||b.damageTotal<0||b.damageTotal>80||b.hpRemaining!==Math.max(0,48-b.damageTotal)||!['a','b'].every(a=>Number.isInteger(b.attacksUsed?.[a])&&b.attacksUsed[a]>=0&&b.attacksUsed[a]<=2)||![null,'won','lost'].includes(b.outcome))return false;
-  if(!Array.isArray(s.attackLedger)||s.attackLedger.length>4)return false;const ids=new Set(),slots=new Set();
-  for(const r of s.attackLedger){if(!r||!UUID.test(r.id||'')||ids.has(r.id)||!['a','b'].includes(r.actor)||![1,2].includes(r.slot)||slots.has(r.actor+r.slot)||r.kind!==20||!Number.isInteger(r.value)||r.value<1||r.value>20||!time(r.startAt)||!time(r.impactAt)||Date.parse(r.impactAt)<=Date.parse(r.startAt))return false;ids.add(r.id);slots.add(r.actor+r.slot);}
-  return ['a','b'].every(a=>b.attacksUsed[a]===s.attackLedger.filter(r=>r.actor===a).length);
- }
- function createController({remote,onChange=()=>{},clock=()=>Date.now(),setTimer=setTimeout,clearTimer=clearTimeout,uuid=()=>scope.crypto.randomUUID(),isVisible=()=>!scope.document?.hidden}={}){
-  let session=null,revision=-1,actor=null,offset=0,bestRtt=Infinity,lastServerTime=-Infinity,opened=false,destroyed=false,timer=null,cycling=false,opening=null,error='',held=null,sequence=0;
-  const acknowledgements=new Set();
-  const state=()=>({session:clone(session),revision,actor,opened,held:!!held,error,serverNow:clock()+offset,lastServerTime});
-  const emit=()=>{if(!destroyed)onChange(state());};
-  function schedule(){clearTimer(timer);timer=null;if(opened&&!destroyed&&isVisible())timer=setTimer(cycle,500);}
-  function accept(raw,sent,received){
-   if(!raw||!Number.isSafeInteger(raw.revision)||raw.revision<0||!['a','b'].includes(raw.actor)||!time(raw.serverTime)||!validSession(raw.session))throw Error('La session reçue est incomplète.');
-   const server=Date.parse(raw.serverTime),rtt=Math.max(1,received-sent);
-   if(raw.revision<revision||raw.revision===revision&&server<lastServerTime)return;
-   if(Number.isFinite(server)&&rtt<=bestRtt*1.5){offset=server-(sent+received)/2;bestRtt=Math.min(bestRtt,rtt);}
-   if(actor&&actor!==raw.actor)throw Error('Cette session appartient à un autre compte.');
-   const oldId=session?.id;session=clone(raw.session);revision=raw.revision;lastServerTime=server;actor=raw.actor;error='';
-   if(oldId!==session?.id){held=null;acknowledgements.clear();}
-   if(TERMINAL.has(session?.status)||!session?.optedIn?.[actor])held=null;
-   emit();maybeAcknowledge();
-  }
-  async function command(action){
-   const sent=clock();try{const raw=await remote.hardcore(action);if(!destroyed)accept(raw,sent,clock());return raw;}
-   catch(e){if(!destroyed){if(e?.status===401){held=null;session=null;opened=false;clearTimer(timer);timer=null;}error=e?.message||'La connexion au duo est momentanément interrompue.';emit();}throw e;}
-  }
-  function maybeAcknowledge(){
-   if(!opened||!isVisible()||!held||session?.status!=='preparing'||!session.preparationId)return;
-   const key=session.id+':'+session.preparationId+':'+held.id;if(acknowledgements.has(key))return;
-   acknowledgements.add(key);const pressId=held.id;
-   // This command is sent synchronously while the local button is still held.
-   command({type:'ACK',sessionId:session.id,preparationId:session.preparationId,pressId}).catch(()=>acknowledgements.delete(key));
-  }
-  function pressCommand(value){return {type:'PRESS',sessionId:session.id,pressId:value.id,sequence:++sequence,held:true};}
-  async function cycle(){
-   timer=null;if(!opened||destroyed||!isVisible()){release();return;}
-   if(cycling){schedule();return;}cycling=true;
-   try{await command(held&&session?pressCommand(held):null);}catch(_){}
-   finally{cycling=false;schedule();}
-  }
-  async function open(){
-   if(destroyed)return;if(opening)return opening;opened=true;emit();
-   opening=(async()=>{try{await command(null);if(!session||TERMINAL.has(session.status)||FINISHED.has(session.status))await command({type:'CREATE'});}finally{opening=null;schedule();}})();return opening;
-  }
-  function release(){
-   const previous=held;held=null;emit();if(!previous||!session)return Promise.resolve();
-   return command({type:'PRESS',sessionId:session.id,pressId:previous.id,sequence:++sequence,held:false}).catch(()=>{});
-  }
-  async function close(){opened=false;clearTimer(timer);timer=null;await release();emit();}
-  async function optIn(enabled){if(!session)return;release();return command({type:'OPT_IN',sessionId:session.id,enabled:!!enabled});}
-  function hold(){
-   if(destroyed||!opened||!isVisible()||held||!session||!session.optedIn?.a||!session.optedIn?.b||!['waiting','preparing'].includes(session.status))return false;
-   held={id:uuid()};emit();command(pressCommand(held)).catch(()=>release());schedule();return true;
-  }
-  function attack(slot){if(!session)return Promise.reject(Error('La session est fermée.'));return command({type:'ATTACK',sessionId:session.id,slot});}
-  async function cancel(){release();if(session)await command({type:'CANCEL',sessionId:session.id});}
-  function visibilityChanged(){if(!isVisible()){clearTimer(timer);timer=null;release();}else if(opened){cycle();}}
-  function destroy(){release();destroyed=true;opened=false;clearTimer(timer);timer=null;}
-  return {open,close,optIn,hold,release,attack,cancel,visibilityChanged,destroy,get state(){return state();},refresh:cycle};
- }
- function mount({root,remote,players}={}){
-  if(!root||!remote?.hardcore||!scope.OndeDice)return {destroy(){}};
-  const doc=root.ownerDocument,shell=root.querySelector('.oa-shell'),wordmark=root.querySelector('.oa-wordmark'),header=root.querySelector('.oa-header-actions');
-  if(!shell||!wordmark||!header)return {destroy(){}};
-  const names={a:players?.a||'Vous',b:players?.b||'Votre partenaire'};
-  const cards=Object.freeze(scope.DesirHardcoreCards||{}),entry=doc.createElement('button'),panel=doc.createElement('section');
-  entry.type='button';entry.className='oa-hc-entry';entry.textContent='HARDCORE';entry.hidden=true;entry.setAttribute('aria-label','Ouvrir le mode Hardcore');header.prepend(entry);
-  panel.className='oa-hc-panel';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','oa-hc-title');
-  panel.innerHTML='<div class="oa-hc-top"><span>DÉS·IR <small>à deux.</small></span><button type="button" data-hc="close" class="oa-hc-close" aria-label="Fermer le mode Hardcore">×</button></div><p class="oa-hc-eyebrow">Votre catégorie secrète.</p><h1 id="oa-hc-title">HARDCORE<br><em>À deux. En live.</em></h1><label class="oa-hc-optin"><input type="checkbox" data-hc="optin"> J’active le mode pour cette session.</label><p class="oa-hc-status" role="status" aria-live="polite"></p><div class="oa-hc-deck" hidden><div class="oa-hc-stage"><canvas aria-label="Dé vingt faces Hardcore"></canvas></div><p class="oa-hc-caption"></p><h2 class="oa-hc-card" hidden></h2><section class="oa-hc-boss" hidden aria-label="Détrôner la carte à deux"><div class="oa-hc-boss-head"><span>À deux pour la détrôner.</span><strong><span data-hc="hp">48</span><small> / 48 PV</small></strong></div><div class="oa-hc-track" role="progressbar" aria-label="Points de vie de la carte" aria-valuemin="0" aria-valuemax="48" aria-valuenow="48"><span></span></div><p class="oa-hc-total"></p><div class="oa-hc-hits"><div><p data-hc="name-a"></p><div class="oa-hc-slots"><span data-hc-slot="a1">—</span><span data-hc-slot="a2">—</span></div></div><div><p data-hc="name-b"></p><div class="oa-hc-slots"><span data-hc-slot="b1">—</span><span data-hc-slot="b2">—</span></div></div></div><p class="oa-hc-outcome"></p></section><button type="button" data-hc="launch" class="oa-button oa-hc-launch">Maintenez ensemble · D20 ↗</button><button type="button" data-hc="attack" class="oa-button oa-hc-attack" hidden>Attaquer · D20 ↗</button></div><p class="oa-hc-error" role="alert" hidden></p><div class="oa-hc-bottom"><button type="button" data-hc="stop" class="oa-text-button">Arrêter la session</button><button type="button" data-hc="again" class="oa-text-button" hidden>Nouvelle session</button></div><div class="oa-hc-intro" hidden><div class="oa-hc-intro-box" role="group" aria-labelledby="oa-hc-intro-title"><h2 id="oa-hc-intro-title">Le mode Hardcore, en deux mots.</h2><p>Une session en direct : un D20 partagé tire une carte de votre catégorie secrète, puis chacun lance deux D20 pour la détrôner à deux (48 PV).</p><p><strong>Optionnel.</strong> Il ne change rien au jeu habituel. Tu peux fermer ce panneau, décocher la case ou arrêter la session à tout moment.</p><p><strong>À deux.</strong> Rien ne démarre sans l’accord des deux. Cocher la case prévient ton duo : l’autre doit faire de même de son côté.</p><button type="button" data-hc="intro-ok" class="oa-button oa-hc-intro-ok">Compris</button></div></div>';
-  shell.append(panel);
-  const $=s=>panel.querySelector(s),check=$('[data-hc=optin]'),launch=$('[data-hc=launch]'),attack=$('[data-hc=attack]'),stop=$('[data-hc=stop]'),again=$('[data-hc=again]'),deck=$('.oa-hc-deck'),status=$('.oa-hc-status'),caption=$('.oa-hc-caption'),card=$('.oa-hc-card'),boss=$('.oa-hc-boss'),error=$('.oa-hc-error'),intro=$('.oa-hc-intro');
-  const die=scope.OndeDice.create($('canvas'),{kind:20,color:'#e44757',interactive:false,idleMotion:true});
-  let taps=0,lastTap=0,view=null,shown=false,destroyed=false,pointer=null,pendingOpt=false,attackPending=false,paintTimer=null,transitionTimer=null,activeAnimation=null,focusBefore=null,introDone=null;
-  const seenAnimations=new Set(),inertBefore=new Map(),motion=scope.matchMedia?.('(prefers-reduced-motion: reduce)');
-  const controller=createController({remote,onChange:render,isVisible:()=>!doc.hidden&&doc.hasFocus?.()!==false});
-  function setInert(active){for(const child of shell.children){if(child===panel)continue;if(active){if(!inertBefore.has(child))inertBefore.set(child,child.inert);child.inert=true;}else{child.inert=inertBefore.get(child)||false;}}if(!active)inertBefore.clear();}
-  function transition(active){
-   clearTimeout(transitionTimer);shell.classList.toggle('oa-hc-active',active);
-   if(active){panel.hidden=false;void panel.offsetWidth;panel.classList.add('is-active');setInert(true);}else{panel.classList.remove('is-active');setInert(false);transitionTimer=setTimeout(()=>{if(!shown)panel.hidden=true;},motion?.matches?0:250);}
-  }
-  async function show(){if(!remote.authenticated||root.classList.contains('is-busy')||!root.querySelector('#oa-sheet')?.hidden)return;focusBefore=doc.activeElement;shown=true;transition(true);$('[data-hc=close]').focus({preventScroll:true});try{await controller.open();}catch(_){}paint();}
-  function hide(){shown=false;pointer=null;controller.release();controller.close();transition(false);clearTimeout(paintTimer);die.pauseMotion?.();if(focusBefore?.isConnected)focusBefore.focus({preventScroll:true});}
-  function unlock(){if(!remote.authenticated)return;const now=Date.now();taps=now-lastTap>1800?1:taps+1;lastTap=now;if(taps>=5){taps=0;entry.hidden=false;entry.focus({preventScroll:true});show();}}
-  function render(next){
-   const previous=view;view=next;if(destroyed)return;
-   if(previous?.session?.actionRoll&&!next.session?.actionRoll&&previous.lastServerTime<Date.parse(previous.session.actionRoll.startAt)){
-    seenAnimations.delete(previous.session.actionRoll.id);activeAnimation=null;die.setKind(20,1);
-   }
-   if(shown&&!remote.authenticated){hide();return;}
-   const s=next.session,actor=next.actor,other=actor==='a'?'b':'a',both=!!(s?.optedIn?.a&&s?.optedIn?.b),terminal=TERMINAL.has(s?.status);
-   check.checked=!!s?.optedIn?.[actor];check.disabled=!s||pendingOpt||terminal;
-   status.textContent=!s?'Votre duo se retrouve…':terminal?s.status==='expired'?'Cette session a expiré.':'La session est arrêtée.':!s.optedIn?.[actor]?'Ton accord est attendu.':!s.optedIn?.[other]?'Ton accord est donné. Celui de ton partenaire est attendu.':next.held?'Ton appui est maintenu. Gardez les deux boutons appuyés.':'Vous êtes tous les deux d’accord.';
-   deck.hidden=!both||terminal;stop.disabled=!s||terminal;again.hidden=!terminal&&!FINISHED.has(s?.status);error.hidden=!next.error;error.textContent=next.error;
-   const introWanted=!!s&&!s.optedIn?.[actor]&&!terminal&&introDone!==s.id;
-   if(introWanted!==intro.hidden){intro.hidden=!introWanted;if(introWanted)$('[data-hc=intro-ok]').focus({preventScroll:true});}
-   if(!both||terminal){die.setCharge?.(0);activeAnimation=null;die.setKind(20,1);}
-   launch.classList.toggle('is-held',next.held);launch.setAttribute('aria-pressed',String(next.held));
-   shell.classList.toggle('oa-hc-ready',both&&!terminal);paint();
-  }
-  function animateRoll(roll,now,endName){
-   if(!roll?.id||!Number.isInteger(roll.value))return;
-   const start=Date.parse(roll.startAt),end=Date.parse(roll[endName]);
-   if(now<start)return;
-   if(seenAnimations.has(roll.id))return;seenAnimations.add(roll.id);
-   if(now>=end||doc.hidden||motion?.matches){die.setKind(20,roll.value);return;}
-   activeAnimation=roll.id;die.setKind(20,die.value||1);
-   die.roll(roll.value,{durationMs:end-start,elapsedMs:now-start,power:.55}).then(()=>{if(activeAnimation===roll.id){activeAnimation=null;paint();}});
-  }
-  function paint(){
-   clearTimeout(paintTimer);paintTimer=null;if(!view||destroyed||!shown)return;
-   const {session:s,actor}=view,now=controller.state.serverNow,both=!!(s?.optedIn?.a&&s?.optedIn?.b),terminal=TERMINAL.has(s?.status),roll=s?.actionRoll;
-   const reveal=roll&&now>=Date.parse(roll.revealAt)&&Number.isInteger(roll.value),selecting=!!roll&&!reveal;
-   const hits=(s?.attackLedger||[]),landed=hits.filter(h=>now>=Date.parse(h.impactAt)),damage=landed.reduce((n,h)=>n+h.value,0),hp=Math.max(0,48-damage),used=hits.filter(h=>h.actor===actor).length;
-   // The committed face arrives before its future start so both screens can
-   // schedule the same motion. Keep capture until a server reply confirms start.
-   const started=!!roll&&view.lastServerTime>=Date.parse(roll.startAt);
-   launch.hidden=started||!both||terminal;launch.disabled=!both||terminal||!['waiting','preparing','scheduled'].includes(s?.status);
-   launch.textContent=view.held?'Maintenez… à deux.':'Maintenez ensemble · D20 ↗';
-   if(s?.status==='preparing')caption.textContent='Gardez vos deux boutons appuyés…';
-   else if(selecting)caption.textContent=now<Date.parse(roll.startAt)?'Le départ se prépare. Gardez les appuis.':'Votre dé part ensemble…';
-   else if(reveal)caption.textContent='Le D20 a choisi votre carte.';
-   else caption.textContent='Un D20 partagé pour choisir votre carte.';
-   card.hidden=!reveal;card.textContent=reveal?(cards[roll.actionId]||'Carte '+roll.value):'';boss.hidden=!reveal;
-   if(roll)animateRoll(roll,now,'revealAt');
-   for(const hit of hits)animateRoll(hit,now,'impactAt');
-   $('[data-hc=hp]').textContent=String(hp);const track=$('.oa-hc-track');track.setAttribute('aria-valuenow',String(hp));track.querySelector('span').style.transform='scaleX('+(hp/48)+')';
-   $('.oa-hc-total').textContent='Total du duo : '+damage+' · deux jets chacun.';
-   for(const who of ['a','b']){
-    $('[data-hc=name-'+who+']').textContent=who===actor?'Toi':'Ton partenaire';
-    for(const slot of [1,2]){const el=$('[data-hc-slot="'+who+slot+'"]'),hit=landed.find(h=>h.actor===who&&h.slot===slot),flying=hits.some(h=>h.actor===who&&h.slot===slot);el.textContent=hit?String(hit.value):flying?'…':'—';el.classList.toggle('is-filled',!!hit);el.setAttribute('aria-label',(who===actor?'Ton jet ':'Jet du partenaire ')+slot+(hit?' : '+hit.value:flying?' en cours':' non joué'));}
-   }
-   const finished=landed.length===4;
-   $('.oa-hc-outcome').textContent=hp===0?'Carte détrônée. Bien joué, à deux.':finished?'Elle résiste. La suite vous appartient.':'Quatre D20 pour atteindre 48.';
-   attack.hidden=!reveal||terminal;attack.disabled=attackPending||used>=2||hits.some(h=>now<Date.parse(h.impactAt));attack.dataset.slot=String(used+1);attack.textContent=used>=2?'Tes deux D20 sont joués.':'Attaquer · D20 '+(used+1)+'/2 ↗';
-   if(shown&&!doc.hidden)paintTimer=setTimeout(paint,100);
-  }
-  function release(){pointer=null;controller.release();die.setCharge?.(0);}
-  function down(event){if(event.button!==0||event.isPrimary===false||launch.disabled)return;event.preventDefault();if(controller.hold()){pointer=event.pointerId;try{launch.setPointerCapture(pointer);}catch(_){}die.setCharge?.(.6);}}
-  function up(event){if(pointer!==null&&event.pointerId===pointer)release();}
-  function keyDown(event){
-   if(event.key==='Escape'){event.preventDefault();if(!intro.hidden)dismissIntro();else hide();return;}
-   if(event.target===launch&&(event.code==='Space'||event.key===' '||event.key==='Enter')){event.preventDefault();if(!event.repeat)controller.hold();}
-   if(event.key==='Tab'&&shown){const focusable=Array.from(panel.querySelectorAll('button,input')).filter(e=>!e.disabled&&!e.hidden&&e.offsetParent!==null);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&doc.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&doc.activeElement===last){event.preventDefault();first.focus();}}
-  }
-  function keyUp(event){if(event.code==='Space'||event.key===' '||event.key==='Enter')release();}
-  function visibility(){if(doc.hidden){release();clearTimeout(paintTimer);die.pauseMotion?.();}controller.visibilityChanged();if(!doc.hidden&&shown)paint();}
-  function blur(){release();controller.visibilityChanged();}
-  async function changed(){if(pendingOpt)return;pendingOpt=true;check.disabled=true;try{await controller.optIn(check.checked);}catch(_){}finally{pendingOpt=false;render(controller.state);}}
-  function dismissIntro(){introDone=controller.state.session?.id||introDone;intro.hidden=true;check.focus({preventScroll:true});}
-  async function clicked(event){if(event.target===intro){dismissIntro();return;}const button=event.target.closest('[data-hc]');if(!button)return;const action=button.dataset.hc;if(action==='intro-ok'){dismissIntro();return;}if(action==='close')hide();if(action==='stop'){release();try{await controller.cancel();}catch(_){}}if(action==='again'){seenAnimations.clear();await controller.open().catch(()=>{});}if(action==='attack'&&!attack.disabled){attackPending=true;paint();try{await controller.attack(Number(attack.dataset.slot));}catch(_){}finally{attackPending=false;paint();}}}
-  entry.addEventListener('click',show);wordmark.addEventListener('click',unlock);panel.addEventListener('click',clicked);check.addEventListener('change',changed);launch.addEventListener('pointerdown',down);launch.addEventListener('pointerup',up);launch.addEventListener('pointercancel',up);launch.addEventListener('lostpointercapture',up);launch.addEventListener('focusout',release);panel.addEventListener('keydown',keyDown);scope.addEventListener('keyup',keyUp);scope.addEventListener('pointerup',up);scope.addEventListener('blur',blur);doc.addEventListener('visibilitychange',visibility);launch.addEventListener('contextmenu',event=>event.preventDefault());
-  return {controller,open:show,close:hide,destroy(){destroyed=true;controller.destroy();clearTimeout(paintTimer);clearTimeout(transitionTimer);die.destroy();setInert(false);entry.remove();panel.remove();wordmark.removeEventListener('click',unlock);scope.removeEventListener('keyup',keyUp);scope.removeEventListener('pointerup',up);scope.removeEventListener('blur',blur);doc.removeEventListener('visibilitychange',visibility);}};
- }
- const api=Object.freeze({createController,mount,validSession});scope.OndeHardcore=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
-})(typeof window==='undefined'?globalThis:window);
 
 </script>
 
@@ -2846,7 +2683,6 @@ void main(){
  const storageKey='onde-public-demo-v010';
  const remote=window.OndeRemote&&window.OndeRemote.create(window.DesirConfig||{});
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
- const hardcore=remoteMode&&window.OndeHardcore?.mount({root,remote});
  const persona=root.querySelector('.oa-persona'),navigation=root.querySelector('.oa-nav');
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
  const welcomeKey='desir-welcome-v1';
@@ -2910,6 +2746,9 @@ void main(){
  const now=()=>new Date().toISOString();
  const card=()=>G.getCard(state.round.cardId);
  const category=()=>G.getCategory(state.round.categoryId,state.round.catalogueVersion??1);
+ const roundVersion=round=>round.catalogueVersion??(round.variantRoll!==undefined?2:1);
+ const isHardcore=round=>round.catalogueVersion===3&&round.intimacyPool==='hardcore';
+ const categoryLabel=round=>G.getCategory(round.categoryId,roundVersion(round)).label+(isHardcore(round)?' · Hardcore':'');
  const canDraw=()=>state.phase==='category'
   ? !remoteMode || (typeof remoteSnapshot?.drawAvailable==='boolean'?remoteSnapshot.drawAvailable:state.activePlayer===state.round.from)
   : state.activePlayer===state.round.from;
@@ -2977,7 +2816,7 @@ void main(){
   outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
- function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===4;}
+ function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===5;}
  function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
  function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
@@ -3056,38 +2895,33 @@ void main(){
  function textBtn(label,action,extra=''){return '<button type="button" class="oa-text-button cursor-interaction" data-action="'+action+'" '+extra+'>'+label+'</button>';}
  function eyebrow(text){return '<p class="oa-eyebrow">'+h(text)+'</p>';}
  function heading(title,sub,eyebrowText){return (eyebrowText?eyebrow(eyebrowText):'')+'<h1 class="oa-title">'+title+'</h1>'+(sub?'<p class="oa-subtitle">'+sub+'</p>':'');}
- function cardHeading(categoryId,catalogueVersion){return heading(h(G.getCategory(categoryId,catalogueVersion).label),null,null);}
- function steps(active,sides=G.rules.cardSides,hasVariant=true){
-  const path=[[G.categorySides(hasVariant?2:1),'Catégorie'],[sides,'Carte']];
+ function cardHeading(round){return heading(h(G.getCategory(round.categoryId,roundVersion(round)).label),null,isHardcore(round)?'Hardcore':null);}
+ function steps(active,sides=G.rules.cardSides,hasVariant=true,catalogueVersion=3){
+  const path=[[G.categorySides(catalogueVersion),'Catégorie'],[sides,'Carte']];
   if(hasVariant)path.push([G.rules.variantSides,'Variante']);
   return '<div class="oa-steps" aria-label="Parcours du jeu">'+path.map(([kind,label],i)=>'<span class="oa-step '+(active===i+1?'is-active':active>i+1?'is-done':'')+'" '+(active===i+1?'aria-current="step"':'')+'><b>D'+kind+'</b>'+label+'</span>').join('<span class="oa-step-sep" aria-hidden="true">›</span>')+'</div>';
  }
  function stage(type,label,value,role='defense'){return '<section class="oa-dice-section" aria-label="Lancer le dé D'+type+'"><div class="oa-die-caption"><span>'+h(label)+'</span><span>D'+type+'</span></div><div class="oa-stage" data-stage data-kind="'+type+'" data-value="'+value+'" data-roll-role="'+role+'"></div></section>';}
  function categoriesGrid(){const joker=jokerAvailable();const tile=c=>'<div class="oa-category-top"><span class="oa-category-swatch"></span><span class="oa-category-number">0'+c.number+'</span></div><span class="oa-category-label">'+h(c.label)+'</span>';return '<div class="oa-category-grid">'+G.categories.map(c=>joker?'<button type="button" class="oa-category cursor-interaction" data-action="joker" data-category="'+c.number+'" style="--category:'+c.color+'" aria-label="Joker : choisir le thème '+h(c.label)+'">'+tile(c)+'</button>':'<div class="oa-category" style="--category:'+c.color+'">'+tile(c)+'</div>').join('')+'</div>';}
- function handGrid(options={}){const discarded=options.discarded||null,selected=options.selected||null,hand=options.hand||state.round.hand,version=options.catalogueVersion??state.round.catalogueVersion??1;const count=hand.length,words=count===6?'Six':'Quatre';return '<div class="oa-card-grid'+(count===6?' is-six':'')+(discarded?' is-reroll':'')+(selected?' is-revealing':'')+'" data-catalogue-version="'+version+'" aria-label="'+(selected?words+' emplacements, carte '+selected.slot+' choisie':discarded?words+' emplacements, une carte écartée':words+' cartes face cachée')+'">'+hand.map((id,i)=>{
+ function handGrid(options={}){const discarded=options.discarded||null,selected=options.selected||null,hand=options.hand||state.round.hand,version=options.catalogueVersion??state.round.catalogueVersion??1,pool=options.intimacyPool===undefined?state.round.intimacyPool:options.intimacyPool;const count=hand.length,words=count===6?'Six':'Quatre';return '<div class="oa-card-grid'+(count===6?' is-six':'')+(discarded?' is-reroll':'')+(selected?' is-revealing':'')+'" data-catalogue-version="'+version+'" aria-label="'+(selected?words+' emplacements, carte '+selected.slot+' choisie':discarded?words+' emplacements, une carte écartée':words+' cartes face cachée')+'">'+hand.map((id,i)=>{
   const width=[68,82,74,60,78,64][i],old=discarded&&discarded.slot===i+1&&discarded.cardId===id?G.getCard(discarded.cardId):null;
   const chosen=selected&&selected.slot===i+1&&selected.cardId===id?G.getCard(selected.cardId):null;
-  if(chosen){const cat=G.getCategory(chosen.categoryId,version);return '<div class="oa-mini-card oa-card-back oa-card-revealed" data-reveal-selected aria-label="Carte '+(i+1)+' choisie" style="--category:'+h(cat.color)+'"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-reveal-content"><div class="oa-reveal-art" aria-hidden="true"><i></i><i></i><i></i></div><span class="oa-reveal-category">'+h(cat.label)+'</span><h3>'+h(chosen.title)+'</h3></div></div>';}
+  if(chosen){const cat=G.getCategory(chosen.categoryId,version);return '<div class="oa-mini-card oa-card-back oa-card-revealed" data-reveal-selected aria-label="Carte '+(i+1)+' choisie" style="--category:'+h(cat.color)+'"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-reveal-content"><div class="oa-reveal-art" aria-hidden="true"><i></i><i></i><i></i></div><span class="oa-reveal-category">'+h(categoryLabel({categoryId:chosen.categoryId,catalogueVersion:version,intimacyPool:pool}))+'</span><h3>'+h(chosen.title)+'</h3></div></div>';}
   if(old)return '<div class="oa-mini-card oa-card-back oa-card-discarded" aria-label="Carte '+(i+1)+' écartée : '+h(old.title)+'"><span class="oa-mini-number">'+(i+1)+'</span><span class="oa-discarded-state">Écartée</span><h3 class="oa-discarded-title" title="'+h(old.title)+'">'+h(old.title)+'</h3></div>';
   return '<div class="oa-mini-card oa-card-back" aria-label="Carte '+(i+1)+' face cachée"><span class="oa-mini-number">'+(i+1)+'</span><div class="oa-card-ghost" aria-hidden="true" inert style="--ghost-title:'+width+'%"><div class="oa-ghost-art"><i></i><i></i><i></i></div><span class="oa-ghost-title"></span><span class="oa-ghost-line"></span></div></div>';
  }).join('')+'</div>';}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function proposalDetail(round){return G.getVariant(round)||(round.adapted?round.proposal:null);}
  function roleplayNote(c){
-  const r=state.round,entry=r.catalogueVersion===2&&Number.isInteger(r.variantRoll)?roleplayCards[c.id+':v'+r.variantRoll]:null;
+  const r=state.round,entry=G.needsVariant(r)&&Number.isInteger(r.variantRoll)?roleplayCards[c.id+':v'+r.variantRoll]:null;
   if(!entry||typeof entry.metric!=='string'||typeof entry.text!=='string')return '';
   return '<aside class="oa-roleplay" aria-label="Une phrase pour le jeu"><p class="oa-roleplay-value">'+h(entry.metric)+'</p><p class="oa-roleplay-copy">'+h(entry.text)+'</p></aside>';
  }
  function playingCard(c,compact=false){
-  const r=state.round,cat=G.getCategory(c.categoryId,r.catalogueVersion??1),detail=proposalDetail(r),note=r.catalogueVersion===2?null:cardNotes[c.id];
-  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
+  const r=state.round,cat=G.getCategory(c.categoryId,r.catalogueVersion??1),detail=proposalDetail(r),note=(r.catalogueVersion??1)===1?cardNotes[c.id]:null;
+  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(categoryLabel(r))+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
- function hardcoreOfferBanner(){
-  const r=state.round;
-  if(!r.hardcoreOffer||state.activePlayer!==r.from||!['card','variant','draft'].includes(state.phase)||!hardcore)return '';
-  return '<div class="oa-status-strip oa-amber" data-hardcore-offer role="status"><span class="oa-status-dot"></span><span>Le D20 propose une session Hardcore.</span>'+btn('Ouvrir Hardcore','hardcore-open','oa-secondary')+'</div>';
- }
  function badgeIcon(icon){
   const paths={
    dice:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/>',
@@ -3260,16 +3094,15 @@ void main(){
   const r=state.round;
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
- function renderPlay(){return hardcoreOfferBanner()+renderPlayContent();}
- function renderPlayContent(){const r=state.round,c=card();
+ function renderPlay(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
-  if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
+  if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal)+steps(2,sides,reveal.hasVariant,reveal.catalogueVersion))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.catalogueVersion,intimacyPool:reveal.intimacyPool,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1,G.rules.cardSides,false)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.rules.cardSides+' cartes par main</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    const sides=G.cardSides(state);
-   return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
+   return cardHeading(r)+steps(2,sides,G.needsVariant(r),r.catalogueVersion??1)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
   }
-  if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
+  if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3,G.cardSides(r),true,r.catalogueVersion??1)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
   if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
   if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>idée à deux.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise Dés·ir pour retrouver votre liste.',null);
@@ -3293,7 +3126,7 @@ void main(){
  function renderTasks(){
   const tasks=state.tasks||[];
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'Le dé roule…':'Confirmation du refus…')+'</p>';
-  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=[
@@ -3349,7 +3182,7 @@ void main(){
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
-  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.round.hardcoreOffer?'hc':'',state.joker?state.joker.weekKey+':'+(state.joker.usedBy||''):'' ].join('|');
+  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.joker?state.joker.weekKey+':'+(state.joker.usedBy||''):'' ].join('|');
  }
  function centerStage(){
   const holder=main.querySelector('[data-stage]');if(!holder)return;
@@ -3473,12 +3306,10 @@ void main(){
  async function rerollCategory(){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   if(!canRerollCategoryNow())return;
-  const roundId=state.round.id,action={type:'REROLL_CATEGORY',catalogueVersion:2,roundId};
+  const roundId=state.round.id,action={type:'REROLL_CATEGORY',catalogueVersion:3,roundId};
   if(!remoteMode){
-   action.at=now();action.value=G.rollCategory(2,G.randomInt,action.at);
-   action.hand=G.drawHand(state,action.value,2);
-   const cat=G.categories.find(c=>c.number===action.value);
-   if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
+   action.at=now();action.value=G.rollCategory(3,G.randomInt,action.at);
+   Object.assign(action,G.drawCategory(state,action.value,3,G.randomInt));
   }
   busy=true;setControlsBusy(true);
   try{const changed=await dispatch(action);if(changed){announce('Catégorie relancée.');toast('Thème relancé · 1× aujourd’hui.');}}
@@ -3488,11 +3319,11 @@ void main(){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
-  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,hasVariant:state.round.catalogueVersion===2,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
+  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round),hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
   if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
   if(reroll){if(!G.canRerollCard(state))return;sides=G.cardSides(state);action={type:'REROLL_CARD'};}
-  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:2};}
+  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:3};}
   else if(phase==='card'&&canDraw()){sides=G.cardSides(state);action={type:'ROLL_CARD'};}
   else if(phase==='variant'&&canDraw()){sides=G.rules.variantSides;action={type:'ROLL_VARIANT'};}
   else return;
@@ -3521,11 +3352,7 @@ void main(){
     action.at=now();faceValue=action.type==='ROLL_CATEGORY'?G.rollCategory(action.catalogueVersion,G.randomInt,action.at):
       faces?faces[G.randomInt(faces.length)-1]:G.randomInt(sides);
     action.value=faceValue;
-    if(action.type==='ROLL_CATEGORY'){
-     action.hand=G.drawHand(state,faceValue,action.catalogueVersion);
-     const cat=G.categories.find(c=>c.number===faceValue);
-     if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
-    }
+    if(action.type==='ROLL_CATEGORY')Object.assign(action,G.drawCategory(state,faceValue,3,G.randomInt));
     const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId});if(nextRoom===localRoom)return;
     localRoom=nextRoom;syncLocalView();next=state;save();
    }
@@ -3559,7 +3386,7 @@ void main(){
   if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady)return;
   const context={actor:viewPlayer,roomId:remote?.connection?.roomId,epoch:presentationEpoch},roundId=(ownState||state).round.id;
   const serial=++animationSerial;
-  refusal={taskId,title:G.getCard(task.cardId).title,color:G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1)?.color,face:null};
+  refusal={taskId,title:G.getCard(task.cardId).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
   tab='tasks';busy=true;render();setControlsBusy(true);
   try{
    let face;
@@ -3597,7 +3424,7 @@ void main(){
   if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;updateBadgeNotice();
  }
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories. Le week-end, Intimité a 60 % de chances.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte.</h3><p>Le D6 choisit une carte parmi six. Les cartes classiques ont ensuite une variante D6 ; les cartes Hardcore sont prêtes à proposer. En Intimité, le tirage choisit à parts égales une main classique ou Hardcore.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{
@@ -3628,9 +3455,8 @@ void main(){
   if(action==='badge-view'){const origin=badgeReturnFocus;dismissBadgeNotice(false);openBadgeCollection(el.dataset.badge);if(origin?.isConnected)lastFocus=origin;badgeReturnFocus=null;return;}
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
-  if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,roundId:state.round.id};if(!remoteMode){act.value=category;act.catalogueVersion=2;act.hand=G.drawHand(state,category,2);const cat=G.categories.find(c=>c.number===category);if(cat&&cat.id==='intimite')act.modeRoll=G.randomInt(20);}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
+  if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,catalogueVersion:3,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,3,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
-  if(action==='hardcore-open'){try{if(hardcore&&hardcore.open)hardcore.open();}catch(_){}return;}
   if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
   if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}

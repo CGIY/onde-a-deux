@@ -243,13 +243,40 @@
     {"id":"six-intimite-photoshoot","categoryId":"intimite","title":"Photoshoot original","description":"Prenez une photo à deux avec la particularité tirée.","duration":null,"hp":25,"variants":["À thème","Noir et blanc","Dehors","Ombres","Portrait serré","Sous la douche"]}
   ];
 
+  // Existing catalogue titles are shared verbatim with the retired standalone mode.
+  const hardcoreCardTitles = {
+    "hardcore-01": "Golden Shower",
+    "hardcore-02": "Faciale à l'église",
+    "hardcore-03": "Webcam — masturbation",
+    "hardcore-04": "Webcam — faciale",
+    "hardcore-05": "Webcam — nudité du haut",
+    "hardcore-06": "Webcam — nudité du bas",
+    "hardcore-07": "Webcam — fesses",
+    "hardcore-08": "Pénétration anale",
+    "hardcore-09": "Double pénétration",
+    "hardcore-10": "Une heure de soumission",
+    "hardcore-11": "Session fessée",
+    "hardcore-12": "On tourne un porno privé !",
+    "hardcore-13": "Séance photo BDSM",
+    "hardcore-14": "Séance photo anal play",
+    "hardcore-15": "Massage Nuru",
+    "hardcore-16": "Reproduction d’un film porno",
+    "hardcore-17": "Journée des envies — le personnage joue le jeu, chacun peut arrêter",
+    "hardcore-18": "Nudes sur reddit",
+    "hardcore-19": "Nudes sur snapchat à un inconnu",
+    "hardcore-20": "Site échangiste"
+  };
+  const hardcoreCards = Object.entries(hardcoreCardTitles).map(([id,title])=>({id,title,categoryId:'intimite'}));
+  const hardcoreCardIds = new Set(hardcoreCards.map(card=>card.id));
+  const modernCatalogue = version => version===2 || version===3;
+
   const players = [{ id:'a', name:'Joueur 1' }, { id:'b', name:'Joueur 2' }];
   const rules = Object.freeze({ dailyRoundLimit:null, activeRoundLimit:2, categorySides:4, cardSides:6, variantSides:6, recentCardLimit:8, completedCardPoints:1, taskLifetimeMs:24*60*60*1000 });
   const legacyCardSides = 4;
-  const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards].map(card => [card.id, card]));
+  const cardMap = Object.fromEntries([...hiddenLegacyCards,...publishedCards,...newCards,...hardcoreCards].map(card => [card.id, card]));
   const legacyCategoryMap = Object.fromEntries(legacyCategories.map(category => [category.id, category]));
   const categoryMap = Object.fromEntries(categories.map(category => [category.id, category]));
-  const catalogueCategories = version => version===2?categories:legacyCategories;
+  const catalogueCategories = version => modernCatalogue(version)?categories:legacyCategories;
   const categorySides = version => catalogueCategories(version).length;
   const mergedCategory = id => id==='detente'?'complicite':id==='bouffe'?'attention':id;
   const phases = ['category','card','variant','draft','pending','accepted','resolved'];
@@ -257,7 +284,7 @@
   const otherPlayer = id => id === 'a' ? 'b' : 'a';
   const getCard = id => Object.prototype.hasOwnProperty.call(cardMap,id)?cardMap[id]:null;
   const getCategory = (id,version=2) => {
-    if(version===2 && Object.prototype.hasOwnProperty.call(categoryMap,id)) return categoryMap[id];
+    if(modernCatalogue(version) && Object.prototype.hasOwnProperty.call(categoryMap,id)) return categoryMap[id];
     return Object.prototype.hasOwnProperty.call(legacyCategoryMap,id)?legacyCategoryMap[id]:null;
   };
   const getVariant = round => {
@@ -265,11 +292,26 @@
     return Number.isInteger(face) && face>=1 && face<=rules.variantSides?getCard(round.cardId)?.variants?.[face-1]??null:null;
   };
   const validSelectedVariant = entry => getCard(entry.cardId)?.variants?getVariant(entry)!==null:entry.variantRoll===undefined;
-  const validHand = (hand, category, modern) =>
+  const needsVariant = stateOrRound => {
+    const round=stateOrRound?.round||stateOrRound;
+    return modernCatalogue(round?.catalogueVersion) && !(round.catalogueVersion===3 && round.intimacyPool==='hardcore');
+  };
+  const cardsForRound = stateOrRound => {
+    const round=stateOrRound?.round||stateOrRound;
+    return round?.catalogueVersion===3 && round.intimacyPool==='hardcore'?hardcoreCards:modernCatalogue(round?.catalogueVersion)?newCards:publishedCards;
+  };
+  const validCatalogueEntry = entry => {
+    if(entry.catalogueVersion!==3)return entry.intimacyPool===undefined && !hardcoreCardIds.has(entry.cardId);
+    if(entry.categoryId==='intimite'){
+      if(!['classic','hardcore'].includes(entry.intimacyPool))return false;
+    }else if(entry.intimacyPool!==null)return false;
+    return !entry.cardId || hardcoreCardIds.has(entry.cardId)===(entry.intimacyPool==='hardcore');
+  };
+  const validHand = (hand, category, modern, intimacyPool=null) =>
     Array.isArray(hand) && (modern?hand.length===rules.cardSides:[legacyCardSides,rules.cardSides].includes(hand.length)) &&
     new Set(hand).size===hand.length && Array.from(hand).every(id=>{
       const card=getCard(id);
-      return card?.categoryId===category && Boolean(card.variants)===modern;
+      return card?.categoryId===category && (intimacyPool==='hardcore'?modern && hardcoreCardIds.has(id):!hardcoreCardIds.has(id) && Boolean(card.variants)===modern);
     });
   // Published four-card draws keep their original die until the next round.
   const cardSides = stateOrRound => {
@@ -292,7 +334,7 @@
   }
 
   function rollCategory(version, draw=randomInt, at) {
-    if(version!==2) return draw(categorySides(version));
+    if(!modernCatalogue(version)) return draw(categorySides(version));
     const tickets=categoryTickets(at);
     return tickets[draw(tickets.length)-1];
   }
@@ -372,8 +414,8 @@
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
-      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task)) return false;
-      const expectedKeys=task.variantRoll===undefined?keys:[...keys,'variantRoll'];
+      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
+      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(task.catalogueVersion===3?['catalogueVersion','intimacyPool']:[])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -395,7 +437,7 @@
     if (!s.seen || typeof s.seen !== 'object' || Array.isArray(s.seen)) return false;
     if (Object.entries(s.seen).some(([key,list]) => !getCategory(key,1) || !Array.isArray(list) || list.length>8 || list.some(id=>!getCard(id) || getCard(id).categoryId!==key))) return false;
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
-    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
+    if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item) || !validCatalogueEntry(item))) return false;
     const r=s.round;
     if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
     if(r.dailyFree!==undefined && typeof r.dailyFree!=='boolean') return false;
@@ -407,21 +449,23 @@
     if (['challengeUsed','draftChallengeUsed','autoProposed','fromConfirmed','toConfirmed','adapted'].some(key=>typeof r[key]!=='boolean')) return false;
     if (r.modeRoll!==undefined && r.modeRoll!==null && !(Number.isInteger(r.modeRoll) && r.modeRoll>=1 && r.modeRoll<=20)) return false;
     if (r.hardcoreOffer!==undefined && typeof r.hardcoreOffer!=='boolean') return false;
-    const modern=r.catalogueVersion===2;
-    if (!validCardReroll(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
+    const modern=modernCatalogue(r.catalogueVersion),variant=needsVariant(r),hardcore=r.catalogueVersion===3 && r.intimacyPool==='hardcore';
+    if (!validCardReroll(r) || !validCatalogueEntry(r) || (!modern && (r.catalogueVersion!==undefined || r.variantRoll!==undefined))) return false;
+    if(r.catalogueVersion===3 && (r.hardcoreOffer!==false || (r.categoryId==='intimite'?
+      !Number.isInteger(r.modeRoll) || r.modeRoll<1 || r.modeRoll>20 || (r.modeRoll>10)!==hardcore:r.modeRoll!==null))) return false;
     if ((r.rolls.length && !r.challengeUsed) || (r.draftRolls.length && !r.draftChallengeUsed)) return false;
     if (r.proposal!==null && (typeof r.proposal!=='string' || r.proposal.length>400)) return false;
     if (r.schedule!==null && (typeof r.schedule!=='string' || r.schedule.length>80)) return false;
     const beforeCard=r.rolls.length===0 && r.draftRolls.length===0 && !r.challengeUsed && !r.draftChallengeUsed && !r.autoProposed && !r.fromConfirmed && !r.toConfirmed;
     if (s.phase === 'category') return !modern && r.categoryId === null && r.categoryRoll === null && r.cardId === null && r.cardRoll===null && !r.cardRerolled && r.hp===null && r.hand.length === 0 && beforeCard && r.status==='drawing' && r.awaiting===null;
     const cat=catalogueCategories(r.catalogueVersion).find(category=>category.id===r.categoryId);
-    if (!cat || r.categoryRoll !== cat.number || !validHand(r.hand,cat.id,modern)) return false;
-    if (s.phase === 'card') return (!modern || r.variantRoll===null) && r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (!cat || r.categoryRoll !== cat.number || !validHand(r.hand,cat.id,modern,r.intimacyPool)) return false;
+    if (s.phase === 'card') return (variant?r.variantRoll===null:r.variantRoll===undefined) && r.cardId === null && r.cardRoll === null && !r.cardRerolled && r.hp===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     const card=getCard(r.cardId);
     // PV belong to the round that was drawn. A later catalogue update must not
     // rewrite an in-progress challenge or invalidate an already won one.
-    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || !Number.isInteger(r.hp) || r.hp<1 || r.hp>40) return false;
-    if(s.phase==='variant') return modern && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
+    if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || (hardcore?r.hp!==null:!Number.isInteger(r.hp) || r.hp<1 || r.hp>40)) return false;
+    if(s.phase==='variant') return variant && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
     if(!validSelectedVariant(r)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
@@ -429,7 +473,7 @@
     if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || (!r.toConfirmed && r.directQueued!==true) || !s.tasks.some(task=>task.id===r.id))) return false;
     const confirmationRequired=r.status==='completed' || r.status==='expired'&&r.directQueued!==true;
     if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || confirmationRequired&&(!r.fromConfirmed || !r.toConfirmed))) return false;
-    if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
+    if(r.hp!==null && (total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
   }
 
@@ -458,7 +502,7 @@
       const canonical=legacyCategory(id), card=getCard(cardId);
       return mergedCategories && card && mergedCategory(card.categoryId)===canonical?card.categoryId:canonical;
     };
-    if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(activeCard)migrated.round.hp=activeCard.hp;}
+    if(migrated.round.cardId && migrated.round.hp===null){const activeCard=getCard(migrated.round.cardId);if(Number.isInteger(activeCard?.hp))migrated.round.hp=activeCard.hp;}
     migrated.favorites=Array.isArray(migrated.favorites)?Array.from(new Set(migrated.favorites.map(id=>Object.prototype.hasOwnProperty.call(legacyFavoriteMap,id)?legacyFavoriteMap[id]:id))):migrated.favorites;
     if(migrated.seen&&typeof migrated.seen==='object'&&!Array.isArray(migrated.seen)){
       const seen={};
@@ -548,16 +592,54 @@
     return migrated;
   }
 
-  function drawHand(state, categoryId, catalogueVersion) {
+  function drawHand(state, categoryId, catalogueVersion, intimacyPool='classic', draw=randomInt) {
     const category=catalogueCategories(catalogueVersion).find(c=>c.number===categoryId||c.id===categoryId);
     if (!category) throw new RangeError('Unknown category.');
-    const modern=catalogueVersion===2;
+    const modern=modernCatalogue(catalogueVersion),hardcore=catalogueVersion===3 && category.id==='intimite' && intimacyPool==='hardcore';
+    if(catalogueVersion===3 && intimacyPool!==null && !['classic','hardcore'].includes(intimacyPool) || intimacyPool==='hardcore'&&!hardcore)throw new RangeError('Unknown category pool.');
     const sides=modern?rules.cardSides:legacyCardSides;
-    const available=(modern?newCards:publishedCards).filter(c=>c.categoryId===category.id).map(c=>c.id);
-    const recent=(state.seen[category.id] || []).filter(id=>available.includes(id)).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-sides)));
+    const available=(hardcore?hardcoreCards:modern?newCards:publishedCards).filter(c=>c.categoryId===category.id).map(c=>c.id);
+    // Every Hardcore title has the same chance on every draw. Recent-history
+    // exclusion is retained only for the older classic catalogue behavior.
+    const recent=hardcore?[]:(state.seen[category.id] || []).filter(id=>available.includes(id)).slice(0,Math.min(rules.recentCardLimit,Math.max(0,available.length-sides)));
     const pool=available.filter(id=>!recent.includes(id));
-    for(let i=pool.length-1;i>0;i--) { const j=randomInt(i+1)-1; [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    for(let i=pool.length-1;i>0;i--) {
+      const value=draw(i+1);
+      if(!Number.isInteger(value)||value<1||value>i+1)throw new RangeError('Invalid random outcome.');
+      const j=value-1;[pool[i],pool[j]]=[pool[j],pool[i]];
+    }
     return pool.slice(0,sides);
+  }
+
+  function drawCategory(state, categoryId, catalogueVersion=3, draw=randomInt) {
+    if(!modernCatalogue(catalogueVersion))throw new RangeError('Unsupported category catalogue.');
+    const category=catalogueCategories(catalogueVersion).find(c=>c.number===categoryId||c.id===categoryId);
+    if(!category)throw new RangeError('Unknown category.');
+    const modeRoll=category.id==='intimite'?draw(20):null;
+    if(modeRoll!==null&&(!Number.isInteger(modeRoll)||modeRoll<1||modeRoll>20))throw new RangeError('Invalid random outcome.');
+    const intimacyPool=category.id==='intimite'?(modeRoll>10?'hardcore':'classic'):null;
+    return {catalogueVersion,hand:drawHand(state,category.id,catalogueVersion,catalogueVersion===3?intimacyPool:'classic',draw),modeRoll,...(catalogueVersion===3?{intimacyPool}:{})};
+  }
+
+  function validCategoryAction(action, category) {
+    const version=action.catalogueVersion,modern=modernCatalogue(version);
+    if(version!==undefined&&!modern || !validHand(action.hand,category.id,modern,action.intimacyPool))return false;
+    if(version!==3)return action.intimacyPool===undefined;
+    if(!validCatalogueEntry({catalogueVersion:3,categoryId:category.id,intimacyPool:action.intimacyPool}))return false;
+    return category.id==='intimite'?Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20&&
+      (action.modeRoll>10)===(action.intimacyPool==='hardcore'):action.modeRoll==null;
+  }
+
+  function setCategoryRound(round, action, category) {
+    Object.assign(round,{categoryId:category.id,categoryRoll:category.number,hand:action.hand.slice()});
+    if(!modernCatalogue(action.catalogueVersion))return;
+    Object.assign(round,{catalogueVersion:action.catalogueVersion,dailyFree:false,
+      modeRoll:category.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null});
+    round.hardcoreOffer=action.catalogueVersion===2&&round.modeRoll!==null&&round.modeRoll>10;
+    if(action.catalogueVersion===3)round.intimacyPool=action.intimacyPool;
+    else delete round.intimacyPool;
+    if(needsVariant(round))round.variantRoll=null;
+    else delete round.variantRoll;
   }
 
   function canRespond(s) {
@@ -595,7 +677,8 @@
     if(s.tasks.some(task=>task.id===r.id)) return;
     s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
-      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null,...(r.catalogueVersion===2?{variantRoll:r.variantRoll}:{})});
+      checks:{a:false,b:false},proposal:r.adapted?r.proposal:null,...(needsVariant(r)?{variantRoll:r.variantRoll}:{}),
+      ...(r.catalogueVersion===3?{catalogueVersion:3,intimacyPool:r.intimacyPool}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
 
@@ -604,7 +687,8 @@
     const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:false};
     const ended={...base,...details,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
     if(status==='completed') Object.assign(ended,{fromConfirmed:true,toConfirmed:true});
-    if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:2,variantRoll:task.variantRoll});
+    if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:task.catalogueVersion===3?3:2,variantRoll:task.variantRoll});
+    if(task.catalogueVersion===3) Object.assign(ended,{catalogueVersion:3,intimacyPool:task.intimacyPool});
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
     s.tasks=s.tasks.filter(item=>item.id!==task.id);
@@ -701,16 +785,9 @@
       case 'ROLL_CATEGORY': {
         if(s.phase!=='category' || !Number.isInteger(action.value) || action.value<1 || action.value>categorySides(action.catalogueVersion)) return state;
         const cat=catalogueCategories(action.catalogueVersion).find(c=>c.number===action.value);
-        const modern=action.catalogueVersion===2;
-        if(action.catalogueVersion!==undefined && !modern) return state;
-        if(!cat || !validHand(action.hand,cat.id,modern)) return state;
+        if(!cat || !validCategoryAction(action,cat)) return state;
         r.from=actor; r.to=otherPlayer(actor);
-        r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        if(modern){
-          Object.assign(r,{catalogueVersion:2,variantRoll:null,dailyFree:false});
-          r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
-          r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
-        }
+        setCategoryRound(r,action,cat);
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.phase='card';
         return s;
@@ -719,14 +796,11 @@
         if(!isoTime(action.at) || s.phase!=='card' || actor!==r.from) return state;
         if(!Number.isInteger(action.value) || action.value<1 || action.value>categorySides(2)) return state;
         const cat=categories.find(c=>c.number===action.value);
-        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        if(!cat || !modernCatalogue(action.catalogueVersion) || !validCategoryAction(action,cat)) return state;
         const dayKey=parisDateKey(action.at);
         const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
         if(used.includes(actor)) return state;
-        r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        r.catalogueVersion=2; r.variantRoll=null; r.dailyFree=false;
-        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
-        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        setCategoryRound(r,action,cat);
         s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
         return s;
       }
@@ -734,15 +808,12 @@
         if(!isoTime(action.at) || s.phase!=='category' || actor!==r.from) return state;
         if(!Number.isInteger(action.category) || action.category<1 || action.category>categorySides(2)) return state;
         const cat=categories.find(c=>c.number===action.category);
-        if(!cat || action.catalogueVersion!==2 || !validHand(action.hand,cat.id,true)) return state;
+        if(!cat || !modernCatalogue(action.catalogueVersion) || !validCategoryAction(action,cat)) return state;
         const weekKey=isoWeekKey(action.at);
         const joker=s.joker && s.joker.weekKey===weekKey ? s.joker : {weekKey,usedBy:null};
         if(joker.usedBy) return state;
         r.from=actor; r.to=otherPlayer(actor);
-        r.categoryId=cat.id; r.categoryRoll=action.category; r.hand=action.hand.slice();
-        r.catalogueVersion=2; r.variantRoll=null; r.dailyFree=false;
-        r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
-        r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
+        setCategoryRound(r,action,cat);
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.joker={weekKey,usedBy:actor};
         s.phase='card';
@@ -771,15 +842,15 @@
         const reroll=kind==='REROLL_CARD';
         if(reroll?!canRerollCard(s):s.phase!=='card' || actor!==r.from) return state;
         if(!Number.isInteger(action.value) || action.value<1 || action.value>cardSides(r) || reroll&&action.value===r.cardRoll) return state;
-        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp;
-        if(reroll) { r.cardRerolled=true; if(r.catalogueVersion===2) r.variantRoll=null; }
+        r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId).hp??null;
+        if(reroll) { r.cardRerolled=true; if(needsVariant(r)) r.variantRoll=null; }
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
-        s.phase=r.catalogueVersion===2?'variant':'draft';
+        s.phase=needsVariant(r)?'variant':'draft';
         r.status=s.phase==='variant'?'drawing':'draft';
         return s;
       }
       case 'ROLL_VARIANT':
-        if(s.phase!=='variant' || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>rules.variantSides) return state;
+        if(s.phase!=='variant' || !needsVariant(r) || actor!==r.from || !Number.isInteger(action.value) || action.value<1 || action.value>rules.variantSides) return state;
         r.variantRoll=action.value;
         r.status='draft';
         s.phase='draft';
@@ -1181,8 +1252,8 @@
       if(!progressCategories.includes(categoryId))continue;
       // An unmarked published v2 round might be an old free daily card. A
       // private draw, direct queue, legacy catalogue or marker supplies proof.
-      const paid=record.dailyFree!==true&&(record.dailyFree===false||record.directQueued===true||record.catalogueVersion!==2||privateDraw);
-      if(paid&&Number.isInteger(record.categoryRoll)&&getCategory(record.categoryId,record.catalogueVersion===2?2:1)?.number===record.categoryRoll)addIndividual(progress,record.from,'draws',categoryId);
+      const paid=record.dailyFree!==true&&(record.dailyFree===false||record.directQueued===true||record.catalogueVersion===3||!modernCatalogue(record.catalogueVersion)||privateDraw);
+      if(paid&&Number.isInteger(record.categoryRoll)&&getCategory(record.categoryId,modernCatalogue(record.catalogueVersion)?record.catalogueVersion:1)?.number===record.categoryRoll)addIndividual(progress,record.from,'draws',categoryId);
       if(published||isoTime(record.sentAt)||['queued','completed','expired'].includes(record.status)){
         addIndividual(progress,record.from,'proposals',categoryId);
         if(isoTime(record.sentAt))activity.push({actor:record.from,at:record.sentAt});
@@ -1302,7 +1373,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,needsVariant,cardsForRound,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

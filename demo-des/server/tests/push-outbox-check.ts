@@ -45,7 +45,7 @@ const G=(globalThis as any).OndeGame,handlerStore={
  }
 };
 const handler=createHandler({G,store:handlerStore,push:{saveSubscription},rateSecret:'test-rate-secret',waitUntil:undefined});
-const invalidResponse=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+b64(new Uint8Array(32).fill(1).buffer)},body:JSON.stringify({op:'subscribe',gameVersion:4,subscription:{endpoint:'https://127.0.0.1/private',keys:{p256dh:publicKey,auth}}})}));
+const invalidResponse=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+b64(new Uint8Array(32).fill(1).buffer)},body:JSON.stringify({op:'subscribe',gameVersion:5,subscription:{endpoint:'https://127.0.0.1/private',keys:{p256dh:publicKey,auth}}})}));
 assert(invalidResponse.status===400,'Unsafe push subscription was not a client error');
 assert((await invalidResponse.json()).error.code==='invalid_subscription','Subscription error code was lost');
 const previousFetch=globalThis.fetch;

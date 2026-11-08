@@ -147,9 +147,9 @@ try{
  eq(staleLive.kind,'conflict','old in-flight live commit cannot restore session');
  eq((await scalar('select public.desir_hardcore_get($1) as result',[roomId])).revision,18);
  for(const actor of ['a','b']){
-  checks++;assert.throws(()=>applyAction(G,room.state,actor,{type:'ROLL_CATEGORY',roundId:old.lanes[actor].round.id},uuid(200),at,()=>1,4),HttpError,'old round request rejected');
+  checks++;assert.throws(()=>applyAction(G,room.state,actor,{type:'ROLL_CATEGORY',roundId:old.lanes[actor].round.id},uuid(200),at,()=>1,5),error=>error instanceof HttpError&&error.code==='stale_round','old round request rejected by its identity');
  }
- checks++;assert.throws(()=>applyAction(G,room.state,'b',{type:'REFUSE_TASK',roundId:room.state.lanes.b.round.id,taskId},uuid(201),at,()=>1,4),HttpError,'removed task cannot be replayed');
+ checks++;assert.throws(()=>applyAction(G,room.state,'b',{type:'REFUSE_TASK',roundId:room.state.lanes.b.round.id,taskId},uuid(201),at,()=>1,5),error=>error instanceof HttpError&&error.code==='invalid_phase','removed task cannot be replayed');
  await rejected(roomId,55,/revision changed/);
  // Room with no earlier live row still gets a monotone tombstone, preventing
  // an in-flight expected revision 0 CREATE from committing over the reset.
