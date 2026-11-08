@@ -36,7 +36,9 @@ Toutes les opérations utilisent `POST` JSON. Les requêtes du client indiquent 
 - `subscribe` : session existante, `{op:"subscribe",subscription:<PushSubscriptionJSON>}`.
 - `drain_push` : réservé au cron avec l’en-tête `X-Desir-Cron`, réponse 202 après mise en file et traitement différé.
 
-Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des vingt-quatre heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
+Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,badges?,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des vingt-quatre heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
+
+Le snapshot ajoute `badges`, projection versionnée du catalogue de 60 définitions `G.badgeCatalog`. `G.badgeView(room, actor)` expose les progressions et gains individuels du lecteur ainsi que ceux du duo, sans les compteurs, calendriers ou gains privés du partenaire. Le registre interne `progression` reste réservé à l’état canonique du serveur ; il n’est pas inclus dans la projection de jeu `state`. Les anciens reçus du protocole 4 peuvent omettre `badges` : le transport les accepte, conserve la dernière collection vérifiée pour la même identité et la rafraîchit avec la prochaine lecture enrichie.
 
 Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `REROLL_CATEGORY`, `JOKER_DRAW`, `SEND`, `REFUSE_TASK`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. `REROLL_CATEGORY` est limitée à une fois par jour de Paris et par acteur (état `dailyReroll` de la salle) et ne consomme pas de ticket. `JOKER_DRAW` choisit la catégorie (champ `category`, 1–4) une fois par semaine ISO de Paris (état `joker` de la salle) et consomme un tirage du jour comme un `ROLL_CATEGORY`. Le quota est une cagnotte de trois tirages par jour de Paris renouvelée à 5 h (migrations `20261107131541_desir_daily_draw_pool.sql` puis `20261107222844_desir_daily_draw_counter.sql`). La carte du jour n’est plus générée et `SEND_DAILY`, `ACCEPT`, `PASS` ne sont plus exposés. Tout `actor`, `value`, `hand`, `at`, `directQueue` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
 
@@ -64,7 +66,7 @@ Le snapshot contient `state` pour la manche personnelle et les tâches partagée
 
 Les clients des protocoles 1, 2 et 3 reçoivent `upgrade_required` avant toute reprise de reçu ou mutation, y compris pour Hardcore. Le nouveau transport écarte une ancienne action persistée avant sa validation avec les types actuels, puis recharge le snapshot courant. Il ne transforme jamais un ancien envoi en commande du protocole 4. Les accès appareils sont conservés. Les notifications utilisent l’identifiant du challenge partagé, même lorsque l’initiateur a déjà changé de manche.
 
-Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 restent uniformes.
+En semaine, le D4 de catégorie utilise 42 tickets équiprobables côté serveur : Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Le samedi et le dimanche à Paris, les poids deviennent **22, 20, 20 et 93 sur 155**, soit **60 % exactement pour Intimité**. Le début du week-end se calcule à minuit, indépendamment de la fenêtre de quota à 5 h. Les relances de catégorie suivent la même règle ; les deux D6 restent uniformes.
 
 Chaque compte dispose de trois tirages par journée renouvelée à 5 h, heure de Paris. La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris` ; la fenêtre quotidienne et son compteur remplacent l’ancien quota horaire.
 
@@ -75,6 +77,20 @@ La relance `REROLL_CARD` est disponible une fois par tour avant l’envoi, dans 
 Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les vingt-quatre heures d’un challenge commencent à l’envoi. Plusieurs challenges peuvent rester dans la liste pendant les nouveaux tours ; l’envoi libère immédiatement le prochain tour personnel.
 
 Chaque écriture utilise une révision attendue et un verrou de ligne. Le reçu `(room,actor,requestId)` est créé dans la même transaction que le nouvel état, le ticket éventuel et la notification. Une requête répétée ne relance pas les dés et n’ajoute pas de points ni de notification. Les reçus restent sept jours ; la séquence de manche et les contraintes de phase continuent à empêcher les anciennes actions après cette durée. Le score et l’historique de jeu ne sont pas concernés par ce nettoyage.
+
+## Progression et attribution des badges
+
+Le registre des badges est mis à jour à partir de la transition confirmée du moteur, dans le même état et la même transaction que le challenge et son reçu. Un tirage initial réussi crédite son auteur, un envoi ayant réellement ajouté une tâche crédite une proposition, et seule la clôture après les deux coches crédite une réalisation. Les refus, expirations, relances et requêtes déjà traitées ne créent aucune réalisation supplémentaire.
+
+Les compteurs individuels et partagés sont cumulatifs et bornés à des structures connues : quatre catégories, les cartes du catalogue, leurs variantes et au plus 90 attributions pour le duo. Les dates d’activité individuelles appartiennent à l’auteur réel de l’action. Le calendrier partagé utilise les dates des clôtures. Les séries sont calculées sur les jours civils de Paris, y compris lors des changements d’heure.
+
+Chaque définition a un identifiant stable, une portée, un seuil et un critère. L’attribution n’est créée qu’une fois. Son identifiant, sa date serveur et son ordre restent stables lors des rejeux et des actualisations. Les attributions partagées conservent un ordre pour chaque acteur ; la projection ne révèle donc pas, par des trous de séquence, les gains privés du partenaire. Une nouvelle génération après reset distingue les nouveaux gains des anciens marqueurs locaux.
+
+Un ancien état sans registre reste lisible sans écriture supplémentaire. La reprise utilise uniquement les totaux cumulatifs et les événements encore prouvés ; elle n’invente ni date, ni rôle, ni variante disparue de l’historique. Les gains repris portent une date inconnue et sont présentés silencieusement. La première transition réelle persiste ce registre avant d’ajouter son propre événement, sans double comptage. Les lectures suivantes utilisent les compteurs persistés.
+
+Le navigateur affiche les cinq gains les plus récents et conserve les identifiants des popups déjà présentés, séparément pour chaque service, duo et acteur. Ce stockage ne contient ni jeton d’accès ni contenu de challenge. La première visite sur un nouvel appareil établit un état initial silencieux ; les nouveaux gains sont ensuite présentés une fois sur ce navigateur. La collection synchronisée reste la référence des badges obtenus.
+
+Le client précédent du protocole 4 reste compatible : il n’envoie que des intentions. En revanche, un ancien moteur serveur qui ne conserve pas `progression` ne doit plus être rétabli après les premières attributions. Déployer et vérifier les sources de la fonction Edge avant de publier les nouveaux assets ; pour corriger un défaut, conserver le registre et ses règles de préservation dans le correctif suivant.
 
 ## Remise à zéro autorisée d’un duo
 

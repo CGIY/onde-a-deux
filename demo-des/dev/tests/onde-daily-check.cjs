@@ -15,13 +15,13 @@ assert.equal(G.parisDateKey(sundayLate),'2026-11-08','23 h 30 UTC reste dimanche
 assert.equal(G.parisDateKey(mondayEarly),'2026-11-09','1 h 30 UTC lundi est lundi à Paris');
 assert.equal(G.parisDateKey('not-a-date'),null);
 
-// Poids du D4 : 11/10/10/11 en semaine, Intimité doublée (22) le week-end.
+// Poids du D4 : 11/10/10/11 en semaine, 22/20/20/93 le week-end (60 % exacts).
 let intimite=0;for(let k=1;k<=42;k++)if(G.rollCategory(2,()=>k,at)===4)intimite++;
 assert.equal(intimite,11,'semaine : 11 tickets Intimité sur 42');
-intimite=0;for(let k=1;k<=53;k++)if(G.rollCategory(2,()=>k,saturday)===4)intimite++;
-assert.equal(intimite,22,'week-end : 22 tickets Intimité sur 53');
-intimite=0;for(let k=1;k<=53;k++)if(G.rollCategory(2,()=>k,sundayLate)===4)intimite++;
-assert.equal(intimite,22,'dimanche soir à Paris : poids doublé');
+intimite=0;for(let k=1;k<=155;k++)if(G.rollCategory(2,()=>k,saturday)===4)intimite++;
+assert.equal(intimite,93,'week-end : 93 tickets Intimité sur 155, soit exactement 60 %');
+intimite=0;for(let k=1;k<=155;k++)if(G.rollCategory(2,()=>k,sundayLate)===4)intimite++;
+assert.equal(intimite,93,'dimanche soir à Paris : poids de 60 %');
 intimite=0;for(let k=1;k<=42;k++)if(G.rollCategory(2,()=>k,mondayEarly)===4)intimite++;
 assert.equal(intimite,11,'lundi 1 h 30 à Paris : poids de semaine');
 assert.equal(G.rollCategory(1,()=>1,at),1,'le catalogue v1 ignore le poids week-end');

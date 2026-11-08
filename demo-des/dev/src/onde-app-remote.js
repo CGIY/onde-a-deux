@@ -57,11 +57,15 @@
    let roll;
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
+   let badges;
+   if(raw.badges!==undefined){if(typeof G.validateBadgeView!=='function'||!G.validateBadgeView(raw.badges,identity.actor))throw failure('invalid_response','La collection de badges reçue est invalide.');badges=clone(raw.badges);}
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:4,incoming,pendingOutgoing},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:4,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
+   // Immutable receipts written before badges existed remain valid protocol-4 replies.
+   if(checked.base.badges===undefined&&snapshot?.badges&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor)checked.base.badges=clone(snapshot.badges);
    if(!snapshot||checked.base.revision>=snapshot.revision){
     const changed=!snapshot||JSON.stringify(checked.base)!==JSON.stringify(snapshot),statusChanged=status.phase!=='connected'||!!status.message;
     snapshot=clone(checked.base);

@@ -49,6 +49,7 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
   if(full?.version===2)full=G.roomView(full,actor,roundId);
   if(!G.validateState(full)||!['a','b'].includes(actor))throw new Error('Invalid authoritative state');
   const projected=copy(full);projected.activePlayer=actor;projected.seen={};projected.favorites=[];
+  delete projected.progression;
   projected.history=projected.history.filter(round=>(gameVersion>=2||round.catalogueVersion!==2)&&G.canSeeRound({round,phase:'resolved',activePlayer:actor},actor)).map(round=>{
     if(round.from!==actor){delete round.hand;delete round.draftRollTokens;delete round.rollTokens;}
     return round;
@@ -73,9 +74,9 @@ export function snapshot(G,context,extra={},gameVersion=2){
     const invitations=full.pendingRounds.map(item=>G.roomView(full,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
     const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,4));
     const pendingOutgoing=invitations.filter(value=>value.round.from===actor).length;
-    return {roomId:context.room.id,state:projectState(G,own,actor,4),incoming,pendingOutgoing,gameVersion:4,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
+    return {roomId:context.room.id,state:projectState(G,own,actor,4),badges:G.badgeView(full,actor),incoming,pendingOutgoing,gameVersion:4,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
   }
-  return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
+  return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges:G.badgeView(full,actor),revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }
 export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
   if(gameVersion===3)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');

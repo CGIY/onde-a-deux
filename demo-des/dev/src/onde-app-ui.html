@@ -19,6 +19,8 @@
       <button type="button" data-action="tab" data-tab="us" class="cursor-interaction"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 9c0 4.8-8.5 10-8.5 10S3.5 13.8 3.5 9A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8.5 2Z"/></svg>Nous</button>
     </nav>
     <div id="oa-toast" class="oa-toast" role="status" hidden></div>
+    <aside id="oa-badge-notice" class="oa-badge-notice" aria-label="Badge débloqué" hidden></aside>
+    <p id="oa-badge-announcement" class="oa-sr" role="status" aria-live="polite" aria-atomic="true"></p>
     <div id="oa-sheet" class="oa-sheet-backdrop" hidden></div>
     <p id="oa-announcement" class="oa-sr" aria-live="polite" aria-atomic="true"></p>
   </section>
@@ -665,7 +667,36 @@
 @keyframes oa-hc-hit{0%{transform:scale(.92,.98)}55%{transform:scale(1.04,.96)}100%{transform:none}}
 @media(max-width:390px){#onde-app-v1 .oa-hc-panel{padding:20px}#onde-app-v1 .oa-hc-boss{padding:15px}#onde-app-v1 .oa-hc-stage{height:250px}}
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-hc-panel,#onde-app-v1 .oa-hc-panel:before,#onde-app-v1 .oa-hc-track>span,#onde-app-v1 .oa-hc-slots span{transition:none!important;animation:none!important}}
-#onde-app-v1 .oa-badge-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-#onde-app-v1 .oa-badge-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;border:1px solid #80756d55;font-size:11.5px;line-height:1.3;color:#9a938a;background:#34313030}
-#onde-app-v1 .oa-badge-chip.is-earned{border-color:#cf7475aa;color:#f0d9c8;background:#cf747522}
+/* Badge collections use plain, stable surfaces; only the notice enters above the game. */
+#onde-app-v1 .oa-achievements{margin-top:20px}
+#onde-app-v1 .oa-achievements>.oa-note{margin:0 0 12px}
+#onde-app-v1 .oa-achievement-list{list-style:none;display:grid;gap:10px;margin:12px 0 0;padding:0}
+#onde-app-v1 .oa-achievement{display:flex;align-items:flex-start;gap:12px;min-width:0;padding:14px;border:1px solid #84948155;border-radius:18px;background:#29312d;isolation:isolate}
+#onde-app-v1 .oa-achievement.is-earned{border-color:#a6b69b77;background:#344137}
+#onde-app-v1 .oa-achievement.is-highlighted{outline:2px solid #dfb59b;outline-offset:2px}
+#onde-app-v1 .oa-achievement-icon{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:12px;background:#414b41;color:#d4ddce}
+#onde-app-v1 .is-earned>.oa-achievement-icon{background:#c2cdb2;color:#29382c}
+#onde-app-v1 .oa-achievement-icon svg{width:22px;height:22px;display:block}
+#onde-app-v1 .oa-achievement-copy{flex:1;min-width:0}
+#onde-app-v1 .oa-achievement .oa-achievement-meta{margin:0;color:#c1cbbb;font-size:10.5px;line-height:1.4}
+#onde-app-v1 .oa-achievement h3{margin:5px 0 0;font-size:14px;font-weight:550;line-height:1.4;color:#f0eee1;overflow-wrap:anywhere}
+#onde-app-v1 .oa-achievement .oa-achievement-description{margin:7px 0 0;color:#ced5c8;font-size:12px;line-height:1.55}
+#onde-app-v1 .oa-achievement-progress{height:5px;overflow:hidden;border-radius:5px;background:#131e1780;margin-top:11px}
+#onde-app-v1 .oa-achievement-progress i{display:block;height:100%;width:100%;background:#b7c9a9;border-radius:inherit;transform-origin:left center}
+#onde-app-v1 .oa-achievement .oa-achievement-value{margin:5px 0 0;color:#d0d8c9;font-size:11px;font-variant-numeric:tabular-nums}
+#onde-app-v1 .is-recent .oa-achievement{padding:12px}
+#onde-app-v1 .oa-achievement-more{display:flex;justify-content:flex-end;margin-top:5px}
+#onde-app-v1 .oa-achievement-filters{display:flex;gap:6px;padding:4px;border-radius:16px;background:#17221b99}
+#onde-app-v1 .oa-achievement-filters button{flex:1;min-width:0;min-height:44px;padding:8px;border:1px solid transparent;border-radius:12px;background:none;color:#d0d9c9;font-size:12px}
+#onde-app-v1 .oa-achievement-filters button[aria-pressed=true]{border-color:#b2c1a666;background:#41503d;color:#f3f1e5}
+#onde-app-v1 .oa-achievement-sheet .oa-achievement-total{margin:14px 0;color:#c7d1bd;font-size:12px;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-badge-notice{position:fixed;z-index:18;left:50%;bottom:calc(144px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:flex-start;gap:11px;width:min(412px,calc(100vw - 28px));max-height:calc(100dvh - 170px);overflow-y:auto;padding:16px 12px 13px 16px;border:1px solid #bed0ad;border-radius:21px;background:#354b3c;box-shadow:0 12px 32px #0006;color:#f5f0dd}
+#onde-app-v1 .oa-badge-notice>.oa-achievement-icon{background:#d0d8ba;color:#30442f;margin-top:3px}
+#onde-app-v1 .oa-badge-notice-copy{flex:1;min-width:0}
+#onde-app-v1 .oa-badge-notice-copy>p{margin:0;font-size:10.5px;line-height:1.4;color:#d5dfc7}
+#onde-app-v1 .oa-badge-notice h2{margin:5px 0 0;font-size:16px;line-height:1.4;font-weight:550;overflow-wrap:anywhere}
+#onde-app-v1 .oa-badge-notice .oa-text-button{min-height:44px;padding:8px 0 0;text-align:left;color:#f1e5cb;font-size:12px}
+#onde-app-v1 .oa-badge-notice-close{flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:12px;background:#1e302760;color:#e3e9da;font-size:24px}
+#onde-app-v1 .oa-achievement-filters button:focus-visible,#onde-app-v1 .oa-badge-notice button:focus-visible{outline:2px solid #f1d9ac;outline-offset:3px}
+@media(max-width:360px){#onde-app-v1 .oa-achievement{gap:9px;padding:12px}#onde-app-v1 .oa-badge-notice{gap:8px;padding-left:12px}#onde-app-v1 .oa-badge-notice>.oa-achievement-icon{width:30px;height:30px}}
 </style>

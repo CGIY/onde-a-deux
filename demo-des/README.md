@@ -12,7 +12,7 @@ Le tirage reste privé jusqu’à l’envoi du challenge. Il rejoint alors direc
 
 - **D4 catégorie → D6 challenge → D6 variante.** Complicité réunit les moments à deux et la détente. Plaisirs réunit les attentions et la cuisine. Avec Projets et Intimité, chaque catégorie propose six challenges et chacun possède six variantes, pour 144 issues possibles. Le D4 donne un poids de 11 à Complicité et Intimité et de 10 à Plaisirs et Projets. Les deux D6 restent uniformes. Les nouvelles manches proposent un seul tirage de challenge ; une ancienne manche conserve son parcours.
 - Chaque personne dispose de **trois tirages par jour** (heure de Paris), renouvelés à 5 h. Seul le dé de catégorie réussi consomme un tirage. La prochaine disponibilité apparaît à sa place lorsque la cagnotte est vide. **Une relance du thème (D4) gratuite est en plus disponible une fois par jour et par personne**, utilisable avant le tirage de la carte ; elle ne consomme aucun ticket. Une fois par **semaine** (heure de Paris), un **joker** permet en plus de choisir sa catégorie au lieu du D4 : les quatre thèmes deviennent cliquables pendant un tour. Après une carte résolue ou passée, le tour suivant se relance automatiquement au bout de quelques secondes.
-- Le samedi et le dimanche (heure de Paris), le poids d’**Intimité** au D4 passe de 11 à 22.
+- Le samedi et le dimanche, de minuit le samedi à minuit le lundi **heure de Paris**, **Intimité a exactement 60 % de probabilité** au D4. Les 40 % restants conservent le rapport 11:10:10 entre Complicité, Plaisirs et Projets : les tickets sont donc 22, 20, 20 et 93 sur 155. La semaine conserve les poids 11, 10, 10 et 11 sur 42. La relance du thème suit la même pondération ; le joker reste un choix direct.
 - Quand le D4 tombe sur **Intimité**, un D20 supplémentaire décide : 10 ou moins, la manche continue normalement ; 11 ou plus, le jeu propose d’ouvrir une session **Hardcore**.
 - Chaque joueur dispose de sa propre manche. Chacun peut tirer pendant que l’autre prépare sa carte. Envoyer un challenge libère immédiatement un nouveau tirage personnel, dans la limite des tickets disponibles.
 - **Relancer, proposer, réaliser ou refuser.** Une relance de carte gratuite est disponible une fois par tour avant l’envoi ; en parcours v2, elle retire aussi la variante déjà choisie et ramène au choix de variante. L’envoi place le challenge dans « À faire » pour vingt-quatre heures. Le destinataire peut choisir **Refuser · D20** : le serveur tire un D20 uniforme, le dé s’anime puis le challenge est retiré. Toutes les faces respectent le refus, sans point ni consommation de ticket.
@@ -23,6 +23,16 @@ Le remplissage du bouton évolue du sable au corail pendant le maintien, avec un
 Les opérations sont confirmées côté serveur : une réponse répétée ne relance pas un dé et ne compte pas deux fois un point.
 
 Dans « Nous », seul le grade le plus élevé atteint est affiché. Douze paliers suivent le score commun : **5, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45 et 50 points**. Le nouveau grade remplace le précédent avec une courte transition. Sa palette bleu ardoise désaturé le distingue du score corail. Aucun nom de grade futur n’est affiché ; la barre indique seulement les points restant avant le prochain. Avant 5 points, un repère discret annonce le premier palier. Les grades suivent le total cumulé, même quand les anciennes actions quittent l’historique.
+
+## Collection de badges
+
+Chaque profil peut collectionner **60 badges : 30 individuels et 30 partagés**. « Nous » affiche les **cinq derniers débloqués** ; « Tout afficher » ouvre la collection complète, avec les filtres « Tous », « À moi » et « À deux ». Les badges encore verrouillés indiquent leur condition et leur progression. Les badges individuels du partenaire ne sont pas exposés.
+
+Les critères couvrent les tirages, les propositions, les réalisations, les catégories, la diversité des cartes et variantes, les jours d’activité et les jalons communs. Les réalisations ne comptent qu’après les deux coches. Un refus, une expiration ou le rejeu d’une requête n’ajoute aucune réalisation. Les jours sont calculés à Paris à partir des actions de la personne concernée ; cocher aujourd’hui ne crée pas une journée d’activité pour le partenaire qui avait coché hier.
+
+Les compteurs et les gains sont persistés dans l’état du duo, indépendamment des 80 lignes d’historique conservées. Un badge gagné reste acquis jusqu’à une remise à zéro explicite. Les variantes précises ont leur propre critère : trois réalisations d’une carte avec une autre variante ne débloquent pas le badge de celle-ci.
+
+Un gain déclenche une notification dans l’app avec son titre et un accès à la collection. Plusieurs gains attendent leur tour ; la présentation respecte les lancers en cours, les panneaux ouverts, la visibilité de la page et la préférence de mouvement réduit. Les actualisations et reconnexions sur le même navigateur ne répètent pas les gains déjà présentés. La première ouverture sur un nouveau navigateur établit silencieusement la liste des gains existants ; la collection reste consultable. Aucun abonnement Push supplémentaire n’est nécessaire.
 
 ## Installer et recevoir les notifications
 
@@ -62,6 +72,8 @@ node demo-des/dev/tests/onde-remote-ui-check.cjs
 node demo-des/dev/tests/onde-visibility-check.cjs
 node demo-des/dev/tests/onde-reroll-check.cjs
 node demo-des/dev/tests/onde-direct-flow-check.cjs
+node demo-des/dev/tests/onde-badges-check.cjs
+node demo-des/dev/tests/onde-weekend-check.cjs
 node demo-des/server/tests/backend-check.mjs
 node demo-des/server/tests/push-check.mjs
 ```

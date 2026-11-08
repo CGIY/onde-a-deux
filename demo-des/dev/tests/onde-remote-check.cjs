@@ -24,7 +24,45 @@ function parallelReply(room,actor='a',revision=1){
  const pendingOutgoing=pending.filter(value=>value.round.from===actor).length;
  return reply(actor,revision,own,{gameVersion:4,drawAvailable:own.phase==='category',incoming,pendingOutgoing});
 }
+function badgeRoom(actor='a',sent=false){
+ const at='2026-11-08T12:00:00.000Z';let room=G.createRoom({at});const roundId=room.lanes[actor].round.id;
+ for(const action of [{type:'ROLL_CATEGORY',catalogueVersion:2,value:1,hand:G.cards.filter(card=>card.categoryId==='complicite').map(card=>card.id)},{type:'ROLL_CARD',value:1},{type:'ROLL_VARIANT',value:1},...(sent?[{type:'SEND',directQueue:true}]:[])])room=G.reduceRoom(room,{...action,actor,roundId,at});
+ assert.ok(G.validateRoom(room));assert.ok(G.validateBadgeView(G.badgeView(room,actor),actor));return room;
+}
 (async()=>{
+ // Additive badge projections are validated for this actor and preserve unknown dates on imported gains.
+ {
+  const room=badgeRoom(),badges=G.badgeView(room,'a');
+  const r=create(config,env(async(url,options)=>response({...loginReply(options,'a',1,G.roomView(room,'a')),badges})));
+  await r.login('fixture-a','fixture-secret');check(()=>{assert.deepEqual(r.snapshot.badges,badges);assert.equal(r.snapshot.badges.items.length,60);assert.ok(r.snapshot.badges.items.some(item=>item.award?.id.includes(':individual:a:')));});
+  const imported=JSON.parse(JSON.stringify(badges));for(const item of imported.items)if(item.award){item.award.at=null;item.award.source='imported';}
+  const old=create(config,env(async(url,options)=>response({...loginReply(options),badges:imported})));
+  await old.login('fixture-a','fixture-secret');check(()=>{assert.deepEqual(old.snapshot.badges,imported);assert.equal(old.snapshot.badges.items.find(item=>item.award).award.at,null);});
+ }
+ // Malformed badge metadata and the other actor's personal award IDs cannot enter an authenticated snapshot.
+ {
+  const valid=G.badgeView(badgeRoom(),'a');
+  const invalid=[null,G.badgeView(badgeRoom('b'),'b'),{...valid,epoch:'2'},{...valid,items:valid.items.slice(1)},{...valid,privateCounters:{b:{draws:99}}}];
+  for(const mutate of [view=>view.items[0].progress.value=-1,view=>view.items[0].progress.target=999,view=>view.items[1].id=view.items[0].id,view=>view.items[0].award.at=null,view=>view.items[0].award.sequence=9]){const value=JSON.parse(JSON.stringify(valid));mutate(value);invalid.push(value);}
+  for(const badges of invalid){const r=create(config,env(async(url,options)=>response({...loginReply(options),badges})));await assert.rejects(r.login('fixture-a','fixture-secret'),{code:'invalid_response'});check(()=>{assert.equal(r.connection,null);assert.equal(r.authenticated,false);});}
+ }
+ // An immutable pre-feature protocol-4 receipt without badges recovers before a current enriched read.
+ {
+  const storage=memory(),calls=[],room=badgeRoom('a',true),badges=G.badgeView(room,'a');
+  const fetcher=async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='login')return response(loginReply(options));if(p.op==='action')return response(reply('a',2,G.roomView(room,'a')));return response(reply('a',3,G.roomView(room,'a'),{badges}));};
+  const r=create(config,env(fetcher,storage));await r.login('fixture-a','fixture-secret');calls.length=0;
+  const requestId=webcrypto.randomUUID();storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:4,endpoint,roomId,actor:'a',requestId,action:{type:'SEND',roundId:'onde-1'}}));
+  const restored=create(config,env(fetcher,storage));await restored.restore();
+  check(()=>{assert.deepEqual(calls.map(call=>call.op),['action','state']);assert.equal(calls[0].requestId,requestId);assert.equal(restored.authenticated,true);assert.deepEqual(restored.snapshot.badges,badges);assert.equal(restored.snapshot.revision,3);assert.equal(storage.getItem('desir-connection-v1-action'),null);});
+ }
+ // Missing metadata in an old receipt retains only the same account's last validated collection.
+ {
+  const first=badgeRoom(),sent=badgeRoom('a',true),before=G.badgeView(first,'a'),after=G.badgeView(sent,'a');
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response({...loginReply(options,'a',1,G.roomView(first,'a')),badges:before});if(p.op==='action')return response(reply('a',2,G.roomView(sent,'a')));return response(reply('a',3,G.roomView(sent,'a'),{badges:after}));}));
+  await r.login('fixture-a','fixture-secret');const replayed=await r.action({type:'SEND',roundId:first.lanes.a.round.id});check(()=>{assert.deepEqual(replayed.badges,before);assert.equal(r.authenticated,true);});await r.refresh();check(()=>assert.deepEqual(r.snapshot.badges,after));
+  let logins=0;const switched=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login'){logins++;return response(logins===1?{...loginReply(options),badges:before}:loginReply(options,'b'));}return response({error:{code:'unauthorized'}},401);}));
+  await switched.login('fixture-a','fixture-secret');await assert.rejects(switched.action({type:'SEND',roundId:'onde-1'}),{status:401});await switched.login('fixture-b','fixture-secret-b');check(()=>{assert.equal(switched.connection.actor,'b');assert.equal(switched.snapshot.badges,undefined);assert.equal(switched.authenticated,true);});
+ }
  // Ephemeral live presses bypass a pending normal draw and never become durable actions.
  {
   const storage=memory(),calls=[];let completeDraw;

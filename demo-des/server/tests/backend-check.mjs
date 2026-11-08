@@ -347,4 +347,59 @@ for(const denied of ['authenticated-ip:','device:']){
  for(const release of releases)release();
  equal((await pending).status,429);equal(privateReads,0,'each limit independently protects private data');
 }
+// Badge progression shares the existing action receipt/CAS transaction. It is
+// projected separately, and no extra badge RPC is added to a settled state poll.
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ let time='2026-11-08T10:00:00.000Z';const randomCalls=[];
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{randomCalls.push(n);return n===155?155:1;}},store:saved,rateSecret:'fixture-badges',clock:()=>new Date(time)}));
+ const initialA=await deliver({op:'state'}),initialB=await deliver({op:'state'},tokenB);
+ equal(initialA.status,200);equal(initialB.status,200);equal(saved.state.progression,undefined);equal(saved.revision,0);
+ ok(G.validateBadgeView(initialA.body.badges,'a'));ok(G.validateBadgeView(initialB.body.badges,'b'));
+ const aId=saved.state.lanes.a.round.id,bId=saved.state.lanes.b.round.id;
+ for(const key of ['progression','badges','badgeId','award','sequence']){
+  const before=clone(saved.state),response=await deliver(intent('ROLL_CATEGORY',1900,aId,{[key]:1}));
+  equal(response.status,400);equal(saved.state,before,'client cannot submit '+key+' progression');
+ }
+ saved.forceRace=true;
+ const draw=intent('ROLL_CATEGORY',1901,aId),draws=await Promise.all([deliver(draw),deliver(draw)]);
+ equal(draws.map(result=>result.status),[200,200]);equal(draws[0].body,draws[1].body,'racing replay returns exactly the committed badge attribution');
+ equal(saved.state.progression.individual.a.draws,1);equal(saved.receipts.size,1);
+ equal(saved.state.progression.epoch,initialA.body.badges.epoch,'first HTTP gain keeps the initial UI epoch');
+ const drawAward=draws[0].body.badges.items.find(item=>item.id==='ind-draws-1').award;
+ equal(drawAward.at,time);equal(drawAward.source,undefined);equal(drawAward.sequence,1);
+ ok(randomCalls.includes(155),'weekend HTTP draw requests the exact 155-ticket distribution');
+ await deliver(intent('ROLL_CARD',1902,aId));await deliver(intent('ROLL_VARIANT',1903,aId));
+ const privateCard=saved.state.lanes.a.round.cardId,hidden=await deliver({op:'state'},tokenB);
+ equal(hidden.body.badges,initialB.body.badges,'partner private draw changes no visible badge progress or sequence');
+ equal(hidden.body.state.progression,undefined);ok(!JSON.stringify(hidden.body).includes(privateCard));
+ const send=intent('SEND',1904,aId),sent=await Promise.all([deliver(send),deliver(send)]);
+ equal(sent.map(result=>result.status),[200,200]);equal(sent[0].body,sent[1].body);equal(saved.state.progression.individual.a.proposals,1);equal(saved.outbox.length,1);
+ equal(saved.state.progression.shared.completed,0);equal(saved.state.progression.individual.b.participations,0);
+ const checkA=intent('TOGGLE_TASK_CHECK',1905,saved.state.lanes.a.round.id,{taskId:aId,checked:true}),checkB=intent('TOGGLE_TASK_CHECK',1906,bId,{taskId:aId,checked:true});
+ const checked=await Promise.all([deliver(checkA),deliver(checkB,tokenB)]);
+ equal(checked.map(result=>result.status),[200,200]);equal(saved.state.stats.totalCompleted,1);equal(saved.state.progression.shared.completed,1);
+ equal(saved.state.progression.individual.a.participations,1);equal(saved.state.progression.individual.b.participations,1);
+ const completed=clone(saved.state.progression),views=await Promise.all([deliver({op:'state'}),deliver({op:'state'},tokenB)]);
+ for(const [index,actor] of ['a','b'].entries()){
+  const body=views[index].body;ok(G.validateBadgeView(body.badges,actor));equal(body.state.progression,undefined);
+  const text=JSON.stringify(body);ok(!text.includes('sequenceByActor'));ok(!text.includes('"progression"'));ok(!text.includes(':individual:'+G.otherPlayer(actor)+':'));
+ }
+ equal(views[0].body.badges.items.find(item=>item.id==='duo-completed-1').award.id,views[1].body.badges.items.find(item=>item.id==='duo-completed-1').award.id);
+ time='2026-11-08T10:05:00.000Z';
+ const repeated=await deliver(checkB,tokenB);
+ equal(repeated.body.badges,checked[1].body.badges,'response loss preserves award time, source and badge sequence');equal(repeated.body.revision,checked[1].body.revision);equal(saved.state.progression,completed);
+ const callsBefore=saved.calls.length;await deliver({op:'state'});
+ equal(saved.calls.slice(callsBefore).map(call=>call.name).sort(),['desir_get_session','desir_rate_limit','desir_rate_limit'],'badge reads add no database round trip');
+ saved.receipts.clear();
+ equal((await deliver(checkB,tokenB)).status,409,'even without old receipts a removed task cannot reward twice');equal(saved.state.progression,completed);
+ equal((await deliver(draw)).status,409);equal(saved.state.progression,completed,'a stale draw ID cannot reward after receipt cleanup');
+ const oldEpoch=G.badgeView(saved.state,'a').epoch;
+ saved.state=G.resetRoom(saved.state,{at:time});saved.revision++;saved.used.clear();saved.receipts.clear();
+ const reset=await deliver({op:'state'});ok(reset.body.badges.epoch>oldEpoch);equal(reset.body.badges.items.filter(item=>item.award).length,0);
+ equal((await deliver(send)).status,409);equal(saved.state.progression,undefined);
+ const after=await deliver(intent('ROLL_CATEGORY',1907,saved.state.lanes.a.round.id));equal(after.status,200);
+ const first=after.body.badges.items.find(item=>item.id==='ind-draws-1').award;
+ ok(first.id!==drawAward.id);equal(first.source,undefined);equal(first.sequence,1);
+}
 console.log(`Dés·ir backend: ${checks} privacy/auth/RNG/CAS/idempotency/quota/expiry assertions passed.`);

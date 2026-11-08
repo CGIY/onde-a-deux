@@ -30,6 +30,12 @@
  let taskExpiryTimer;
  let visibleCardId=null, openedInvitation=null, viewPlayer='a', sharedSnapshot=null;
  let sheetContext=null;
+ const badgeCatalog=Array.isArray(G.badgeCatalog)?G.badgeCatalog:[];
+ const badgeDefinitions=new Map(badgeCatalog.map(badge=>[badge.id,badge]));
+ const badgeNotice=root.querySelector('#oa-badge-notice'),badgeAnnouncement=root.querySelector('#oa-badge-announcement');
+ const badgeMemory=new Map();
+ let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
+ let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='';
  const viewport=window.visualViewport;let viewportListening=false;
  const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator?.standalone===true;
  root.classList.toggle('oa-installed',installed);
@@ -45,8 +51,8 @@
  if(viewport)startViewport();
  document.addEventListener('focusin',updateViewportHeight);
  document.addEventListener('focusout',updateViewportHeight);
- window.addEventListener('pageshow',()=>{presentationHidden=false;startViewport();});
- window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();});
+ window.addEventListener('pageshow',()=>{presentationHidden=false;startViewport();updateBadgeNotice();});
+ window.addEventListener('pagehide',()=>{presentationHidden=true;stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();updateBadgeNotice();});
  if(!remoteMode){
   localRoom=G.createRoom();
   try{
@@ -94,12 +100,13 @@
   if(suppress)suppressedClick={button:active.button,source:active.source,pointerId:active.pointerId,until:Infinity};
   try{if(active.pointerId!==undefined)active.button.releasePointerCapture?.(active.pointerId);}catch(_){}
   if(refresh&&remoteMode&&deferredSnapshot&&!busy&&!operationBusy&&!pendingChecks.size){flushRemote(null,false);render();}
+  if(refresh)updateBadgeNotice();
   return active;
  }
  function startCharge(button,source,event){
   if(!canCharge(button)||charge)return false;
   suppressedClick=null;charge={button,source,started:chargeNow(),power:0,frame:null,pointerId:source==='pointer'?event.pointerId:undefined,x:event.clientX,y:event.clientY,phase:state.phase,roundId:state.round.id,cardId:state.round.cardId,actor:viewPlayer};
-  button.classList.add('is-charging');drawCharge();
+  button.classList.add('is-charging');drawCharge();updateBadgeNotice();
   try{if(source==='pointer')button.setPointerCapture?.(event.pointerId);}catch(_){}
   return true;
  }
@@ -160,10 +167,11 @@
  function applyRemote(value,renderNow=true){
   if(remoteMode&&!remote?.authenticated||!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
   if(samePerspective(value,remoteSnapshot)&&value.revision<remoteSnapshot.revision)return false;
+  if(value.badges===undefined&&samePerspective(value,remoteSnapshot)&&remoteSnapshot.badges)value={...value,badges:remoteSnapshot.badges};
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
@@ -242,17 +250,153 @@
   if(!r.hardcoreOffer||state.activePlayer!==r.from||!['card','variant','draft'].includes(state.phase)||!hardcore)return '';
   return '<div class="oa-status-strip oa-amber" data-hardcore-offer role="status"><span class="oa-status-dot"></span><span>Le D20 propose une session Hardcore.</span>'+btn('Ouvrir Hardcore','hardcore-open','oa-secondary')+'</div>';
  }
- function badgeList(){
-  const total=state.stats.totalCompleted,cats=Object.values(state.stats.byCategory).filter(v=>v>0).length;
-  return [
-   {icon:'✓',label:'Premier moment à deux',earned:total>=1},
-   {icon:'✦',label:'5 moments partagés',earned:total>=5},
-   {icon:'★',label:'10 moments partagés',earned:total>=10},
-   {icon:'❖',label:'2 thèmes explorés',earned:cats>=2},
-   {icon:'✺',label:'Les 4 thèmes',earned:cats>=4}
-  ];
+ function badgeIcon(icon){
+  const paths={
+   dice:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/>',
+   send:'<path d="m3 11 18-8-8 18-3-8-7-2Zm7 2L21 3"/>',
+   handshake:'<path d="m3 9 4-4 5 2 5-2 4 4-7 10-4-1-7-9Zm5 2 4-4 4 4-3 2-3-1M6 15l3-2m0 5 3-3m1 4 2-3"/>',
+   heart:'<path d="M20 9c0 4-8 10-8 10S4 13 4 9a4 4 0 0 1 8-1 4 4 0 0 1 8 1Z"/>',
+   cup:'<path d="M4 7h12v6a6 6 0 0 1-12 0V7Zm12 1h2a3 3 0 0 1 0 6h-2M3 21h15M7 3v1m5-1v1"/>',
+   palette:'<path d="M20 11a9 9 0 1 0-9 10h2a2 2 0 0 0 1-4c-1-1 0-3 2-3h2a2 2 0 0 0 2-3Z"/><path d="M7 9h.01M11 6h.01M16 8h.01M6 14h.01"/>',
+   moon:'<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10Z"/>',
+   calendar:'<rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 10h16m-12 4h3m-3 3h7"/>',
+   compass:'<circle cx="12" cy="12" r="9"/><path d="m15 9-2 4-4 2 2-4 4-2Z"/>',
+   spark:'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/>',
+   star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/>',
+   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
+   leaf:'<path d="M20 3C9 2 2 7 4 14c2 8 14 7 16-11ZM4 21 16 8"/>'
+  };
+  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+(paths[icon]||paths.star)+'</svg>';
  }
- function badgesSection(){const list=badgeList();return '<div class="oa-section-head"><h2>Badges</h2><span>'+list.filter(b=>b.earned).length+'/'+list.length+'</span></div><div class="oa-badge-list">'+list.map(b=>'<span class="oa-badge-chip'+(b.earned?' is-earned':'')+'"><span aria-hidden="true">'+b.icon+'</span>'+h(b.label)+'</span>').join('')+'</div>';}
+ function badgeRows(){
+  const items=new Map((badgeView?.items||[]).map(item=>[item.id,item]));
+  return badgeCatalog.map(definition=>({...definition,...items.get(definition.id)}));
+ }
+ function recentBadges(){return badgeRows().filter(badge=>badge.award).sort((a,b)=>b.award.sequence-a.award.sequence||a.id.localeCompare(b.id));}
+ function badgeScopeLabel(badge){return badge.scope==='shared'?'À deux':'À moi';}
+ function badgeDate(award){
+  if(!award?.at)return 'Débloqué';
+  return 'Débloqué le <time datetime="'+h(award.at)+'">'+h(new Date(award.at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Paris'}))+'</time>';
+ }
+ function badgeRow(badge,compact=false){
+  const earned=!!badge.award,value=badge.progress?.value||0,target=badge.target,progress=Math.min(value,target);
+  return '<li class="oa-achievement'+(earned?' is-earned':'')+(badge.id===badgeHighlight?' is-highlighted':'')+'" data-badge-id="'+h(badge.id)+'"><span class="oa-achievement-icon">'+badgeIcon(badge.icon)+'</span><div class="oa-achievement-copy"><p class="oa-achievement-meta">'+badgeScopeLabel(badge)+' · '+(earned?badgeDate(badge.award):'À débloquer')+'</p><h3>'+h(badge.title)+'</h3>'+(!compact?'<p class="oa-achievement-description">'+h(badge.description)+'</p>':'')+(!compact&&!earned?'<div class="oa-achievement-progress" role="progressbar" aria-label="'+h(badge.title)+'" aria-valuemin="0" aria-valuemax="'+target+'" aria-valuenow="'+progress+'" aria-valuetext="'+value+' sur '+target+'"><i style="transform:scaleX('+progress/target+')"></i></div><p class="oa-achievement-value">'+value+' / '+target+'</p>':'')+'</div></li>';
+ }
+ function badgesSection(){
+  if(!badgeView)return '';
+  const earned=recentBadges();
+  return '<section class="oa-achievements" aria-labelledby="oa-badges-title"><div class="oa-section-head"><h2 id="oa-badges-title">Badges</h2><span aria-label="'+earned.length+' badges débloqués sur '+badgeCatalog.length+'">'+earned.length+' / '+badgeCatalog.length+'</span></div>'+(earned.length?'<p class="oa-note">Les derniers débloqués</p><ol class="oa-achievement-list is-recent">'+earned.slice(0,5).map(badge=>badgeRow(badge,true)).join('')+'</ol>':'<p class="oa-note">Votre premier badge vous attend.</p>')+'<div class="oa-achievement-more">'+textBtn('Tout afficher','badges-all','aria-label="Afficher les '+badgeCatalog.length+' badges"')+'</div></section>';
+ }
+ function badgeCollectionMarkup(){
+  const rows=badgeRows().filter(badge=>badgeFilter==='all'||badge.scope===badgeFilter).sort((a,b)=>a.award&&b.award?b.award.sequence-a.award.sequence||a.id.localeCompare(b.id):a.award?-1:b.award?1:a.order-b.order);
+  const filters=[['all','Tous'],['individual','À moi'],['shared','À deux']];
+  return '<div class="oa-achievement-filters" role="group" aria-label="Filtrer les badges">'+filters.map(([scope,label])=>'<button type="button" class="cursor-interaction" data-action="badge-filter" data-scope="'+scope+'" aria-pressed="'+(badgeFilter===scope)+'">'+label+'</button>').join('')+'</div><p class="oa-achievement-total" role="status">'+rows.filter(badge=>badge.award).length+' débloqué'+(rows.filter(badge=>badge.award).length>1?'s':'')+' sur '+rows.length+'</p><ul class="oa-achievement-list">'+rows.map(badge=>badgeRow(badge)).join('')+'</ul>';
+ }
+ function updateBadgeCollection(){
+  if(!badgeSheetOpen||sheet.hidden||!badgeView)return;
+  const content=sheet.querySelector('[data-badge-collection]');if(!content)return;
+  const markup=badgeCollectionMarkup();if(markup===badgeSheetMarkup)return;
+  const dialog=sheet.querySelector('.oa-sheet'),scrollTop=dialog?.scrollTop||0,focused=document.activeElement;
+  const scope=focused?.dataset.action==='badge-filter'?focused.dataset.scope:null;
+  content.innerHTML=markup;badgeSheetMarkup=markup;
+  if(scope)content.querySelector('[data-scope="'+scope+'"]')?.focus({preventScroll:true});
+  if(dialog)dialog.scrollTop=scrollTop;
+ }
+ function openBadgeCollection(id=null){
+  if(!badgeView)return;
+  badgeFilter='all';badgeHighlight=badgeDefinitions.has(id)?id:null;badgeSheetOpen=true;badgeSheetMarkup=badgeCollectionMarkup();
+  openSheet('Tous les badges','<div data-badge-collection>'+badgeSheetMarkup+'</div>','oa-achievement-sheet');
+  if(badgeHighlight){const dialog=sheet.querySelector('.oa-sheet'),row=sheet.querySelector('[data-badge-id="'+badgeHighlight+'"]');if(dialog&&row)dialog.scrollTop=Math.max(0,dialog.scrollTop+row.getBoundingClientRect().top-dialog.getBoundingClientRect().top-90);}
+ }
+ function validBadgeRegistry(value){
+  return value&&value.version===1&&Number.isSafeInteger(value.epoch)&&value.epoch>0&&['seen','pending'].every(key=>Array.isArray(value[key])&&value[key].length<=120&&value[key].every(id=>typeof id==='string'&&id.length>0&&id.length<=200));
+ }
+ function readBadgeRegistry(key){
+  let stored=null;try{const value=JSON.parse(localStorage.getItem(key)||'null');if(validBadgeRegistry(value))stored=value;}catch(_){}
+  const memory=badgeMemory.get(key);if(!stored)return memory||null;if(!memory)return stored;
+  if(memory.epoch!==stored.epoch)return memory.epoch>stored.epoch?memory:stored;
+  const seen=[...new Set([...stored.seen,...memory.seen])],seenIds=new Set(seen);
+  return {version:1,epoch:stored.epoch,seen,pending:[...new Set([...stored.pending,...memory.pending])].filter(id=>!seenIds.has(id))};
+ }
+ function mergeBadgeRegistry(value){
+  if(!badgeRegistry||!validBadgeRegistry(value)||value.epoch!==badgeRegistry.epoch)return;
+  badgeRegistry.seen=[...new Set([...badgeRegistry.seen,...value.seen])].slice(0,120);
+  const seen=new Set(badgeRegistry.seen);
+  badgeRegistry.pending=[...new Set([...badgeRegistry.pending,...value.pending])].filter(id=>!seen.has(id)).slice(0,120);
+ }
+ function saveBadgeRegistry(){
+  if(!badgeRegistryKey||!badgeRegistry)return;
+  const previous=readBadgeRegistry(badgeRegistryKey);mergeBadgeRegistry(previous);
+  if(previous&&previous.epoch>badgeRegistry.epoch)return;
+  const value={version:1,epoch:badgeRegistry.epoch,seen:[...badgeRegistry.seen],pending:[...badgeRegistry.pending]};
+  badgeMemory.set(badgeRegistryKey,value);
+  const serialized=JSON.stringify(value);try{if(localStorage.getItem(badgeRegistryKey)!==serialized)localStorage.setItem(badgeRegistryKey,serialized);}catch(_){}
+ }
+ function stopBadgeTimer(){
+  if(badgeTimer!==null){clearTimeout(badgeTimer);badgeTimer=null;if(badgeActive)badgeActive.remaining=Math.max(0,badgeActive.remaining-(chargeNow()-badgeTimerStarted));}
+ }
+ function clearBadgeContext(){
+  stopBadgeTimer();badgeActive=null;badgeHover=false;badgeFocus=false;badgeReturnFocus=null;badgeView=null;badgeRegistry=null;badgeRegistryKey=null;badgeMissingBaseline=null;
+  if(badgeNotice){badgeNotice.hidden=true;badgeNotice.innerHTML='';delete badgeNotice.dataset.award;}if(badgeAnnouncement)badgeAnnouncement.textContent='';
+  if(badgeSheetOpen)closeSheet();badgeFilter='all';badgeHighlight=null;
+ }
+ function trackBadges(){
+  const next=remoteMode?(remoteReady&&remote?.authenticated?remoteSnapshot?.badges:null):G.badgeView?.(localRoom,viewPlayer);
+  const scope=remoteMode?(remoteReady&&remote?.authenticated?String(window.DesirConfig.endpoint)+':'+remoteSnapshot.roomId+':'+viewPlayer:null):'demo:'+viewPlayer;
+  const key=scope?'desir-badges-seen-v1:'+scope:null;
+  if(!next||!G.validateBadgeView?.(next,viewPlayer)){
+   if(badgeRegistryKey)clearBadgeContext();
+   // An old receipt may precede the first enriched action reply. Its server time
+   // separates historical gains from awards earned after the game was opened.
+   if(key&&remoteMode&&remoteSnapshot?.badges===undefined&&Number.isFinite(Date.parse(remoteSnapshot.serverTime))&&badgeMissingBaseline?.key!==key)badgeMissingBaseline={key,at:Date.parse(remoteSnapshot.serverTime)};
+   return;
+  }
+  const known=readBadgeRegistry(key);
+  if(known&&known.epoch>next.epoch){clearBadgeContext();return;}
+  const baselineAfter=badgeMissingBaseline?.key===key?badgeMissingBaseline.at:null;
+  const changed=key!==badgeRegistryKey||next.epoch!==badgeView?.epoch;
+  if(changed){
+   clearBadgeContext();badgeRegistryKey=key;badgeView=next;
+   const stored=readBadgeRegistry(key);
+   badgeRegistry=stored&&stored.epoch===next.epoch?{version:1,epoch:next.epoch,seen:[...stored.seen],pending:[...stored.pending]}:{version:1,epoch:next.epoch,seen:[],pending:[]};
+   // A first visit shows the collection quietly. Existing accounts resume unseen gains.
+   if(!stored)badgeRegistry.seen=next.items.filter(item=>item.award&&(baselineAfter===null||item.award.source==='imported'||Date.parse(item.award.at)<baselineAfter)).map(item=>item.award.id);
+  }else badgeView=next;
+  badgeMissingBaseline=null;
+  mergeBadgeRegistry(readBadgeRegistry(key));
+  const seen=new Set(badgeRegistry.seen),pending=new Set(badgeRegistry.pending);
+  for(const item of next.items){const award=item.award;if(!award)continue;if(award.source==='imported'){seen.add(award.id);pending.delete(award.id);}else if(!seen.has(award.id))pending.add(award.id);}
+  badgeRegistry.seen=[...seen];badgeRegistry.pending=[...pending].filter(id=>!seen.has(id));saveBadgeRegistry();
+  updateBadgeCollection();
+ }
+ function badgeCanPresent(){return !!badgeView&&welcomeDismissed&&(!remoteMode||remoteReady&&remote?.authenticated)&&!authBusy&&!charge&&!busy&&!operationBusy&&!pendingChecks.size&&!document.hidden&&!presentationHidden&&sheet.hidden;}
+ function updateBadgeNotice(){
+  if(!badgeNotice||!badgeRegistry)return;
+  const known=readBadgeRegistry(badgeRegistryKey);if(known&&known.epoch>badgeRegistry.epoch){clearBadgeContext();return;}
+  if(!badgeCanPresent()){stopBadgeTimer();badgeNotice.hidden=true;return;}
+  if(!badgeActive){
+   mergeBadgeRegistry(readBadgeRegistry(badgeRegistryKey));
+   const pending=new Set(badgeRegistry.pending),seen=new Set(badgeRegistry.seen);
+   const next=recentBadges().reverse().find(badge=>pending.has(badge.award.id)&&!seen.has(badge.award.id)&&badge.award.source!=='imported');
+   if(!next){badgeNotice.hidden=true;return;}
+   badgeActive={id:next.id,awardId:next.award.id,remaining:8000};badgeHover=false;badgeFocus=false;
+   badgeRegistry.seen.push(next.award.id);badgeRegistry.pending=badgeRegistry.pending.filter(id=>id!==next.award.id);saveBadgeRegistry();
+   badgeNotice.innerHTML='<span class="oa-achievement-icon">'+badgeIcon(next.icon)+'</span><div class="oa-badge-notice-copy"><p>Badge débloqué · '+badgeScopeLabel(next)+'</p><h2>'+h(next.title)+'</h2><button type="button" class="oa-text-button cursor-interaction" data-action="badge-view" data-badge="'+h(next.id)+'">Voir le badge</button></div><button type="button" class="oa-badge-notice-close cursor-interaction" data-action="badge-dismiss" aria-label="Fermer la notification du badge">×</button>';
+   badgeNotice.dataset.award=next.award.id;
+   if(badgeAnnouncement)badgeAnnouncement.textContent='Badge débloqué : '+next.title+'. '+badgeScopeLabel(next)+'.';
+  }
+  badgeNotice.hidden=false;
+  if(!badgeTimer&&!badgeHover&&!badgeFocus){badgeTimerStarted=chargeNow();badgeTimer=setTimeout(()=>{badgeTimer=null;dismissBadgeNotice();},Math.max(1,badgeActive.remaining));}
+ }
+ function dismissBadgeNotice(resume=true){
+  const focused=badgeNotice?.contains(document.activeElement);
+  stopBadgeTimer();badgeActive=null;badgeHover=false;badgeFocus=false;if(badgeNotice){badgeNotice.hidden=true;badgeNotice.innerHTML='';delete badgeNotice.dataset.award;}if(badgeAnnouncement)badgeAnnouncement.textContent='';
+  if(resume){if(focused){const target=badgeReturnFocus?.isConnected&&!badgeReturnFocus.disabled?badgeReturnFocus:main;if(target===main)main.setAttribute('tabindex','-1');target.focus({preventScroll:true});}badgeReturnFocus=null;updateBadgeNotice();}
+ }
+ badgeNotice?.addEventListener('mouseenter',()=>{badgeHover=true;stopBadgeTimer();});
+ badgeNotice?.addEventListener('mouseleave',()=>{badgeHover=false;updateBadgeNotice();});
+ badgeNotice?.addEventListener('focusin',event=>{if(!badgeNotice.contains(event.relatedTarget))badgeReturnFocus=event.relatedTarget;badgeFocus=true;stopBadgeTimer();});
+ badgeNotice?.addEventListener('focusout',event=>{if(!badgeNotice.contains(event.relatedTarget)){badgeFocus=false;updateBadgeNotice();}});
  function renderWelcome(){
   return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose-la, ou relance-la d’un geste.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
  }
@@ -411,9 +555,9 @@
  }
  function render(transition=null){
   if(!remoteMode){const fresh=G.reduceRoom(localRoom,{type:'EXPIRE_TASKS',at:now(),actor:viewPlayer});if(fresh!==localRoom){localRoom=fresh;syncLocalView();save();}}
-  trackGrade();
+  trackGrade();trackBadges();
   // Connection updates may restore the game behind this screen, never replace it.
-  if(!welcomeDismissed&&renderKey==='welcome'){renderPersona();scheduleExpiry();return;}
+  if(!welcomeDismissed&&renderKey==='welcome'){renderPersona();scheduleExpiry();updateBadgeNotice();return;}
   const focused=document.activeElement;
   const focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const scrollTop=main.scrollTop,scrollLeft=main.scrollLeft;
@@ -430,7 +574,7 @@
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
-  if(!replaceMain){scheduleExpiry();scheduleAutoNewRound();return;}
+  if(!replaceMain){scheduleExpiry();scheduleAutoNewRound();updateBadgeNotice();return;}
   const holder=main.querySelector('[data-stage]');
   if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:refusal?.color||category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
   else die.pauseMotion?.();
@@ -453,6 +597,7 @@
   main.scrollTop=previousKey===key?scrollTop:0;main.scrollLeft=previousKey===key?scrollLeft:0;
   if(transition)animateDiceHandoff(transition);
   scheduleAutoNewRound();
+  updateBadgeNotice();
  }
  function animateGauge(){
   const gauge=main.querySelector('[data-gauge]');if(!gauge)return;
@@ -474,8 +619,9 @@
  function softSound(){if(!state.prefs.sound)return;try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();audioContext.resume();[0,.44,.83].forEach((delay,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),t=audioContext.currentTime+delay;osc.type='sine';osc.frequency.setValueAtTime(155-i*18,t);osc.frequency.exponentialRampToValueAtTime(48,t+.1);gain.gain.setValueAtTime(.055/(i+1),t);gain.gain.exponentialRampToValueAtTime(.001,t+.13);osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+.14);});}catch(_){}}
  function setControlsBusy(value){
   const active=value||busy||operationBusy;root.classList.toggle('is-busy',active);
-  if(active){controlsBusyState=controlsBusyState||new Map();root.querySelectorAll('button,input').forEach(el=>{if(el.dataset.action==='close'&&!sheet.hidden)return;if(!controlsBusyState.has(el))controlsBusyState.set(el,el.disabled);el.disabled=true;});}
+  if(active){controlsBusyState=controlsBusyState||new Map();root.querySelectorAll('button,input').forEach(el=>{if(el.dataset.action==='badge-dismiss'||el.dataset.action==='close'&&!sheet.hidden)return;if(!controlsBusyState.has(el))controlsBusyState.set(el,el.disabled);el.disabled=true;});}
   else if(controlsBusyState){for(const [el,disabled] of controlsBusyState)if(el.isConnected)el.disabled=disabled;controlsBusyState=null;}
+  updateBadgeNotice();
  }
  function scheduleAutoNewRound(){
   if(autoNewRoundTimer){clearTimeout(autoNewRoundTimer);autoNewRoundTimer=null;}
@@ -491,7 +637,7 @@
   if(!canRerollCategoryNow())return;
   const roundId=state.round.id,action={type:'REROLL_CATEGORY',catalogueVersion:2,roundId};
   if(!remoteMode){
-   action.value=G.rollCategory(2,G.randomInt);
+   action.at=now();action.value=G.rollCategory(2,G.randomInt,action.at);
    action.hand=G.drawHand(state,action.value,2);
    const cat=G.categories.find(c=>c.number===action.value);
    if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
@@ -534,7 +680,7 @@
     if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
     const faces=reroll?Array.from({length:sides},(_,i)=>i+1).filter(value=>value!==state.round.cardRoll):null;
-    faceValue=action.type==='ROLL_CATEGORY'?G.rollCategory(action.catalogueVersion,G.randomInt):
+    action.at=now();faceValue=action.type==='ROLL_CATEGORY'?G.rollCategory(action.catalogueVersion,G.randomInt,action.at):
       faces?faces[G.randomInt(faces.length)-1]:G.randomInt(sides);
     action.value=faceValue;
     if(action.type==='ROLL_CATEGORY'){
@@ -542,7 +688,7 @@
      const cat=G.categories.find(c=>c.number===faceValue);
      if(cat&&cat.id==='intimite')action.modeRoll=G.randomInt(20);
     }
-    const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId,at:now()});if(nextRoom===localRoom)return;
+    const nextRoom=G.reduceRoom(localRoom,{...action,actor,roundId});if(nextRoom===localRoom)return;
     localRoom=nextRoom;syncLocalView();next=state;save();
    }
    resultLabel=action.type==='ROLL_CATEGORY'?'Catégorie '+(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.label||G.categories.find(c=>c.number===faceValue)?.label||'tirée') : ['ROLL_CARD','REROLL_CARD'].includes(action.type)?(G.getCard(next.round.cardId)?.title||'Carte tirée.'):action.type==='ROLL_VARIANT'?(G.getVariant(next.round)||'Variante choisie.'):'Lancer terminé.';
@@ -596,8 +742,22 @@
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
   finally{if(serial===animationSerial){activeRollFace=null;refusal=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);else{remoteReady=false;deferredSnapshot=null;}}else syncLocalView();render();}}
  }
- function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;sheet.querySelector('button')?.focus({preventScroll:true});}
- function closeSheet(){if(sheet.hidden)return;sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;}
+ function openSheet(title,body,extraClass=''){
+  if(extraClass!=='oa-achievement-sheet'){badgeSheetOpen=false;badgeSheetMarkup='';}
+  lastFocus=document.activeElement;
+  if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};
+  sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';
+  sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';
+  const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});
+  const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;updateBadgeNotice();sheet.querySelector('button')?.focus({preventScroll:true});
+ }
+ function closeSheet(){
+  if(sheet.hidden)return;
+  badgeSheetOpen=false;badgeSheetMarkup='';sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';
+  Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);
+  if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}
+  if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;updateBadgeNotice();
+ }
 
  function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
@@ -612,6 +772,7 @@
  root.addEventListener('click',async event=>{
   const el=event.target.closest('[data-action]');if(!el||!root.contains(el))return;event.preventDefault();const action=el.dataset.action;
   if(ignoreChargedClick(el,event))return;
+  if(action==='badge-dismiss'){dismissBadgeNotice();return;}
   if(charge)clearCharge();
   if(action==='welcome-start'){
    if(welcomeDismissed)return;welcomeDismissed=true;try{localStorage.setItem(welcomeKey,'1');}catch(_){}render();return;
@@ -624,6 +785,9 @@
    finally{authBusy=false;render();}return;
   }
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
+  if(action==='badges-all'){openBadgeCollection();return;}
+  if(action==='badge-filter'){if(badgeSheetOpen&&['all','individual','shared'].includes(el.dataset.scope)){badgeFilter=el.dataset.scope;badgeHighlight=null;updateBadgeCollection();}return;}
+  if(action==='badge-view'){const origin=badgeReturnFocus;dismissBadgeNotice(false);openBadgeCollection(el.dataset.badge);if(origin?.isConnected)lastFocus=origin;badgeReturnFocus=null;return;}
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,roundId:state.round.id};if(!remoteMode){act.value=category;act.catalogueVersion=2;act.hand=G.drawHand(state,category,2);const cat=G.categories.find(c=>c.number===category);if(cat&&cat.id==='intimite')act.modeRoll=G.randomInt(20);}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
@@ -675,14 +839,15 @@
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
  setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}}},30000);
- document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}});
- window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}updateBadgeNotice();});
+ window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{
   const button=rollButton(event.target);
   if(button&&(event.code==='Space'||event.key===' ')){event.preventDefault();if(!event.repeat)startCharge(button,'keyboard',event);return;}
   if(event.key==='Escape'&&charge){event.preventDefault();clearCharge();return;}
   if(event.key==='Enter'){clearCharge(false);suppressedClick=null;}
+  if(event.key==='Escape'&&sheet.hidden&&badgeActive&&badgeNotice?.contains(document.activeElement)){event.preventDefault();dismissBadgeNotice();return;}
   if(sheet.hidden)return;if(event.key==='Escape'){closeSheet();return;}if(event.key==='Tab'){const focusable=Array.from(sheet.querySelectorAll('button,a,input,select,textarea,summary')).filter(x=>!x.disabled);if(!focusable.length){event.preventDefault();return;}const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
  });
  render();
@@ -691,6 +856,7 @@
   else{
    remote.subscribeToChanges(event=>{
     if(remote.connection&&!remote.authenticated){
+     clearBadgeContext();
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
      const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;refusal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;

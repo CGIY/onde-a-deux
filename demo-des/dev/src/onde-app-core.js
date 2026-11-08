@@ -20,7 +20,7 @@
 
 
   // Equal base weights, with one extra ticket for the two favored themes.
-  // On Paris week-ends, Intimité gets a doubled weight.
+  // On Paris week-ends, Intimité receives exactly 60%; other ratios stay 11:10:10.
   const parisFormatter = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
   function parisParts(at){ const date=new Date(at); if(Number.isNaN(date.getTime())) return null; return Object.fromEntries(parisFormatter.formatToParts(date).map(part=>[part.type,part.value])); }
   function parisDateKey(at){ const parts=parisParts(at); return parts?parts.year+'-'+parts.month+'-'+parts.day:null; }
@@ -41,7 +41,7 @@
   function categoryTickets(at){
     const weekend=at!==undefined&&at!==null&&isParisWeekend(at);
     return categories.flatMap(category =>
-      Array(category.id==='intimite'?(weekend?22:11):category.id==='complicite'?11:10).fill(category.number)
+      Array(weekend?(category.id==='intimite'?93:category.id==='complicite'?22:20):(category.id==='intimite'||category.id==='complicite'?11:10)).fill(category.number)
     );
   }
 
@@ -388,7 +388,7 @@
 
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
-    if (!validStats(s.stats)) return false;
+    if (!validStats(s.stats) || s.progression!==undefined&&!validProgression(s.progression,s.sequence)) return false;
     if (!Number.isSafeInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
     if (!validTasks(s)) return false;
     if (!Array.isArray(s.favorites) || s.favorites.some(id => !getCard(id)) || !s.prefs || prefKeys.some(k => typeof s.prefs[k] !== 'boolean')) return false;
@@ -398,6 +398,7 @@
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
     const r=s.round;
     if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
+    if(r.dailyFree!==undefined && typeof r.dailyFree!=='boolean') return false;
     if(r.refusalRoll!==undefined && (!Number.isInteger(r.refusalRoll) || r.refusalRoll<1 || r.refusalRoll>20)) return false;
     if(s.history.some(item=>item.refusalRoll!==undefined && (!Number.isInteger(item.refusalRoll) || item.refusalRoll<1 || item.refusalRoll>20))) return false;
     const roundSequence=typeof r.id==='string'&&/^onde-[1-9]\d*$/.test(r.id)?Number(r.id.slice(5)):NaN;
@@ -625,7 +626,7 @@
     recordHistory(s,s.round);
   }
 
-  function reduce(state, action) {
+  function reduceGame(state, action) {
     if (!validateState(state) || !action || typeof action.type !== 'string') return state;
     const kind=action.type;
     if(kind==='RESET') {
@@ -706,7 +707,7 @@
         r.from=actor; r.to=otherPlayer(actor);
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
         if(modern){
-          Object.assign(r,{catalogueVersion:2,variantRoll:null});
+          Object.assign(r,{catalogueVersion:2,variantRoll:null,dailyFree:false});
           r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
           r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
         }
@@ -723,7 +724,7 @@
         const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
         if(used.includes(actor)) return state;
         r.categoryId=cat.id; r.categoryRoll=action.value; r.hand=action.hand.slice();
-        r.catalogueVersion=2; r.variantRoll=null;
+        r.catalogueVersion=2; r.variantRoll=null; r.dailyFree=false;
         r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
         r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
         s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
@@ -739,7 +740,7 @@
         if(joker.usedBy) return state;
         r.from=actor; r.to=otherPlayer(actor);
         r.categoryId=cat.id; r.categoryRoll=action.category; r.hand=action.hand.slice();
-        r.catalogueVersion=2; r.variantRoll=null;
+        r.catalogueVersion=2; r.variantRoll=null; r.dailyFree=false;
         r.modeRoll=cat.id==='intimite'&&Number.isInteger(action.modeRoll)&&action.modeRoll>=1&&action.modeRoll<=20?action.modeRoll:null;
         r.hardcoreOffer=r.modeRoll!==null&&r.modeRoll>10;
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
@@ -758,7 +759,7 @@
         r.from=actor; r.to=otherPlayer(actor);
         r.categoryId=daily.categoryId; r.categoryRoll=daily.categoryRoll;
         r.hand=daily.hand.slice(); r.cardRoll=daily.cardRoll; r.cardId=daily.cardId; r.hp=card.hp;
-        r.catalogueVersion=2; r.variantRoll=daily.variantRoll; r.modeRoll=null; r.hardcoreOffer=false;
+        r.catalogueVersion=2; r.variantRoll=daily.variantRoll; r.modeRoll=null; r.hardcoreOffer=false; r.dailyFree=true;
         r.status='pending'; r.awaiting=r.to; r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.sentAt=action.at;
         s.phase='pending';
@@ -831,7 +832,7 @@
 
   function validateRoom(room) {
     if(!room || room.version!==2 || !room.lanes || typeof room.lanes!=='object' || Array.isArray(room.lanes) || Object.keys(room.lanes).sort().join(',')!=='a,b' || !Array.isArray(room.pendingRounds) || room.pendingRounds.length>80) return false;
-    if(!validStoredDaily(room.daily) || !validStoredReroll(room.dailyReroll) || !validStoredJoker(room.joker)) return false;
+    if(!validStoredDaily(room.daily) || !validStoredReroll(room.dailyReroll) || !validStoredJoker(room.joker) || room.progression!==undefined&&!validProgression(room.progression,room.sequence)) return false;
     if(!Array.isArray(room.history) || !Array.isArray(room.tasks)) return false;
     const lanes=roomActors.map(actor=>room.lanes[actor]);
     if(lanes.some((lane,index)=>!lane || typeof lane!=='object' || lane.round?.from!==roomActors[index] || lane.phase==='pending')) return false;
@@ -904,6 +905,7 @@
       [owner]:{phase:state.phase,round:roomCopy(state.round)},
       [other]:{phase:'category',round:blankRound(otherSequence,other,options.at)}
     }};
+    if(state.progression!==undefined) room.progression=roomCopy(state.progression);
     if(state.phase==='pending') {
       room.pendingRounds.push({phase:'pending',round:roomCopy(state.round)});
       const used=new Set([...Object.values(room.lanes).map(lane=>lane.round.id),...room.pendingRounds.map(item=>item.round.id),...room.history.map(round=>round.id),...room.tasks.map(task=>task.id)]);
@@ -957,7 +959,7 @@
     }
   }
 
-  function reduceRoom(room,action) {
+  function reduceRoomGame(room,action) {
     if(!validateRoom(room) || !action || typeof action.type!=='string') return room;
     if(action.type==='RESET') {
       return resetRoom(room,{at:action.at,keepPrefs:!!action.keepPrefs})||room;
@@ -983,7 +985,7 @@
     if(!shared && !canSeeRound(focused,actor)) return room;
     const forwarded={...action,actor};
     if(shared) delete forwarded.roundId;
-    const result=reduce(focused,forwarded);
+    const result=reduceGame(focused,forwarded);
     if(result===focused) return room;
     const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes),pendingRounds:roomCopy(room.pendingRounds)};
     if(action.type==='SEND' && action.directQueue===true && pendingIndex<0 && result.phase==='accepted') {
@@ -1003,7 +1005,304 @@
     return validateRoom(next)?next:room;
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const badgeCatalog=[
+    {"id":"ind-draws-1","scope":"individual","title":"Premier lancer, premier sourire","description":"Effectuer un premier tirage de catégorie.","family":"draws","tier":1,"criterion":{"metric":"draws","threshold":1},"order":1,"icon":"dice","target":1},
+    {"id":"ind-draws-5","scope":"individual","title":"Dés en confiance","description":"Effectuer 5 tirages de catégorie.","family":"draws","tier":1,"criterion":{"metric":"draws","threshold":5},"order":2,"icon":"dice","target":5},
+    {"id":"ind-draws-15","scope":"individual","title":"Poignet bien échauffé","description":"Effectuer 15 tirages de catégorie.","family":"draws","tier":2,"criterion":{"metric":"draws","threshold":15},"order":3,"icon":"dice","target":15},
+    {"id":"ind-draws-30","scope":"individual","title":"Ça roule pour moi","description":"Effectuer 30 tirages de catégorie.","family":"draws","tier":2,"criterion":{"metric":"draws","threshold":30},"order":4,"icon":"dice","target":30},
+    {"id":"ind-draws-75","scope":"individual","title":"Le hasard a mon numéro","description":"Effectuer 75 tirages de catégorie.","family":"draws","tier":3,"criterion":{"metric":"draws","threshold":75},"order":5,"icon":"dice","target":75},
+    {"id":"ind-proposals-1","scope":"individual","title":"J’ai une idée !","description":"Partager une première proposition.","family":"proposals","tier":1,"criterion":{"metric":"proposals","threshold":1},"order":6,"icon":"send","target":1},
+    {"id":"ind-proposals-5","scope":"individual","title":"La boîte à bonnes idées","description":"Partager 5 propositions.","family":"proposals","tier":1,"criterion":{"metric":"proposals","threshold":5},"order":7,"icon":"send","target":5},
+    {"id":"ind-proposals-15","scope":"individual","title":"Service des propositions","description":"Partager 15 propositions.","family":"proposals","tier":2,"criterion":{"metric":"proposals","threshold":15},"order":8,"icon":"send","target":15},
+    {"id":"ind-proposals-30","scope":"individual","title":"Le moteur à idées","description":"Partager 30 propositions.","family":"proposals","tier":2,"criterion":{"metric":"proposals","threshold":30},"order":9,"icon":"send","target":30},
+    {"id":"ind-proposals-75","scope":"individual","title":"Jamais à court d’élan","description":"Partager 75 propositions.","family":"proposals","tier":3,"criterion":{"metric":"proposals","threshold":75},"order":10,"icon":"send","target":75},
+    {"id":"ind-participations-1","scope":"individual","title":"Au rendez-vous du duo","description":"Participer à un premier défi validé par vos deux coches.","family":"participations","tier":1,"criterion":{"metric":"participations","threshold":1},"order":11,"icon":"handshake","target":1},
+    {"id":"ind-participations-5","scope":"individual","title":"Cinq étoiles de présence","description":"Participer à 5 défis validés à deux.","family":"participations","tier":1,"criterion":{"metric":"participations","threshold":5},"order":12,"icon":"handshake","target":5},
+    {"id":"ind-participations-15","scope":"individual","title":"Partenaire de compétition","description":"Participer à 15 défis validés à deux.","family":"participations","tier":2,"criterion":{"metric":"participations","threshold":15},"order":13,"icon":"handshake","target":15},
+    {"id":"ind-participations-30","scope":"individual","title":"Un pilier très joueur","description":"Participer à 30 défis validés à deux.","family":"participations","tier":3,"criterion":{"metric":"participations","threshold":30},"order":14,"icon":"handshake","target":30},
+    {"id":"ind-completed-sent-5","scope":"individual","title":"Bonne idée, bon moment","description":"Voir 5 de vos propres propositions aboutir à une validation à deux.","family":"initiative","tier":1,"criterion":{"metric":"completedSent","threshold":5},"order":15,"icon":"spark","target":5},
+    {"id":"ind-completed-sent-15","scope":"individual","title":"Mes idées font leur chemin","description":"Voir 15 de vos propres propositions aboutir à une validation à deux.","family":"initiative","tier":2,"criterion":{"metric":"completedSent","threshold":15},"order":16,"icon":"spark","target":15},
+    {"id":"ind-completed-received-5","scope":"individual","title":"Je relève le gant","description":"Valider à deux 5 propositions qui vous ont été adressées.","family":"received","tier":1,"criterion":{"metric":"completedReceived","threshold":5},"order":17,"icon":"handshake","target":5},
+    {"id":"ind-completed-received-15","scope":"individual","title":"Partenaire partant","description":"Valider à deux 15 propositions qui vous ont été adressées.","family":"received","tier":2,"criterion":{"metric":"completedReceived","threshold":15},"order":18,"icon":"handshake","target":15},
+    {"id":"ind-complicite-3","scope":"individual","title":"Complice en formation","description":"Participer à 3 défis Complicité validés à deux.","family":"categories","tier":1,"criterion":{"metric":"participations","threshold":3,"categoryId":"complicite"},"order":19,"icon":"heart","target":3},
+    {"id":"ind-complicite-10","scope":"individual","title":"Complice de haut vol","description":"Participer à 10 défis Complicité validés à deux.","family":"categories","tier":2,"criterion":{"metric":"participations","threshold":10,"categoryId":"complicite"},"order":20,"icon":"heart","target":10},
+    {"id":"ind-attention-3","scope":"individual","title":"Plaisirs en poche","description":"Participer à 3 défis Plaisirs validés à deux.","family":"categories","tier":1,"criterion":{"metric":"participations","threshold":3,"categoryId":"attention"},"order":21,"icon":"cup","target":3},
+    {"id":"ind-attention-10","scope":"individual","title":"Le goût des petites attentions","description":"Participer à 10 défis Plaisirs validés à deux.","family":"categories","tier":2,"criterion":{"metric":"participations","threshold":10,"categoryId":"attention"},"order":22,"icon":"cup","target":10},
+    {"id":"ind-projets-3","scope":"individual","title":"Les mains dans le projet","description":"Participer à 3 défis Projets validés à deux.","family":"categories","tier":1,"criterion":{"metric":"participations","threshold":3,"categoryId":"projets"},"order":23,"icon":"palette","target":3},
+    {"id":"ind-projets-10","scope":"individual","title":"Permis de bricoler à deux","description":"Participer à 10 défis Projets validés à deux.","family":"categories","tier":2,"criterion":{"metric":"participations","threshold":10,"categoryId":"projets"},"order":24,"icon":"palette","target":10},
+    {"id":"ind-intimite-3","scope":"individual","title":"Club privé","description":"Participer à 3 défis Intimité validés à deux.","family":"categories","tier":1,"criterion":{"metric":"participations","threshold":3,"categoryId":"intimite"},"order":25,"icon":"moon","target":3},
+    {"id":"ind-intimite-10","scope":"individual","title":"Complice à huis clos","description":"Participer à 10 défis Intimité validés à deux.","family":"categories","tier":2,"criterion":{"metric":"participations","threshold":10,"categoryId":"intimite"},"order":26,"icon":"moon","target":10},
+    {"id":"ind-active-days-3","scope":"individual","title":"On se recroise","description":"Commencer un tirage, proposer ou cocher un défi, sur 3 jours différents.","family":"regularity","tier":1,"criterion":{"metric":"activeDays","threshold":3},"order":27,"icon":"calendar","target":3},
+    {"id":"ind-active-days-10","scope":"individual","title":"Petite habitude, grand sourire","description":"Commencer un tirage, proposer ou cocher un défi, sur 10 jours différents.","family":"regularity","tier":2,"criterion":{"metric":"activeDays","threshold":10},"order":28,"icon":"calendar","target":10},
+    {"id":"ind-active-streak-3","scope":"individual","title":"Trois jours, trois clins d’œil","description":"Commencer un tirage, proposer ou cocher un défi, trois jours de suite.","family":"regularity","tier":2,"criterion":{"metric":"activeStreakBest","threshold":3},"order":29,"icon":"calendar","target":3},
+    {"id":"ind-distinct-variants-6","scope":"individual","title":"Six nuances de moi","description":"Participer à 6 variantes différentes, chacune validée à deux.","family":"exploration","tier":2,"criterion":{"metric":"distinctCompletedVariants","threshold":6},"order":30,"icon":"compass","target":6},
+    {"id":"duo-completed-1","scope":"shared","title":"Premier nous","description":"Valider ensemble un premier défi.","family":"milestones","tier":1,"criterion":{"metric":"completed","threshold":1},"order":31,"icon":"heart","target":1},
+    {"id":"duo-completed-5","scope":"shared","title":"Duo en rodage","description":"Valider ensemble 5 défis.","family":"milestones","tier":1,"criterion":{"metric":"completed","threshold":5},"order":32,"icon":"heart","target":5},
+    {"id":"duo-completed-10","scope":"shared","title":"La fabrique à souvenirs","description":"Valider ensemble 10 défis.","family":"milestones","tier":1,"criterion":{"metric":"completed","threshold":10},"order":33,"icon":"heart","target":10},
+    {"id":"duo-completed-25","scope":"shared","title":"Vingt-cinq bonnes raisons","description":"Valider ensemble 25 défis.","family":"milestones","tier":2,"criterion":{"metric":"completed","threshold":25},"order":34,"icon":"star","target":25},
+    {"id":"duo-completed-50","scope":"shared","title":"Duo demi-centenaire","description":"Valider ensemble 50 défis.","family":"milestones","tier":2,"criterion":{"metric":"completed","threshold":50},"order":35,"icon":"star","target":50},
+    {"id":"duo-completed-100","scope":"shared","title":"La centaine complice","description":"Valider ensemble 100 défis.","family":"milestones","tier":3,"criterion":{"metric":"completed","threshold":100},"order":36,"icon":"star","target":100},
+    {"id":"duo-completed-250","scope":"shared","title":"Collectionneurs de moments","description":"Valider ensemble 250 défis.","family":"milestones","tier":3,"criterion":{"metric":"completed","threshold":250},"order":37,"icon":"star","target":250},
+    {"id":"duo-completed-500","scope":"shared","title":"Le duo des grands jours","description":"Valider ensemble 500 défis.","family":"milestones","tier":3,"criterion":{"metric":"completed","threshold":500},"order":38,"icon":"star","target":500},
+    {"id":"duo-distinct-categories-2","scope":"shared","title":"On change de décor","description":"Valider ensemble au moins un défi dans 2 catégories différentes.","family":"exploration","tier":1,"criterion":{"metric":"distinctCompletedCategories","threshold":2},"order":39,"icon":"compass","target":2},
+    {"id":"duo-distinct-categories-4","scope":"shared","title":"Tour complet du duo","description":"Valider ensemble au moins un défi dans chacune des 4 catégories.","family":"exploration","tier":2,"criterion":{"metric":"distinctCompletedCategories","threshold":4},"order":40,"icon":"compass","target":4},
+    {"id":"duo-distinct-cards-6","scope":"shared","title":"Six façons de se retrouver","description":"Valider ensemble 6 cartes différentes.","family":"exploration","tier":1,"criterion":{"metric":"distinctCompletedCards","threshold":6},"order":41,"icon":"compass","target":6},
+    {"id":"duo-distinct-cards-12","scope":"shared","title":"Douze cartes, zéro routine","description":"Valider ensemble 12 cartes différentes.","family":"exploration","tier":2,"criterion":{"metric":"distinctCompletedCards","threshold":12},"order":42,"icon":"compass","target":12},
+    {"id":"duo-distinct-cards-24","scope":"shared","title":"Le grand tour des cartes","description":"Valider ensemble 24 cartes différentes.","family":"exploration","tier":3,"criterion":{"metric":"distinctCompletedCards","threshold":24},"order":43,"icon":"compass","target":24},
+    {"id":"duo-distinct-variants-12","scope":"shared","title":"Douze nuances de nous","description":"Valider ensemble 12 variantes différentes.","family":"exploration","tier":1,"criterion":{"metric":"distinctCompletedVariants","threshold":12},"order":44,"icon":"spark","target":12},
+    {"id":"duo-distinct-variants-36","scope":"shared","title":"La routine fait sa valise","description":"Valider ensemble 36 variantes différentes.","family":"exploration","tier":2,"criterion":{"metric":"distinctCompletedVariants","threshold":36},"order":45,"icon":"spark","target":36},
+    {"id":"duo-distinct-variants-72","scope":"shared","title":"L’art de varier les plaisirs","description":"Valider ensemble 72 variantes différentes.","family":"exploration","tier":3,"criterion":{"metric":"distinctCompletedVariants","threshold":72},"order":46,"icon":"spark","target":72},
+    {"id":"duo-completion-days-3","scope":"shared","title":"On remet ça","description":"Terminer au moins un défi ensemble lors de 3 dates différentes.","family":"regularity","tier":1,"criterion":{"metric":"completionDays","threshold":3},"order":47,"icon":"calendar","target":3},
+    {"id":"duo-completion-days-10","scope":"shared","title":"Le rendez-vous des bons jours","description":"Terminer au moins un défi ensemble lors de 10 dates différentes.","family":"regularity","tier":2,"criterion":{"metric":"completionDays","threshold":10},"order":48,"icon":"calendar","target":10},
+    {"id":"duo-completion-days-30","scope":"shared","title":"Trente jours qui comptent","description":"Terminer au moins un défi ensemble lors de 30 dates différentes.","family":"regularity","tier":3,"criterion":{"metric":"completionDays","threshold":30},"order":49,"icon":"calendar","target":30},
+    {"id":"duo-completion-streak-3","scope":"shared","title":"Trois à la suite","description":"Terminer au moins un défi ensemble pendant 3 jours consécutifs.","family":"regularity","tier":1,"criterion":{"metric":"completionStreakBest","threshold":3},"order":50,"icon":"calendar","target":3},
+    {"id":"duo-completion-streak-7","scope":"shared","title":"Une semaine en tandem","description":"Terminer au moins un défi ensemble pendant 7 jours consécutifs.","family":"regularity","tier":2,"criterion":{"metric":"completionStreakBest","threshold":7},"order":51,"icon":"calendar","target":7},
+    {"id":"duo-weekend-completed-5","scope":"shared","title":"Le week-end nous va bien","description":"Valider ensemble 5 défis un samedi ou un dimanche.","family":"regularity","tier":1,"criterion":{"metric":"weekendCompleted","threshold":5},"order":52,"icon":"sun","target":5},
+    {"id":"duo-weekend-completed-20","scope":"shared","title":"Duo du dimanche aussi","description":"Valider ensemble 20 défis un samedi ou un dimanche.","family":"regularity","tier":2,"criterion":{"metric":"weekendCompleted","threshold":20},"order":53,"icon":"sun","target":20},
+    {"id":"duo-every-category-5","scope":"shared","title":"Les quatre roues du duo","description":"Valider ensemble au moins 5 défis dans chacune des 4 catégories.","family":"exploration","tier":3,"criterion":{"metric":"completedEveryCategory","threshold":5},"order":54,"icon":"compass","target":5},
+    {"id":"duo-thigh-massage-3","scope":"shared","title":"faiseuse de sartorius saillant","description":"Réaliser 3 massages des cuisses, chacun validé par vos deux coches.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-complicite-massage","variantRoll":2},"order":55,"source":"user_requested_exact_title","mappingStatus":"verified_existing_variant_and_user_context","icon":"handshake","target":3},
+    {"id":"duo-covered-face-3","scope":"shared","title":"Visage parfaitement recouvert","description":"3 faciales, validées par vos deux coches.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-fellation","variantRoll":1},"order":56,"source":"user_requested_exact_title","mappingStatus":"verified_existing_variant_and_user_context","icon":"moon","target":3},
+    {"id":"duo-kind-note-3","scope":"shared","title":"Post-it, grand effet","description":"Valider ensemble 3 petits mots doux cachés.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-complicite-petit-mot","variantRoll":2},"order":57,"icon":"send","target":3},
+    {"id":"duo-crepes-3","scope":"shared","title":"La brigade des crêpes","description":"Valider ensemble 3 réalisations de la variante Crêpes.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-attention-douceur","variantRoll":1},"order":58,"icon":"cup","target":3},
+    {"id":"duo-forest-walk-3","scope":"shared","title":"Le duo prend racine","description":"Valider ensemble 3 balades en forêt.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-projets-balade","variantRoll":3},"order":59,"icon":"leaf","target":3},
+    {"id":"duo-phone-drawer-3","scope":"shared","title":"Le tiroir gagne, nous aussi","description":"Valider ensemble 3 parenthèses d’une heure avec le téléphone dans un tiroir.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-complicite-telephone","variantRoll":3},"order":60,"icon":"moon","target":3}
+  ];
+
+  // Cumulative progression is private room data. It is deliberately excluded
+  // from roomSharedKeys; only badgeView exposes the reader's own collection.
+  const progressMetrics=['draws','proposals','participations','completedSent','completedReceived'];
+  const progressCategories=categories.map(category=>category.id);
+  const progressCounter=value=>Number.isSafeInteger(value)&&value>=0;
+  const progressObject=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
+  const progressCopy=value=>JSON.parse(JSON.stringify(value));
+  const countUp=(object,key,amount=1)=>{object[key]=Math.min(Number.MAX_SAFE_INTEGER,(object[key]||0)+amount);};
+  const blankCalendar=()=>({days:0,lastDay:null,streak:0,best:0});
+  function calendarOrdinal(key){
+    if(typeof key!=='string'||!/^\d{1,6}-\d{2}-\d{2}$/.test(key))return null;
+    const [year,month,day]=key.split('-').map(Number),date=new Date(0);
+    date.setUTCFullYear(year,month-1,day);date.setUTCHours(0,0,0,0);
+    return Number.isFinite(date.getTime())&&date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day?date.getTime()/86400000:null;
+  }
+  function recordDay(calendar,at){
+    if(!isoTime(at))return;
+    const key=parisDateKey(at),day=calendarOrdinal(key),last=calendarOrdinal(calendar.lastDay);
+    if(day===null||last!==null&&day<=last)return;
+    countUp(calendar,'days');
+    calendar.streak=last!==null&&day===last+1?Math.min(Number.MAX_SAFE_INTEGER,calendar.streak+1):1;
+    calendar.best=Math.max(calendar.best,calendar.streak);calendar.lastDay=key;
+  }
+  function blankIndividual(){
+    return {...Object.fromEntries(progressMetrics.map(metric=>[metric,0])),byCategory:Object.fromEntries(progressCategories.map(id=>[id,Object.fromEntries(progressMetrics.map(metric=>[metric,0]))])),completedByCard:{},completedByVariant:{},activity:blankCalendar()};
+  }
+  function blankProgression(epoch){
+    return {version:1,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
+  }
+  function progressCategory(record){return mergedCategory(record.categoryId||getCard(record.cardId)?.categoryId);}
+  function completedVariantKey(record){
+    const card=getCard(record.cardId);
+    return card&&Array.isArray(card.variants)&&Number.isInteger(record.variantRoll)&&record.variantRoll>=1&&record.variantRoll<=card.variants.length?card.id+':v'+record.variantRoll:null;
+  }
+  function addIndividual(progress,actor,metric,categoryId){
+    if(progress.individual[actor][metric]===Number.MAX_SAFE_INTEGER)return;
+    countUp(progress.individual[actor],metric);
+    if(progressCategories.includes(categoryId))countUp(progress.individual[actor].byCategory[categoryId],metric);
+  }
+  function addCompletionDetails(progress,task,at){
+    const categoryId=progressCategory(task),variant=completedVariantKey(task);
+    countUp(progress.shared.completedByCard,task.cardId);
+    if(variant)countUp(progress.shared.completedByVariant,variant);
+    for(const actor of roomActors){
+      countUp(progress.individual[actor].completedByCard,task.cardId);
+      if(variant)countUp(progress.individual[actor].completedByVariant,variant);
+    }
+    addIndividual(progress,task.from,'completedSent',categoryId);
+    addIndividual(progress,task.to,'completedReceived',categoryId);
+    if(isoTime(at)){
+      recordDay(progress.shared.completion,at);
+      if(isParisWeekend(at))countUp(progress.shared,'weekendCompleted');
+    }
+  }
+  function badgeMetric(progress,actor,badge){
+    const criterion=badge.criterion,individual=badge.scope==='individual',data=individual?progress.individual[actor]:progress.shared;
+    const category=criterion.categoryId;
+    if(['participations','completed'].includes(criterion.metric)){
+      if(criterion.cardId)return data.completedByVariant[criterion.cardId+':v'+criterion.variantRoll]||0;
+      if(category)return individual?data.byCategory[category].participations:data.byCategory[category];
+      return individual?data.participations:data.completed;
+    }
+    if(progressMetrics.includes(criterion.metric))return category?data.byCategory[category][criterion.metric]:data[criterion.metric];
+    if(criterion.metric==='distinctCompletedCards')return Object.values(data.completedByCard).filter(value=>value>0).length;
+    if(criterion.metric==='distinctCompletedVariants')return Object.values(data.completedByVariant).filter(value=>value>0).length;
+    if(criterion.metric==='distinctCompletedCategories')return progressCategories.filter(id=>(individual?data.byCategory[id].participations:data.byCategory[id])>0).length;
+    if(criterion.metric==='activeDays')return data.activity.days;
+    if(criterion.metric==='activeStreakBest')return data.activity.best;
+    if(criterion.metric==='completionDays')return data.completion.days;
+    if(criterion.metric==='completionStreakBest')return data.completion.best;
+    if(criterion.metric==='weekendCompleted')return data.weekendCompleted;
+    if(criterion.metric==='completedEveryCategory')return Math.min(...progressCategories.map(id=>data.byCategory[id]));
+    return 0;
+  }
+  function awardBadges(progress,at,imported=false){
+    for(const badge of badgeCatalog){
+      if(badge.scope==='individual'){
+        for(const actor of roomActors){
+          if(progress.awards.individual[actor][badge.id]||badgeMetric(progress,actor,badge)<badge.target)continue;
+          progress.awards.individual[actor][badge.id]={at,sequence:++progress.sequences[actor],...(imported?{source:'imported'}:{})};
+        }
+      }else if(!progress.awards.shared[badge.id]&&badgeMetric(progress,'a',badge)>=badge.target){
+        progress.awards.shared[badge.id]={at,sequenceByActor:{a:++progress.sequences.a,b:++progress.sequences.b},...(imported?{source:'imported'}:{})};
+      }
+    }
+  }
+  function initialProgression(state){
+    const progress=blankProgression(state.sequence),records=new Map(),activity=[];
+    // Aggregate completions are already cumulative. Unknown old card variants,
+    // directions and dates are not reconstructed from those aggregate totals.
+    progress.shared.completed=state.stats.totalCompleted;
+    for(const categoryId of progressCategories){
+      const completed=categoryScore(state.stats,categoryId);
+      progress.shared.byCategory[categoryId]=completed;
+      for(const actor of roomActors)progress.individual[actor].byCategory[categoryId].participations=completed;
+    }
+    for(const actor of roomActors)progress.individual[actor].participations=state.stats.totalCompleted;
+    const collect=(record,published=false,privateDraw=false)=>{
+      if(!record||typeof record.id!=='string'||!roomActors.includes(record.from)||record.to!==otherPlayer(record.from))return;
+      const previous=records.get(record.id);
+      records.set(record.id,{record:{...(previous?.record||{}),...record},published:published||previous?.published===true,privateDraw:privateDraw||previous?.privateDraw===true});
+    };
+    if(state.version===2){for(const lane of Object.values(state.lanes))collect(lane.round,false,['card','variant','draft'].includes(lane.phase));for(const pending of state.pendingRounds)collect(pending.round,true);}
+    else collect(state.round,false,['card','variant','draft'].includes(state.phase));
+    for(const task of state.tasks)collect(task,true);
+    for(const record of state.history)collect(record);
+    const remaining={...progress.shared.byCategory};
+    const completed=[];
+    for(const {record,published,privateDraw} of records.values()){
+      const categoryId=progressCategory(record);
+      if(!progressCategories.includes(categoryId))continue;
+      // An unmarked published v2 round might be an old free daily card. A
+      // private draw, direct queue, legacy catalogue or marker supplies proof.
+      const paid=record.dailyFree!==true&&(record.dailyFree===false||record.directQueued===true||record.catalogueVersion!==2||privateDraw);
+      if(paid&&Number.isInteger(record.categoryRoll)&&getCategory(record.categoryId,record.catalogueVersion===2?2:1)?.number===record.categoryRoll)addIndividual(progress,record.from,'draws',categoryId);
+      if(published||isoTime(record.sentAt)||['queued','completed','expired'].includes(record.status)){
+        addIndividual(progress,record.from,'proposals',categoryId);
+        if(isoTime(record.sentAt))activity.push({actor:record.from,at:record.sentAt});
+      }
+      const confirmed=record.checks?.a===true&&record.checks?.b===true||record.fromConfirmed===true&&record.toConfirmed===true;
+      if(record.status==='completed'&&confirmed&&remaining[categoryId]>0){remaining[categoryId]--;completed.push(record);}
+    }
+    completed.sort((a,b)=>(isoTime(a.endedAt)?Date.parse(a.endedAt):0)-(isoTime(b.endedAt)?Date.parse(b.endedAt):0)||a.id.localeCompare(b.id));
+    for(const record of completed){
+      addCompletionDetails(progress,record,record.endedAt);
+      if(isoTime(record.endedAt)&&roomActors.includes(record.closedBy))activity.push({actor:record.closedBy,at:record.endedAt});
+    }
+    activity.sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));
+    for(const event of activity)recordDay(progress.individual[event.actor].activity,event.at);
+    awardBadges(progress,null,true);
+    return progress;
+  }
+  function validCalendar(calendar){
+    return progressObject(calendar)&&['days','streak','best'].every(key=>progressCounter(calendar[key]))&&calendar.streak<=calendar.best&&calendar.best<=calendar.days&&(calendar.days===0?calendar.lastDay===null&&calendar.streak===0&&calendar.best===0:calendarOrdinal(calendar.lastDay)!==null&&calendar.streak>0);
+  }
+  function validProgressMap(map,variant=false){
+    if(!progressObject(map))return false;
+    return Object.entries(map).every(([key,value])=>{
+      if(!progressCounter(value)||value===0)return false;
+      if(!variant)return !!getCard(key);
+      const match=/^(.+):v([1-6])$/.exec(key),card=match&&getCard(match[1]);
+      return !!card&&Array.isArray(card.variants)&&!!card.variants[Number(match[2])-1];
+    });
+  }
+  function validProgression(progress,sequence){
+    if(!progressObject(progress)||progress.version!==1||!Number.isSafeInteger(progress.epoch)||progress.epoch<1||progress.epoch>sequence||!progressObject(progress.individual)||!progressObject(progress.shared)||!progressObject(progress.awards)||!progressObject(progress.awards.individual)||!progressObject(progress.awards.shared)||!progressObject(progress.sequences))return false;
+    const shared=progress.shared;
+    if(!progressCounter(shared.completed)||!progressCounter(shared.weekendCompleted)||shared.weekendCompleted>shared.completed||!progressObject(shared.byCategory)||Object.keys(shared.byCategory).sort().join(',')!==progressCategories.slice().sort().join(',')||!progressCategories.every(id=>progressCounter(shared.byCategory[id]))||!validProgressMap(shared.completedByCard)||!validProgressMap(shared.completedByVariant,true)||!validCalendar(shared.completion))return false;
+    if(progressCategories.reduce((total,id)=>total+shared.byCategory[id],0)!==shared.completed)return false;
+    const visibleSequences={a:[],b:[]};
+    for(const actor of roomActors){
+      const own=progress.individual[actor];
+      if(!progressObject(own)||!progressMetrics.every(metric=>progressCounter(own[metric]))||!progressObject(own.byCategory)||Object.keys(own.byCategory).sort().join(',')!==progressCategories.slice().sort().join(',')||!progressCategories.every(id=>progressObject(own.byCategory[id])&&progressMetrics.every(metric=>progressCounter(own.byCategory[id][metric])))||!validProgressMap(own.completedByCard)||!validProgressMap(own.completedByVariant,true)||!validCalendar(own.activity)||!progressObject(progress.awards.individual[actor])||!progressCounter(progress.sequences[actor]))return false;
+      for(const metric of progressMetrics)if(progressCategories.reduce((total,id)=>total+own.byCategory[id][metric],0)!==own[metric])return false;
+      for(const [id,award] of Object.entries(progress.awards.individual[actor])){
+        if(!badgeCatalog.some(badge=>badge.id===id&&badge.scope==='individual')||!validStoredAward(award,false))return false;
+        visibleSequences[actor].push(award.sequence);
+      }
+    }
+    for(const [id,award] of Object.entries(progress.awards.shared)){
+      if(!badgeCatalog.some(badge=>badge.id===id&&badge.scope==='shared')||!validStoredAward(award,true))return false;
+      for(const actor of roomActors)visibleSequences[actor].push(award.sequenceByActor[actor]);
+    }
+    return roomActors.every(actor=>{const list=visibleSequences[actor].sort((a,b)=>a-b);return progress.sequences[actor]===list.length&&list.every((value,index)=>value===index+1);});
+  }
+  function validStoredAward(award,shared){
+    if(!progressObject(award)||!(award.source==='imported'?award.at===null:award.source===undefined&&isoTime(award.at)))return false;
+    const sequence=value=>Number.isSafeInteger(value)&&value>=1;
+    return shared?progressObject(award.sequenceByActor)&&Object.keys(award.sequenceByActor).sort().join(',')==='a,b'&&roomActors.every(actor=>sequence(award.sequenceByActor[actor])):sequence(award.sequence);
+  }
+  function retainProgression(before,after){
+    if(before.progression!==undefined&&after.progression===undefined)after.progression=progressCopy(before.progression);
+    return after;
+  }
+  function progressTransition(before,after,action,actor){
+    if(after===before||action.type==='RESET')return after;
+    retainProgression(before,after);
+    if(!roomActors.includes(actor)||!isoTime(action.at))return after;
+    const lane=state=>state.version===2?state.lanes[actor]:state;
+    const previous=lane(before),next=lane(after);
+    const drawn=['ROLL_CATEGORY','JOKER_DRAW'].includes(action.type)&&previous.phase==='category'&&next.phase==='card'&&previous.round.id===next.round.id;
+    const published=after.tasks.some(task=>task.id===previous.round.id)||(after.version===2?after.pendingRounds.some(item=>item.round.id===previous.round.id):after.phase==='pending');
+    const sent=action.type==='SEND'&&previous.phase==='draft'&&previous.round.from===actor&&published;
+    const task=action.type==='TOGGLE_TASK_CHECK'?before.tasks.find(task=>task.id===action.taskId):null;
+    const remaining=task&&after.tasks.find(item=>item.id===task.id);
+    const completed=!!task&&action.checked===true&&!task.checks[actor]&&task.checks[otherPlayer(actor)]&&!remaining&&after.stats.totalCompleted===before.stats.totalCompleted+1;
+    const checked=!!task&&action.checked===true&&!task.checks[actor]&&(remaining?.checks[actor]===true||completed);
+    if(!drawn&&!sent&&!checked&&!completed)return after;
+    const progress=before.progression?progressCopy(before.progression):initialProgression(before);
+    if(drawn)addIndividual(progress,actor,'draws',progressCategory(next.round));
+    if(sent)addIndividual(progress,actor,'proposals',progressCategory(previous.round));
+    if(drawn||sent||checked)recordDay(progress.individual[actor].activity,action.at);
+    if(completed){
+      const categoryId=progressCategory(task);
+      countUp(progress.shared,'completed');countUp(progress.shared.byCategory,categoryId);
+      for(const participant of roomActors)addIndividual(progress,participant,'participations',categoryId);
+      addCompletionDetails(progress,task,action.at);
+    }
+    awardBadges(progress,action.at);
+    after.progression=progress;
+    return after;
+  }
+  function reduce(state,action){
+    const next=reduceGame(state,action);
+    return next===state?state:progressTransition(state,next,action,action.actor||state.activePlayer);
+  }
+  function reduceRoom(room,action){
+    const next=reduceRoomGame(room,action);
+    return next===room?room:progressTransition(room,next,action,action.actor);
+  }
+  function badgeView(state,actor){
+    if(!roomActors.includes(actor)||!(state?.version===2?validateRoom(state):validateState(state)))return null;
+    const progress=state.progression||initialProgression(state);
+    return {version:1,epoch:progress.epoch,items:badgeCatalog.map(badge=>{
+      const shared=badge.scope==='shared',stored=shared?progress.awards.shared[badge.id]:progress.awards.individual[actor][badge.id];
+      const award=stored?{id:progress.epoch+':'+badge.scope+':'+(shared?'':actor+':')+badge.id,at:stored.at,sequence:shared?stored.sequenceByActor[actor]:stored.sequence,...(stored.source?{source:stored.source}:{})}:null;
+      return {id:badge.id,progress:{value:badgeMetric(progress,actor,badge),target:badge.target},award};
+    })};
+  }
+  function validateBadgeView(view,actor){
+    if(!progressObject(view)||Object.keys(view).sort().join(',')!=='epoch,items,version'||view.version!==1||!Number.isSafeInteger(view.epoch)||view.epoch<1||!Array.isArray(view.items)||view.items.length!==badgeCatalog.length||actor!==undefined&&!roomActors.includes(actor))return false;
+    const sequences=[];
+    for(let index=0;index<badgeCatalog.length;index++){
+      const badge=badgeCatalog[index],item=view.items[index];
+      if(!progressObject(item)||Object.keys(item).sort().join(',')!=='award,id,progress'||item.id!==badge.id||!progressObject(item.progress)||Object.keys(item.progress).sort().join(',')!=='target,value'||!progressCounter(item.progress.value)||item.progress.target!==badge.target)return false;
+      if(item.award===null)continue;
+      const award=item.award,expected=badge.scope==='shared'?[view.epoch+':shared:'+badge.id]:(actor?[actor]:roomActors).map(who=>view.epoch+':individual:'+who+':'+badge.id);
+      if(!progressObject(award)||Object.keys(award).sort().join(',')!==(award.source===undefined?'at,id,sequence':'at,id,sequence,source')||!expected.includes(award.id)||!validStoredAward(award,false)||item.progress.value<badge.target)return false;
+      sequences.push(award.sequence);
+    }
+    sequences.sort((a,b)=>a-b);
+    return sequences.every((value,index)=>value===index+1);
+  }
+
+  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
