@@ -146,7 +146,7 @@ for(const id of ids){
 eq(collection.stats.totalCompleted,20);eq(collection.progression.shared.completed,20);eq(collection.progression.shared.byCategory.intimite,20);
 eq(metric(collection,'duo-distinct-cards-24'),20);eq(metric(collection,'duo-distinct-variants-72'),0);
 eq(collection.progression.shared.completedByVariant,{});
-for(const badge of G.badgeCatalog.filter(b=>b.criterion.cardId))eq(metric(collection,badge.id),0);
+for(const badge of G.badgeCatalog.filter(b=>b.criterion.cardId))eq(metric(collection,badge.id),badge.criterion.variantRoll===undefined?1:0);
 for(const actor of ['a','b'])ok(G.validateBadgeView(G.badgeView(collection,actor),actor));
 
 // An absent register imports only evidenced minima, recognizes v3 category 4,

@@ -26,11 +26,15 @@ Dans « Nous », seul le grade le plus élevé atteint est affiché. Douze palie
 
 ## Collection de badges
 
-Chaque profil peut collectionner **60 badges : 30 individuels et 30 partagés**. « Nous » affiche les **cinq derniers débloqués** ; « Tout afficher » ouvre la collection complète, avec les filtres « Tous », « À moi » et « À deux ». Les badges encore verrouillés indiquent leur condition et leur progression. Les badges individuels du partenaire ne sont pas exposés.
+Chaque profil peut collectionner **90 badges : 30 individuels et 60 partagés**. « Nous » affiche les **cinq derniers débloqués** ; « Tout afficher » ouvre la galerie complète, avec les filtres « Tous », « À moi » et « À deux ». Toucher un médaillon montre son titre, sa condition exacte, sa progression et sa date de gain dans le même panneau. Les badges individuels du partenaire ne sont pas exposés.
+
+Les 90 emblèmes originaux combinent métal biseauté, émaux colorés et silhouettes variées. Chaque identifiant possède une composition définie ; les paliers d'une famille font évoluer le dessin et ses ornements. Le rendu verrouillé conserve le motif dans une palette atténuée. Les dessins vectoriels sont incorporés au jeu, sans requête d'image supplémentaire, et mis en cache côté interface. Leur version autonome est disponible dans la [galerie des emblèmes](badges/) et dans [l'archive des 90 SVG](badges/desir-badges.zip). Cette galerie publique montre les dessins et leurs conditions, sans progression de compte.
 
 Les critères couvrent les tirages, les propositions, les réalisations, les catégories, la diversité des cartes et variantes, les jours d’activité et les jalons communs. Les réalisations Hardcore comptent pour les totaux, la catégorie Intimité et les badges de cartes différentes. Les badges de variantes gardent leurs critères et identifiants : une carte Hardcore sans variante ne remplace pas une variante classique. Les réalisations ne comptent qu’après les deux coches. Un refus, une expiration ou le rejeu d’une requête n’ajoute aucune réalisation. Les jours sont calculés à Paris à partir des actions de la personne concernée ; cocher aujourd’hui ne crée pas une journée d’activité pour le partenaire qui avait coché hier.
 
-Les compteurs et les gains sont persistés dans l’état du duo, indépendamment des 80 lignes d’historique conservées. Un badge gagné reste acquis jusqu’à une remise à zéro explicite. Les variantes précises ont leur propre critère : trois réalisations d’une carte avec une autre variante ne débloquent pas le badge de celle-ci.
+Les compteurs et les gains sont persistés dans l’état du duo, indépendamment des 80 lignes d’historique conservées. Un badge gagné reste acquis jusqu’à une remise à zéro explicite. Les variantes précises ont leur propre critère : trois réalisations d’une carte avec une autre variante ne débloquent pas le badge de celle-ci. Les trente ajouts portent sur quinze variantes Intimité précises et quinze cartes Hardcore, avec un seuil de trois réalisations. Ils ne modifient aucune des soixante définitions précédentes.
+
+À la mise à jour, les nouveaux badges déjà justifiés par les compteurs cumulatifs sont repris silencieusement, sans inventer de date de gain. Un seuil franchi par une nouvelle réalisation déclenche normalement son popup. Les identifiants, dates et ordres des attributions précédentes restent conservés ; cette mise à jour ne remet aucune progression à zéro.
 
 Un gain déclenche une notification dans l’app avec son titre et un accès à la collection. Plusieurs gains attendent leur tour ; la présentation respecte les lancers en cours, les panneaux ouverts, la visibilité de la page et la préférence de mouvement réduit. Les actualisations et reconnexions sur le même navigateur ne répètent pas les gains déjà présentés. La première ouverture sur un nouveau navigateur établit silencieusement la liste des gains existants ; la collection reste consultable. Aucun abonnement Push supplémentaire n’est nécessaire.
 
@@ -63,7 +67,7 @@ python3 demo-des/dev/build.py --release    # aperçu connecté + index.html publ
 
 Un aperçu doit être servi par HTTP local. Les modes connectés lisent `config.js`, qui ne contient que l’URL du service et sa clé publiable. Ces paramètres sont incorporés au HTML pour éviter qu’un chargement de configuration manquant déclenche le mode démo. Une configuration manquante ou invalide bloque la construction connectée. Aucun identifiant, mot de passe ni secret serveur ne doit être ajouté à ce fichier.
 
-Le générateur place le transport avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 5 à la fonction Edge `desir-game`. Les anciennes actions locales en attente sont écartées avant validation, sans supprimer la connexion ni les actions déjà confirmées côté serveur.
+Le générateur place le transport et le moteur de médaillons avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Il vérifie la couverture exacte du catalogue par les dessins, puis exporte les SVG, leur manifeste, la galerie et l'archive reproductible. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 6 à la fonction Edge `desir-game`. Les anciennes actions locales en attente sont écartées avant validation, sans supprimer la connexion ni les actions déjà confirmées côté serveur.
 
 ```sh
 python3 demo-des/dev/tests/onde-build-check.py
@@ -73,6 +77,8 @@ node demo-des/dev/tests/onde-visibility-check.cjs
 node demo-des/dev/tests/onde-reroll-check.cjs
 node demo-des/dev/tests/onde-direct-flow-check.cjs
 node demo-des/dev/tests/onde-badges-check.cjs
+node demo-des/dev/tests/onde-badge-expansion-check.cjs
+node demo-des/dev/tests/onde-badge-art-check.cjs
 node demo-des/dev/tests/onde-weekend-check.cjs
 node demo-des/dev/tests/onde-intimacy-mix-check.cjs
 node demo-des/server/tests/backend-check.mjs

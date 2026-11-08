@@ -9,6 +9,7 @@ import shutil
 import json
 import re
 from urllib.parse import urlparse
+from badges import badge_bundle, write_badge_assets
 
 root = Path(__file__).resolve().parent
 args = argparse.ArgumentParser(description=__doc__)
@@ -104,7 +105,8 @@ except ValueError:
     canonical_hardcore = None
 if canonical_hardcore != hardcore:
     raise SystemExit('The unified Hardcore catalogue must exactly match its existing card data.')
-for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-app-ui.js']:
+badges = badge_bundle(source)
+for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-badge-art.js', 'onde-app-ui.js']:
     html += '\n<script>\n' + (source / filename).read_text() + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
@@ -125,6 +127,7 @@ for target in [root / 'dist'] + ([demo] if options.release else []):
     for filename in retired_statistics:
         (target / filename).unlink(missing_ok=True)
 (root / 'dist/index.html').write_text(html)
+write_badge_assets(root / 'dist', badges)
 for filename in ['manifest.webmanifest', 'sw.js']:
     shutil.copyfile(demo / filename, root / 'dist' / filename)
 shutil.copytree(demo / 'icons', root / 'dist/icons', dirs_exist_ok=True)
@@ -133,6 +136,7 @@ shutil.copyfile(source / 'onde-app-core.js', demo / 'server/functions/desir-game
 print('Built ' + ('connected' if connected else 'local demo') + ' preview:', root / 'dist/index.html')
 if options.release:
     (demo / 'index.html').write_text(html)
+    write_badge_assets(demo, badges)
     for filename in ['stck-adaptations.json']:
         shutil.copyfile(root / 'data' / filename, demo / filename)
     print('Updated connected web release; archived Xcode resources and ZIP are unchanged:', demo)

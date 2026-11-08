@@ -1,0 +1,133 @@
+"""Build the original badge assets from the same renderer used by the app."""
+from pathlib import Path
+import hashlib
+import html
+import io
+import json
+import re
+import subprocess
+import textwrap
+import xml.etree.ElementTree as ET
+import zipfile
+
+
+def badge_bundle(source):
+    script = r"""
+const G=require(process.argv[1]),Art=require(process.argv[2]);
+const ids=G.badgeCatalog.map(b=>b.id);
+if(JSON.stringify([...Art.ids].sort())!==JSON.stringify([...ids].sort()))throw Error('Badge artwork coverage mismatch');
+const rows=G.badgeCatalog.map(b=>{
+ const svg=Art.render(b.id,{locked:false,instance:'asset'});
+ if(svg!==Art.render(b.id,{locked:false,instance:'asset'}))throw Error('Unstable badge artwork');
+ return {id:b.id,title:b.title,scope:b.scope,description:b.description,svg};
+});
+process.stdout.write(JSON.stringify(rows));
+"""
+    result = subprocess.run(['node', '-e', script,
+                             str(source / 'onde-app-core.js'),
+                             str(source / 'onde-badge-art.js')],
+                            capture_output=True, text=True)
+    if result.returncode:
+        raise SystemExit('Badge artwork could not be built: ' + result.stderr.strip())
+    rows = json.loads(result.stdout)
+    if not rows or len({row['id'] for row in rows}) != len(rows):
+        raise SystemExit('Badge artwork identifiers must be unique.')
+    for row in rows:
+        if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', row['id']):
+            raise SystemExit('Invalid badge asset identifier.')
+        try:
+            root = ET.fromstring(row['svg'])
+        except ET.ParseError as error:
+            raise SystemExit('Invalid badge SVG: ' + row['id']) from error
+        if root.tag != '{http://www.w3.org/2000/svg}svg' or root.get('viewBox') != '0 0 160 176':
+            raise SystemExit('Badge SVG must have its own namespace and viewBox.')
+        ids = []
+        for element in root.iter():
+            if element.tag.rsplit('}', 1)[-1].lower() in {'script', 'foreignobject', 'image', 'filter'}:
+                raise SystemExit('Badge SVG must be a self-contained vector drawing.')
+            for name, value in element.attrib.items():
+                local_name = name.rsplit('}', 1)[-1].lower()
+                if local_name.startswith('on') or local_name == 'href' and not value.startswith('#'):
+                    raise SystemExit('External or executable SVG content is not allowed.')
+            if element.get('id'):
+                ids.append(element.get('id'))
+        if len(ids) != len(set(ids)):
+            raise SystemExit('Duplicate SVG identifiers: ' + row['id'])
+    return rows
+
+
+def gallery(rows):
+    cards = []
+    for row in rows:
+        label = 'Individuel' if row['scope'] == 'individual' else 'À deux'
+        cards.append('<li data-scope="' + row['scope'] + '"><a href="./' + row['id'] + '.svg" '
+                     'aria-label="Ouvrir le dessin : ' + html.escape(row['title'], quote=True) + '">'
+                     '<img src="./' + row['id'] + '.svg" width="160" height="176" loading="lazy" '
+                     'decoding="async" alt=""></a><p class="scope">' + label + '</p><h2>' +
+                     html.escape(row['title']) + '</h2><p class="condition">' +
+                     html.escape(row['description']) + '</p></li>')
+    return '''<!doctype html><html lang="fr"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="dark"><title>Dés·ir — Les emblèmes</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#15191b;color:#eee6d9;font:15px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:1120px;margin:auto;padding:44px 24px 70px}header{max-width:660px;margin-bottom:30px}.eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:#d5b683}
+h1{font-size:clamp(30px,5vw,54px);letter-spacing:-.055em;line-height:1.08;margin:14px 0}header>p{color:#b9b4ad}a{color:#edd4a0;text-underline-offset:4px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}button,nav>a{border:1px solid #756b54;border-radius:30px;background:#282a29;color:#e7dfcf;font:inherit;min-height:44px;padding:9px 18px;text-decoration:none;cursor:pointer}
+button[aria-pressed=true]{background:#e6cc96;color:#282820;border-color:#e6cc96}button:focus-visible,a:focus-visible{outline:2px solid #efca71;outline-offset:5px}
+ol{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:34px 24px;padding:0;list-style:none}li{min-width:0;text-align:center;content-visibility:auto;contain-intrinsic-size:auto 295px}li[hidden]{display:none}
+li>a{display:block}img{display:block;width:100%;height:auto;max-width:160px;margin:auto}.scope{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#a7a397;margin:8px 0 4px}
+h2{font-size:14px;line-height:1.3;font-weight:560;letter-spacing:-.02em;margin:0}.condition{font-size:11px;color:#a9a7a1;line-height:1.5;margin:8px auto 0;max-width:220px}
+footer{border-top:1px solid #3c3c34;padding-top:20px;margin-top:40px;color:#a9a7a1;font-size:12px}
+@media(max-width:760px){ol{grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 14px}main{padding:28px 18px 44px}.condition{font-size:10px}h2{font-size:12px}}
+@media(max-width:360px){main{padding-inline:12px}ol{gap:25px 9px}h2{font-size:11px}.condition{font-size:9.5px}}</style>
+<main><header><p class="eyebrow">Dés·ir / Collection</p><h1>''' + str(len(rows)) + ''' emblèmes.<br>Autant de petits trophées.</h1>
+<p>Émail, métal et symboles : explorez les dessins de la collection. Les conditions de déblocage sont indiquées sous chaque emblème.</p></header>
+<nav aria-label="Filtrer les emblèmes"><button type="button" data-filter="all" aria-pressed="true">Tous</button><button type="button" data-filter="individual" aria-pressed="false">Individuels</button><button type="button" data-filter="shared" aria-pressed="false">À deux</button><a href="./desir-badges.zip">Télécharger les SVG</a></nav>
+<ol aria-label="Les emblèmes de la collection">''' + ''.join(cards) + '''</ol>
+<footer>Cette galerie présente tous les dessins ; votre progression personnelle se trouve dans <a href="../">Dés·ir</a>.</footer></main>
+<script>document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{const filter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));document.querySelectorAll('li[data-scope]').forEach(item=>{item.hidden=filter!=='all'&&item.dataset.scope!==filter;});}));</script></html>'''
+
+
+def preview(rows):
+    wanted = ['ind-draws-1', 'ind-draws-75', 'ind-intimite-3', 'duo-completed-25',
+              'duo-thigh-massage-3', 'duo-covered-face-3', 'duo-oral-desk-3',
+              'duo-veranda-3', 'duo-spoon-3', 'duo-photo-shower-3',
+              'duo-hc-rear-camera-3', 'duo-hc-private-cinema-3']
+    selected = [row for key in wanted for row in rows if row['id'] == key]
+    selected += [row for row in rows if row not in selected][:12-len(selected)]
+    width, height = 920, 1020
+    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">',
+             '<rect width="920" height="1020" fill="#15191b"/>',
+             '<text x="44" y="51" fill="#c9ac79" font-family="sans-serif" font-size="13" letter-spacing="4">DÉS·IR / COLLECTION</text>',
+             '<text x="44" y="101" fill="#f2e9d9" font-family="sans-serif" font-size="36" font-weight="600">90 emblèmes à collectionner.</text>']
+    for index, row in enumerate(selected):
+        x, y = 38 + index % 4 * 224, 140 + index // 4 * 282
+        svg = row['svg'].replace('<svg ', f'<svg x="{x+24}" y="{y}" width="160" height="176" ', 1)
+        parts.append(svg)
+        for line, label in enumerate(textwrap.wrap(row['title'], width=25, break_long_words=False)):
+            parts.append(f'<text x="{x+104}" y="{y+204+line*20}" text-anchor="middle" fill="#e7dfd1" font-family="sans-serif" font-size="14">{html.escape(label)}</text>')
+    parts.append('</svg>')
+    return ''.join(parts)
+
+
+def write_badge_assets(target, rows):
+    folder = target / 'badges'
+    folder.mkdir(parents=True, exist_ok=True)
+    records = []
+    for row in rows:
+        data = row['svg'].encode('utf-8')
+        (folder / (row['id'] + '.svg')).write_bytes(data)
+        records.append({key: row[key] for key in ['id', 'title', 'scope', 'description']} |
+                       {'file': row['id'] + '.svg', 'sha256': hashlib.sha256(data).hexdigest()})
+    manifest = json.dumps({'version': 1, 'count': len(rows), 'assets': records}, ensure_ascii=False, indent=2) + '\n'
+    (folder / 'manifest.json').write_text(manifest)
+    (folder / 'index.html').write_text(gallery(rows))
+    (folder / 'preview.svg').write_text(preview(rows))
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for filename, data in [(row['id'] + '.svg', row['svg']) for row in rows] + [('manifest.json', manifest)]:
+            entry = zipfile.ZipInfo(filename, date_time=(2026, 1, 1, 0, 0, 0))
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            entry.external_attr = 0o644 << 16
+            archive.writestr(entry, data)
+    (folder / 'desir-badges.zip').write_bytes(buffer.getvalue())

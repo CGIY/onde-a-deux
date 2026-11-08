@@ -1,5 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
+const {createHash}=require('node:crypto');
 const G=require('../src/onde-app-core.js');
 const copy=value=>structuredClone(value),at='2026-11-08T10:00:00.000Z';
 let checks=0;
@@ -31,13 +32,14 @@ function complete(room,actor='a',cardId=G.cards[0].id,variantRoll=1,time=at){
 }
 // Catalogue checks use real cards and fixed IDs. The one approved description
 // differs intentionally from the source JSON supplied during catalogue review.
-eq(G.badgeCatalog.length,60);eq(new Set(G.badgeCatalog.map(badge=>badge.id)).size,60);
-eq(new Set(G.badgeCatalog.map(badge=>badge.title)).size,60);
-for(const scope of ['individual','shared'])eq(G.badgeCatalog.filter(badge=>badge.scope===scope).length,30);
+eq(G.badgeCatalog.length,90);eq(new Set(G.badgeCatalog.map(badge=>badge.id)).size,90);
+eq(new Set(G.badgeCatalog.map(badge=>badge.title)).size,90);
+eq(createHash('sha256').update(JSON.stringify(G.badgeCatalog.slice(0,60))).digest('hex'),'07e582394b90cb521db7cfd3c430f2a4dbbfcd54d8c96da95c7411d7a13cdae9','all original definitions remain byte-for-byte equivalent');
+for(const scope of ['individual','shared'])eq(G.badgeCatalog.filter(badge=>badge.scope===scope).length,scope==='individual'?30:60);
 for(const badge of G.badgeCatalog){
  ok(Number.isSafeInteger(badge.target)&&badge.target>0);eq(badge.target,badge.criterion.threshold);
  if(badge.criterion.categoryId)ok(G.categories.some(category=>category.id===badge.criterion.categoryId));
- if(badge.criterion.cardId){const card=G.getCard(badge.criterion.cardId);ok(card);ok(card.variants[badge.criterion.variantRoll-1]);}
+ if(badge.criterion.cardId){const card=G.getCard(badge.criterion.cardId);ok(card);if(badge.criterion.variantRoll!==undefined)ok(card.variants[badge.criterion.variantRoll-1]);}
 }
 eq(G.badgeCatalog.find(badge=>badge.id==='duo-covered-face-3').description,'3 faciales, validées par vos deux coches.');
 
@@ -100,7 +102,7 @@ for(const dates of [
 }
 // Every exact-variant achievement needs the correct card AND face, completed
 // by both players. A refusal, a draw or a different face does not count.
-for(const badge of G.badgeCatalog.filter(badge=>badge.criterion.cardId)){
+for(const badge of G.badgeCatalog.filter(badge=>badge.criterion.cardId&&badge.criterion.variantRoll!==undefined)){
  const {cardId,variantRoll}=badge.criterion,wrongFace=variantRoll===1?2:1;
  let {room,taskId}=queue(G.createRoom({at}),'a',cardId,variantRoll);
  eq(item(room,'a',badge.id).progress.value,0);
@@ -143,8 +145,9 @@ eq(full.stats.totalCompleted,500);eq(full.progression.shared.completed,500);eq(f
 eq(Object.keys(full.progression.shared.completedByCard).length,24);eq(Object.keys(full.progression.shared.completedByVariant).length,144);
 for(const actor of ['a','b']){
  const view=G.badgeView(full,actor),awards=earned(full,actor);
- ok(G.validateBadgeView(view,actor));eq(awards.length,60,'all 60 definitions are reachable');eq(new Set(awards.map(award=>award.id)).size,60);
- eq(awards.map(award=>award.sequence).sort((a,b)=>a-b),Array.from({length:60},(_,i)=>i+1),'private and shared sequences are contiguous per reader');
+ ok(G.validateBadgeView(view,actor));eq(view.items.slice(0,60).filter(item=>item.award).length,60,'all 60 original definitions remain reachable');
+ eq(awards.length,75,'the classic path also reaches all 15 added exact-variant definitions');eq(new Set(awards.map(award=>award.id)).size,75);
+ eq(awards.map(award=>award.sequence).sort((a,b)=>a-b),Array.from({length:75},(_,i)=>i+1),'private and shared sequences are contiguous per reader');
  eq(full.progression.individual[actor].draws,250);eq(full.progression.individual[actor].proposals,250);eq(full.progression.individual[actor].participations,500);
  eq(full.progression.individual[actor].completedSent,250);eq(full.progression.individual[actor].completedReceived,250);
 }

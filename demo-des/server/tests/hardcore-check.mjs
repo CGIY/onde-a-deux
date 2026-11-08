@@ -17,15 +17,15 @@ const actions=[null,{type:'CREATE'},{type:'OPT_IN',sessionId:id,enabled:true},
  {type:'PRESS',sessionId:id,pressId:id,sequence:1,held:true},
  {type:'ACK',sessionId:id,preparationId:id,pressId:id},
  {type:'ATTACK',sessionId:id,slot:1},{type:'CANCEL',sessionId:id}];
-for(const version of [1,2,3,4,5])for(const action of actions){
+for(const version of [1,2,3,4,5,6])for(const action of actions){
  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{
   method:'POST',
   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io'},
   body:JSON.stringify({op:'hardcore',gameVersion:version,action,...(action?{requestId:id}:{})}),
  }));
  const body=await response.json();
- eq(response.status,version===5?410:409,'retired combat status for protocol '+version);
- eq(body.error.code,version===5?'mode_removed':'upgrade_required','controlled retirement response');
+ eq(response.status,version===6?410:409,'retired combat status for protocol '+version);
+ eq(body.error.code,version===6?'mode_removed':'upgrade_required','controlled retirement response');
  eq(Object.keys(body),['error'],'no private state or legacy session returned');
  eq(response.headers.get('Cache-Control'),'no-store','retirement is never cached as a session');
 }

@@ -31,10 +31,11 @@
  let sheetContext=null;
  const badgeCatalog=Array.isArray(G.badgeCatalog)?G.badgeCatalog:[];
  const badgeDefinitions=new Map(badgeCatalog.map(badge=>[badge.id,badge]));
+ const badgeArtCache=new Map();
  const badgeNotice=root.querySelector('#oa-badge-notice'),badgeAnnouncement=root.querySelector('#oa-badge-announcement');
  const badgeMemory=new Map();
  let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
- let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='';
+ let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='',badgeDetailId=null,badgeGalleryScroll=null,badgeNoticeAnimation=null;
  const viewport=window.visualViewport;let viewportListening=false;
  const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator?.standalone===true;
  root.classList.toggle('oa-installed',installed);
@@ -141,7 +142,7 @@
   outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
- function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===5;}
+ function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===6;}
  function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
  function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
@@ -247,23 +248,13 @@
   return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(categoryLabel(r))+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
- function badgeIcon(icon){
-  const paths={
-   dice:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/>',
-   send:'<path d="m3 11 18-8-8 18-3-8-7-2Zm7 2L21 3"/>',
-   handshake:'<path d="m3 9 4-4 5 2 5-2 4 4-7 10-4-1-7-9Zm5 2 4-4 4 4-3 2-3-1M6 15l3-2m0 5 3-3m1 4 2-3"/>',
-   heart:'<path d="M20 9c0 4-8 10-8 10S4 13 4 9a4 4 0 0 1 8-1 4 4 0 0 1 8 1Z"/>',
-   cup:'<path d="M4 7h12v6a6 6 0 0 1-12 0V7Zm12 1h2a3 3 0 0 1 0 6h-2M3 21h15M7 3v1m5-1v1"/>',
-   palette:'<path d="M20 11a9 9 0 1 0-9 10h2a2 2 0 0 0 1-4c-1-1 0-3 2-3h2a2 2 0 0 0 2-3Z"/><path d="M7 9h.01M11 6h.01M16 8h.01M6 14h.01"/>',
-   moon:'<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10Z"/>',
-   calendar:'<rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 10h16m-12 4h3m-3 3h7"/>',
-   compass:'<circle cx="12" cy="12" r="9"/><path d="m15 9-2 4-4 2 2-4 4-2Z"/>',
-   spark:'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/>',
-   star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/>',
-   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
-   leaf:'<path d="M20 3C9 2 2 7 4 14c2 8 14 7 16-11ZM4 21 16 8"/>'
-  };
-  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+(paths[icon]||paths.star)+'</svg>';
+ function badgeMedallion(badge,instance){
+  const locked=!badge.award,key=instance+':'+badge.id+':'+(locked?'locked':'earned');
+  if(!badgeArtCache.has(key)){
+   const svg=window.OndeBadgeArt?.render(badge.id,{locked,instance});
+   if(typeof svg==='string')badgeArtCache.set(key,svg);
+  }
+  return '<span class="oa-medallion" data-badge-medallion="'+h(badge.id)+'" data-badge-instance="'+instance+'" aria-hidden="true">'+(badgeArtCache.get(key)||'')+'</span>';
  }
  function badgeRows(){
   const items=new Map((badgeView?.items||[]).map(item=>[item.id,item]));
@@ -272,38 +263,65 @@
  function recentBadges(){return badgeRows().filter(badge=>badge.award).sort((a,b)=>b.award.sequence-a.award.sequence||a.id.localeCompare(b.id));}
  function badgeScopeLabel(badge){return badge.scope==='shared'?'À deux':'À moi';}
  function badgeDate(award){
-  if(!award?.at)return 'Débloqué';
+  if(!award?.at)return 'Débloqué auparavant';
   return 'Débloqué le <time datetime="'+h(award.at)+'">'+h(new Date(award.at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Paris'}))+'</time>';
  }
- function badgeRow(badge,compact=false){
-  const earned=!!badge.award,value=badge.progress?.value||0,target=badge.target,progress=Math.min(value,target);
-  return '<li class="oa-achievement'+(earned?' is-earned':'')+(badge.id===badgeHighlight?' is-highlighted':'')+'" data-badge-id="'+h(badge.id)+'"><span class="oa-achievement-icon">'+badgeIcon(badge.icon)+'</span><div class="oa-achievement-copy"><p class="oa-achievement-meta">'+badgeScopeLabel(badge)+' · '+(earned?badgeDate(badge.award):'À débloquer')+'</p><h3>'+h(badge.title)+'</h3>'+(!compact?'<p class="oa-achievement-description">'+h(badge.description)+'</p>':'')+(!compact&&!earned?'<div class="oa-achievement-progress" role="progressbar" aria-label="'+h(badge.title)+'" aria-valuemin="0" aria-valuemax="'+target+'" aria-valuenow="'+progress+'" aria-valuetext="'+value+' sur '+target+'"><i style="transform:scaleX('+progress/target+')"></i></div><p class="oa-achievement-value">'+value+' / '+target+'</p>':'')+'</div></li>';
+ function badgeTile(badge,instance){
+  const earned=!!badge.award,value=Math.min(badge.progress?.value||0,badge.target);
+  const status=earned?'Débloqué':value?value+' / '+badge.target:'À débloquer';
+  const accessible=badge.title+'. '+badgeScopeLabel(badge)+'. '+(earned?'Débloqué.':'À débloquer, '+value+' sur '+badge.target+'.')+' '+badge.description+' Voir le badge.';
+  return '<li class="oa-achievement'+(earned?' is-earned':' is-locked')+(badge.id===badgeHighlight?' is-highlighted':'')+'" data-badge-id="'+h(badge.id)+'"><button type="button" class="oa-achievement-tile cursor-interaction" data-action="badge-detail" data-badge="'+h(badge.id)+'" aria-label="'+h(accessible)+'"'+(instance==='recent'?' aria-haspopup="dialog"':'')+'>'+badgeMedallion(badge,instance)+'<span class="oa-medal-title">'+h(badge.title)+'</span><span class="oa-medal-status">'+h(status)+'</span></button></li>';
  }
  function badgesSection(){
   if(!badgeView)return '';
   const earned=recentBadges();
-  return '<section class="oa-achievements" aria-labelledby="oa-badges-title"><div class="oa-section-head"><h2 id="oa-badges-title">Badges</h2><span aria-label="'+earned.length+' badges débloqués sur '+badgeCatalog.length+'">'+earned.length+' / '+badgeCatalog.length+'</span></div>'+(earned.length?'<p class="oa-note">Les derniers débloqués</p><ol class="oa-achievement-list is-recent">'+earned.slice(0,5).map(badge=>badgeRow(badge,true)).join('')+'</ol>':'<p class="oa-note">Votre premier badge vous attend.</p>')+'<div class="oa-achievement-more">'+textBtn('Tout afficher','badges-all','aria-label="Afficher les '+badgeCatalog.length+' badges"')+'</div></section>';
+  return '<section class="oa-achievements" aria-labelledby="oa-badges-title"><div class="oa-section-head"><h2 id="oa-badges-title">Badges</h2><span aria-label="'+earned.length+' badges débloqués sur '+badgeCatalog.length+'">'+earned.length+' / '+badgeCatalog.length+'</span></div>'+(earned.length?'<p class="oa-note">Les derniers débloqués</p><ol class="oa-achievement-gallery is-recent">'+earned.slice(0,5).map(badge=>badgeTile(badge,'recent')).join('')+'</ol>':'<p class="oa-note">Votre premier badge vous attend.</p>')+'<div class="oa-achievement-more">'+textBtn('Tout afficher','badges-all','aria-label="Afficher les '+badgeCatalog.length+' badges"')+'</div></section>';
+ }
+ function badgeDetailMarkup(badge){
+  const earned=!!badge.award,value=Math.min(badge.progress?.value||0,badge.target),caption=earned?'Objectif atteint':value+' / '+badge.target;
+  return '<div class="oa-achievement-back">'+textBtn('‹ Collection','badge-back','aria-label="Revenir à la collection de badges"')+'</div><article class="oa-achievement-detail'+(earned?' is-earned':' is-locked')+'" data-badge-detail="'+h(badge.id)+'">'+badgeMedallion(badge,'detail')+'<p class="oa-achievement-meta">'+badgeScopeLabel(badge)+' · '+(earned?'Débloqué':'À débloquer')+'</p><h3 data-badge-heading tabindex="-1">'+h(badge.title)+'</h3><div class="oa-achievement-condition"><h4>La condition</h4><p>'+h(badge.description)+'</p></div><div class="oa-achievement-progress" role="progressbar" aria-label="'+h(badge.title)+'" aria-valuemin="0" aria-valuemax="'+badge.target+'" aria-valuenow="'+value+'" aria-valuetext="'+h(caption)+'"><i style="transform:scaleX('+value/badge.target+')"></i></div><p class="oa-achievement-value">'+caption+'</p>'+(earned?'<p class="oa-achievement-date">'+badgeDate(badge.award)+'</p>':'')+'</article>';
  }
  function badgeCollectionMarkup(){
-  const rows=badgeRows().filter(badge=>badgeFilter==='all'||badge.scope===badgeFilter).sort((a,b)=>a.award&&b.award?b.award.sequence-a.award.sequence||a.id.localeCompare(b.id):a.award?-1:b.award?1:a.order-b.order);
-  const filters=[['all','Tous'],['individual','À moi'],['shared','À deux']];
-  return '<div class="oa-achievement-filters" role="group" aria-label="Filtrer les badges">'+filters.map(([scope,label])=>'<button type="button" class="cursor-interaction" data-action="badge-filter" data-scope="'+scope+'" aria-pressed="'+(badgeFilter===scope)+'">'+label+'</button>').join('')+'</div><p class="oa-achievement-total" role="status">'+rows.filter(badge=>badge.award).length+' débloqué'+(rows.filter(badge=>badge.award).length>1?'s':'')+' sur '+rows.length+'</p><ul class="oa-achievement-list">'+rows.map(badge=>badgeRow(badge)).join('')+'</ul>';
+  const all=badgeRows(),detail=badgeDetailId&&all.find(badge=>badge.id===badgeDetailId);
+  if(detail)return badgeDetailMarkup(detail);
+  const rows=all.filter(badge=>badgeFilter==='all'||badge.scope===badgeFilter).sort((a,b)=>a.award&&b.award?b.award.sequence-a.award.sequence||a.id.localeCompare(b.id):a.award?-1:b.award?1:a.order-b.order);
+  const filters=[['all','Tous'],['individual','À moi'],['shared','À deux']],earned=rows.filter(badge=>badge.award).length;
+  return '<div class="oa-achievement-filters" role="group" aria-label="Filtrer les badges">'+filters.map(([scope,label])=>'<button type="button" class="cursor-interaction" data-action="badge-filter" data-scope="'+scope+'" aria-pressed="'+(badgeFilter===scope)+'">'+label+'<span>'+all.filter(badge=>scope==='all'||badge.scope===scope).length+'</span></button>').join('')+'</div><p class="oa-achievement-total" role="status">'+earned+' débloqué'+(earned>1?'s':'')+' sur '+rows.length+'</p><ul class="oa-achievement-gallery">'+rows.map(badge=>badgeTile(badge,'collection')).join('')+'</ul>';
  }
+ function badgeTileElement(container,id){return id&&badgeDefinitions.has(id)?container?.querySelector('[data-action="badge-detail"][data-badge="'+id+'"]'):null;}
  function updateBadgeCollection(){
   if(!badgeSheetOpen||sheet.hidden||!badgeView)return;
   const content=sheet.querySelector('[data-badge-collection]');if(!content)return;
   const markup=badgeCollectionMarkup();if(markup===badgeSheetMarkup)return;
   const dialog=sheet.querySelector('.oa-sheet'),scrollTop=dialog?.scrollTop||0,focused=document.activeElement;
-  const scope=focused?.dataset.action==='badge-filter'?focused.dataset.scope:null;
+  const focus=content.contains(focused)?{action:focused.dataset.action,scope:focused.dataset.scope,badge:focused.dataset.badge,heading:focused.hasAttribute?.('data-badge-heading')}:null;
   content.innerHTML=markup;badgeSheetMarkup=markup;
-  if(scope)content.querySelector('[data-scope="'+scope+'"]')?.focus({preventScroll:true});
+  if(focus?.action==='badge-filter')content.querySelector('[data-scope="'+focus.scope+'"]')?.focus({preventScroll:true});
+  else if(focus?.action==='badge-detail')badgeTileElement(content,focus.badge)?.focus({preventScroll:true});
+  else if(focus?.action==='badge-back')content.querySelector('[data-action="badge-back"]')?.focus({preventScroll:true});
+  else if(focus?.heading)content.querySelector('[data-badge-heading]')?.focus({preventScroll:true});
   if(dialog)dialog.scrollTop=scrollTop;
  }
  function openBadgeCollection(id=null){
   if(!badgeView)return;
-  badgeFilter='all';badgeHighlight=badgeDefinitions.has(id)?id:null;badgeSheetOpen=true;badgeSheetMarkup=badgeCollectionMarkup();
-  openSheet('Tous les badges','<div data-badge-collection>'+badgeSheetMarkup+'</div>','oa-achievement-sheet');
-  if(badgeHighlight){const dialog=sheet.querySelector('.oa-sheet'),row=sheet.querySelector('[data-badge-id="'+badgeHighlight+'"]');if(dialog&&row)dialog.scrollTop=Math.max(0,dialog.scrollTop+row.getBoundingClientRect().top-dialog.getBoundingClientRect().top-90);}
+  badgeFilter='all';badgeHighlight=badgeDefinitions.has(id)?id:null;badgeDetailId=badgeHighlight;badgeGalleryScroll=null;badgeSheetOpen=true;badgeSheetMarkup=badgeCollectionMarkup();
+  openSheet('La collection','<div data-badge-collection>'+badgeSheetMarkup+'</div>','oa-achievement-sheet');
+  if(badgeDetailId)sheet.querySelector('[data-badge-heading]')?.focus({preventScroll:true});
+ }
+ function openBadgeDetail(id){
+  if(!badgeView||!badgeDefinitions.has(id))return;
+  if(!badgeSheetOpen||sheet.hidden){openBadgeCollection(id);return;}
+  const dialog=sheet.querySelector('.oa-sheet');
+  if(!badgeDetailId)badgeGalleryScroll=dialog?.scrollTop||0;
+  badgeDetailId=id;badgeHighlight=id;updateBadgeCollection();if(dialog)dialog.scrollTop=0;
+  sheet.querySelector('[data-badge-heading]')?.focus({preventScroll:true});
+ }
+ function backToBadgeCollection(){
+  if(!badgeSheetOpen||!badgeDetailId)return;
+  const id=badgeDetailId;badgeDetailId=null;updateBadgeCollection();
+  const dialog=sheet.querySelector('.oa-sheet'),tile=badgeTileElement(sheet,id);
+  if(dialog)dialog.scrollTop=badgeGalleryScroll===null&&tile?Math.max(0,dialog.scrollTop+tile.getBoundingClientRect().top-dialog.getBoundingClientRect().top-90):badgeGalleryScroll||0;
+  tile?.focus({preventScroll:true});
  }
  function validBadgeRegistry(value){
   return value&&value.version===1&&Number.isSafeInteger(value.epoch)&&value.epoch>0&&['seen','pending'].every(key=>Array.isArray(value[key])&&value[key].length<=120&&value[key].every(id=>typeof id==='string'&&id.length>0&&id.length<=200));
@@ -332,10 +350,18 @@
  function stopBadgeTimer(){
   if(badgeTimer!==null){clearTimeout(badgeTimer);badgeTimer=null;if(badgeActive)badgeActive.remaining=Math.max(0,badgeActive.remaining-(chargeNow()-badgeTimerStarted));}
  }
+ function stopBadgeNoticeAnimation(){const animation=badgeNoticeAnimation;badgeNoticeAnimation=null;animation?.cancel();}
+ function animateBadgeNotice(){
+  stopBadgeNoticeAnimation();
+  if(systemReduce||document.hidden||presentationHidden)return;
+  const medal=badgeNotice.querySelector('[data-badge-medallion]');if(!medal?.animate)return;
+  const animation=medal.animate([{transform:'rotate(-8deg) scale(.84)'},{transform:'rotate(2deg) scale(1.035)',offset:.7},{transform:'rotate(0deg) scale(1)'}],{duration:520,easing:'cubic-bezier(.18,.8,.2,1)'});
+  badgeNoticeAnimation=animation;animation.onfinish=animation.oncancel=()=>{if(badgeNoticeAnimation===animation)badgeNoticeAnimation=null;};
+ }
  function clearBadgeContext(){
-  stopBadgeTimer();badgeActive=null;badgeHover=false;badgeFocus=false;badgeReturnFocus=null;badgeView=null;badgeRegistry=null;badgeRegistryKey=null;badgeMissingBaseline=null;
+  stopBadgeTimer();stopBadgeNoticeAnimation();badgeActive=null;badgeHover=false;badgeFocus=false;badgeReturnFocus=null;badgeView=null;badgeRegistry=null;badgeRegistryKey=null;badgeMissingBaseline=null;
   if(badgeNotice){badgeNotice.hidden=true;badgeNotice.innerHTML='';delete badgeNotice.dataset.award;}if(badgeAnnouncement)badgeAnnouncement.textContent='';
-  if(badgeSheetOpen)closeSheet();badgeFilter='all';badgeHighlight=null;
+  if(badgeSheetOpen)closeSheet();badgeFilter='all';badgeHighlight=null;badgeDetailId=null;badgeGalleryScroll=null;
  }
  function trackBadges(){
   const next=remoteMode?(remoteReady&&remote?.authenticated?remoteSnapshot?.badges:null):G.badgeView?.(localRoom,viewPlayer);
@@ -370,7 +396,8 @@
  function updateBadgeNotice(){
   if(!badgeNotice||!badgeRegistry)return;
   const known=readBadgeRegistry(badgeRegistryKey);if(known&&known.epoch>badgeRegistry.epoch){clearBadgeContext();return;}
-  if(!badgeCanPresent()){stopBadgeTimer();badgeNotice.hidden=true;return;}
+  if(!badgeCanPresent()){stopBadgeTimer();stopBadgeNoticeAnimation();badgeNotice.hidden=true;return;}
+  let entered=false;
   if(!badgeActive){
    mergeBadgeRegistry(readBadgeRegistry(badgeRegistryKey));
    const pending=new Set(badgeRegistry.pending),seen=new Set(badgeRegistry.seen);
@@ -378,16 +405,18 @@
    if(!next){badgeNotice.hidden=true;return;}
    badgeActive={id:next.id,awardId:next.award.id,remaining:8000};badgeHover=false;badgeFocus=false;
    badgeRegistry.seen.push(next.award.id);badgeRegistry.pending=badgeRegistry.pending.filter(id=>id!==next.award.id);saveBadgeRegistry();
-   badgeNotice.innerHTML='<span class="oa-achievement-icon">'+badgeIcon(next.icon)+'</span><div class="oa-badge-notice-copy"><p>Badge débloqué · '+badgeScopeLabel(next)+'</p><h2>'+h(next.title)+'</h2><button type="button" class="oa-text-button cursor-interaction" data-action="badge-view" data-badge="'+h(next.id)+'">Voir le badge</button></div><button type="button" class="oa-badge-notice-close cursor-interaction" data-action="badge-dismiss" aria-label="Fermer la notification du badge">×</button>';
+   badgeNotice.innerHTML=badgeMedallion(next,'notice')+'<div class="oa-badge-notice-copy"><p>Badge débloqué · '+badgeScopeLabel(next)+'</p><h2>'+h(next.title)+'</h2><button type="button" class="oa-text-button cursor-interaction" data-action="badge-view" data-badge="'+h(next.id)+'">Voir le badge <span aria-hidden="true">↗</span></button></div><button type="button" class="oa-badge-notice-close cursor-interaction" data-action="badge-dismiss" aria-label="Fermer la notification du badge">×</button>';
    badgeNotice.dataset.award=next.award.id;
    if(badgeAnnouncement)badgeAnnouncement.textContent='Badge débloqué : '+next.title+'. '+badgeScopeLabel(next)+'.';
+   entered=true;
   }
   badgeNotice.hidden=false;
+  if(entered)animateBadgeNotice();
   if(!badgeTimer&&!badgeHover&&!badgeFocus){badgeTimerStarted=chargeNow();badgeTimer=setTimeout(()=>{badgeTimer=null;dismissBadgeNotice();},Math.max(1,badgeActive.remaining));}
  }
  function dismissBadgeNotice(resume=true){
   const focused=badgeNotice?.contains(document.activeElement);
-  stopBadgeTimer();badgeActive=null;badgeHover=false;badgeFocus=false;if(badgeNotice){badgeNotice.hidden=true;badgeNotice.innerHTML='';delete badgeNotice.dataset.award;}if(badgeAnnouncement)badgeAnnouncement.textContent='';
+  stopBadgeTimer();stopBadgeNoticeAnimation();badgeActive=null;badgeHover=false;badgeFocus=false;if(badgeNotice){badgeNotice.hidden=true;badgeNotice.innerHTML='';delete badgeNotice.dataset.award;}if(badgeAnnouncement)badgeAnnouncement.textContent='';
   if(resume){if(focused){const target=badgeReturnFocus?.isConnected&&!badgeReturnFocus.disabled?badgeReturnFocus:main;if(target===main)main.setAttribute('tabindex','-1');target.focus({preventScroll:true});}badgeReturnFocus=null;updateBadgeNotice();}
  }
  badgeNotice?.addEventListener('mouseenter',()=>{badgeHover=true;stopBadgeTimer();});
@@ -585,7 +614,7 @@
   if(!cardReveal)visibleCardId=state.round.cardId;
   scheduleExpiry();
   if(focusData&&previousKey===renderKey){
-   const keys=['action','pref','taskCheck','player','card','tab','task'];let same;
+   const keys=['action','pref','taskCheck','player','card','tab','task','badge'];let same;
    if(keys.some(k=>focusData[k]))same=Array.from(main.querySelectorAll('button,input')).find(el=>keys.every(k=>(el.dataset[k]||'')===(focusData[k]||'')));
    if(same)same.focus({preventScroll:true});else{const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   }
@@ -733,18 +762,19 @@
   finally{if(serial===animationSerial){activeRollFace=null;refusal=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);else{remoteReady=false;deferredSnapshot=null;}}else syncLocalView();render();}}
  }
  function openSheet(title,body,extraClass=''){
-  if(extraClass!=='oa-achievement-sheet'){badgeSheetOpen=false;badgeSheetMarkup='';}
+  if(extraClass!=='oa-achievement-sheet'){badgeSheetOpen=false;badgeSheetMarkup='';badgeDetailId=null;badgeGalleryScroll=null;}
   lastFocus=document.activeElement;
   if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};
   sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';
-  sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';
+  sheet.classList.toggle('oa-collection-open',extraClass==='oa-achievement-sheet');sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';
   const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});
   const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;updateBadgeNotice();sheet.querySelector('button')?.focus({preventScroll:true});
  }
  function closeSheet(){
   if(sheet.hidden)return;
-  badgeSheetOpen=false;badgeSheetMarkup='';sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';
+  badgeSheetOpen=false;badgeSheetMarkup='';badgeDetailId=null;badgeGalleryScroll=null;sheet.hidden=true;sheet.classList.remove('oa-collection-open');document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';
   Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);
+  if(lastFocus&&!lastFocus.isConnected&&lastFocus.dataset.action==='badge-detail')lastFocus=badgeTileElement(main,lastFocus.dataset.badge);
   if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}
   if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;updateBadgeNotice();
  }
@@ -776,7 +806,9 @@
   }
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='badges-all'){openBadgeCollection();return;}
-  if(action==='badge-filter'){if(badgeSheetOpen&&['all','individual','shared'].includes(el.dataset.scope)){badgeFilter=el.dataset.scope;badgeHighlight=null;updateBadgeCollection();}return;}
+  if(action==='badge-detail'){openBadgeDetail(el.dataset.badge);return;}
+  if(action==='badge-back'){backToBadgeCollection();return;}
+  if(action==='badge-filter'){if(badgeSheetOpen&&!badgeDetailId&&['all','individual','shared'].includes(el.dataset.scope)){badgeFilter=el.dataset.scope;badgeHighlight=null;updateBadgeCollection();}return;}
   if(action==='badge-view'){const origin=badgeReturnFocus;dismissBadgeNotice(false);openBadgeCollection(el.dataset.badge);if(origin?.isConnected)lastFocus=origin;badgeReturnFocus=null;return;}
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
@@ -806,7 +838,7 @@
  window.addEventListener('blur',()=>clearCharge());
  window.addEventListener('scroll',()=>clearCharge(),{capture:true,passive:true});
  window.addEventListener('keyup',event=>{if(event.code==='Space'||event.key===' '){if(charge?.source==='keyboard')clearCharge();if(suppressedClick?.source==='keyboard')suppressedClick.until=chargeNow()+600;}});
- function updateReducedMotion(event){systemReduce=event.matches;die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
+ function updateReducedMotion(event){systemReduce=event.matches;die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();if(systemReduce)stopBadgeNoticeAnimation();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
  if(motionQuery?.addEventListener)motionQuery.addEventListener('change',updateReducedMotion);
  else motionQuery?.addListener?.(updateReducedMotion);
  root.addEventListener('change',async event=>{

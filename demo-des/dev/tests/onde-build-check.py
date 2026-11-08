@@ -1,4 +1,5 @@
 """Exercise the actual builder in a disposable tree, never the published files."""
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -7,6 +8,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
+import zipfile
 
 DEV = Path(__file__).resolve().parents[1]
 CONFIG = {'endpoint': 'https://example.supabase.co/functions/v1/desir-game',
@@ -19,7 +22,8 @@ class BuildFixture(unittest.TestCase):
         self.demo = Path(self.scratch.name) / 'demo-des'
         self.dev = self.demo / 'dev'
         self.dev.mkdir(parents=True)
-        shutil.copyfile(DEV / 'build.py', self.dev / 'build.py')
+        for filename in ['build.py', 'badges.py']:
+            shutil.copyfile(DEV / filename, self.dev / filename)
         for directory in ['src', 'data']:
             shutil.copytree(DEV / directory, self.dev / directory)
         for filename in ['manifest.webmanifest', 'sw.js']:
@@ -103,6 +107,49 @@ class WebBuild(BuildFixture):
             self.assertEqual(self.release.read_text(), 'existing-release')
             self.assertFalse((self.dev / 'dist').exists())
         self.assert_archive_preserved()
+
+
+class BadgeArtworkBuild(BuildFixture):
+    def test_every_badge_has_a_standalone_asset_and_identical_archive_entry(self):
+        self.build('--release')
+        folder = self.demo / 'badges'
+        manifest = json.loads((folder / 'manifest.json').read_text())
+        self.assertEqual(manifest['count'], 90)
+        rows = manifest['assets']
+        self.assertEqual(len(rows), 90)
+        self.assertEqual(len({row['id'] for row in rows}), 90)
+        self.assertEqual(sum(row['scope'] == 'individual' for row in rows), 30)
+        self.assertEqual(sum(row['scope'] == 'shared' for row in rows), 60)
+        with zipfile.ZipFile(folder / 'desir-badges.zip') as archive:
+            self.assertEqual(set(archive.namelist()), {row['file'] for row in rows} | {'manifest.json'})
+            for row in rows:
+                data = (folder / row['file']).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(), row['sha256'])
+                self.assertEqual(archive.read(row['file']), data)
+                self.assertEqual((self.dev / 'dist/badges' / row['file']).read_bytes(), data)
+                self.assertEqual(ET.fromstring(data).get('viewBox'), '0 0 160 176')
+            self.assertEqual(archive.read('manifest.json'), (folder / 'manifest.json').read_bytes())
+        html = self.release.read_text()
+        self.assertLess(html.index('scope.OndeBadgeArt='), html.index('const remote=window.OndeRemote'))
+        gallery = (folder / 'index.html').read_text()
+        for row in rows:
+            self.assertIn('./' + row['file'], gallery)
+
+    def test_rebuilding_keeps_asset_and_archive_bytes_identical(self):
+        self.build('--release')
+        folder = self.demo / 'badges'
+        first = {path.name: path.read_bytes() for path in folder.iterdir()}
+        self.build('--release')
+        self.assertEqual(first, {path.name: path.read_bytes() for path in folder.iterdir()})
+
+    def test_missing_artwork_cannot_publish_a_partial_release(self):
+        path = self.dev / 'src/onde-badge-art.js'
+        path.unlink()
+        result = self.build('--release', ok=False)
+        self.assertIn('Badge artwork could not be built', result.stderr)
+        self.assertEqual(self.release.read_text(), 'existing-release')
+        self.assertFalse((self.dev / 'dist').exists())
+        self.assertFalse((self.demo / 'badges').exists())
 
 
 class MergedIntimacyBuild(BuildFixture):

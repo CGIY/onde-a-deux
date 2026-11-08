@@ -1136,11 +1136,43 @@
     {"id":"duo-kind-note-3","scope":"shared","title":"Post-it, grand effet","description":"Valider ensemble 3 petits mots doux cachés.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-complicite-petit-mot","variantRoll":2},"order":57,"icon":"send","target":3},
     {"id":"duo-crepes-3","scope":"shared","title":"La brigade des crêpes","description":"Valider ensemble 3 réalisations de la variante Crêpes.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-attention-douceur","variantRoll":1},"order":58,"icon":"cup","target":3},
     {"id":"duo-forest-walk-3","scope":"shared","title":"Le duo prend racine","description":"Valider ensemble 3 balades en forêt.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-projets-balade","variantRoll":3},"order":59,"icon":"leaf","target":3},
-    {"id":"duo-phone-drawer-3","scope":"shared","title":"Le tiroir gagne, nous aussi","description":"Valider ensemble 3 parenthèses d’une heure avec le téléphone dans un tiroir.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-complicite-telephone","variantRoll":3},"order":60,"icon":"moon","target":3}
+    {"id":"duo-phone-drawer-3","scope":"shared","title":"Le tiroir gagne, nous aussi","description":"Valider ensemble 3 parenthèses d’une heure avec le téléphone dans un tiroir.","family":"variants","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-complicite-telephone","variantRoll":3},"order":60,"icon":"moon","target":3},
+    {"id":"duo-kiss-language-3","scope":"shared","title":"Langue vivante, contrôle continu","description":"Valider ensemble 3 fois « Un baiser · Avec la langue », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-baiser","variantRoll":1},"order":61,"icon":"moon","target":3},
+    {"id":"duo-kiss-neck-3","scope":"shared","title":"Le cou de génie","description":"Valider ensemble 3 fois « Un baiser · Dans le cou », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-baiser","variantRoll":2},"order":62,"icon":"moon","target":3},
+    {"id":"duo-oral-car-3","scope":"shared","title":"Bonus de covoiturage","description":"Valider ensemble 3 fois « Fellation · En voiture », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-fellation","variantRoll":6},"order":63,"icon":"moon","target":3},
+    {"id":"duo-oral-shower-3","scope":"shared","title":"La douche a pris du retard","description":"Valider ensemble 3 fois « Fellation · Douche », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-fellation","variantRoll":3},"order":64,"icon":"moon","target":3},
+    {"id":"duo-oral-desk-3","scope":"shared","title":"Le dessous des dossiers","description":"Valider ensemble 3 fois « Fellation · Sous le bureau », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-fellation","variantRoll":5},"order":65,"icon":"moon","target":3},
+    {"id":"duo-sit-face-3","scope":"shared","title":"Siège social très personnel","description":"Valider ensemble 3 fois « Cunnilingus · Sit-Face », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-cunnilingus","variantRoll":1},"order":66,"icon":"moon","target":3},
+    {"id":"duo-veranda-3","scope":"shared","title":"Horticulture sous verrière","description":"Valider ensemble 3 fois « Cunnilingus · Véranda », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-cunnilingus","variantRoll":6},"order":67,"icon":"moon","target":3},
+    {"id":"duo-andromaque-reverse-3","scope":"shared","title":"Andromaque fait demi-tour","description":"Valider ensemble 3 fois « Pénétration · Andromaque inversée », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-penetration","variantRoll":3},"order":68,"icon":"moon","target":3},
+    {"id":"duo-spoon-3","scope":"shared","title":"Argenterie de compétition","description":"Valider ensemble 3 fois « Pénétration · Cuillère », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-penetration","variantRoll":5},"order":69,"icon":"moon","target":3},
+    {"id":"duo-free-position-3","scope":"shared","title":"Direction artistique libre","description":"Valider ensemble 3 fois « Pénétration · Position au choix », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-penetration","variantRoll":6},"order":70,"icon":"moon","target":3},
+    {"id":"duo-lovense-quarter-3","scope":"shared","title":"Le quart d’heure qui vibre","description":"Valider ensemble 3 fois « Lovense · 15 minutes dedans », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-lovense","variantRoll":1},"order":71,"icon":"moon","target":3},
+    {"id":"duo-lovense-evening-3","scope":"shared","title":"Batterie incluse, soirée comprise","description":"Valider ensemble 3 fois « Lovense · Une soirée », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-lovense","variantRoll":6},"order":72,"icon":"moon","target":3},
+    {"id":"duo-photo-monochrome-3","scope":"shared","title":"Gris, mais pas sages","description":"Valider ensemble 3 fois « Photoshoot original · Noir et blanc », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-photoshoot","variantRoll":2},"order":73,"icon":"moon","target":3},
+    {"id":"duo-photo-shadows-3","scope":"shared","title":"Ombres portées, intentions assumées","description":"Valider ensemble 3 fois « Photoshoot original · Ombres », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-photoshoot","variantRoll":4},"order":74,"icon":"moon","target":3},
+    {"id":"duo-photo-shower-3","scope":"shared","title":"Objectif : buée","description":"Valider ensemble 3 fois « Photoshoot original · Sous la douche », avec vos deux coches.","family":"intimacy-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"six-intimite-photoshoot","variantRoll":6},"order":75,"icon":"moon","target":3},
+    {"id":"duo-hc-golden-3","scope":"shared","title":"Bulletin d’averses dorées","description":"Valider ensemble 3 fois « Golden Shower », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-01"},"order":76,"icon":"spark","target":3},
+    {"id":"duo-hc-chapel-3","scope":"shared","title":"La Chapelle Sextine","description":"Valider ensemble 3 fois « Faciale à l'église », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-02"},"order":77,"icon":"spark","target":3},
+    {"id":"duo-hc-manual-camera-3","scope":"shared","title":"Mode manuel, caméra active","description":"Valider ensemble 3 fois « Webcam — masturbation », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-03"},"order":78,"icon":"spark","target":3},
+    {"id":"duo-hc-video-finale-3","scope":"shared","title":"Finale en visioconférence","description":"Valider ensemble 3 fois « Webcam — faciale », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-04"},"order":79,"icon":"spark","target":3},
+    {"id":"duo-hc-upper-frame-3","scope":"shared","title":"Haut débit, haut retiré","description":"Valider ensemble 3 fois « Webcam — nudité du haut », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-05"},"order":80,"icon":"spark","target":3},
+    {"id":"duo-hc-lower-frame-3","scope":"shared","title":"Réunion sans pantalon","description":"Valider ensemble 3 fois « Webcam — nudité du bas », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-06"},"order":81,"icon":"spark","target":3},
+    {"id":"duo-hc-rear-camera-3","scope":"shared","title":"Caméra de recul","description":"Valider ensemble 3 fois « Webcam — fesses », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-07"},"order":82,"icon":"spark","target":3},
+    {"id":"duo-hc-artists-entry-3","scope":"shared","title":"L’entrée des artistes","description":"Valider ensemble 3 fois « Pénétration anale », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-08"},"order":83,"icon":"spark","target":3},
+    {"id":"duo-hc-double-booking-3","scope":"shared","title":"Double réservation confirmée","description":"Valider ensemble 3 fois « Double pénétration », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-09"},"order":84,"icon":"spark","target":3},
+    {"id":"duo-hc-hour-contract-3","scope":"shared","title":"CDD d’une heure","description":"Valider ensemble 3 fois « Une heure de soumission », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-10"},"order":85,"icon":"spark","target":3},
+    {"id":"duo-hc-applause-3","scope":"shared","title":"Mention fessé-bien","description":"Valider ensemble 3 fois « Session fessée », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-11"},"order":86,"icon":"spark","target":3},
+    {"id":"duo-hc-private-cinema-3","scope":"shared","title":"César du huis clos","description":"Valider ensemble 3 fois « On tourne un porno privé ! », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-12"},"order":87,"icon":"spark","target":3},
+    {"id":"duo-hc-studio-3","scope":"shared","title":"Studio sous tension","description":"Valider ensemble 3 fois « Séance photo BDSM », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-13"},"order":88,"icon":"spark","target":3},
+    {"id":"duo-hc-glide-3","scope":"shared","title":"Glissement de terrain","description":"Valider ensemble 3 fois « Massage Nuru », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-15"},"order":89,"icon":"spark","target":3},
+    {"id":"duo-hc-remake-3","scope":"shared","title":"Oscar du meilleur remake maison","description":"Valider ensemble 3 fois « Reproduction d’un film porno », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-16"},"order":90,"icon":"spark","target":3}
   ];
 
   // Cumulative progression is private room data. It is deliberately excluded
   // from roomSharedKeys; only badgeView exposes the reader's own collection.
+  const badgeCatalogueVersion=2;
+  const expansionBadges=badgeCatalog.filter(badge=>badge.order>60);
   const progressMetrics=['draws','proposals','participations','completedSent','completedReceived'];
   const progressCategories=categories.map(category=>category.id);
   const progressCounter=value=>Number.isSafeInteger(value)&&value>=0;
@@ -1166,7 +1198,7 @@
     return {...Object.fromEntries(progressMetrics.map(metric=>[metric,0])),byCategory:Object.fromEntries(progressCategories.map(id=>[id,Object.fromEntries(progressMetrics.map(metric=>[metric,0]))])),completedByCard:{},completedByVariant:{},activity:blankCalendar()};
   }
   function blankProgression(epoch){
-    return {version:1,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
+    return {version:1,catalogueVersion:badgeCatalogueVersion,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
   }
   function progressCategory(record){return mergedCategory(record.categoryId||getCard(record.cardId)?.categoryId);}
   function completedVariantKey(record){
@@ -1197,7 +1229,7 @@
     const criterion=badge.criterion,individual=badge.scope==='individual',data=individual?progress.individual[actor]:progress.shared;
     const category=criterion.categoryId;
     if(['participations','completed'].includes(criterion.metric)){
-      if(criterion.cardId)return data.completedByVariant[criterion.cardId+':v'+criterion.variantRoll]||0;
+      if(criterion.cardId)return criterion.variantRoll===undefined?data.completedByCard[criterion.cardId]||0:data.completedByVariant[criterion.cardId+':v'+criterion.variantRoll]||0;
       if(category)return individual?data.byCategory[category].participations:data.byCategory[category];
       return individual?data.participations:data.completed;
     }
@@ -1213,8 +1245,8 @@
     if(criterion.metric==='completedEveryCategory')return Math.min(...progressCategories.map(id=>data.byCategory[id]));
     return 0;
   }
-  function awardBadges(progress,at,imported=false){
-    for(const badge of badgeCatalog){
+  function awardBadges(progress,at,imported=false,catalogue=badgeCatalog){
+    for(const badge of catalogue){
       if(badge.scope==='individual'){
         for(const actor of roomActors){
           if(progress.awards.individual[actor][badge.id]||badgeMetric(progress,actor,badge)<badge.target)continue;
@@ -1224,6 +1256,16 @@
         progress.awards.shared[badge.id]={at,sequenceByActor:{a:++progress.sequences.a,b:++progress.sequences.b},...(imported?{source:'imported'}:{})};
       }
     }
+  }
+  function currentProgression(progress){
+    if(progress.catalogueVersion===badgeCatalogueVersion)return progress;
+    const upgraded=progressCopy(progress);
+    // The added definitions may already be satisfied by cumulative counters.
+    // Import only those gains before crediting any new event, keeping every
+    // existing award's ID, timestamp and per-reader sequence untouched.
+    awardBadges(upgraded,null,true,expansionBadges);
+    upgraded.catalogueVersion=badgeCatalogueVersion;
+    return upgraded;
   }
   function initialProgression(state){
     const progress=blankProgression(state.sequence),records=new Map(),activity=[];
@@ -1285,6 +1327,7 @@
   }
   function validProgression(progress,sequence){
     if(!progressObject(progress)||progress.version!==1||!Number.isSafeInteger(progress.epoch)||progress.epoch<1||progress.epoch>sequence||!progressObject(progress.individual)||!progressObject(progress.shared)||!progressObject(progress.awards)||!progressObject(progress.awards.individual)||!progressObject(progress.awards.shared)||!progressObject(progress.sequences))return false;
+    if(progress.catalogueVersion!==undefined&&![1,badgeCatalogueVersion].includes(progress.catalogueVersion))return false;
     const shared=progress.shared;
     if(!progressCounter(shared.completed)||!progressCounter(shared.weekendCompleted)||shared.weekendCompleted>shared.completed||!progressObject(shared.byCategory)||Object.keys(shared.byCategory).sort().join(',')!==progressCategories.slice().sort().join(',')||!progressCategories.every(id=>progressCounter(shared.byCategory[id]))||!validProgressMap(shared.completedByCard)||!validProgressMap(shared.completedByVariant,true)||!validCalendar(shared.completion))return false;
     if(progressCategories.reduce((total,id)=>total+shared.byCategory[id],0)!==shared.completed)return false;
@@ -1327,7 +1370,7 @@
     const completed=!!task&&action.checked===true&&!task.checks[actor]&&task.checks[otherPlayer(actor)]&&!remaining&&after.stats.totalCompleted===before.stats.totalCompleted+1;
     const checked=!!task&&action.checked===true&&!task.checks[actor]&&(remaining?.checks[actor]===true||completed);
     if(!drawn&&!sent&&!checked&&!completed)return after;
-    const progress=before.progression?progressCopy(before.progression):initialProgression(before);
+    const progress=before.progression?progressCopy(currentProgression(before.progression)):initialProgression(before);
     if(drawn)addIndividual(progress,actor,'draws',progressCategory(next.round));
     if(sent)addIndividual(progress,actor,'proposals',progressCategory(previous.round));
     if(drawn||sent||checked)recordDay(progress.individual[actor].activity,action.at);
@@ -1351,7 +1394,7 @@
   }
   function badgeView(state,actor){
     if(!roomActors.includes(actor)||!(state?.version===2?validateRoom(state):validateState(state)))return null;
-    const progress=state.progression||initialProgression(state);
+    const progress=state.progression?currentProgression(state.progression):initialProgression(state);
     return {version:1,epoch:progress.epoch,items:badgeCatalog.map(badge=>{
       const shared=badge.scope==='shared',stored=shared?progress.awards.shared[badge.id]:progress.awards.individual[actor][badge.id];
       const award=stored?{id:progress.epoch+':'+badge.scope+':'+(shared?'':actor+':')+badge.id,at:stored.at,sequence:shared?stored.sequenceByActor[actor]:stored.sequence,...(stored.source?{source:stored.source}:{})}:null;

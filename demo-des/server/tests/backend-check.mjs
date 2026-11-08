@@ -154,7 +154,7 @@ async function authorize(store){
 }
 function client(handler){
  return async(body,token=tokenA,extra={})=>{
-  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify({gameVersion:5,...body})}));
+  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify({gameVersion:6,...body})}));
   return {status:response.status,body:await response.json(),headers:response.headers};
  };
 }
@@ -165,12 +165,13 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 {
  const saved=new MemoryStore();await authorize(saved);
  const handler=createHandler({G,store:saved,rateSecret:'fixture',clock:()=>new Date(at)}),deliver=client(handler);
- for(const gameVersion of [1,2,3,4])for(const op of ['login','state','action','hardcore','push_config','subscribe']){
-  const before=clone(saved.state),revision=saved.revision;
+ for(const gameVersion of [1,2,3,4,5])for(const op of ['login','state','action','hardcore','push_config','subscribe']){
+  const before=clone(saved.state),revision=saved.revision,calls=saved.calls.length;
   const response=await deliver({op,gameVersion,username:'alpha',password:'test-only-password',requestId:uuid(600),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}});
   equal(response.status,409);equal(response.body.error.code,'upgrade_required');equal(response.body.state,undefined);equal(saved.state,before);equal(saved.revision,revision);equal(saved.used.size,0);
+  equal(saved.calls.length,calls,'old protocols are rejected before rate writes, session reads or receipt lookup');
  }
- equal((await deliver({op:'state',gameVersion:'5'})).status,400);
+ equal((await deliver({op:'state',gameVersion:'6'})).status,400);
 }
 
 // A published legacy hand, score, D4 and quota survive migration into its owner lane.
@@ -179,7 +180,7 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  saved.phase='card';Object.assign(saved.round,{cardId:null,cardRoll:null,hp:null,status:'drawing'});delete saved.round.cardRerolled;
  saved.stats={totalCompleted:21,byCategory:{complicite:1,detente:2,projets:3,attention:4,bouffe:5,intimite:6}};legacy.state=saved;legacy.used.add('a');await authorize(legacy);
  const rng=[],handler=createHandler({G:{...G,randomInt:n=>{rng.push(n);return n;}},store:legacy,rateSecret:'fixture',clock:()=>new Date(at)}),deliver=client(handler);
- const own=await deliver({op:'state'});equal(own.status,200);equal(legacy.state.version,2);equal(own.body.gameVersion,5);equal(own.body.state.round.hand,hand);equal(own.body.state.stats,saved.stats);equal(own.body.state.round.categoryId,'detente');equal(own.body.state.round.categoryRoll,2);equal(own.body.quota.remaining,0);equal(rng,[]);equal(legacy.revision,1);
+ const own=await deliver({op:'state'});equal(own.status,200);equal(legacy.state.version,2);equal(own.body.gameVersion,6);equal(own.body.state.round.hand,hand);equal(own.body.state.stats,saved.stats);equal(own.body.state.round.categoryId,'detente');equal(own.body.state.round.categoryRoll,2);equal(own.body.quota.remaining,0);equal(rng,[]);equal(legacy.revision,1);
  const other=await deliver({op:'state'},tokenB);equal(other.status,200);equal(other.body.state.phase,'category');equal(other.body.state.round.from,'b');equal(other.body.incoming,[]);equal(other.body.drawAvailable,true);equal(other.body.quota.remaining,1);equal(legacy.revision,1);
  const rolled=await deliver(intent('ROLL_CARD',601));equal(rolled.status,200);equal(rolled.body.roll,{kind:4,value:4});equal(rolled.body.state.round.cardId,hand[3]);equal(rng,[4]);equal(legacy.used.size,1);
  const sent=await deliver(intent('SEND',602));equal(sent.status,200);equal(legacy.outbox,[{actor:'b',kind:'invitation',roundId:'onde-1'}]);
@@ -309,7 +310,7 @@ let response=await request({op:'create'});equal(response.status,404);equal((awai
 equal((await request({op:'state'})).status,401);
 response=await request({op:'login',username:'alpha',password:'not-the-fixture-password'});equal(response.status,401);ok(!JSON.stringify(response.body).includes('not-the-fixture-password'));
 store.blockRates=true;const beforeLogin=store.loginChecks;equal((await request({op:'login',username:'alpha',password:'test-only-password'})).status,429);equal(store.loginChecks,beforeLogin);store.blockRates=false;
-response=await request({op:'login',username:' ÁLPHÀ ',password:'test-only-password'});equal(response.status,200);equal(response.body.connection.actor,'a');equal(response.body.connection.token,tokenA);equal(response.body.serverTime,at);ok(G.validateRoom(store.state));equal(response.body.gameVersion,5);equal(response.body.drawAvailable,true);equal(response.body.incoming,[]);
+response=await request({op:'login',username:' ÁLPHÀ ',password:'test-only-password'});equal(response.status,200);equal(response.body.connection.actor,'a');equal(response.body.connection.token,tokenA);equal(response.body.serverTime,at);ok(G.validateRoom(store.state));equal(response.body.gameVersion,6);equal(response.body.drawAvailable,true);equal(response.body.incoming,[]);
 equal((await request({op:'login',username:'bravo',password:'test-only-password'},tokenB)).status,200);
 equal((await request({op:'login',username:'bravo',password:'test-only-password'},tokenA)).status,409);
 response=await request({op:'state'});equal(response.status,200);ok(!JSON.stringify(response.body).includes(tokenA));equal(response.body.actor,'a');equal(response.body.state.round.from,'a');
@@ -323,7 +324,7 @@ response=await request({op:'state'},tokenB);equal(response.body.state.round.from
 response=await request(intent('ROLL_CARD',804,'onde-1'),tokenB);equal(response.status,409);equal(response.body.incoming,[]);equal(response.body.state.round.cardId,null);
 response=await request({op:'state'},tokenA,{Origin:'https://unrelated.example'});equal(response.status,403);equal(response.headers.get('Access-Control-Allow-Origin'),null);
 const badHandler=createHandler({G,store:{rpc:async()=>{throw new Error('SECRET-DATABASE-ERROR');}},rateSecret:'test'});
-const bad=await badHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:'{"op":"state","gameVersion":5}'}));equal(bad.status,503);ok(!(await bad.text()).includes('SECRET-DATABASE-ERROR'));
+const bad=await badHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:'{"op":"state","gameVersion":6}'}));equal(bad.status,503);ok(!(await bad.text()).includes('SECRET-DATABASE-ERROR'));
 const cronCalls=[],cronHandler=createHandler({G,store,rateSecret:'test',push:{isPushCronAuthorized:async(_store,header)=>header==='test-only-cron-secret',enqueueScheduled:async()=>cronCalls.push('enqueue'),flushPushOutbox:async()=>cronCalls.push('flush')}});
 let cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"op":"drain_push"}'}));equal(cron.status,401);equal(cronCalls,[]);
 cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json','x-desir-cron':'test-only-cron-secret'},body:'{"op":"drain_push"}'}));equal(cron.status,202);equal(cronCalls,['enqueue','flush']);
@@ -412,12 +413,12 @@ for(const denied of ['authenticated-ip:','device:']){
  saved.forceRace=true;
  const request=intent('ROLL_CATEGORY',2100,aId),draws=await Promise.all([deliver(request),deliver(request)]);
  equal(draws.map(result=>result.status),[200,200]);equal(draws[0].body,draws[1].body);equal(saved.receipts.size,1);equal(saved.used.size,1);
- equal(draws[0].body.gameVersion,5);equal(draws[0].body.roll,{kind:4,value:4});
+ equal(draws[0].body.gameVersion,6);equal(draws[0].body.roll,{kind:4,value:4});
  const drawn=view(saved,'a');equal(drawn.round.catalogueVersion,3);equal(drawn.round.intimacyPool,'hardcore');equal(drawn.round.hardcoreOffer,false);equal(drawn.round.hand.length,6);equal(G.needsVariant(drawn.round),false);
  ok(randomCalls.includes(42));ok(randomCalls.includes(20));
  const hidden=await deliver({op:'state'},tokenB);equal(hidden.body.badges,initialB.body.badges);equal(hidden.body.state.round.intimacyPool,undefined);
  for(const id of drawn.round.hand)ok(!JSON.stringify(hidden.body).includes(id),'private Hardcore sample is never delivered');
- const hiddenSingle=projectState(G,drawn,'b',5);equal(hiddenSingle.phase,'category');equal(hiddenSingle.round.intimacyPool,undefined);equal(hiddenSingle.round.hand,[]);
+ const hiddenSingle=projectState(G,drawn,'b',6);equal(hiddenSingle.phase,'category');equal(hiddenSingle.round.intimacyPool,undefined);equal(hiddenSingle.round.hand,[]);
  const card=await deliver(intent('ROLL_CARD',2101,aId));equal(card.status,200);equal(card.body.roll,{kind:6,value:6});equal(card.body.state.phase,'draft');equal(card.body.state.round.hp,null);equal(card.body.state.round.variantRoll,undefined);
  const calls=randomCalls.length,invalidVariant=await deliver(intent('ROLL_VARIANT',2102,aId));
  equal(invalidVariant.status,409);equal(invalidVariant.body.error.code,'invalid_phase');equal(randomCalls.length,calls,'no extra RNG or variant is consumed');
@@ -426,11 +427,11 @@ for(const denied of ['authenticated-ip:','device:']){
  // The recipient's accepted-round projection depends on the selected title,
  // never on the other five secretly sampled entries.
  const privateDraft=view(saved,'a'),published=G.reduce(privateDraft,{type:'SEND',directQueue:true,actor:'a',at});
- ok(G.validateState(published));const publicView=projectState(G,published,'b',5);
+ ok(G.validateState(published));const publicView=projectState(G,published,'b',6);
  equal(publicView.round.cardId,privateDraft.round.cardId);ok(G.validateState(publicView));
  const changed=clone(published),selected=changed.round.cardId,alternatives=G.hardcoreCards.filter(c=>c.id!==selected).slice(-5).map(c=>c.id);let index=0;
  changed.round.hand=Array.from({length:6},(_,i)=>i===changed.round.cardRoll-1?selected:alternatives[index++]);
- ok(G.validateState(changed));equal(projectState(G,changed,'b',5),publicView,'unrevealed hand changes do not affect recipient output');
+ ok(G.validateState(changed));equal(projectState(G,changed,'b',6),publicView,'unrevealed hand changes do not affect recipient output');
 
  const send=intent('SEND',2104,aId),sent=await Promise.all([deliver(send),deliver(send)]);
  equal(sent.map(result=>result.status),[200,200]);equal(sent[0].body,sent[1].body);equal(saved.state.tasks.length,1);equal(saved.outbox.length,1);
@@ -444,5 +445,64 @@ for(const denied of ['authenticated-ip:','device:']){
  const progress=clone(saved.state.progression),replay=await deliver(completeB,tokenB);equal(replay.body,complete[1].body);equal(saved.state.progression,progress);
  const quota=await deliver(intent('ROLL_CATEGORY',2107,view(saved,'a').round.id));equal(quota.status,409);equal(quota.body.error.code,'quota_exhausted');equal(saved.used.size,1);
  const beforeCalls=saved.calls.length,removed=await deliver({op:'hardcore'});equal(removed.status,410);equal(removed.body.error.code,'mode_removed');equal(saved.calls.length,beforeCalls,'retired combat performs no database operation');
+}
+// Catalogue expansion keeps old attributed awards and imports only newly
+// introduced qualifications. A real 2 -> 3 completion is still a live gain,
+// committed once with the existing CAS and idempotency receipt.
+{
+ const badgeId='duo-hc-golden-3',time='2026-11-02T16:00:00.000Z';
+ function mutate(room,type,actor,extra={}){
+  const next=G.reduceRoom(room,{type,actor,roundId:room.lanes[actor].round.id,at,...extra});
+  ok(next!==room);ok(G.validateRoom(next));return next;
+ }
+ function queueHardcore(room){
+  const prepared=G.drawCategory(G.roomView(room,'a'),4,3,n=>n);
+  room=mutate(room,'ROLL_CATEGORY','a',{value:4,...prepared});room=mutate(room,'ROLL_CARD','a',{value:1});
+  const taskId=room.lanes.a.round.id;room=mutate(room,'SEND','a',{directQueue:true});return {room,taskId};
+ }
+ function completeHardcore(room){
+  const queued=queueHardcore(room);room=mutate(queued.room,'TOGGLE_TASK_CHECK','a',{taskId:queued.taskId,checked:true});
+  return mutate(room,'TOGGLE_TASK_CHECK','b',{taskId:queued.taskId,checked:true});
+ }
+ function legacyRegistry(room){
+  const next=clone(room),progress=next.progression;delete progress.catalogueVersion;
+  for(const badge of G.badgeCatalog.slice(60))delete progress.awards.shared[badge.id];
+  for(const actor of ['a','b']){
+   const rows=[...Object.values(progress.awards.individual[actor]).map(award=>({award,n:award.sequence,shared:false})),...Object.values(progress.awards.shared).map(award=>({award,n:award.sequenceByActor[actor],shared:true}))].sort((a,b)=>a.n-b.n);
+   rows.forEach(({award,shared},index)=>{if(shared)award.sequenceByActor[actor]=index+1;else award.sequence=index+1;});progress.sequences[actor]=rows.length;
+  }
+  ok(G.validateRoom(next));return next;
+ }
+ let baseline=G.createRoom({at});for(let n=0;n<2;n++)baseline=completeHardcore(baseline);
+ const third=queueHardcore(baseline),saved=new MemoryStore();saved.state=legacyRegistry(third.room);await authorize(saved);
+ const before=clone(saved.state),oldAwards=clone(saved.state.progression.awards),epoch=saved.state.progression.epoch;
+ const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-expansion',clock:()=>new Date(time)}));
+ const reads=await Promise.all([deliver({op:'state'}),deliver({op:'state'},tokenB)]);
+ for(const response of reads){equal(response.status,200);equal(response.body.gameVersion,6);equal(response.body.badges.items.length,90);equal(response.body.badges.items.find(item=>item.id===badgeId).award,null);}
+ equal(saved.state,before,'reading expanded collection leaves stored room untouched');equal(saved.revision,0);
+ saved.forceRace=true;
+ const actions=[intent('TOGGLE_TASK_CHECK',2200,view(saved,'a').round.id,{taskId:third.taskId,checked:true}),intent('TOGGLE_TASK_CHECK',2201,view(saved,'b').round.id,{taskId:third.taskId,checked:true})];
+ const applied=await Promise.all([deliver(actions[0]),deliver(actions[1],tokenB)]);equal(applied.map(result=>result.status),[200,200]);
+ equal(saved.state.progression.catalogueVersion,2);equal(saved.state.progression.epoch,epoch);equal(saved.state.stats.totalCompleted,3);equal(saved.state.progression.shared.completedByCard['hardcore-01'],3);equal(saved.receipts.size,2);
+ const award=saved.state.progression.awards.shared[badgeId];equal(award.at,time);equal(award.source,undefined);
+ for(const [id,old] of Object.entries(oldAwards.shared))equal(saved.state.progression.awards.shared[id],old);
+ for(const actor of ['a','b'])for(const [id,old] of Object.entries(oldAwards.individual[actor]))equal(saved.state.progression.awards.individual[actor][id],old);
+ const committed=clone(saved.state.progression);
+ for(const [index,token] of [tokenA,tokenB].entries()){const replay=await deliver(actions[index],token);equal(replay.body,applied[index].body);equal(saved.state.progression,committed);}
+
+ // The same threshold satisfied before the release is imported, never dated
+ // at the read or at the following private draw's commit.
+ const previous=new MemoryStore();previous.state=legacyRegistry(saved.state);await authorize(previous);
+ const old=clone(previous.state),reader=client(createHandler({G:{...G,randomInt:()=>1},store:previous,rateSecret:'fixture-import',clock:()=>new Date(time)}));
+ const first=await reader({op:'state'}),second=await reader({op:'state'},tokenB);
+ for(const response of [first,second]){const item=response.body.badges.items.find(item=>item.id===badgeId);equal(item.progress.value,3);equal(item.award.at,null);equal(item.award.source,'imported');}
+ equal(previous.state,old);equal(previous.revision,0);equal(previous.receipts.size,0);
+ const draw=await reader(intent('ROLL_CATEGORY',2202,view(previous,'a').round.id));equal(draw.status,200);
+ equal(draw.body.badges.items.find(item=>item.id===badgeId).award,first.body.badges.items.find(item=>item.id===badgeId).award);
+ equal(previous.state.progression.awards.shared[badgeId].at,null);equal(previous.state.progression.awards.shared[badgeId].source,'imported');equal(previous.state.stats,old.stats);equal(previous.state.players,old.players);
+ equal(previous.state.progression.epoch,old.progression.epoch);equal(previous.state.progression.catalogueVersion,2);
+ const calls=previous.calls.length;
+ const obsolete=await reader({...intent('ROLL_CATEGORY',2202,view(previous,'a').round.id),gameVersion:5});
+ equal(obsolete.status,409);equal(obsolete.body.error.code,'upgrade_required');equal(previous.calls.length,calls,'v5 cannot replay a saved request after v6 migration');
 }
 console.log(`Dés·ir backend: ${checks} privacy/auth/RNG/CAS/idempotency/quota/expiry assertions passed.`);
