@@ -3,7 +3,7 @@
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const CACHE_NAME = CACHE_PREFIX + 'connected-v21';
+const CACHE_NAME = CACHE_PREFIX + 'connected-v22';
 const PUBLIC_FILES = [
   './', './index.html', './manifest.webmanifest',
   './icons/desir-180.png', './icons/desir-192.png', './icons/desir-512.png', './icons/desir-badge.png'
@@ -55,8 +55,8 @@ self.addEventListener('fetch', event => {
 });
 
 const MESSAGES = Object.freeze({
-  invitation: 'Une invitation t’attend.',
-  confirmation: 'Une réponse t’attend.',
+  invitation: 'Un nouveau challenge t’attend.',
+  confirmation: 'Vos challenges ont été actualisés.',
   'task-ready': 'Une action vous attend dans À faire.',
   'shared-moment': 'Un moment partagé a été validé.',
   'draw-available': 'Ton dé est prêt.',

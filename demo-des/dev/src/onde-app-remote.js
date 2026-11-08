@@ -1,7 +1,7 @@
 /* Dés·ir — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','SEND_DAILY','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','CHALLENGE','ROLL_DEFENSE']);
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
  const TOKEN=/^[A-Za-z0-9_-]{43}$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
@@ -43,9 +43,9 @@
    if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
-   if(raw.gameVersion!==undefined&&raw.gameVersion!==3)throw failure('invalid_response','La version reçue est invalide.');
+   if(raw.gameVersion!==4)throw failure('invalid_response','La version reçue est invalide.');
    let incoming,pendingOutgoing=0;
-   if(raw.gameVersion===3){
+   if(raw.gameVersion===4){
     if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
     incoming=raw.incoming.map(value=>G.normalizeState(value));
     if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
@@ -58,7 +58,7 @@
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming,pendingOutgoing}: {})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:4,incoming,pendingOutgoing},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -73,7 +73,7 @@
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette invitation a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -88,7 +88,7 @@
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:3,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:4,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -127,15 +127,22 @@
    if(action.type==='TOGGLE_TASK_CHECK'){
     if(typeof action.taskId!=='string'||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
     value.taskId=action.taskId;value.checked=action.checked;
+   }else if(action.type==='REFUSE_TASK'){
+    if(typeof action.taskId!=='string'||!/^onde-[1-9]\d*$/.test(action.taskId)||!value.roundId)throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
+    value.taskId=action.taskId;
    }else if(!value.roundId)throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
    return value;
   }
-  function storedAction(){const value=parsed(actionKey);if(!value)return null;if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
+  function storedAction(){const value=parsed(actionKey);if(!value)return null;
+   // The new game starts after a reset. Never replay or reinterpret an older command.
+   // Inspect the protocol before validating types removed by this release.
+   if(value.gameVersion!==4){remove(actionKey);return null;}
+   if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    requireConnection();
    const identity=connection;
    try{
-    const raw=await request({op:'action',gameVersion:[2,3].includes(pending.gameVersion)?pending.gameVersion:1,requestId:pending.requestId,action:pending.action},identity.token);
+    const raw=await request({op:'action',gameVersion:pending.gameVersion,requestId:pending.requestId,action:pending.action},identity.token);
     if(connection!==identity||authFailed)throw connectionChanged();
     const value=acceptSnapshot(raw,identity);remove(actionKey);return value;
    }catch(error){if(connection!==identity||authFailed)throw connectionChanged();if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
@@ -145,7 +152,7 @@
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,gameVersion:3,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:4,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
   }
@@ -161,13 +168,12 @@
    return clone(raw);
   }
   async function recoverPendingAction(pending,identity){
-   try{return await serial(()=>{
+   return await serial(()=>{
     if(connection!==identity)throw connectionChanged();
     // An action ahead of this recovery in the queue may already have succeeded.
     const current=storedAction();if(!current||current.requestId!==pending.requestId)return null;
     return sendAction(current);
-   });}
-   catch(error){if(error.code!=='upgrade_required'||pending.gameVersion===3)throw error;return null;}
+   });
   }
   function refresh(){
    if(!connection)return Promise.resolve(null);

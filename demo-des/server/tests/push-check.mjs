@@ -52,6 +52,13 @@ for (const target of ['a','b']) {
 check(()=>assert.equal(pushEventRelevant({phase:'pending',round:{id:'onde-9',awaiting:'b'}},{kind:'invitation',round_id:'onde-9',target_actor:'b'}),true));
 check(()=>assert.equal(pushEventRelevant({phase:'pending',round:{id:'onde-10',awaiting:'b'}},{kind:'invitation',round_id:'onde-9',target_actor:'b'}),false));
 check(()=>assert.equal(pushEventRelevant(null,{kind:'invitation',target_actor:'b'}),false));
+const queuedTask={id:'onde-20',to:'b',expiresAt:'2026-11-09T12:00:00Z'},queuedEvent={kind:'invitation',round_id:'onde-20',target_actor:'b'},queuedAt=Date.parse('2026-11-08T12:00:00Z');
+check(()=>assert.equal(pushEventRelevant({version:2,lanes:{},tasks:[queuedTask]},queuedEvent,queuedAt),true));
+check(()=>assert.equal(pushEventRelevant({version:2,lanes:{},tasks:[queuedTask]},{...queuedEvent,target_actor:'a'},queuedAt),false));
+check(()=>assert.equal(pushEventRelevant({version:2,lanes:{},tasks:[{...queuedTask,id:'onde-21'}]},queuedEvent,queuedAt),false));
+check(()=>assert.equal(pushEventRelevant({version:2,lanes:{},tasks:[]},queuedEvent,queuedAt),false));
+check(()=>assert.equal(pushEventRelevant({version:2,lanes:{},tasks:[queuedTask]},queuedEvent,Date.parse(queuedTask.expiresAt)),false));
+
 
 const handlers={},shown=[],messages=[],opened=[];
 let focused=0,cacheTouches=0;
@@ -62,7 +69,7 @@ vm.runInNewContext(fs.readFileSync(new URL('../../sw.js',import.meta.url),'utf8'
 async function event(name,data){let pending;handlers[name]({...data,waitUntil:promise=>{pending=promise;}});await pending;}
 await event('push',{data:{json:()=>({kind:'invitation',eventId:'fixture',title:'DO NOT DISPLAY',body:'secret title',url:'https://attacker.example'})}});
 check(()=>assert.equal(shown[0].title,'Dés·ir'));
-check(()=>assert.equal(shown[0].options.body,'Une invitation t’attend.'));
+check(()=>assert.equal(shown[0].options.body,'Un nouveau challenge t’attend.'));
 check(()=>assert.equal(shown[0].options.tag,'desir-fixture'));
 check(()=>assert.equal(shown[0].options.body.includes('secret'),false));
 check(()=>assert.equal(messages[0].type,'desir-state-refresh'));

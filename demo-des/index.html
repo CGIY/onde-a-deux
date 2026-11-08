@@ -101,7 +101,7 @@
 #onde-app-v1 .oa-category-number{font:10px ui-monospace,monospace;color:#a7b39f}
 #onde-app-v1 .oa-category-label{font-size:11px;white-space:normal;line-height:1.25}
 #onde-app-v1 .oa-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:15px}
-#onde-app-v1 .oa-mini-card{border:1px solid #4e5e4870;position:relative;border-radius:15px;background:#252f27;padding:14px 12px;min-height:100px;transition:background .3s,transform .3s}
+#onde-app-v1 .oa-mini-card{border:1px solid #4e5e4870;position:relative;border-radius:15px;background:#252f27;padding:14px 12px;min-height:100px;transition:transform .3s}
 #onde-app-v1 .oa-mini-card.is-picked{background:#46533e;border-color:#a0b38c;transform:translateY(-2px)}
 #onde-app-v1 .oa-mini-number{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#394531;color:#cad5bf;font:11px ui-monospace,monospace;margin-bottom:9px}
 #onde-app-v1 .oa-mini-card h3{font-size:12px;font-weight:400;line-height:1.35}
@@ -277,8 +277,7 @@
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(145deg,#91c2c7,#6d9da6);color:#172625;border-color:#b0d9d9;box-shadow:inset 0 1px #ffffff77,0 6px 14px #0003}
 #onde-app-v1 .oa-category-number{color:#f0e8d7}
 #onde-app-v1 .oa-mini-card{background:linear-gradient(145deg,color-mix(in srgb,var(--oa-mineral-blue) 15%,#2b2e2a),color-mix(in srgb,var(--oa-mineral-moss) 12%,#262824))}
-#onde-app-v1.oa-entering .oa-mini-card{animation:oa-mini-arrive .52s cubic-bezier(.2,.8,.2,1) both}
-#onde-app-v1 .oa-mini-card:nth-child(2){animation-delay:.06s}#onde-app-v1 .oa-mini-card:nth-child(3){animation-delay:.12s}#onde-app-v1 .oa-mini-card:nth-child(4){animation-delay:.18s}
+#onde-app-v1 .oa-mini-card{animation:none;isolation:isolate}
 #onde-app-v1 .oa-mini-card.is-picked{background:linear-gradient(145deg,#61775c,#475743);box-shadow:0 0 0 2px #c0d39c44,0 8px 18px #0003}
 #onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 12% 0%,color-mix(in srgb,var(--category) 18%,transparent),transparent 56%),linear-gradient(145deg,color-mix(in srgb,var(--category) 30%,#282928),color-mix(in srgb,var(--category) 16%,#252724) 68%);border-color:color-mix(in srgb,var(--category) 78%,#eee5d1);box-shadow:inset 0 2px 2px #ffffff27,inset 0 -6px 12px #0b0e0c38,0 15px 30px #0005}
 #onde-app-v1 .oa-card-illustration i:nth-child(2){background:linear-gradient(145deg,#eed4ad,#bf9274)}
@@ -298,7 +297,6 @@
 #onde-app-v1 .oa-sheet{animation:oa-sheet-in .36s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-toast:not([hidden]){animation:oa-toast-in .35s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-celebration{background:radial-gradient(ellipse at 50% 50%,#d7dfbe44,transparent 42%),radial-gradient(ellipse at 23% 40%,#8abdc344,transparent 50%),radial-gradient(ellipse at 76% 60%,#dc9a8440,transparent 50%)}
-@keyframes oa-mini-arrive{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes oa-nav-pop{0%{transform:translateY(3px) scale(.88,1.06)}48%{transform:translateY(-2px) scale(1.08,.92)}78%{transform:translateY(1px) scale(.98,1.04)}100%{transform:translateY(0) scale(1)}}
 @keyframes oa-step-pulse{0%,100%{box-shadow:0 0 0 0 #d7dfbe00;transform:scale(1)}50%{box-shadow:0 0 0 5px #d7dfbe20;transform:scale(1.045)}}
 @keyframes oa-evidence-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -317,7 +315,7 @@
 #onde-app-v1 .oa-switch button{min-height:40px}
 #onde-app-v1 .oa-title{font-size:clamp(30px,8vw,35px);line-height:1.13;letter-spacing:-.035em;font-weight:500;text-wrap:balance}
 #onde-app-v1 .oa-subtitle{font-size:14px;line-height:1.55}
-#onde-app-v1 .oa-playing-card{border-radius:26px;padding:22px;animation:none}
+#onde-app-v1 .oa-playing-card{isolation:isolate;border-radius:26px;padding:22px;animation:none}
 #onde-app-v1 .oa-playing-card:before{border-radius:21px}
 #onde-app-v1 .oa-playing-card:after{background-image:var(--oa-grain);background-size:112px 112px;opacity:.5;mix-blend-mode:soft-light}
 #onde-app-v1 .oa-card-title{font-size:clamp(26px,7.2vw,30px);line-height:1.15;letter-spacing:-.035em;text-wrap:balance}
@@ -371,10 +369,6 @@
 #onde-app-v1 .oa-task-proposal{font-size:12px;line-height:1.5;color:#c7d0c0;margin:-9px 0 18px}
 #onde-app-v1 .oa-task-status{margin:0 0 12px;padding:9px 10px;border-radius:11px;border:1px solid #a9b8a030;background:#1d292544;font-size:11px;line-height:1.5;color:#d3decc}
 #onde-app-v1 .oa-task-status .oa-status-dot{width:6px;height:6px}
-#onde-app-v1.oa-entering .oa-task{animation:oa-soft-settle .4s cubic-bezier(.22,1,.36,1) both}
-#onde-app-v1.oa-entering .oa-task:nth-child(2){animation-delay:.05s}
-#onde-app-v1.oa-entering .oa-task:nth-child(3){animation-delay:.1s}
-#onde-app-v1.oa-entering .oa-task:nth-child(n+4){animation-delay:.15s}
 #onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #c4d1b525;padding-top:15px}
 #onde-app-v1 .oa-task-check{display:flex;align-items:center;gap:9px;position:relative;min-height:44px;font-size:12px;color:#e1e8d9;cursor:pointer;min-width:0}
 #onde-app-v1 .oa-task-check.is-other{cursor:default;color:#b8c2af}
@@ -408,6 +402,8 @@
 #onde-app-v1 .oa-playing-card:after{opacity:.76}
 #onde-app-v1 .oa-task:before{opacity:.65}
 #onde-app-v1 .oa-wordmark{font-size:clamp(20px,6vw,24px);letter-spacing:.12em;gap:8px}
+#onde-app-v1 .oa-task{isolation:isolate}
+#onde-app-v1 .oa-task-actions{display:flex;justify-content:flex-end;margin-top:8px}
 /* Final tactile balance: pigment, fine type, static high contrast fibres. */
 #onde-app-v1{--oa-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.9' intercept='-.45'/%3E%3CfeFuncG type='linear' slope='1.9' intercept='-.45'/%3E%3CfeFuncB type='linear' slope='1.9' intercept='-.45'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Cpath d='M0 0h180v180H0z' fill='%23fff' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E")}
 #onde-app-v1 .oa-shell:before{opacity:.9;background-size:104px 104px}
@@ -1092,6 +1088,9 @@
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
     const r=s.round;
+    if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
+    if(r.refusalRoll!==undefined && (!Number.isInteger(r.refusalRoll) || r.refusalRoll<1 || r.refusalRoll>20)) return false;
+    if(s.history.some(item=>item.refusalRoll!==undefined && (!Number.isInteger(item.refusalRoll) || item.refusalRoll<1 || item.refusalRoll>20))) return false;
     const roundSequence=typeof r.id==='string'&&/^onde-[1-9]\d*$/.test(r.id)?Number(r.id.slice(5)):NaN;
     if (!Number.isSafeInteger(roundSequence) || roundSequence>s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
@@ -1117,8 +1116,9 @@
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
     if(s.phase==='pending' && (r.status!=='pending' || r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || !r.fromConfirmed || r.autoProposed)) return false;
-    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || !r.toConfirmed || !s.tasks.some(task=>task.id===r.id))) return false;
-    if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || (['completed','expired'].includes(r.status) && (!r.fromConfirmed || !r.toConfirmed)))) return false;
+    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || (!r.toConfirmed && r.directQueued!==true) || !s.tasks.some(task=>task.id===r.id))) return false;
+    const confirmationRequired=r.status==='completed' || r.status==='expired'&&r.directQueued!==true;
+    if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || confirmationRequired&&(!r.fromConfirmed || !r.toConfirmed))) return false;
     if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
   }
@@ -1289,10 +1289,11 @@
     recordHistory(s,{...r,status:'queued'});
   }
 
-  function finishTask(s, task, status, at) {
+  function finishTask(s, task, status, at, details={}) {
     const current=s.round.id===task.id&&s.phase==='accepted';
-    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
-    const ended={...base,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:false};
+    const ended={...base,...details,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    if(status==='completed') Object.assign(ended,{fromConfirmed:true,toConfirmed:true});
     if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:2,variantRoll:task.variantRoll});
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
@@ -1324,7 +1325,7 @@
       return fresh;
     }
     // Reject stale UI callbacks, such as an animation from a previous round.
-    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','EXPIRE_TASKS'].includes(kind)) return state;
+    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','REFUSE_TASK','EXPIRE_TASKS'].includes(kind)) return state;
     if(action.actor && action.actor!==state.activePlayer) return state;
     const s=JSON.parse(JSON.stringify(state));
     const r=s.round;
@@ -1353,6 +1354,16 @@
           s.stats.byCategory[task.categoryId]++;
           finishTask(s,task,'completed',action.at);
         }
+        return s;
+      }
+      case 'REFUSE_TASK': {
+        if(typeof action.taskId!=='string' || !isoTime(action.at) || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        const original=s.tasks.find(item=>item.id===action.taskId);
+        if(!original || original.to!==actor) return state;
+        const expired=expireTasks(s,action.at),task=s.tasks.find(item=>item.id===action.taskId);
+        if(!task || Date.parse(action.at)<Date.parse(task.createdAt)) return expired?s:state;
+        // The D20 records the refusal; no face can require the challenge.
+        finishTask(s,task,'passed',action.at,{refusalRoll:action.value});
         return s;
       }
       case 'SWITCH_PLAYER':
@@ -1465,6 +1476,13 @@
         return s;
       case 'SEND':
         if(s.phase!=='draft' || actor!==r.from) return state;
+        if(action.directQueue===true) {
+          if(!taskStartTime(action.at)) return state;
+          // "accepted" is the historical task phase, not recipient consent.
+          Object.assign(r,{directQueued:true,fromConfirmed:true,toConfirmed:false,autoProposed:false,
+            status:'accepted',awaiting:null,sentAt:action.at,acceptedAt:action.at});
+          s.phase='accepted';enqueueTask(s,action.at);return s;
+        }
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
         return s;
@@ -1595,6 +1613,19 @@
     return normalizeRoom(state,options);
   }
 
+  function resetRoom(room,options={}) {
+    if(!validateRoom(room) || room.sequence>Number.MAX_SAFE_INTEGER-2) return null;
+    const reset=createRoom({at:options.at});
+    reset.players=roomCopy(room.players);
+    reset.favorites=roomCopy(room.favorites);
+    if(options.keepPrefs!==false) reset.prefs=roomCopy(room.prefs);
+    // Never reuse IDs: delayed pre-reset actions must not target a fresh draw.
+    reset.sequence=room.sequence+2;
+    reset.lanes.a={phase:'category',round:blankRound(room.sequence+1,'a',options.at)};
+    reset.lanes.b={phase:'category',round:blankRound(room.sequence+2,'b',options.at)};
+    return validateRoom(reset)?reset:null;
+  }
+
   // This is a raw focused view. The server must redact the other person's
   // private draw before returning any such view to a browser.
   function roomView(room,actor,roundId) {
@@ -1608,9 +1639,9 @@
     for(const owner of roomActors) {
       const lane=room.lanes[owner];
       if(lane.phase!=='accepted' || room.tasks.some(task=>task.id===lane.round.id)) continue;
-      const ended=room.history.find(round=>round.id===lane.round.id && ['completed','expired'].includes(round.status));
+      const ended=room.history.find(round=>round.id===lane.round.id && ['completed','expired','passed'].includes(round.status));
       if(ended) {
-        const round={...lane.round,status:ended.status,awaiting:null,endedAt:ended.endedAt,closedBy:ended.closedBy,checks:{...ended.checks}};
+        const round={...lane.round,status:ended.status,awaiting:null,endedAt:ended.endedAt,closedBy:ended.closedBy,checks:{...ended.checks},...(ended.status==='completed'?{fromConfirmed:true,toConfirmed:true}:{}),...(ended.refusalRoll===undefined?{}:{refusalRoll:ended.refusalRoll})};
         room.lanes[owner]={phase:'resolved',round};
         recordHistory(room,round);
       }
@@ -1620,13 +1651,11 @@
   function reduceRoom(room,action) {
     if(!validateRoom(room) || !action || typeof action.type!=='string') return room;
     if(action.type==='RESET') {
-      const reset=createRoom({at:action.at});
-      if(action.keepPrefs) reset.prefs=roomCopy(room.prefs);
-      return reset;
+      return resetRoom(room,{at:action.at,keepPrefs:!!action.keepPrefs})||room;
     }
     const actor=action.actor || (action.type==='EXPIRE_TASKS'?'a':null);
     if(!roomActors.includes(actor)) return room;
-    const shared=['TOGGLE_TASK_CHECK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
+    const shared=['TOGGLE_TASK_CHECK','REFUSE_TASK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
     const laneOwner=shared?null:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
     const pendingIndex=shared?-1:room.pendingRounds.findIndex(item=>item.round.id===action.roundId);
     const owner=shared?actor:laneOwner||(pendingIndex>=0?room.pendingRounds[pendingIndex].round.from:null);
@@ -1640,7 +1669,7 @@
       return validateRoom(next)?next:room;
     }
     if(action.type==='ROLL_CATEGORY' && owner!==actor) return room;
-    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && (room.sequence===Number.MAX_SAFE_INTEGER || room.pendingRounds.length>=80)) return room;
+    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && (room.sequence===Number.MAX_SAFE_INTEGER || (!action.directQueue && room.pendingRounds.length>=80))) return room;
     const focused=focusedRoomState(room,actor,lane);
     if(!shared && !canSeeRound(focused,actor)) return room;
     const forwarded={...action,actor};
@@ -1648,7 +1677,10 @@
     const result=reduce(focused,forwarded);
     if(result===focused) return room;
     const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes),pendingRounds:roomCopy(room.pendingRounds)};
-    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && result.phase==='pending') {
+    if(action.type==='SEND' && action.directQueue===true && pendingIndex<0 && result.phase==='accepted') {
+      next.sequence=room.sequence+1;
+      next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
+    } else if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && result.phase==='pending') {
       next.sequence=room.sequence+1;
       next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
       next.pendingRounds.push({phase:'pending',round:roomCopy(result.round)});
@@ -1662,7 +1694,7 @@
     return validateRoom(next)?next:room;
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -2041,7 +2073,7 @@ void main(){
 /* Dés·ir — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','SEND_DAILY','ACCEPT','PASS','NEW_ROUND','TOGGLE_TASK_CHECK','CHALLENGE_DRAFT','ROLL_DRAFT_DEFENSE','CHALLENGE','ROLL_DEFENSE']);
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
  const TOKEN=/^[A-Za-z0-9_-]{43}$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
@@ -2083,9 +2115,9 @@ void main(){
    if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
-   if(raw.gameVersion!==undefined&&raw.gameVersion!==3)throw failure('invalid_response','La version reçue est invalide.');
+   if(raw.gameVersion!==4)throw failure('invalid_response','La version reçue est invalide.');
    let incoming,pendingOutgoing=0;
-   if(raw.gameVersion===3){
+   if(raw.gameVersion===4){
     if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
     incoming=raw.incoming.map(value=>G.normalizeState(value));
     if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
@@ -2098,7 +2130,7 @@ void main(){
    if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),...(raw.gameVersion===3?{gameVersion:3,incoming,pendingOutgoing}: {})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:4,incoming,pendingOutgoing},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -2113,7 +2145,7 @@ void main(){
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette invitation a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -2128,7 +2160,7 @@ void main(){
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:3,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:4,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -2167,15 +2199,22 @@ void main(){
    if(action.type==='TOGGLE_TASK_CHECK'){
     if(typeof action.taskId!=='string'||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
     value.taskId=action.taskId;value.checked=action.checked;
+   }else if(action.type==='REFUSE_TASK'){
+    if(typeof action.taskId!=='string'||!/^onde-[1-9]\d*$/.test(action.taskId)||!value.roundId)throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
+    value.taskId=action.taskId;
    }else if(!value.roundId)throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
    return value;
   }
-  function storedAction(){const value=parsed(actionKey);if(!value)return null;if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
+  function storedAction(){const value=parsed(actionKey);if(!value)return null;
+   // The new game starts after a reset. Never replay or reinterpret an older command.
+   // Inspect the protocol before validating types removed by this release.
+   if(value.gameVersion!==4){remove(actionKey);return null;}
+   if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    requireConnection();
    const identity=connection;
    try{
-    const raw=await request({op:'action',gameVersion:[2,3].includes(pending.gameVersion)?pending.gameVersion:1,requestId:pending.requestId,action:pending.action},identity.token);
+    const raw=await request({op:'action',gameVersion:pending.gameVersion,requestId:pending.requestId,action:pending.action},identity.token);
     if(connection!==identity||authFailed)throw connectionChanged();
     const value=acceptSnapshot(raw,identity);remove(actionKey);return value;
    }catch(error){if(connection!==identity||authFailed)throw connectionChanged();if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
@@ -2185,7 +2224,7 @@ void main(){
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,gameVersion:3,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:4,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
   }
@@ -2201,13 +2240,12 @@ void main(){
    return clone(raw);
   }
   async function recoverPendingAction(pending,identity){
-   try{return await serial(()=>{
+   return await serial(()=>{
     if(connection!==identity)throw connectionChanged();
     // An action ahead of this recovery in the queue may already have succeeded.
     const current=storedAction();if(!current||current.requestId!==pending.requestId)return null;
     return sendAction(current);
-   });}
-   catch(error){if(error.code!=='upgrade_required'||pending.gameVersion===3)throw error;return null;}
+   });
   }
   function refresh(){
    if(!connection)return Promise.resolve(null);
@@ -2485,11 +2523,11 @@ void main(){
  let systemReduce=!!(motionQuery&&motionQuery.matches);
  let localRoom=null,ownState=null,incomingStates=[],outgoingCount=0,selectedIncomingRoundId=null;
  let state=G.createState(), tab='play', busy=false, rerolling=false, toastTimer, lastFocus=null, animationSerial=0;
- let cardReveal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
+ let cardReveal=null,refusal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
  let autoNewRoundTimer=null,autoNewRoundId=null;
  let charge=null,suppressedClick=null,controlsBusyState=null;
  let persisted=false, canPersist=true, recovery=false, lastError='';
- let renderKey='';
+ let renderKey='',renderedMarkup='';
  const contentTransitions=new Set();
  const gaugeFrames=new Map();
  const pendingChecks=new Set();
@@ -2537,7 +2575,6 @@ void main(){
   : state.activePlayer===state.round.from;
  const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
  const parisToday=()=>G.parisDateKey(new Date(serverNow()).toISOString());
- const dailyAvailable=()=>!!(state.daily&&state.daily.dateKey===parisToday()&&!state.daily.usedBy);
  const canRerollCategoryNow=()=>state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
  const jokerAvailable=()=>state.phase==='category'&&state.activePlayer===state.round.from&&!!state.joker&&state.joker.weekKey===G.isoWeekKey(new Date(serverNow()).toISOString())&&!state.joker.usedBy;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
@@ -2599,7 +2636,7 @@ void main(){
   outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
- function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===3;}
+ function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===4;}
  function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
  function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
@@ -2630,7 +2667,7 @@ void main(){
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
@@ -2663,13 +2700,13 @@ void main(){
    if(!remoteReady||!remote?.enabled)return false;
    if(action.type==='RESET'||action.type==='SWITCH_PLAYER')return false;
    operationBusy=true;setControlsBusy(true);
-   const waiting={SEND:['send','Envoi…'],ACCEPT:['accept','Validation…'],PASS:['pass','Un instant…'],NEW_ROUND:['new','Un instant…']}[action.type];
-   const trigger=waiting&&main.querySelector('[data-action="'+waiting[0]+'"]');if(trigger){trigger.textContent=waiting[1];trigger.setAttribute('aria-busy','true');}
+   const waiting={SEND:['send','Envoi…'],NEW_ROUND:['new','Un instant…']}[action.type];
+   const trigger=waiting&&main.querySelector('[data-action="'+waiting[0]+'"]');if(trigger){renderedMarkup='';trigger.textContent=waiting[1];trigger.setAttribute('aria-busy','true');}
    try{const value=action.type==='EXPIRE_TASKS'?await remote.refresh():await remote.action({...action,roundId:action.roundId||state.round.id});return flushRemote(value,false);}
    catch(error){return remoteError(error);}
    finally{operationBusy=false;setControlsBusy(false);trigger?.removeAttribute('aria-busy');if(doRender)render();}
   }
-  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
+  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,...(action.type==='SEND'?{directQueue:true}:{}),actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
  }
 
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
@@ -2704,12 +2741,6 @@ void main(){
   return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
- function dailySection(){
-  if(!dailyAvailable())return '';
-  const d=state.daily,c=G.getCard(d.cardId),cat=G.getCategory(d.categoryId,2);
-  if(!c||!cat)return '';
-  return '<div class="oa-daily" data-daily><div class="oa-section-head"><h2>Carte du jour</h2><span>'+h(cat.label)+'</span></div><div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(G.getVariant({cardId:c.id,variantRoll:d.variantRoll})||'')+'</p></div></div><div class="oa-actions">'+btn('Proposer la carte du jour <span class="oa-arrow" aria-hidden="true">↗</span>','send-daily')+'</div></div>';
- }
  function hardcoreOfferBanner(){
   const r=state.round;
   if(!r.hardcoreOffer||state.activePlayer!==r.from||!['card','variant','draft'].includes(state.phase)||!hardcore)return '';
@@ -2746,37 +2777,24 @@ void main(){
   return btn('Lancer le D'+G.rules.categorySides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
  }
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){return '<div class="oa-actions">'+btn('J’accepte','accept')+btn('Passer','pass','oa-secondary')+'</div>';}
 
  function privateHome(incoming=false){
   const r=state.round;
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
- function incomingBanner(){
-  const invitations=incomingStates.filter(value=>G.canRespond(value));
-  const incoming=invitations.map(value=>'<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(value.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(value.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>').join('');
-  const outgoing=outgoingCount?'<div class="oa-invitation oa-incoming oa-outgoing" role="status"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+outgoingCount+' invitation'+(outgoingCount>1?'s':'')+' en attente</b><small>Tu peux continuer à jouer pendant l’attente.</small></span></div>':'';
-  return incoming+outgoing;
- }
- function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+hardcoreOfferBanner()+renderPlayContent();}
+ function renderPlay(){return hardcoreOfferBanner()+renderPlayContent();}
  function renderPlayContent(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
   if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
-  if(['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+dailySection()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    const sides=G.cardSides(state);
    return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
   }
   if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
   if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
-  if(state.phase==='pending'){
-   const responds=G.canRespond(state);
-   const title=responds?'Une invitation<br><em>pour toi.</em>':'L’invitation<br><em>est posée.</em>';
-   const sub=responds?h(name(r.from))+' te propose…':'Invitation envoyée · '+h(name(r.awaiting))+' doit répondre.';
-   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'');
-  }
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>idée à deux.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
+  if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise Dés·ir pour retrouver votre liste.',null);
   if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed',expired=r.status==='expired';
@@ -2796,7 +2814,8 @@ void main(){
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
   const tasks=state.tasks||[];
-  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+  if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'Le dé roule…':'Confirmation du refus…')+'</p>';
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=[
@@ -2848,10 +2867,11 @@ void main(){
  function visibleViewKey(){
   if(!welcomeDismissed)return 'welcome';if(remoteMode&&!remoteReady)return 'login';
   if(cardReveal)return cardReveal.viewKey;
+  if(refusal)return 'tasks|refusal|'+refusal.taskId+'|'+viewPlayer;
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
-  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.daily?state.daily.dateKey+':'+(state.daily.usedBy||''):'',state.round.hardcoreOffer?'hc':'',state.joker?state.joker.weekKey+':'+(state.joker.usedBy||''):'' ].join('|');
+  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.round.hardcoreOffer?'hc':'',state.joker?state.joker.weekKey+':'+(state.joker.usedBy||''):'' ].join('|');
  }
  function centerStage(){
   const holder=main.querySelector('[data-stage]');if(!holder)return;
@@ -2861,7 +2881,7 @@ void main(){
   }else holder.scrollIntoView({block:'center',behavior:systemReduce?'instant':'smooth'});
  }
  function finishRevealWait(){if(!revealWait)return;const wait=revealWait;revealWait=null;clearTimeout(wait.timer);wait.resolve();}
- function waitForReveal(duration=2800){return new Promise(resolve=>{const wait={resolve,timer:null};revealWait=wait;wait.timer=setTimeout(()=>{if(revealWait===wait){revealWait=null;resolve();}},duration);});}
+ function waitForReveal(duration=900){return new Promise(resolve=>{const wait={resolve,timer:null};revealWait=wait;wait.timer=setTimeout(()=>{if(revealWait===wait){revealWait=null;resolve();}},duration);});}
  function presentationValid(context){return context.epoch===presentationEpoch&&context.actor===viewPlayer&&(!remoteMode||remote?.authenticated&&samePerspective(context,remote.connection));}
  function revealMatches(game,reveal){return game&&game.phase===(reveal.hasVariant?'variant':'draft')&&game.round.id===reveal.roundId&&game.round.from===reveal.actor&&game.round.cardId===reveal.cardId&&game.round.cardRoll===reveal.face;}
  function showSelectedTile(){
@@ -2890,13 +2910,10 @@ void main(){
   grid?.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
   const overflow=holder.style.overflow||'';holder.style.overflow='hidden';
   playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,completed=>{holder.style.overflow=overflow;if(completed&&canvas.parentElement===holder&&!busy&&!operationBusy&&!systemReduce&&!document.hidden&&!presentationHidden)die.breathe?.();});
-  playContentTransition(grid,[{opacity:.2},{opacity:1}],260);
   playContentTransition(main.querySelector('h1'),[{opacity:.35},{opacity:1}],220);
   return true;
  }
  function render(transition=null){
-  cancelContentTransitions();
-  clearCharge(true,false);
   if(!remoteMode){const fresh=G.reduceRoom(localRoom,{type:'EXPIRE_TASKS',at:now(),actor:viewPlayer});if(fresh!==localRoom){localRoom=fresh;syncLocalView();save();}}
   trackGrade();
   // Connection updates may restore the game behind this screen, never replace it.
@@ -2905,35 +2922,34 @@ void main(){
   const focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const scrollTop=main.scrollTop,scrollLeft=main.scrollLeft;
   const previousKey=renderKey;
-  const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
   renderPersona();
   const key=visibleViewKey();
+  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
+  const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
+  if(replaceMain){cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
   root.classList.toggle('oa-entering',animate&&!systemReduce&&!document.hidden&&!presentationHidden);
   root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
-  main.innerHTML=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
+  if(!replaceMain){scheduleExpiry();scheduleAutoNewRound();return;}
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:refusal?.color||category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
   else die.pauseMotion?.();
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   if(animate&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
-   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
+   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
    blocks.forEach((el,i)=>{const pinned=window.getComputedStyle?.(el)?.position==='sticky';el.animate(pinned?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,delay:Math.min(i*28,100),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'});});
    main.querySelectorAll('.oa-category').forEach((el,i)=>el.animate([{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'scale(1)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
-   playContentTransition(main.querySelector('.oa-card-grid'),[{opacity:.2},{opacity:1}],240);
-   const revealed=main.querySelector('.oa-card-stage .oa-playing-card');
-   if(revealed&&visibleCardId!==state.round.cardId)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:480,easing:'cubic-bezier(.18,.76,.2,1)'});
   }
   animateGrade();
   if(!cardReveal)visibleCardId=state.round.cardId;
   scheduleExpiry();
   if(focusData&&previousKey===renderKey){
-   const keys=['action','pref','taskCheck','player','card','tab'];let same;
+   const keys=['action','pref','taskCheck','player','card','tab','task'];let same;
    if(keys.some(k=>focusData[k]))same=Array.from(main.querySelectorAll('button,input')).find(el=>keys.every(k=>(el.dataset[k]||'')===(focusData[k]||'')));
    if(same)same.focus({preventScroll:true});else{const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   }
@@ -3004,7 +3020,7 @@ void main(){
   const serial=++animationSerial;busy=true;rerolling=reroll;if(rerolling)render();setControlsBusy(true);
   context.viewKey=renderKey;
   if(rerolling)centerStage();
-  const button=main.querySelector('[data-action="roll"]')||main.querySelector('[data-roll-status]');if(button){button.textContent='Tirage…';button.setAttribute('aria-busy','true');}
+  const button=main.querySelector('[data-action="roll"]')||main.querySelector('[data-roll-status]');if(button){renderedMarkup='';button.textContent='Tirage…';button.setAttribute('aria-busy','true');}
   try{
    if(remoteMode){
     const value=await remote.action({...action,roundId});
@@ -3050,7 +3066,7 @@ void main(){
      if(action.type==='ROLL_CATEGORY'){
       die.setColor?.(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.color);
       if(button){button.textContent='D'+sides+' · '+G.getCategory(next.round.categoryId,next.round.catalogueVersion??1).label;button.setAttribute('aria-busy','false');}
-      await waitForReveal(1800);
+      await waitForReveal(450);
      }
     }
     if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte.');
@@ -3058,10 +3074,36 @@ void main(){
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
   finally{if(serial===animationSerial){const targetPhase=action.type==='ROLL_CATEGORY'?'card':action.type==='ROLL_CARD'&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
  }
+ async function refuseTask(taskId){
+  const task=state.tasks.find(item=>item.id===taskId);
+  if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady)return;
+  const context={actor:viewPlayer,roomId:remote?.connection?.roomId,epoch:presentationEpoch},roundId=(ownState||state).round.id;
+  const serial=++animationSerial;
+  refusal={taskId,title:G.getCard(task.cardId).title,color:G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1)?.color,face:null};
+  tab='tasks';busy=true;render();setControlsBusy(true);
+  try{
+   let face;
+   if(remoteMode){
+    const value=await remote.action({type:'REFUSE_TASK',roundId,taskId});
+    if(!value.roll||value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
+    if(!presentationValid(context))return;
+    face=value.roll.value;
+    if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
+   }else{
+    face=G.randomInt(20);pullShared();const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
+    if(next===localRoom)return;localRoom=next;save();
+   }
+   if(!presentationValid(context))return;
+   refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='Le dé roule…';
+   if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
+   if(presentationValid(context))announce('D20 : '+face+'. Carte refusée, sans pénalité.');
+  }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
+  finally{if(serial===animationSerial){activeRollFace=null;refusal=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);else{remoteReady=false;deferredSnapshot=null;}}else syncLocalView();render();}}
+ }
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;sheet.querySelector('button')?.focus({preventScroll:true});}
  function closeSheet(){if(sheet.hidden)return;sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;}
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Accepter ou passer.</h3><p>L’invitation reçue s’accepte d’un geste, ou se passe sans suite.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{
@@ -3088,7 +3130,6 @@ void main(){
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
-  if(action==='send-daily'){const ok=await dispatch({type:'SEND_DAILY'});if(ok)toast('Carte du jour proposée à '+name(state.round.to));render();return;}
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,roundId:state.round.id};if(!remoteMode){act.value=category;act.catalogueVersion=2;act.hand=G.drawHand(state,category,2);const cat=G.categories.find(c=>c.number===category);if(cat&&cat.id==='intimite')act.modeRoll=G.randomInt(20);}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='hardcore-open'){try{if(hardcore&&hardcore.open)hardcore.open();}catch(_){}return;}
@@ -3096,9 +3137,8 @@ void main(){
   if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
-  if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
-  if(action==='accept'){const acceptedId=state.round.id,changed=await dispatch({type:'ACCEPT'},false);const accepted=(ownState?.tasks||state.tasks||[]).some(task=>task.id===acceptedId);if(accepted)tab='tasks';render();if(changed&&accepted)announce('Proposition ajoutée aux choses à faire.');return;}
-  if(action==='pass'){const changed=await dispatch({type:'PASS'},false);render();if(changed)toast('Carte passée.');return;}
+  if(action==='send'){const taskId=state.round.id,changed=await dispatch({type:'SEND'},false);const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);if(queued)tab='tasks';render();if(changed&&queued)announce('Proposition ajoutée à À faire.');return;}
+  if(action==='refuse-task'){await refuseTask(el.dataset.task);return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
   if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}
   if(action==='rules'){rules();return;}
@@ -3157,7 +3197,7 @@ void main(){
     if(remote.connection&&!remote.authenticated){
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
-     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;
+     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;refusal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;
     }
     if(event.snapshot)receiveRemote(event.snapshot);
     else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);

@@ -53,10 +53,13 @@ export async function enqueueScheduled(store: Store): Promise<unknown> {
 }
 async function stillRelevant(store: Store, event: Event): Promise<boolean> {
   if (pushTTL(event) === 0) return false;
+  // A reset may cancel an event after the worker claimed it. Read its current
+  // pending status and room together; no endpoint or subscription is returned.
+  const rows = await store.request('desir_push_outbox?select=expires_at,desir_rooms!inner(state)&id=eq.' + encodeURIComponent(event.id) + '&delivered_at=is.null&limit=1');
+  const current = Array.isArray(rows) && rows[0];
+  if (!current || pushTTL(current) === 0) return false;
   if (event.kind === 'draw-available') return await store.rpc('desir_push_draw_ready', {p_room_id: event.room_id, p_actor: event.target_actor, p_window_key: event.window_key || null}) === true;
-  const rows = await store.request('desir_rooms?select=state&id=eq.' + encodeURIComponent(event.room_id) + '&limit=1');
-  const state = Array.isArray(rows) && rows[0]?.state;
-  return pushEventRelevant(state, event);
+  return pushEventRelevant(current.desir_rooms?.state, event);
 }
 async function finish(store: Store, event: Event, delivered: boolean): Promise<void> {
   await store.rpc('desir_finish_push_event', {p_event_id: event.id, p_delivered: delivered, p_retry_seconds: pushRetrySeconds(event.attempts)});
@@ -74,6 +77,8 @@ export async function flushPushOutbox(store: Store, roomId?: string): Promise<{c
       const delivered = new Set(previous.map((item: {endpoint_hash: string}) => item.endpoint_hash));
       config ||= await privatePushConfig(store);
       const payload = pushPayload(event);
+      // Configuration/subscription reads may have overlapped a reset/refusal.
+      if (!await stillRelevant(store, event)) {await finish(store, event, true); continue;}
       const results = await Promise.all(subscriptions.map(async (record: {endpoint_hash: string; subscription: unknown}) => {
         if (delivered.has(record.endpoint_hash)) return true;
         try {

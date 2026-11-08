@@ -10,8 +10,8 @@ let checks=0;function check(fn){fn();checks++;}
 function memory(){const values=new Map();return {values,getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};}
 function eventTarget(){const listeners=new Map();return {addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},removeEventListener(type,fn){listeners.get(type)?.delete(fn);},emit(type,data={}){for(const fn of listeners.get(type)||[])fn(data);}};}
 function env(fetcher,storage=memory(),extra={}){const doc={...eventTarget(),hidden:false},intervals=[];return {game:G,fetch:fetcher,storage,crypto:webcrypto,document:doc,location:{href:'https://cgiy.github.io/desir/demo-des/?v=test'},btoa,atob,AbortController,setTimeout,clearTimeout,setInterval:fn=>{intervals.push(fn);return intervals.length;},clearInterval(){},intervals,...extra};}
-function state(actor='a'){return {...G.createState(),activePlayer:actor};}
-function reply(actor='a',revision=1,game=state(actor),extras={}){return {roomId,actor,revision,state:game,paired:true,quota:{remaining:1,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'},...extras};}
+function state(actor='a'){return G.roomView(G.createRoom(),actor);}
+function reply(actor='a',revision=1,game=state(actor),extras={}){return {roomId,actor,revision,state:game,paired:true,gameVersion:4,incoming:[],pendingOutgoing:0,quota:{remaining:1,window:'morning',label:'Matin',nextAt:'2026-11-02T11:00:00.000Z'},...extras};}
 function response(body,status=200){return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});}
 function payload(options){return JSON.parse(options.body);}
 function loginReply(options,actor='a',revision=1,game=state(actor)){return reply(actor,revision,game,{connection:{token:options.headers.Authorization.slice(7),actor,roomId}});}
@@ -22,7 +22,7 @@ function parallelReply(room,actor='a',revision=1){
  const own=G.roomView(room,actor),pending=room.pendingRounds.map(item=>G.roomView(room,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
  const incoming=pending.filter(value=>value.round.from!==actor);
  const pendingOutgoing=pending.filter(value=>value.round.from===actor).length;
- return reply(actor,revision,own,{gameVersion:3,drawAvailable:own.phase==='category',incoming,pendingOutgoing});
+ return reply(actor,revision,own,{gameVersion:4,drawAvailable:own.phase==='category',incoming,pendingOutgoing});
 }
 (async()=>{
  // Ephemeral live presses bypass a pending normal draw and never become durable actions.
@@ -72,11 +72,11 @@ function parallelReply(room,actor='a',revision=1){
    room=G.reduceRoom(room,{type:'ROLL_CATEGORY',actor:'b',roundId:id,catalogueVersion:2,value:1,hand:G.cards.filter(c=>c.categoryId==='complicite').map(c=>c.id)});
    room=G.reduceRoom(room,{type:'ROLL_CARD',actor:'b',roundId:id,value:1});
    room=G.reduceRoom(room,{type:'ROLL_VARIANT',actor:'b',roundId:id,value:1});
-   room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:id,at});
+   room=G.reduceRoom(room,{type:'SEND',actor:'b',roundId:id,at,directQueue:true});
   }
   const expected=parallelReply(room),r=create(config,env(async(url,options)=>response({...expected,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));
-  await r.login('fixture-user','fixture-password');check(()=>{assert.equal(r.snapshot.gameVersion,3);assert.equal(r.snapshot.state.round.from,'a');assert.equal(r.snapshot.state.phase,'category');assert.equal(r.snapshot.incoming.length,2);assert.deepEqual(r.snapshot.incoming.map(value=>value.round.id),ids);assert.equal(r.snapshot.pendingOutgoing,0);});
-  const invalid=[{...expected,incoming:[expected.state]},{...expected,incoming:[...expected.incoming,...expected.incoming]}];
+  await r.login('fixture-user','fixture-password');check(()=>{assert.equal(r.snapshot.gameVersion,4);assert.equal(r.snapshot.state.round.from,'a');assert.equal(r.snapshot.state.phase,'category');assert.equal(r.snapshot.incoming.length,0);assert.deepEqual(r.snapshot.state.tasks.map(value=>value.id),ids);assert.equal(r.snapshot.pendingOutgoing,0);});
+  const invalid=[{...expected,incoming:[expected.state]},{...expected,gameVersion:3}];
   for(const snapshot of invalid){const bad=create(config,env(async(url,options)=>response({...snapshot,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));await assert.rejects(bad.login('fixture-user','fixture-password'),{code:'invalid_response'});check(()=>assert.equal(bad.connection,null));}
  }
  // An obsolete durable action cannot trap the new client before the parallel state refresh.
@@ -85,7 +85,7 @@ function parallelReply(room,actor='a',revision=1){
   const fetcher=async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='action')return response({error:{code:'upgrade_required'}},409);return response({...parallelReply(room),...(p.op==='login'?{connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}}:{})});};
   const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');calls.length=0;
   storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:2,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
-  const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['action',2],['state',3]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,3);});
+  const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['state',4]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,4);});
  }
  // A failing pending mutation never hides a successfully refreshed, authenticated game.
  {
@@ -174,18 +174,29 @@ function parallelReply(room,actor='a',revision=1){
  {
   const modern=G.reduce(state(),{type:'ROLL_CATEGORY',value:1,catalogueVersion:2,hand:G.drawHand(state(),1,2)});
   let sent;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));sent=p;return response(reply('a',2,modern,{roll:{kind:4,value:1}}));}));await r.login('fixture-user','fixture-password');
-  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,3));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
+  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,4));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
   await assert.rejects(r.action({type:'RESET',roundId:'onde-1'}),{code:'not_allowed'});
  }
- // An action saved by the previous client is replayed with its original rules.
+ // A pre-reset queued command is discarded before validating retired types or sending any mutation.
  {
-  const storage=memory(),actions=[];let legacy=G.reduce(state(),{type:'ROLL_CATEGORY',value:2,hand:G.drawHand(state(),2)});
-  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='action')actions.push(p);return response(reply('a',2,legacy));},storage));
+  for(const version of [undefined,2,3])for(const type of ['ROLL_CATEGORY','SEND','SEND_DAILY','ACCEPT','PASS']){
+   const storage=memory(),calls=[];
+   const r=create(config,env(async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='login')return response(loginReply(options));if(p.op==='action')return response({error:{code:'upgrade_required'}},409);return response(reply('a',9));},storage));
+   await r.login('fixture-user','fixture-password');calls.length=0;
+   const requestId=webcrypto.randomUUID();storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:version,endpoint,roomId,actor:'a',requestId,action:{type,roundId:'onde-1'}}));
+   await r.refresh();
+   check(()=>{assert.deepEqual(calls.map(call=>[call.op,call.gameVersion]),[['state',4]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(r.snapshot.revision,9);assert.equal(r.snapshot.state.phase,'category');assert.equal(r.authenticated,true);});
+  }
+ }
+ // The refusal submits only its task identity; the authoritative D20 result is used unchanged.
+ {
+  let sent;const storage=memory();
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'b'));sent=p;return response(reply('b',2,state('b'),{roll:{kind:20,value:20}}));},storage));
   await r.login('fixture-user','fixture-password');
-  const requestId=webcrypto.randomUUID();
-  storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,endpoint,roomId,actor:'a',requestId,action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
-  await r.refresh();
-  check(()=>assert.equal(actions.length,1));check(()=>assert.equal(actions[0].gameVersion,1));check(()=>assert.equal(actions[0].requestId,requestId));check(()=>assert.equal(r.snapshot.state.round.categoryId,'detente'));check(()=>assert.equal(r.snapshot.state.round.hand.length,4));
+  const result=await r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1',value:1,actor:'a',penalty:4});
+  check(()=>{assert.deepEqual(sent.action,{type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1'});assert.equal(sent.gameVersion,4);assert.deepEqual(result.roll,{kind:20,value:20});assert.equal(storage.getItem('desir-connection-v1-action'),null);});
+  for(const type of ['ACCEPT','PASS','SEND_DAILY'])await assert.rejects(r.action({type,roundId:'onde-2'}),{code:'not_allowed'});
+  await assert.rejects(r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'invalid'}),{code:'invalid_action'});
  }
  // The transport submits a variant intent, and uses only the returned face.
  {
@@ -194,7 +205,7 @@ function parallelReply(room,actor='a',revision=1){
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,game));sent=p;return response(reply('a',2,G.reduce(game,{type:'ROLL_VARIANT',value:6}),{roll:{kind:6,value:6}}));}));
   await r.login('fixture-user','fixture-password');
   const result=await r.action({type:'ROLL_VARIANT',roundId:'onde-1',value:1,variantRoll:1});
-  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,3));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
+  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,4));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
  }
  // A reroll carries only its intent; the server owns the new D6 face and state.
  {
@@ -221,7 +232,7 @@ function parallelReply(room,actor='a',revision=1){
  {
   const storage=memory();let actions=0;
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));actions++;return response({...reply('a',2,drawn()),error:{code:'stale_round'}},409);},storage));await r.login('fixture-user','fixture-password');
-  await assert.rejects(r.action({type:'ACCEPT',roundId:'onde-1'}),{code:'stale_round'});
+  await assert.rejects(r.action({type:'REFUSE_TASK',roundId:'onde-1',taskId:'onde-2'}),{code:'stale_round'});
   check(()=>assert.equal(actions,1));check(()=>assert.equal(r.snapshot.revision,2));check(()=>assert.equal(r.status.phase,'connected'));check(()=>assert.equal(r.authenticated,true));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));check(()=>assert.match(r.status.message,/actualisée/));
  }
  // An explicit re-login can replace a revoked token, without keeping the previous actor's view.

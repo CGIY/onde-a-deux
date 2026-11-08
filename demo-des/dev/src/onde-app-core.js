@@ -397,6 +397,9 @@
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item))) return false;
     const r=s.round;
+    if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
+    if(r.refusalRoll!==undefined && (!Number.isInteger(r.refusalRoll) || r.refusalRoll<1 || r.refusalRoll>20)) return false;
+    if(s.history.some(item=>item.refusalRoll!==undefined && (!Number.isInteger(item.refusalRoll) || item.refusalRoll<1 || item.refusalRoll>20))) return false;
     const roundSequence=typeof r.id==='string'&&/^onde-[1-9]\d*$/.test(r.id)?Number(r.id.slice(5)):NaN;
     if (!Number.isSafeInteger(roundSequence) || roundSequence>s.sequence || !['a','b'].includes(r.from) || r.to !== otherPlayer(r.from)) return false;
     if (![null,'a','b'].includes(r.awaiting) || !Array.isArray(r.hand) || !validRolls(r.rolls,r.rollTokens) || !validRolls(r.draftRolls,r.draftRollTokens)) return false;
@@ -422,8 +425,9 @@
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
     if(s.phase==='pending' && (r.status!=='pending' || r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || !r.fromConfirmed || r.autoProposed)) return false;
-    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || !r.toConfirmed || !s.tasks.some(task=>task.id===r.id))) return false;
-    if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || (['completed','expired'].includes(r.status) && (!r.fromConfirmed || !r.toConfirmed)))) return false;
+    if(s.phase==='accepted' && (r.status!=='accepted' || r.awaiting!==null || !r.fromConfirmed || (!r.toConfirmed && r.directQueued!==true) || !s.tasks.some(task=>task.id===r.id))) return false;
+    const confirmationRequired=r.status==='completed' || r.status==='expired'&&r.directQueued!==true;
+    if(s.phase==='resolved' && (!['passed','defended','expired','completed'].includes(r.status) || r.awaiting!==null || confirmationRequired&&(!r.fromConfirmed || !r.toConfirmed))) return false;
     if((total>=r.hp || draftTotal>=r.hp) && (s.phase!=='resolved' || r.status!=='defended')) return false;
     return true;
   }
@@ -594,10 +598,11 @@
     recordHistory(s,{...r,status:'queued'});
   }
 
-  function finishTask(s, task, status, at) {
+  function finishTask(s, task, status, at, details={}) {
     const current=s.round.id===task.id&&s.phase==='accepted';
-    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:true};
-    const ended={...base,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    const base=current?s.round:s.history.find(round=>round.id===task.id)||{id:task.id,cardId:task.cardId,categoryId:task.categoryId,from:task.from,to:task.to,rolls:[],cardRerolled:false,acceptedAt:task.createdAt,fromConfirmed:true,toConfirmed:false};
+    const ended={...base,...details,status,awaiting:null,endedAt:at,closedBy:s.activePlayer,checks:{...task.checks}};
+    if(status==='completed') Object.assign(ended,{fromConfirmed:true,toConfirmed:true});
     if(task.variantRoll!==undefined) Object.assign(ended,{catalogueVersion:2,variantRoll:task.variantRoll});
     recordHistory(s,ended);
     if(current) {s.round={...ended};s.phase='resolved';}
@@ -629,7 +634,7 @@
       return fresh;
     }
     // Reject stale UI callbacks, such as an animation from a previous round.
-    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','EXPIRE_TASKS'].includes(kind)) return state;
+    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','REFUSE_TASK','EXPIRE_TASKS'].includes(kind)) return state;
     if(action.actor && action.actor!==state.activePlayer) return state;
     const s=JSON.parse(JSON.stringify(state));
     const r=s.round;
@@ -658,6 +663,16 @@
           s.stats.byCategory[task.categoryId]++;
           finishTask(s,task,'completed',action.at);
         }
+        return s;
+      }
+      case 'REFUSE_TASK': {
+        if(typeof action.taskId!=='string' || !isoTime(action.at) || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        const original=s.tasks.find(item=>item.id===action.taskId);
+        if(!original || original.to!==actor) return state;
+        const expired=expireTasks(s,action.at),task=s.tasks.find(item=>item.id===action.taskId);
+        if(!task || Date.parse(action.at)<Date.parse(task.createdAt)) return expired?s:state;
+        // The D20 records the refusal; no face can require the challenge.
+        finishTask(s,task,'passed',action.at,{refusalRoll:action.value});
         return s;
       }
       case 'SWITCH_PLAYER':
@@ -770,6 +785,13 @@
         return s;
       case 'SEND':
         if(s.phase!=='draft' || actor!==r.from) return state;
+        if(action.directQueue===true) {
+          if(!taskStartTime(action.at)) return state;
+          // "accepted" is the historical task phase, not recipient consent.
+          Object.assign(r,{directQueued:true,fromConfirmed:true,toConfirmed:false,autoProposed:false,
+            status:'accepted',awaiting:null,sentAt:action.at,acceptedAt:action.at});
+          s.phase='accepted';enqueueTask(s,action.at);return s;
+        }
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
         return s;
@@ -900,6 +922,19 @@
     return normalizeRoom(state,options);
   }
 
+  function resetRoom(room,options={}) {
+    if(!validateRoom(room) || room.sequence>Number.MAX_SAFE_INTEGER-2) return null;
+    const reset=createRoom({at:options.at});
+    reset.players=roomCopy(room.players);
+    reset.favorites=roomCopy(room.favorites);
+    if(options.keepPrefs!==false) reset.prefs=roomCopy(room.prefs);
+    // Never reuse IDs: delayed pre-reset actions must not target a fresh draw.
+    reset.sequence=room.sequence+2;
+    reset.lanes.a={phase:'category',round:blankRound(room.sequence+1,'a',options.at)};
+    reset.lanes.b={phase:'category',round:blankRound(room.sequence+2,'b',options.at)};
+    return validateRoom(reset)?reset:null;
+  }
+
   // This is a raw focused view. The server must redact the other person's
   // private draw before returning any such view to a browser.
   function roomView(room,actor,roundId) {
@@ -913,9 +948,9 @@
     for(const owner of roomActors) {
       const lane=room.lanes[owner];
       if(lane.phase!=='accepted' || room.tasks.some(task=>task.id===lane.round.id)) continue;
-      const ended=room.history.find(round=>round.id===lane.round.id && ['completed','expired'].includes(round.status));
+      const ended=room.history.find(round=>round.id===lane.round.id && ['completed','expired','passed'].includes(round.status));
       if(ended) {
-        const round={...lane.round,status:ended.status,awaiting:null,endedAt:ended.endedAt,closedBy:ended.closedBy,checks:{...ended.checks}};
+        const round={...lane.round,status:ended.status,awaiting:null,endedAt:ended.endedAt,closedBy:ended.closedBy,checks:{...ended.checks},...(ended.status==='completed'?{fromConfirmed:true,toConfirmed:true}:{}),...(ended.refusalRoll===undefined?{}:{refusalRoll:ended.refusalRoll})};
         room.lanes[owner]={phase:'resolved',round};
         recordHistory(room,round);
       }
@@ -925,13 +960,11 @@
   function reduceRoom(room,action) {
     if(!validateRoom(room) || !action || typeof action.type!=='string') return room;
     if(action.type==='RESET') {
-      const reset=createRoom({at:action.at});
-      if(action.keepPrefs) reset.prefs=roomCopy(room.prefs);
-      return reset;
+      return resetRoom(room,{at:action.at,keepPrefs:!!action.keepPrefs})||room;
     }
     const actor=action.actor || (action.type==='EXPIRE_TASKS'?'a':null);
     if(!roomActors.includes(actor)) return room;
-    const shared=['TOGGLE_TASK_CHECK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
+    const shared=['TOGGLE_TASK_CHECK','REFUSE_TASK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
     const laneOwner=shared?null:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
     const pendingIndex=shared?-1:room.pendingRounds.findIndex(item=>item.round.id===action.roundId);
     const owner=shared?actor:laneOwner||(pendingIndex>=0?room.pendingRounds[pendingIndex].round.from:null);
@@ -945,7 +978,7 @@
       return validateRoom(next)?next:room;
     }
     if(action.type==='ROLL_CATEGORY' && owner!==actor) return room;
-    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && (room.sequence===Number.MAX_SAFE_INTEGER || room.pendingRounds.length>=80)) return room;
+    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && (room.sequence===Number.MAX_SAFE_INTEGER || (!action.directQueue && room.pendingRounds.length>=80))) return room;
     const focused=focusedRoomState(room,actor,lane);
     if(!shared && !canSeeRound(focused,actor)) return room;
     const forwarded={...action,actor};
@@ -953,7 +986,10 @@
     const result=reduce(focused,forwarded);
     if(result===focused) return room;
     const next={version:2,...roomShared(result),lanes:roomCopy(room.lanes),pendingRounds:roomCopy(room.pendingRounds)};
-    if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && result.phase==='pending') {
+    if(action.type==='SEND' && action.directQueue===true && pendingIndex<0 && result.phase==='accepted') {
+      next.sequence=room.sequence+1;
+      next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
+    } else if(['SEND','SEND_DAILY'].includes(action.type) && pendingIndex<0 && result.phase==='pending') {
       next.sequence=room.sequence+1;
       next.lanes[actor]={phase:'category',round:blankRound(next.sequence,actor,action.at)};
       next.pendingRounds.push({phase:'pending',round:roomCopy(result.round)});
@@ -967,7 +1003,7 @@
     return validateRoom(next)?next:room;
   }
 
-  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const api={categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

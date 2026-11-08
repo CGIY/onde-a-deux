@@ -26,19 +26,21 @@ Le module Push génère et conserve les clés VAPID côté serveur. Configurer l
 
 ## API
 
-Toutes les opérations utilisent `POST` JSON. Les réponses ne sont jamais mises en cache.
+Toutes les opérations utilisent `POST` JSON. Les requêtes du client indiquent `gameVersion:4` à la racine. Les réponses ne sont jamais mises en cache.
 
 - `login` : `{op:"login", username, password}` et `Authorization: Bearer <session-prospective>`. Les identifiants sont normalisés en minuscules, sans accents ; le mot de passe reste exact. Le client génère et conserve auparavant 32 octets aléatoires encodés en base64url (43 caractères). La réponse ajoute `connection:{token,roomId,actor}`.
 - `state` : session existante, retour du snapshot courant et expiration des tâches selon l’horloge serveur.
 - `action` : `{op:"action", requestId:<UUID>, action:{type,roundId,taskId?,checked?}}`.
-- `hardcore` : session existante, `{op:"hardcore",gameVersion:3,action:null|<commande>,requestId?:<UUID>}`, retour `{session,revision,actor,serverTime}` ; contrat détaillé ci-dessous.
+- `hardcore` : session existante, `{op:"hardcore",gameVersion:4,action:null|<commande>,requestId?:<UUID>}`, retour `{session,revision,actor,serverTime}` ; contrat détaillé ci-dessous.
 - `push_config` : session existante, retour `{vapidPublicKey}`.
 - `subscribe` : session existante, `{op:"subscribe",subscription:<PushSubscriptionJSON>}`.
 - `drain_push` : réservé au cron avec l’en-tête `X-Desir-Cron`, réponse 202 après mise en file et traitement différé.
 
 Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des vingt-quatre heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
 
-Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `REROLL_CATEGORY`, `JOKER_DRAW`, `SEND`, `SEND_DAILY`, `ACCEPT`, `PASS`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. `REROLL_CATEGORY` est limitée à une fois par jour de Paris et par acteur (état `dailyReroll` de la salle) et ne consomme pas de ticket. `JOKER_DRAW` choisit la catégorie (champ `category`, 1–4) une fois par semaine ISO de Paris (état `joker` de la salle) et consomme un tirage du jour comme un `ROLL_CATEGORY`. Le quota est une cagnotte de trois tirages par jour de Paris renouvelée à 5 h (migrations `20261107131541_desir_daily_draw_pool.sql` puis `20261107222844_desir_daily_draw_counter.sql`). `SEND_DAILY` propose la carte du jour partagée (`daily`, tirée avec le premier `ROLL_CATEGORY` de la journée, catégorie du lancer exclue) une fois par jour ; en cas d’Intimité, un `modeRoll` D20 dépassant 10 marque la manche `hardcoreOffer`. Tout `actor`, `value`, `hand`, `at` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
+Les seuls types d’action exposés sont `ROLL_CATEGORY`, `ROLL_CARD`, `ROLL_VARIANT`, `REROLL_CARD`, `REROLL_CATEGORY`, `JOKER_DRAW`, `SEND`, `REFUSE_TASK`, `NEW_ROUND`, `TOGGLE_TASK_CHECK`. `REROLL_CATEGORY` est limitée à une fois par jour de Paris et par acteur (état `dailyReroll` de la salle) et ne consomme pas de ticket. `JOKER_DRAW` choisit la catégorie (champ `category`, 1–4) une fois par semaine ISO de Paris (état `joker` de la salle) et consomme un tirage du jour comme un `ROLL_CATEGORY`. Le quota est une cagnotte de trois tirages par jour de Paris renouvelée à 5 h (migrations `20261107131541_desir_daily_draw_pool.sql` puis `20261107222844_desir_daily_draw_counter.sql`). La carte du jour n’est plus générée et `SEND_DAILY`, `ACCEPT`, `PASS` ne sont plus exposés. Tout `actor`, `value`, `hand`, `at`, `directQueue` ou jeton de lancer envoyé par le client est rejeté. L’identité vient de la session ; le hasard et les horodatages viennent du serveur.
+
+`SEND` ajoute directement le challenge à la liste partagée pour vingt-quatre heures et ouvre une nouvelle manche privée pour son initiateur. Le moteur conserve son ancien nom de phase interne `accepted`, marqué `directQueued:true`, mais `toConfirmed` reste faux : aucun accord du destinataire n’est fabriqué. `REFUSE_TASK` exige le `taskId` d’un challenge dont l’acteur est le destinataire. Le résultat D20 uniforme vient du serveur et est enregistré avec le reçu ; toutes les faces retirent le challenge, sans point ni ticket. Les deux coches de réalisation restent nécessaires pour ajouter un point commun.
 
 ## Lancement Hardcore à deux
 
@@ -56,29 +58,37 @@ Le client ignore une révision inférieure, mais accepte une révision identique
 
 ## Quotas et concurrence
 
-Le client indique `gameVersion:3` à la racine des requêtes de jeu. L’état canonique de la salle utilise `version:2` et deux manches dans `lanes.a` et `lanes.b`, chacune appartenant à son initiateur. La séquence d’identifiants, les tâches, l’historique et les points restent communs. Le moteur migre les anciens états à manche unique lors de la première requête du nouveau client.
+Le client indique `gameVersion:4` à la racine des requêtes de jeu. L’état canonique de la salle utilise `version:2` et deux manches dans `lanes.a` et `lanes.b`, chacune appartenant à son initiateur. La séquence d’identifiants, les tâches, l’historique et les points restent communs. Le moteur conserve la lecture des anciennes sauvegardes et migre les états à manche unique.
 
-Le snapshot contient `state` pour la manche personnelle et `incoming` pour la manche reçue, uniquement lorsqu’elle a été envoyée. `drawAvailable` décrit la disponibilité réelle de la manche personnelle. Le client conserve son choix d’écran localement et adresse chaque action à son `roundId`. Une invitation reçue peut être traitée pendant que le tirage personnel reste en cours.
+Le snapshot contient `state` pour la manche personnelle et les tâches partagées. Les champs historiques `incoming` et `pendingOutgoing` restent lisibles pour la compatibilité des sauvegardes ; aucun nouvel envoi ne crée d’invitation. `drawAvailable` décrit la disponibilité réelle de la manche personnelle. Le client adresse chaque action de tirage à son `roundId` et chaque coche ou refus à son `taskId`.
 
-Les requêtes de jeu des anciens clients reçoivent `upgrade_required` avant toute mutation. Le nouveau transport abandonne un ancien reçu en attente lorsque cette réponse arrive, puis recharge immédiatement le snapshot courant. Une action déjà confirmée reste présente dans l’état migré. Les notifications utilisent le `roundId` de l’action, et leur disponibilité est calculée séparément pour les deux joueurs.
+Les clients des protocoles 1, 2 et 3 reçoivent `upgrade_required` avant toute reprise de reçu ou mutation, y compris pour Hardcore. Le nouveau transport écarte une ancienne action persistée avant sa validation avec les types actuels, puis recharge le snapshot courant. Il ne transforme jamais un ancien envoi en commande du protocole 4. Les accès appareils sont conservés. Les notifications utilisent l’identifiant du challenge partagé, même lorsque l’initiateur a déjà changé de manche.
 
 Le D4 de catégorie utilise 42 tickets équiprobables côté serveur. Complicité et Intimité en ont 11 chacune, Plaisirs et Projets en ont 10 chacun. Les deux D6 restent uniformes.
 
-Chaque compte dispose d’un tirage par heure glissante (heure de Paris). La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris` ; la migration `20261107120000_desir_hourly_quota.sql` remplace l’ancienne fonction `desir_quota_window`.
+Chaque compte dispose de trois tirages par journée renouvelée à 5 h, heure de Paris. La consommation est enregistrée atomiquement avec le premier lancer de catégorie réussi. Les dés suivants de la manche ne consomment aucun ticket. Les changements d’heure sont calculés par PostgreSQL dans `Europe/Paris` ; la fenêtre quotidienne et son compteur remplacent l’ancien quota horaire.
 
-La relance `REROLL_CARD` est disponible une fois par tour avant l’envoi, dans les anciennes manches comme dans le parcours v2 ; en v2 elle retire aussi la variante choisie et ramène au choix de variante. Le destinataire d’une proposition dispose de `ACCEPT` (validation directe : la tâche démarre pour vingt-quatre heures) ou `PASS` (carte écartée, aucun point). Les actions de l’ancienne négociation (`CHALLENGE_DRAFT`, `ROLL_DRAFT_DEFENSE`, `CHALLENGE`, `ROLL_DEFENSE`, `ADAPT`, `LATER`) sont refusées ; les états sauvegardés dans ces phases migrent vers un brouillon ou une invitation en attente.
+La relance `REROLL_CARD` est disponible une fois par tour avant l’envoi, dans les anciennes manches comme dans le parcours v2 ; en v2 elle retire aussi la variante choisie et ramène au choix de variante. Les commandes de l’ancienne négociation et d’acceptation sont refusées par l’API actuelle.
 
-`quota` contient `{remaining:0|1,window,label,nextAt}`. `window` désigne le début local de l’heure glissante (`YYYY-MM-DDTHH:MI`), `label` l’heure locale (`HH h`), `nextAt` une date UTC ISO.
+`quota` contient `{remaining:0|1|2|3,window,label,nextAt}`. `window` désigne le jour de la fenêtre locale (`YYYY-MM-DD`), `label` vaut « Aujourd’hui » ou « Cette nuit », et `nextAt` indique la prochaine échéance de 5 h en UTC ISO.
 
-Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les propositions peuvent attendre une réponse ; leurs vingt-quatre heures commencent à la validation finale à deux. Plusieurs tâches validées peuvent rester dans la liste pendant les nouveaux tours. La résolution de la manche d’un joueur libère son prochain tour personnel.
+Une manche personnelle reste active par initiateur, soit deux manches en parallèle dans la salle. Les vingt-quatre heures d’un challenge commencent à l’envoi. Plusieurs challenges peuvent rester dans la liste pendant les nouveaux tours ; l’envoi libère immédiatement le prochain tour personnel.
 
 Chaque écriture utilise une révision attendue et un verrou de ligne. Le reçu `(room,actor,requestId)` est créé dans la même transaction que le nouvel état, le ticket éventuel et la notification. Une requête répétée ne relance pas les dés et n’ajoute pas de points ni de notification. Les reçus restent sept jours ; la séquence de manche et les contraintes de phase continuent à empêcher les anciennes actions après cette durée. Le score et l’historique de jeu ne sont pas concernés par ce nettoyage.
+
+## Remise à zéro autorisée d’un duo
+
+`reset-game.sql` est une opération administrative ponctuelle, sans route publique. Après déploiement du protocole 4, vérifier la salle concernée et sa révision, puis fournir `desir.reset_room` et `desir.reset_revision` avec `set_config(..., true)` dans la même transaction que le script. Le verrou de salle et la révision attendue font échouer intégralement l’opération si la partie a changé entre la lecture et l’exécution.
+
+Le script vide les points, l’historique, les cartes vues, les tâches, les invitations, les manches en cours, les compteurs de tirage et de relance, le joker et les reçus de commandes. Il ferme également la session Hardcore. Les noms, préférences, favoris, comptes, appareils, abonnements, secrets de configuration et limites de sécurité restent conservés. Les révisions du jeu normal et de Hardcore augmentent ; les deux nouvelles manches utilisent des identifiants supérieurs aux précédents. Une ancienne réponse ou une écriture déjà en vol ne peut donc pas remettre l’état précédent à sa place.
+
+Les notifications en attente sont neutralisées, y compris celles déjà réclamées par un worker. Les clés de déduplication sont conservées et un rappel de dé disponible est supprimé pour la fenêtre quotidienne courante afin que le reset ne déclenche pas de notification artificielle. Le worker vérifie à nouveau la présence de l’événement et du challenge avant l’envoi. Les lectures ordinaires de l’état ne lancent plus de vidage redondant de la file Push ; les actions et le cron conservent ce traitement.
 
 ## Contrat de présentation
 
 Les douze grades dépendent du seul total partagé `stats.totalCompleted` : paliers **5, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45 et 50**. L’interface ne présente que le grade acquis le plus élevé ; aucun stockage ou RPC de grade supplémentaire n’est nécessaire. Le grade bleu ardoise reste distinct du panneau de score corail.
 
-La charge du bouton atteint son maximum visuel après **1 200 ms** et produit de **deux à cinq tours**, pour une animation bornée entre **1 650 et 2 500 ms**. Le D6 initial est incliné pour montrer trois faces. Ces choix concernent uniquement le renderer : les requêtes de jeu restent `{type,roundId}` et le serveur conserve le hasard. Ni `power`, ni un résultat, ni une orientation ne sont acceptés comme données de tirage.
+La charge du bouton ajuste le mouvement du dé, sans effet sur son résultat. Les pauses de présentation sont raccourcies et les dos des cartes n’ont plus d’apparition collective en transparence. Le D6 initial est incliné pour montrer trois faces. Ces choix concernent uniquement le renderer : les requêtes de tirage restent `{type,roundId}` et le serveur conserve le hasard. Ni `power`, ni un résultat, ni une orientation ne sont acceptés comme données de tirage.
 
 Les contrôles de contraste, d’attente réseau, de cibles et de défilement sont documentés dans l’[audit UI/DA](../dev/AUDIT_UI_DA.md). Les calculs statiques ne remplacent ni le rendu navigateur ni les essais sur téléphone.
 
@@ -103,11 +113,14 @@ npm install --prefix /private/tmp/desir-sql-tools --ignore-scripts --no-audit --
 DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/postgres-check.mjs
 DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/daily-quota-check.mjs
 DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/hardcore-postgres-check.mjs
+DESIR_PGLITE_DIR=/private/tmp/desir-sql-tools/node_modules/@electric-sql/pglite node demo-des/server/tests/reset-game-check.mjs
 ```
 
 Les tests backend couvrent les 144 tirages de variante, les anciennes mains, les deux rôles, le quota, la compatibilité des clients, la confidentialité des dés et le rejeu concurrent d’une requête.
 
 Le contrôle PostgreSQL vérifie aussi les mots de passe bcrypt, l’accès du rôle serveur, les sessions et le refus des lectures anonymes, sans compte réel ni accès au projet hébergé. `daily-quota-check.mjs` reproduit d’abord l’erreur du deuxième tirage sur les anciennes migrations, puis vérifie la conservation des données, la reprise de cette même requête, trois tirages autorisés, le quatrième refusé, les rejouages, les conflits de révision et le retour arrière transactionnel.
+
+`reset-game-check.mjs` compare le résultat SQL au reset canonique du moteur. Il vérifie aussi le maintien des accès, l’absence d’effet sur une autre salle, le retour arrière après une erreur tardive, les révisions croissantes, les requêtes périmées et la neutralisation des anciennes notifications.
 
 Avec Deno 2.9.6 : vérifier `functions/desir-game/index.ts` avec le `deno.json` et le lockfile fournis ; exécuter les tests d’import, de livraison et d’échéancier Push. `tests/database-check.sql` s’exécute après application du schéma comme propriétaire : il vérifie plages et DST, consommation atomique, CAS, rejouage, notifications et permissions dans une transaction intégralement annulée.
 

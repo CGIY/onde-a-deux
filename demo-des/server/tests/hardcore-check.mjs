@@ -87,7 +87,7 @@ class MemoryStore{
 const store=new MemoryStore();store.members.set(await sha256('device:'+tokenA),{roomId,actor:'a'});store.members.set(await sha256('device:'+tokenB),{roomId,actor:'b'});
 let now=at;const handler=createHandler({G,store,rateSecret:'test-only',clock:()=>new Date(now)});
 async function deliver(action=null,actor='a',id=++ids,extra={}){
- const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+(actor==='a'?tokenA:tokenB),'Content-Type':'application/json',Origin:'https://cgiy.github.io'},body:JSON.stringify({op:'hardcore',gameVersion:3,action,...(action?{requestId:uuid(id)}:{}),...extra})}));
+ const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+(actor==='a'?tokenA:tokenB),'Content-Type':'application/json',Origin:'https://cgiy.github.io'},body:JSON.stringify({op:'hardcore',gameVersion:4,action,...(action?{requestId:uuid(id)}:{}),...extra})}));
  return {status:response.status,body:await response.json()};
 }
 eq((await deliver()).body.session,null);const created=await deliver({type:'CREATE'},'a',500);eq(created.status,200);const sessionId=created.body.session.id;eq(created.body.actor,'a');
@@ -103,6 +103,53 @@ now=at+7000;result=await deliver();eq(result.body.session.boss.attacksUsed,{a:2,
 const oldRevision=result.body.revision;const replaced=await deliver({type:'CREATE'});ok(replaced.body.revision>oldRevision);ok(replaced.body.session.id!==sessionId);eq((await deliver({type:'ATTACK',sessionId,slot:1})).status,409,'old session cannot mutate replacement');
 eq((await deliver(null,'a',10,{actor:'b'})).status,400,'identity overrides rejected');store.enabled=false;eq((await deliver()).status,404,'server feature switch checked for reads');store.enabled=true;store.members.delete(await sha256('device:'+tokenA));eq((await deliver()).status,401,'revoked token immediately denied');
 ok(!store.calls.some(name=>['desir_get_session','desir_commit','desir_expire_room','desir_quota_status'].includes(name)),'live traffic leaves normal game and quota state untouched');
+// Exercise the complete HTTP handler: a reset between CREATE's read and commit
+// must not be undone by its CAS retry, including an originally empty live row.
+for(const initial of [null,createHardcore(at,uuid(900)),{...createHardcore(at,uuid(901)),status:'cancelled'}]){
+ const resetRace=new MemoryStore();resetRace.state=clone(initial);resetRace.revision=initial?17:0;
+ resetRace.members.set(await sha256('device:'+tokenA),{roomId,actor:'a'});
+ const original=resetRace.rpc.bind(resetRace);let commits=0;
+ resetRace.rpc=async(name,p)=>{
+  if(name==='desir_hardcore_commit'&&++commits===1){
+   resetRace.state=null;resetRace.revision++;resetRace.receipts.clear();return {kind:'conflict'};
+  }
+  return original(name,p);
+ };
+ const resetHandler=createHandler({G,store:resetRace,rateSecret:'test-only',clock:()=>new Date(at)});
+ const create=async(id)=>{
+  const response=await resetHandler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json',Origin:'https://cgiy.github.io'},body:JSON.stringify({op:'hardcore',gameVersion:4,action:{type:'CREATE'},requestId:uuid(id)})}));
+  return {status:response.status,body:await response.json()};
+ };
+ const stale=await create(902);
+ eq(stale.status,409,'pre-reset CREATE is rejected by the full handler');eq(stale.body.error.code,'stale_session');
+ eq(resetRace.state,null,'retry cannot recreate a cleared live session');eq(resetRace.revision,initial?18:1,'reset revision is not overwritten');
+ eq(commits,1,'CREATE does not attempt a second commit after seeing the reset tombstone');eq(resetRace.receipts.size,0);
+ const fresh=await create(903);
+ eq(fresh.status,200,'a new request starting after reset may create a session');eq(fresh.body.session.status,'waiting');
+ eq(fresh.body.revision,initial?19:2);eq(resetRace.receipts.size,1);
+ const repeated=await create(903);eq(repeated.body,fresh.body,'post-reset CREATE still replays idempotently');eq(commits,2);
+}
+// Two ordinary CREATE requests race from the same empty revision. The losing
+// request must still retry against the winner's nonempty session, not reject it.
+{
+ const concurrent=new MemoryStore();
+ for(const [token,actor] of [[tokenA,'a'],[tokenB,'b']])concurrent.members.set(await sha256('device:'+token),{roomId,actor});
+ const original=concurrent.rpc.bind(concurrent);let reads=0,release;
+ const barrier=new Promise(resolve=>{release=resolve;});
+ concurrent.rpc=async(name,p)=>{
+  const result=await original(name,p);
+  if(name==='desir_hardcore_get'&&reads<2){if(++reads===2)release();await barrier;}
+  return result;
+ };
+ const concurrentHandler=createHandler({G,store:concurrent,rateSecret:'test-only',clock:()=>new Date(at)});
+ const results=await Promise.all([[tokenA,910],[tokenB,911]].map(async([token,id])=>{
+  const response=await concurrentHandler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io'},body:JSON.stringify({op:'hardcore',gameVersion:4,action:{type:'CREATE'},requestId:uuid(id)})}));
+  return {status:response.status,body:await response.json()};
+ }));
+ eq(results.map(result=>result.status),[200,200],'ordinary concurrent CREATE requests both succeed');
+ eq(results[0].body.session.id,results[1].body.session.id,'ordinary CREATE retry keeps the winning session');
+ eq(concurrent.revision,2);eq(concurrent.receipts.size,2);eq(concurrent.state.status,'waiting');
+}
 // Server-side latency must be included in lease/start validation, including a
 // CAS retry. Capturing the arrival timestamp before the database awaits is unsafe.
 {

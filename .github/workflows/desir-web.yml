@@ -41,13 +41,14 @@ jobs:
           python3 demo-des/dev/build.py --release
           git diff --exit-code -- demo-des/index.html demo-des/server/functions/desir-game/core.js
 
-      - name: PostgreSQL daily quota and session regressions
+      - name: PostgreSQL quota, session and reset regressions
         run: |
           set -e
           npm install --prefix "$RUNNER_TEMP/desir-db-check" --ignore-scripts --no-audit --no-fund @electric-sql/pglite@0.5.14
           export DESIR_PGLITE_DIR="$RUNNER_TEMP/desir-db-check/node_modules/@electric-sql/pglite"
           node demo-des/server/tests/postgres-check.mjs
           node demo-des/server/tests/daily-quota-check.mjs
+          node demo-des/server/tests/reset-game-check.mjs
 
   deploy:
     runs-on: ubuntu-latest

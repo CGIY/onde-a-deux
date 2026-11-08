@@ -23,7 +23,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       const current=await store.rpc('desir_get_session',{p_token_hash:tokenHash});
       if(!current)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
       if(!current.member||!['a','b'].includes(current.member.actor)||!current.room||!Number.isSafeInteger(Number(current.room.revision)))throw new Error('Invalid session data');
-      const parallel=gameVersion===3||current.room.state?.version===2;
+      const parallel=gameVersion===4||current.room.state?.version===2;
       const normalized=parallel?G.normalizeRoom(current.room.state,{at:iso()}):G.normalizeState(current.room.state,{at:iso()});
       if(!normalized)throw new Error('Invalid stored game');
       const actorState=parallel?normalized:{...normalized,activePlayer:current.member.actor};
@@ -62,9 +62,9 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       }
       if(!['login','state','action','push_config','subscribe','hardcore'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
-      if(![1,2,3].includes(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
+      if(![1,2,3,4].includes(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
-      if(gameVersion<3&&['login','state','action'].includes(body.op))throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser les tirages indépendants.');
+      if(gameVersion!==4)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
       const ipBucket=await privateBucket(rateSecret,clientIp(req));
       if(body.op==='login'){
         if(Object.keys(body).some(key=>!['op','username','password','requestId','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
@@ -93,7 +93,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         return respond(await handleHardcore({store,context:liveContext,action:body.action,requestId:body.requestId,now:()=>clock().getTime(),randomInt:G.randomInt}));
       }
       let current=await context(tokenHash,gameVersion);
-      if(body.op==='state'){flush(current.room.id);return respond(snapshot(G,current,{},gameVersion));}
+      if(body.op==='state')return respond(snapshot(G,current,{},gameVersion));
       if(body.op==='push_config'){
         if(!push)throw new HttpError(503,'push_unavailable','Notifications indisponibles.');
         const config=await push.ensurePushConfig(store);return respond({vapidPublicKey:config.publicKey});

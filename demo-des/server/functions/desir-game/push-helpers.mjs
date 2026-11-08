@@ -63,21 +63,25 @@ export function pushTTL(event, at = Date.now()) {
 export function pushEventRelevant(state, event, at = Date.now()) {
   if (!state || pushTTL(event, at) === 0) return false;
   if (event.kind === 'invitation') {
+    // Protocol 4 sends are already shared tasks. The exact task must still exist;
+    // a removed/reset challenge cannot notify just because another task exists.
+    const task = Array.isArray(state.tasks) && state.tasks.find(item => item.id === event.round_id);
+    if (task) return task.to === event.target_actor && Date.parse(task.expiresAt) > at;
     const lane = state.version === 2
-      ? Object.values(state.lanes || {}).find(value => value?.round?.id === event.round_id)
+      ? [...Object.values(state.lanes || {}), ...(state.pendingRounds || [])].find(value => value?.round?.id === event.round_id)
       : state;
     if (!lane || (event.round_id && lane.round?.id !== event.round_id) || lane.round?.awaiting !== event.target_actor) return false;
     return lane.phase === 'pending';
   }
   if (event.kind === 'confirmation') {
     const lane = state.version === 2
-      ? Object.values(state.lanes || {}).find(value => value?.round?.id === event.round_id)
+      ? [...Object.values(state.lanes || {}), ...(state.pendingRounds || [])].find(value => value?.round?.id === event.round_id)
       : (state.round && state.round.id === event.round_id ? state : null);
     if (!lane || (event.round_id && lane.round?.id !== event.round_id)) return false;
     return ['accepted', 'resolved'].includes(lane.phase);
   }
   if (event.kind === 'task-reminder') return Array.isArray(state.tasks) && state.tasks.some(task => task.id === event.task_id && task.checks?.[event.target_actor] === false && Date.parse(task.expiresAt) > at);
-  if (event.kind === 'task-ready') return Array.isArray(state.tasks) && state.tasks.length > 0;
+  if (event.kind === 'task-ready') return Array.isArray(state.tasks) && state.tasks.some(task => (!event.round_id || task.id === event.round_id) && Date.parse(task.expiresAt) > at);
   return event.kind === 'shared-moment';
 }
 export function pushRetrySeconds(attempt) {return Math.min(3600, 60 * 2 ** Math.max(0, Math.min(6, Number(attempt) - 1)));}

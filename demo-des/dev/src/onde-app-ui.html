@@ -91,7 +91,7 @@
 #onde-app-v1 .oa-category-number{font:10px ui-monospace,monospace;color:#a7b39f}
 #onde-app-v1 .oa-category-label{font-size:11px;white-space:normal;line-height:1.25}
 #onde-app-v1 .oa-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:15px}
-#onde-app-v1 .oa-mini-card{border:1px solid #4e5e4870;position:relative;border-radius:15px;background:#252f27;padding:14px 12px;min-height:100px;transition:background .3s,transform .3s}
+#onde-app-v1 .oa-mini-card{border:1px solid #4e5e4870;position:relative;border-radius:15px;background:#252f27;padding:14px 12px;min-height:100px;transition:transform .3s}
 #onde-app-v1 .oa-mini-card.is-picked{background:#46533e;border-color:#a0b38c;transform:translateY(-2px)}
 #onde-app-v1 .oa-mini-number{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#394531;color:#cad5bf;font:11px ui-monospace,monospace;margin-bottom:9px}
 #onde-app-v1 .oa-mini-card h3{font-size:12px;font-weight:400;line-height:1.35}
@@ -267,8 +267,7 @@
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(145deg,#91c2c7,#6d9da6);color:#172625;border-color:#b0d9d9;box-shadow:inset 0 1px #ffffff77,0 6px 14px #0003}
 #onde-app-v1 .oa-category-number{color:#f0e8d7}
 #onde-app-v1 .oa-mini-card{background:linear-gradient(145deg,color-mix(in srgb,var(--oa-mineral-blue) 15%,#2b2e2a),color-mix(in srgb,var(--oa-mineral-moss) 12%,#262824))}
-#onde-app-v1.oa-entering .oa-mini-card{animation:oa-mini-arrive .52s cubic-bezier(.2,.8,.2,1) both}
-#onde-app-v1 .oa-mini-card:nth-child(2){animation-delay:.06s}#onde-app-v1 .oa-mini-card:nth-child(3){animation-delay:.12s}#onde-app-v1 .oa-mini-card:nth-child(4){animation-delay:.18s}
+#onde-app-v1 .oa-mini-card{animation:none;isolation:isolate}
 #onde-app-v1 .oa-mini-card.is-picked{background:linear-gradient(145deg,#61775c,#475743);box-shadow:0 0 0 2px #c0d39c44,0 8px 18px #0003}
 #onde-app-v1 .oa-playing-card{background:radial-gradient(ellipse at 12% 0%,color-mix(in srgb,var(--category) 18%,transparent),transparent 56%),linear-gradient(145deg,color-mix(in srgb,var(--category) 30%,#282928),color-mix(in srgb,var(--category) 16%,#252724) 68%);border-color:color-mix(in srgb,var(--category) 78%,#eee5d1);box-shadow:inset 0 2px 2px #ffffff27,inset 0 -6px 12px #0b0e0c38,0 15px 30px #0005}
 #onde-app-v1 .oa-card-illustration i:nth-child(2){background:linear-gradient(145deg,#eed4ad,#bf9274)}
@@ -288,7 +287,6 @@
 #onde-app-v1 .oa-sheet{animation:oa-sheet-in .36s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-toast:not([hidden]){animation:oa-toast-in .35s cubic-bezier(.2,.8,.2,1) both}
 #onde-app-v1 .oa-celebration{background:radial-gradient(ellipse at 50% 50%,#d7dfbe44,transparent 42%),radial-gradient(ellipse at 23% 40%,#8abdc344,transparent 50%),radial-gradient(ellipse at 76% 60%,#dc9a8440,transparent 50%)}
-@keyframes oa-mini-arrive{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes oa-nav-pop{0%{transform:translateY(3px) scale(.88,1.06)}48%{transform:translateY(-2px) scale(1.08,.92)}78%{transform:translateY(1px) scale(.98,1.04)}100%{transform:translateY(0) scale(1)}}
 @keyframes oa-step-pulse{0%,100%{box-shadow:0 0 0 0 #d7dfbe00;transform:scale(1)}50%{box-shadow:0 0 0 5px #d7dfbe20;transform:scale(1.045)}}
 @keyframes oa-evidence-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -307,7 +305,7 @@
 #onde-app-v1 .oa-switch button{min-height:40px}
 #onde-app-v1 .oa-title{font-size:clamp(30px,8vw,35px);line-height:1.13;letter-spacing:-.035em;font-weight:500;text-wrap:balance}
 #onde-app-v1 .oa-subtitle{font-size:14px;line-height:1.55}
-#onde-app-v1 .oa-playing-card{border-radius:26px;padding:22px;animation:none}
+#onde-app-v1 .oa-playing-card{isolation:isolate;border-radius:26px;padding:22px;animation:none}
 #onde-app-v1 .oa-playing-card:before{border-radius:21px}
 #onde-app-v1 .oa-playing-card:after{background-image:var(--oa-grain);background-size:112px 112px;opacity:.5;mix-blend-mode:soft-light}
 #onde-app-v1 .oa-card-title{font-size:clamp(26px,7.2vw,30px);line-height:1.15;letter-spacing:-.035em;text-wrap:balance}
@@ -361,10 +359,6 @@
 #onde-app-v1 .oa-task-proposal{font-size:12px;line-height:1.5;color:#c7d0c0;margin:-9px 0 18px}
 #onde-app-v1 .oa-task-status{margin:0 0 12px;padding:9px 10px;border-radius:11px;border:1px solid #a9b8a030;background:#1d292544;font-size:11px;line-height:1.5;color:#d3decc}
 #onde-app-v1 .oa-task-status .oa-status-dot{width:6px;height:6px}
-#onde-app-v1.oa-entering .oa-task{animation:oa-soft-settle .4s cubic-bezier(.22,1,.36,1) both}
-#onde-app-v1.oa-entering .oa-task:nth-child(2){animation-delay:.05s}
-#onde-app-v1.oa-entering .oa-task:nth-child(3){animation-delay:.1s}
-#onde-app-v1.oa-entering .oa-task:nth-child(n+4){animation-delay:.15s}
 #onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #c4d1b525;padding-top:15px}
 #onde-app-v1 .oa-task-check{display:flex;align-items:center;gap:9px;position:relative;min-height:44px;font-size:12px;color:#e1e8d9;cursor:pointer;min-width:0}
 #onde-app-v1 .oa-task-check.is-other{cursor:default;color:#b8c2af}
@@ -398,6 +392,8 @@
 #onde-app-v1 .oa-playing-card:after{opacity:.76}
 #onde-app-v1 .oa-task:before{opacity:.65}
 #onde-app-v1 .oa-wordmark{font-size:clamp(20px,6vw,24px);letter-spacing:.12em;gap:8px}
+#onde-app-v1 .oa-task{isolation:isolate}
+#onde-app-v1 .oa-task-actions{display:flex;justify-content:flex-end;margin-top:8px}
 /* Final tactile balance: pigment, fine type, static high contrast fibres. */
 #onde-app-v1{--oa-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.9' intercept='-.45'/%3E%3CfeFuncG type='linear' slope='1.9' intercept='-.45'/%3E%3CfeFuncB type='linear' slope='1.9' intercept='-.45'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Cpath d='M0 0h180v180H0z' fill='%23fff' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E")}
 #onde-app-v1 .oa-shell:before{opacity:.9;background-size:104px 104px}

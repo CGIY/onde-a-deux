@@ -154,7 +154,7 @@ async function authorize(store){
 }
 function client(handler){
  return async(body,token=tokenA,extra={})=>{
-  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify({gameVersion:3,...body})}));
+  const response=await handler(new Request('https://example.supabase.co/functions/v1/desir-game',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://cgiy.github.io',...extra},body:JSON.stringify({gameVersion:4,...body})}));
   return {status:response.status,body:await response.json(),headers:response.headers};
  };
 }
@@ -165,12 +165,12 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 {
  const saved=new MemoryStore();await authorize(saved);
  const handler=createHandler({G,store:saved,rateSecret:'fixture',clock:()=>new Date(at)}),deliver=client(handler);
- for(const gameVersion of [1,2])for(const op of ['login','state','action']){
+ for(const gameVersion of [1,2,3])for(const op of ['login','state','action','hardcore','push_config','subscribe']){
   const before=clone(saved.state),revision=saved.revision;
   const response=await deliver({op,gameVersion,username:'alpha',password:'test-only-password',requestId:uuid(600),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}});
   equal(response.status,409);equal(response.body.error.code,'upgrade_required');equal(response.body.state,undefined);equal(saved.state,before);equal(saved.revision,revision);equal(saved.used.size,0);
  }
- equal((await deliver({op:'state',gameVersion:'3'})).status,400);
+ equal((await deliver({op:'state',gameVersion:'4'})).status,400);
 }
 
 // A published legacy hand, score, D4 and quota survive migration into its owner lane.
@@ -179,11 +179,11 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  saved.phase='card';Object.assign(saved.round,{cardId:null,cardRoll:null,hp:null,status:'drawing'});delete saved.round.cardRerolled;
  saved.stats={totalCompleted:21,byCategory:{complicite:1,detente:2,projets:3,attention:4,bouffe:5,intimite:6}};legacy.state=saved;legacy.used.add('a');await authorize(legacy);
  const rng=[],handler=createHandler({G:{...G,randomInt:n=>{rng.push(n);return n;}},store:legacy,rateSecret:'fixture',clock:()=>new Date(at)}),deliver=client(handler);
- const own=await deliver({op:'state'});equal(own.status,200);equal(legacy.state.version,2);equal(own.body.gameVersion,3);equal(own.body.state.round.hand,hand);equal(own.body.state.stats,saved.stats);equal(own.body.state.round.categoryId,'detente');equal(own.body.state.round.categoryRoll,2);equal(own.body.quota.remaining,0);equal(rng,[]);equal(legacy.revision,1);
+ const own=await deliver({op:'state'});equal(own.status,200);equal(legacy.state.version,2);equal(own.body.gameVersion,4);equal(own.body.state.round.hand,hand);equal(own.body.state.stats,saved.stats);equal(own.body.state.round.categoryId,'detente');equal(own.body.state.round.categoryRoll,2);equal(own.body.quota.remaining,0);equal(rng,[]);equal(legacy.revision,1);
  const other=await deliver({op:'state'},tokenB);equal(other.status,200);equal(other.body.state.phase,'category');equal(other.body.state.round.from,'b');equal(other.body.incoming,[]);equal(other.body.drawAvailable,true);equal(other.body.quota.remaining,1);equal(legacy.revision,1);
  const rolled=await deliver(intent('ROLL_CARD',601));equal(rolled.status,200);equal(rolled.body.roll,{kind:4,value:4});equal(rolled.body.state.round.cardId,hand[3]);equal(rng,[4]);equal(legacy.used.size,1);
  const sent=await deliver(intent('SEND',602));equal(sent.status,200);equal(legacy.outbox,[{actor:'b',kind:'invitation',roundId:'onde-1'}]);
- const invited=await deliver({op:'state'},tokenB);equal(invited.body.state.phase,'category');equal(invited.body.incoming.length,1);equal(invited.body.incoming[0].round.cardId,hand[3]);equal(invited.body.incoming[0].round.hand.length,4);ok(G.validateState(invited.body.incoming[0]));equal(invited.body.state.stats.totalCompleted,21);
+ const invited=await deliver({op:'state'},tokenB);equal(invited.body.state.phase,'category');equal(invited.body.incoming,[]);equal(invited.body.state.tasks[0].cardId,hand[3]);ok(G.validateState(invited.body.state));equal(invited.body.state.stats.totalCompleted,21);
 }
 
 // Old private defended history remains private after one idempotent migration.
@@ -224,10 +224,10 @@ for(const sides of [4,6]){
  const results=await Promise.all([deliver(action),deliver(action)]);equal(results.map(x=>x.status),[200,200]);equal(results[0].body,results[1].body);equal(store.receipts.size,1);equal(store.revision,before+1);equal(view(store,'a').round.cardRoll,results[0].body.roll.value);equal(store.used.size,1);equal(store.outbox,[]);
 }
 
-// Draws stay private until send; replies preserve both active lanes and queued tasks.
+// Private draws become shared tasks immediately, with one receipt and notification.
 {
  const store=new MemoryStore();store.state=G.createRoom();await authorize(store);const rng=[];let category=0;
- const deliver=client(createHandler({G:{...G,randomInt:n=>{rng.push(n);return n===42?(++category===1?1:42):n===20?1:2;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const deliver=client(createHandler({G:{...G,drawDaily(){throw Error('Daily cards must not be drawn');},randomInt:n=>{rng.push(n);return n===42?(++category===1?1:42):n===20?1:2;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
  const aId=view(store,'a').round.id,bId=view(store,'b').round.id;
  for(const [actor,token,id,offset] of [['a',tokenA,aId,640],['b',tokenB,bId,650]]){
   equal((await deliver(intent('ROLL_CATEGORY',offset,id),token)).status,200);
@@ -238,48 +238,44 @@ for(const sides of [4,6]){
  }
  const aBefore=clone(store.state.lanes.a),bBefore=clone(store.state.lanes.b),oldRng=rng.length;
  const forbidden=await deliver(intent('ROLL_VARIANT',660,aId),tokenB);equal(forbidden.status,409);equal(forbidden.body.state.round.id,bId);equal(forbidden.body.incoming,[]);equal(rng.length,oldRng);equal(store.state.lanes.a,aBefore);equal(store.state.lanes.b,bBefore);
- equal((await deliver(intent('SEND',661,aId))).status,200);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:aId}]);
- equal(store.state.lanes.a.phase,'category');ok(store.state.lanes.a.round.id!==aId);
- const invited=await deliver({op:'state'},tokenB);equal(invited.body.state.round.id,bId);equal(invited.body.state.phase,'draft');equal(invited.body.incoming.length,1);equal(invited.body.incoming[0].round.id,aId);equal(invited.body.incoming[0].round.variantRoll,2);
- const altered=clone(store.state),queued=altered.pendingRounds.find(item=>item.round.id===aId).round,others=queued.hand.filter(id=>id!==queued.cardId).reverse();others.splice(queued.cardRoll-1,0,queued.cardId);queued.hand=others;
- equal(projectState(G,altered,'b',3,aId),invited.body.incoming[0],'private permutation never leaks to receiver');
- const sentAgain=await deliver(intent('SEND',661,aId));equal(sentAgain.status,200);equal(store.outbox.length,1);
- const aSent=clone(store.state.lanes.a);
- const refusedChallenge=await deliver(intent('CHALLENGE',662,aId),tokenB);equal(refusedChallenge.status,400,'the recipient D20 no longer exists');equal(refusedChallenge.body.error.code,'invalid_action');equal(store.state.lanes.a,aSent);equal(store.state.lanes.b,bBefore);
- const accepted=await deliver(intent('ACCEPT',664,aId),tokenB);equal(accepted.status,200);equal(accepted.body.incoming,[]);equal(accepted.body.state.round.id,bId);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,aId);
- const checkA=intent('TOGGLE_TASK_CHECK',665,aId,{taskId:aId,checked:true}),checkB=intent('TOGGLE_TASK_CHECK',666,bId,{taskId:aId,checked:true});
+ const sent=await deliver(intent('SEND',661,aId));equal(sent.status,200);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:aId}]);
+ equal(store.state.lanes.a.phase,'category');ok(store.state.lanes.a.round.id!==aId);equal(store.state.pendingRounds,[]);equal(store.state.tasks.length,1);equal(store.state.history.find(r=>r.id===aId).toConfirmed,false,'queuing does not fabricate recipient acceptance');
+ const recipient=await deliver({op:'state'},tokenB);equal(recipient.body.state.round.id,bId);equal(recipient.body.state.phase,'draft');equal(recipient.body.incoming,[]);equal(recipient.body.pendingOutgoing,0);equal(recipient.body.state.tasks[0].id,aId);equal(recipient.body.state.tasks[0].variantRoll,2);
+ const sentAgain=await deliver(intent('SEND',661,aId));equal(sentAgain.status,200);equal(sentAgain.body,sent.body);equal(store.outbox.length,1);equal(store.state.tasks.length,1);
+ for(const type of ['SEND_DAILY','ACCEPT','PASS','CHALLENGE']){const removed=await deliver(intent(type,662,aId),tokenB);equal(removed.status,400);equal(removed.body.error.code,'invalid_action');}
+ equal((await deliver(intent('SEND',663,view(store,'a').round.id,{directQueue:true}))).status,400,'the trusted internal flag is never client input');
+ const checkA=intent('TOGGLE_TASK_CHECK',665,view(store,'a').round.id,{taskId:aId,checked:true}),checkB=intent('TOGGLE_TASK_CHECK',666,bId,{taskId:aId,checked:true});
  const checked=await Promise.all([deliver(checkA),deliver(checkB,tokenB)]);equal(checked.map(x=>x.status),[200,200]);equal(store.state.stats.totalCompleted,1);equal(store.state.tasks.length,0);equal(store.state.lanes.a.phase,'category');equal(store.state.lanes.b,bBefore);
  equal((await deliver(checkB,tokenB)).status,200);equal(store.state.stats.totalCompleted,1);
  const next=await deliver({op:'state'},tokenA);equal(next.status,200);equal(next.body.state.round.from,'a');equal(next.body.state.phase,'category');ok(next.body.state.round.id!==aId);equal(next.body.quota.remaining,0);
  const exhausted=await deliver(intent('ROLL_CATEGORY',668,next.body.state.round.id));equal(exhausted.status,409);equal(exhausted.body.error.code,'quota_exhausted');equal(store.state.lanes.b,bBefore);
  equal((await deliver(intent('SEND',669,bId),tokenB)).status,200);equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
+ equal(store.state.daily,null,'no extra daily card is created');
 }
 
-// Accepting or passing removes a queued invitation without blocking another draw.
+// Every authoritative refusal face dismisses the task once, without points or quota.
+for(let face=1;face<=20;face++){
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);const randomCalls=[];
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{randomCalls.push(n);return n===20?face:1;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const taskId=view(store,'a').round.id;let requestId=1000+face*10;
+ for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,requestId++,taskId))).status,200);
+ const used=store.used.size,revision=store.revision,bId=view(store,'b').round.id,calls=randomCalls.length;
+ const invalidSender=await deliver(intent('REFUSE_TASK',requestId++,view(store,'a').round.id,{taskId}));equal(invalidSender.status,409);equal(randomCalls.length,calls,'sender refusal does not draw');
+ const illegal=await deliver(intent('REFUSE_TASK',requestId++,bId,{taskId,value:20}),tokenB);equal(illegal.status,400);equal(randomCalls.length,calls,'client cannot choose the D20');
+ const action=intent('REFUSE_TASK',requestId++,bId,{taskId});
+ const results=await Promise.all([deliver(action,tokenB),deliver(action,tokenB)]);equal(results.map(x=>x.status),[200,200]);equal(results[0].body,results[1].body,'concurrent replay keeps the committed D20');
+ equal(results[0].body.roll,{kind:20,value:face});equal(store.state.tasks,[]);equal(store.state.stats.totalCompleted,0);equal(store.used.size,used);equal(store.revision,revision+1);equal(store.state.history.find(r=>r.id===taskId).refusalRoll,face);equal(store.state.history.find(r=>r.id===taskId).status,'passed');
+ const replay=await deliver(action,tokenB);equal(replay.body,results[0].body);equal(store.revision,revision+1);
+ equal((await deliver(intent('REFUSE_TASK',requestId++,bId,{taskId}),tokenB)).status,409,'a dismissed task cannot be refused again');
+ equal(randomCalls.slice(calls).every(n=>n===20),true);equal(store.outbox.length,1,'refusal creates no extra person-directed notification');
+}
+
+// Polling refreshes state without creating redundant push drain workers.
 {
- const store=new MemoryStore();store.state=G.createRoom();await authorize(store);
- const deliver=client(createHandler({G:{...G,randomInt:()=>1},store,rateSecret:'fixture',clock:()=>new Date(at)}));
- const id=view(store,'a').round.id,untouched=clone(store.state.lanes.b);let requestId=680;
- for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT'])equal((await deliver(intent(type,requestId++,id))).status,200);
- equal((await deliver(intent('PASS',requestId++,id))).status,409,'the sender cannot pass a private draft');
- equal((await deliver(intent('ACCEPT',requestId++,id))).status,409,'the sender cannot accept their own draft');
- equal(store.outbox,[]);equal(store.used.size,1);
- equal((await deliver(intent('SEND',requestId++,id))).status,200);
- equal(store.state.lanes.a.phase,'category');equal(store.state.lanes.b,untouched);equal(store.state.pendingRounds[0].round.id,id);equal(store.outbox,[{actor:'b',kind:'invitation',roundId:id}]);
- const invited=await deliver({op:'state'},tokenB);equal(invited.body.drawAvailable,true);equal(invited.body.incoming[0].phase,'pending');
- equal((await deliver(intent('PASS',requestId++,id))).status,409,'the sender cannot pass their own invitation');
- const passed=await deliver(intent('PASS',requestId++,id),tokenB);equal(passed.status,200);
- equal(passed.body.incoming,[]);equal(store.state.pendingRounds.length,0);equal(store.state.history.find(round=>round.id===id).status,'passed');
- equal(store.state.stats.totalCompleted,0);equal(store.state.tasks.length,0);equal(store.outbox.length,2,'passing notifies the sender once');equal(store.outbox.at(-1),{actor:'a',kind:'confirmation',roundId:id});
- equal((await deliver(intent('PASS',requestId++,id),tokenB)).status,409,'a passed round is closed');
- const reopened=await deliver({op:'state'},tokenA);equal(reopened.status,200);equal(reopened.body.state.phase,'category');ok(reopened.body.state.round.id!==id);
- const bId=view(store,'b').round.id;
- for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,requestId++,bId),tokenB)).status,200);
- equal(store.outbox.at(-1),{actor:'a',kind:'invitation',roundId:bId});
- const accepted=await deliver(intent('ACCEPT',requestId++,bId),tokenA);equal(accepted.status,200);
- equal(store.outbox.at(-1),{actor:'b',kind:'confirmation',roundId:bId},'accepting notifies the sender');
- equal(accepted.body.incoming,[]);equal(accepted.body.state.tasks.length,1);equal(accepted.body.state.tasks[0].id,bId);
- equal(accepted.body.state.phase,'category','the accepter keeps their own active lane');equal(store.used.size,2);
+ const store=new MemoryStore();store.state=G.createRoom();await authorize(store);let drains=0;
+ const deliver=client(createHandler({G,store,rateSecret:'fixture',clock:()=>new Date(at),push:{flushPushOutbox:async()=>{drains++;}}}));
+ for(let n=0;n<3;n++)equal((await deliver({op:'state'})).status,200);
+ equal(drains,0);equal(store.revision,0,'read polls do not change settled game state');
 }
 
 // Weekly joker: a chosen category once per week, still consuming the day's draw pool.
@@ -301,7 +297,6 @@ for(const sides of [4,6]){
  for(const [actor,token,otherToken] of [['a',tokenA,tokenB],['b',tokenB,tokenA]]){
   const id=view(store,actor).round.id;
   for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,idCounter++,id),token)).status,200);
-  equal((await deliver(intent('ACCEPT',idCounter++,id),otherToken)).status,200);
  }
  const taskIds=store.state.tasks.map(task=>task.id);equal(store.state.tasks.length,2);now='2026-11-03T15:00:00.000Z';const expired=await deliver({op:'state'});equal(expired.status,200);equal(expired.body.state.tasks,[]);equal(store.state.lanes.a.phase,'category');equal(store.state.lanes.b.phase,'category');equal(taskIds.every(id=>store.state.history.some(round=>round.id===id&&round.status==='expired')),true);equal(store.state.stats.totalCompleted,0);
  const late=await deliver(intent('TOGGLE_TASK_CHECK',idCounter++,view(store,'a').round.id,{taskId:taskIds[0],checked:true}),tokenB);equal(late.status,409);equal(store.state.stats.totalCompleted,0);
@@ -314,7 +309,7 @@ let response=await request({op:'create'});equal(response.status,404);equal((awai
 equal((await request({op:'state'})).status,401);
 response=await request({op:'login',username:'alpha',password:'not-the-fixture-password'});equal(response.status,401);ok(!JSON.stringify(response.body).includes('not-the-fixture-password'));
 store.blockRates=true;const beforeLogin=store.loginChecks;equal((await request({op:'login',username:'alpha',password:'test-only-password'})).status,429);equal(store.loginChecks,beforeLogin);store.blockRates=false;
-response=await request({op:'login',username:' ÁLPHÀ ',password:'test-only-password'});equal(response.status,200);equal(response.body.connection.actor,'a');equal(response.body.connection.token,tokenA);equal(response.body.serverTime,at);ok(G.validateRoom(store.state));equal(response.body.gameVersion,3);equal(response.body.drawAvailable,true);equal(response.body.incoming,[]);
+response=await request({op:'login',username:' ÁLPHÀ ',password:'test-only-password'});equal(response.status,200);equal(response.body.connection.actor,'a');equal(response.body.connection.token,tokenA);equal(response.body.serverTime,at);ok(G.validateRoom(store.state));equal(response.body.gameVersion,4);equal(response.body.drawAvailable,true);equal(response.body.incoming,[]);
 equal((await request({op:'login',username:'bravo',password:'test-only-password'},tokenB)).status,200);
 equal((await request({op:'login',username:'bravo',password:'test-only-password'},tokenA)).status,409);
 response=await request({op:'state'});equal(response.status,200);ok(!JSON.stringify(response.body).includes(tokenA));equal(response.body.actor,'a');equal(response.body.state.round.from,'a');
@@ -328,7 +323,7 @@ response=await request({op:'state'},tokenB);equal(response.body.state.round.from
 response=await request(intent('ROLL_CARD',804,'onde-1'),tokenB);equal(response.status,409);equal(response.body.incoming,[]);equal(response.body.state.round.cardId,null);
 response=await request({op:'state'},tokenA,{Origin:'https://unrelated.example'});equal(response.status,403);equal(response.headers.get('Access-Control-Allow-Origin'),null);
 const badHandler=createHandler({G,store:{rpc:async()=>{throw new Error('SECRET-DATABASE-ERROR');}},rateSecret:'test'});
-const bad=await badHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:'{"op":"state","gameVersion":3}'}));equal(bad.status,503);ok(!(await bad.text()).includes('SECRET-DATABASE-ERROR'));
+const bad=await badHandler(new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+tokenA,'Content-Type':'application/json'},body:'{"op":"state","gameVersion":4}'}));equal(bad.status,503);ok(!(await bad.text()).includes('SECRET-DATABASE-ERROR'));
 const cronCalls=[],cronHandler=createHandler({G,store,rateSecret:'test',push:{isPushCronAuthorized:async(_store,header)=>header==='test-only-cron-secret',enqueueScheduled:async()=>cronCalls.push('enqueue'),flushPushOutbox:async()=>cronCalls.push('flush')}});
 let cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"op":"drain_push"}'}));equal(cron.status,401);equal(cronCalls,[]);
 cron=await cronHandler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json','x-desir-cron':'test-only-cron-secret'},body:'{"op":"drain_push"}'}));equal(cron.status,202);equal(cronCalls,['enqueue','flush']);

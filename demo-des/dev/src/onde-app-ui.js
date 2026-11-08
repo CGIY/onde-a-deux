@@ -19,11 +19,11 @@
  let systemReduce=!!(motionQuery&&motionQuery.matches);
  let localRoom=null,ownState=null,incomingStates=[],outgoingCount=0,selectedIncomingRoundId=null;
  let state=G.createState(), tab='play', busy=false, rerolling=false, toastTimer, lastFocus=null, animationSerial=0;
- let cardReveal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
+ let cardReveal=null,refusal=null,revealWait=null,activeRollFace=null,presentationEpoch=0,presentationHidden=false;
  let autoNewRoundTimer=null,autoNewRoundId=null;
  let charge=null,suppressedClick=null,controlsBusyState=null;
  let persisted=false, canPersist=true, recovery=false, lastError='';
- let renderKey='';
+ let renderKey='',renderedMarkup='';
  const contentTransitions=new Set();
  const gaugeFrames=new Map();
  const pendingChecks=new Set();
@@ -71,7 +71,6 @@
   : state.activePlayer===state.round.from;
  const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
  const parisToday=()=>G.parisDateKey(new Date(serverNow()).toISOString());
- const dailyAvailable=()=>!!(state.daily&&state.daily.dateKey===parisToday()&&!state.daily.usedBy);
  const canRerollCategoryNow=()=>state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
  const jokerAvailable=()=>state.phase==='category'&&state.activePlayer===state.round.from&&!!state.joker&&state.joker.weekKey===G.isoWeekKey(new Date(serverNow()).toISOString())&&!state.joker.usedBy;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
@@ -133,7 +132,7 @@
   outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
- function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===3;}
+ function isParallel(){return !remoteMode||remoteSnapshot?.gameVersion===4;}
  function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
  function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
@@ -164,7 +163,7 @@
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,revision:value.revision,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
@@ -197,13 +196,13 @@
    if(!remoteReady||!remote?.enabled)return false;
    if(action.type==='RESET'||action.type==='SWITCH_PLAYER')return false;
    operationBusy=true;setControlsBusy(true);
-   const waiting={SEND:['send','Envoi…'],ACCEPT:['accept','Validation…'],PASS:['pass','Un instant…'],NEW_ROUND:['new','Un instant…']}[action.type];
-   const trigger=waiting&&main.querySelector('[data-action="'+waiting[0]+'"]');if(trigger){trigger.textContent=waiting[1];trigger.setAttribute('aria-busy','true');}
+   const waiting={SEND:['send','Envoi…'],NEW_ROUND:['new','Un instant…']}[action.type];
+   const trigger=waiting&&main.querySelector('[data-action="'+waiting[0]+'"]');if(trigger){renderedMarkup='';trigger.textContent=waiting[1];trigger.setAttribute('aria-busy','true');}
    try{const value=action.type==='EXPIRE_TASKS'?await remote.refresh():await remote.action({...action,roundId:action.roundId||state.round.id});return flushRemote(value,false);}
    catch(error){return remoteError(error);}
    finally{operationBusy=false;setControlsBusy(false);trigger?.removeAttribute('aria-busy');if(doRender)render();}
   }
-  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
+  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,...(action.type==='SEND'?{directQueue:true}:{}),actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
  }
 
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
@@ -238,12 +237,6 @@
   return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(cat.label)+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
  }
 
- function dailySection(){
-  if(!dailyAvailable())return '';
-  const d=state.daily,c=G.getCard(d.cardId),cat=G.getCategory(d.categoryId,2);
-  if(!c||!cat)return '';
-  return '<div class="oa-daily" data-daily><div class="oa-section-head"><h2>Carte du jour</h2><span>'+h(cat.label)+'</span></div><div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(G.getVariant({cardId:c.id,variantRoll:d.variantRoll})||'')+'</p></div></div><div class="oa-actions">'+btn('Proposer la carte du jour <span class="oa-arrow" aria-hidden="true">↗</span>','send-daily')+'</div></div>';
- }
  function hardcoreOfferBanner(){
   const r=state.round;
   if(!r.hardcoreOffer||state.activePlayer!==r.from||!['card','variant','draft'].includes(state.phase)||!hardcore)return '';
@@ -280,37 +273,24 @@
   return btn('Lancer le D'+G.rules.categorySides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
  }
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
- function responseActions(){return '<div class="oa-actions">'+btn('J’accepte','accept')+btn('Passer','pass','oa-secondary')+'</div>';}
 
  function privateHome(incoming=false){
   const r=state.round;
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('À faire · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
  }
- function incomingBanner(){
-  const invitations=incomingStates.filter(value=>G.canRespond(value));
-  const incoming=invitations.map(value=>'<button type="button" class="oa-invitation oa-incoming cursor-interaction" data-action="open-invitation" data-round="'+h(value.round.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><b>Invitation de '+h(name(value.round.from))+'</b><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>').join('');
-  const outgoing=outgoingCount?'<div class="oa-invitation oa-incoming oa-outgoing" role="status"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+outgoingCount+' invitation'+(outgoingCount>1?'s':'')+' en attente</b><small>Tu peux continuer à jouer pendant l’attente.</small></span></div>':'';
-  return incoming+outgoing;
- }
- function renderPlay(){return (isParallel()?(selectedIncomingRoundId?textBtn('Mon tirage','own-draw'):incomingBanner()):'')+hardcoreOfferBanner()+renderPlayContent();}
+ function renderPlay(){return hardcoreOfferBanner()+renderPlayContent();}
  function renderPlayContent(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
   if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal.categoryId,reveal.hasVariant?2:1)+steps(2,sides,reveal.hasVariant))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.hasVariant?2:1,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
-  if(['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey())return privateHome(true);
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+dailySection()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
+  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2><span>'+G.categories.length*G.rules.cardSides+' cartes</span></div>'+categoriesGrid();
   if(state.phase==='card'){
    const sides=G.cardSides(state);
    return cardHeading(r.categoryId,r.catalogueVersion??1)+steps(2,sides,r.catalogueVersion===2)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
   }
   if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
   if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
-  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>invitation.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
-  if(state.phase==='pending'){
-   const responds=G.canRespond(state);
-   const title=responds?'Une invitation<br><em>pour toi.</em>':'L’invitation<br><em>est posée.</em>';
-   const sub=responds?h(name(r.from))+' te propose…':'Invitation envoyée · '+h(name(r.awaiting))+' doit répondre.';
-   return heading(title,sub,null)+'<div class="oa-card-stage">'+playingCard(c,true)+'</div>'+(r.schedule?statusStrip('Proposition : <strong>'+h(r.schedule)+'</strong>'):'')+(responds?responseActions():'');
-  }
+  if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>idée à deux.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
+  if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise Dés·ir pour retrouver votre liste.',null);
   if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed',expired=r.status==='expired';
@@ -330,7 +310,8 @@
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
   const tasks=state.tasks||[];
-  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div></article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+  if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'Le dé roule…':'Confirmation du refus…')+'</p>';
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(cat.label)+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=[
@@ -382,10 +363,11 @@
  function visibleViewKey(){
   if(!welcomeDismissed)return 'welcome';if(remoteMode&&!remoteReady)return 'login';
   if(cardReveal)return cardReveal.viewKey;
+  if(refusal)return 'tasks|refusal|'+refusal.taskId+'|'+viewPlayer;
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
-  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.daily?state.daily.dateKey+':'+(state.daily.usedBy||''):'',state.round.hardcoreOffer?'hc':'',state.joker?state.joker.weekKey+':'+(state.joker.usedBy||''):'' ].join('|');
+  return ['play',inbox?'inbox':rerolling?'reroll':state.phase,state.round.id,state.round.cardId,state.round.rolls.length,state.round.draftRolls.length,viewPlayer,state.round.hardcoreOffer?'hc':'',state.joker?state.joker.weekKey+':'+(state.joker.usedBy||''):'' ].join('|');
  }
  function centerStage(){
   const holder=main.querySelector('[data-stage]');if(!holder)return;
@@ -395,7 +377,7 @@
   }else holder.scrollIntoView({block:'center',behavior:systemReduce?'instant':'smooth'});
  }
  function finishRevealWait(){if(!revealWait)return;const wait=revealWait;revealWait=null;clearTimeout(wait.timer);wait.resolve();}
- function waitForReveal(duration=2800){return new Promise(resolve=>{const wait={resolve,timer:null};revealWait=wait;wait.timer=setTimeout(()=>{if(revealWait===wait){revealWait=null;resolve();}},duration);});}
+ function waitForReveal(duration=900){return new Promise(resolve=>{const wait={resolve,timer:null};revealWait=wait;wait.timer=setTimeout(()=>{if(revealWait===wait){revealWait=null;resolve();}},duration);});}
  function presentationValid(context){return context.epoch===presentationEpoch&&context.actor===viewPlayer&&(!remoteMode||remote?.authenticated&&samePerspective(context,remote.connection));}
  function revealMatches(game,reveal){return game&&game.phase===(reveal.hasVariant?'variant':'draft')&&game.round.id===reveal.roundId&&game.round.from===reveal.actor&&game.round.cardId===reveal.cardId&&game.round.cardRoll===reveal.face;}
  function showSelectedTile(){
@@ -424,13 +406,10 @@
   grid?.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
   const overflow=holder.style.overflow||'';holder.style.overflow='hidden';
   playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,completed=>{holder.style.overflow=overflow;if(completed&&canvas.parentElement===holder&&!busy&&!operationBusy&&!systemReduce&&!document.hidden&&!presentationHidden)die.breathe?.();});
-  playContentTransition(grid,[{opacity:.2},{opacity:1}],260);
   playContentTransition(main.querySelector('h1'),[{opacity:.35},{opacity:1}],220);
   return true;
  }
  function render(transition=null){
-  cancelContentTransitions();
-  clearCharge(true,false);
   if(!remoteMode){const fresh=G.reduceRoom(localRoom,{type:'EXPIRE_TASKS',at:now(),actor:viewPlayer});if(fresh!==localRoom){localRoom=fresh;syncLocalView();save();}}
   trackGrade();
   // Connection updates may restore the game behind this screen, never replace it.
@@ -439,35 +418,34 @@
   const focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const scrollTop=main.scrollTop,scrollLeft=main.scrollLeft;
   const previousKey=renderKey;
-  const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);
   renderPersona();
   const key=visibleViewKey();
+  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
+  const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
+  if(replaceMain){cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
   root.classList.toggle('oa-entering',animate&&!systemReduce&&!document.hidden&&!presentationHidden);
   root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
-  main.innerHTML=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
+  if(!replaceMain){scheduleExpiry();scheduleAutoNewRound();return;}
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:refusal?.color||category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
   else die.pauseMotion?.();
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   if(animate&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
-   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-card-stage,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
+   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
    blocks.forEach((el,i)=>{const pinned=window.getComputedStyle?.(el)?.position==='sticky';el.animate(pinned?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,delay:Math.min(i*28,100),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'});});
    main.querySelectorAll('.oa-category').forEach((el,i)=>el.animate([{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'scale(1)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
-   playContentTransition(main.querySelector('.oa-card-grid'),[{opacity:.2},{opacity:1}],240);
-   const revealed=main.querySelector('.oa-card-stage .oa-playing-card');
-   if(revealed&&visibleCardId!==state.round.cardId)revealed.animate([{transform:'perspective(850px) translateY(24px) rotateX(10deg) rotateZ(-3deg) scale(.94)'},{transform:'perspective(850px) translateY(-3px) rotateX(-1deg) rotateZ(.6deg) scale(1.006)',offset:.7},{transform:'perspective(850px) translateY(0) rotateX(0) rotateZ(0) scale(1)'}],{duration:480,easing:'cubic-bezier(.18,.76,.2,1)'});
   }
   animateGrade();
   if(!cardReveal)visibleCardId=state.round.cardId;
   scheduleExpiry();
   if(focusData&&previousKey===renderKey){
-   const keys=['action','pref','taskCheck','player','card','tab'];let same;
+   const keys=['action','pref','taskCheck','player','card','tab','task'];let same;
    if(keys.some(k=>focusData[k]))same=Array.from(main.querySelectorAll('button,input')).find(el=>keys.every(k=>(el.dataset[k]||'')===(focusData[k]||'')));
    if(same)same.focus({preventScroll:true});else{const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   }
@@ -538,7 +516,7 @@
   const serial=++animationSerial;busy=true;rerolling=reroll;if(rerolling)render();setControlsBusy(true);
   context.viewKey=renderKey;
   if(rerolling)centerStage();
-  const button=main.querySelector('[data-action="roll"]')||main.querySelector('[data-roll-status]');if(button){button.textContent='Tirage…';button.setAttribute('aria-busy','true');}
+  const button=main.querySelector('[data-action="roll"]')||main.querySelector('[data-roll-status]');if(button){renderedMarkup='';button.textContent='Tirage…';button.setAttribute('aria-busy','true');}
   try{
    if(remoteMode){
     const value=await remote.action({...action,roundId});
@@ -584,7 +562,7 @@
      if(action.type==='ROLL_CATEGORY'){
       die.setColor?.(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.color);
       if(button){button.textContent='D'+sides+' · '+G.getCategory(next.round.categoryId,next.round.catalogueVersion??1).label;button.setAttribute('aria-busy','false');}
-      await waitForReveal(1800);
+      await waitForReveal(450);
      }
     }
     if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte.');
@@ -592,10 +570,36 @@
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
   finally{if(serial===animationSerial){const targetPhase=action.type==='ROLL_CATEGORY'?'card':action.type==='ROLL_CARD'&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=false;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
  }
+ async function refuseTask(taskId){
+  const task=state.tasks.find(item=>item.id===taskId);
+  if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady)return;
+  const context={actor:viewPlayer,roomId:remote?.connection?.roomId,epoch:presentationEpoch},roundId=(ownState||state).round.id;
+  const serial=++animationSerial;
+  refusal={taskId,title:G.getCard(task.cardId).title,color:G.getCategory(task.categoryId,task.variantRoll!==undefined?2:1)?.color,face:null};
+  tab='tasks';busy=true;render();setControlsBusy(true);
+  try{
+   let face;
+   if(remoteMode){
+    const value=await remote.action({type:'REFUSE_TASK',roundId,taskId});
+    if(!value.roll||value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
+    if(!presentationValid(context))return;
+    face=value.roll.value;
+    if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
+   }else{
+    face=G.randomInt(20);pullShared();const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
+    if(next===localRoom)return;localRoom=next;save();
+   }
+   if(!presentationValid(context))return;
+   refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='Le dé roule…';
+   if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
+   if(presentationValid(context))announce('D20 : '+face+'. Carte refusée, sans pénalité.');
+  }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
+  finally{if(serial===animationSerial){activeRollFace=null;refusal=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);else{remoteReady=false;deferredSnapshot=null;}}else syncLocalView();render();}}
+ }
  function openSheet(title,body,extraClass=''){lastFocus=document.activeElement;if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;sheet.querySelector('button')?.focus({preventScroll:true});}
  function closeSheet(){if(sheet.hidden)return;sheet.hidden=true;document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;}
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Accepter ou passer.</h3><p>L’invitation reçue s’accepte d’un geste, ou se passe sans suite.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les actions validées restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte et sa variante.</h3><p>Un lancer révèle la carte, le suivant précise sa variante.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{
@@ -622,7 +626,6 @@
   if(remoteMode&&!remoteReady&&!['close'].includes(action))return;
   if(action==='roll'){await roll();return;}
   if(action==='reroll'){await roll(true);return;}
-  if(action==='send-daily'){const ok=await dispatch({type:'SEND_DAILY'});if(ok)toast('Carte du jour proposée à '+name(state.round.to));render();return;}
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,roundId:state.round.id};if(!remoteMode){act.value=category;act.catalogueVersion=2;act.hand=G.drawHand(state,category,2);const cat=G.categories.find(c=>c.number===category);if(cat&&cat.id==='intimite')act.modeRoll=G.randomInt(20);}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='hardcore-open'){try{if(hardcore&&hardcore.open)hardcore.open();}catch(_){}return;}
@@ -630,9 +633,8 @@
   if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
-  if(action==='send'){if(await dispatch({type:'SEND'}))toast('Proposée à '+name(state.round.to));return;}
-  if(action==='accept'){const acceptedId=state.round.id,changed=await dispatch({type:'ACCEPT'},false);const accepted=(ownState?.tasks||state.tasks||[]).some(task=>task.id===acceptedId);if(accepted)tab='tasks';render();if(changed&&accepted)announce('Proposition ajoutée aux choses à faire.');return;}
-  if(action==='pass'){const changed=await dispatch({type:'PASS'},false);render();if(changed)toast('Carte passée.');return;}
+  if(action==='send'){const taskId=state.round.id,changed=await dispatch({type:'SEND'},false);const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);if(queued)tab='tasks';render();if(changed&&queued)announce('Proposition ajoutée à À faire.');return;}
+  if(action==='refuse-task'){await refuseTask(el.dataset.task);return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
   if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}
   if(action==='rules'){rules();return;}
@@ -691,7 +693,7 @@
     if(remote.connection&&!remote.authenticated){
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
-     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;
+     const wasReady=remoteReady;if(wasReady)presentationEpoch++;remoteReady=false;deferredSnapshot=null;cardReveal=null;refusal=null;finishRevealWait();announce('');updateLoginError(event.status.message);if(wasReady||main.querySelector('[data-action="reconnect"]'))render();return;
     }
     if(event.snapshot)receiveRemote(event.snapshot);
     else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);

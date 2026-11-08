@@ -100,6 +100,7 @@ export async function handleHardcore({store,context,action:input,requestId,at,no
  const payloadHash=action?await sha256(JSON.stringify(action)):null;
  let record=await store.rpc('desir_hardcore_get',{p_room_id:roomId});
  if(!record?.enabled)throw new HttpError(404,'mode_unavailable','Ce mode n’est pas disponible.');
+ const initialRevision=Number(record.revision);
  const reply=record=>{const sentAt=now();return {session:projectHardcore(record.state,sentAt),revision:Number(record.revision),actor,serverTime:iso(sentAt)};};
  if(action){
   const receipt=await store.rpc('desir_hardcore_receipt',{p_room_id:roomId,p_actor:actor,p_request_id:requestId,p_payload_hash:payloadHash});
@@ -115,6 +116,9 @@ export async function handleHardcore({store,context,action:input,requestId,at,no
   if(committed.kind==='applied'||committed.kind==='replayed')return reply(committed);
   record=await store.rpc('desir_hardcore_get',{p_room_id:roomId});
   if(!record?.enabled)throw new HttpError(404,'mode_unavailable','Ce mode n’est pas disponible.');
+  // A reset writes an empty tombstone at a newer revision. An in-flight CREATE
+  // must stop there; a new request starting on that tombstone may create normally.
+  if(action.type==='CREATE'&&record.state===null&&Number(record.revision)>initialRevision)throw new HttpError(409,'stale_session','La session a changé.');
  }
  throw new HttpError(409,'conflict','La session se met à jour. Réessaie.');
 }

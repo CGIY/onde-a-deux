@@ -11,7 +11,7 @@ const config={public_key:vapid.publicKey,private_key:vapid.privateKey,subject:'h
 const event:any={id:'c4c8ba63-2aae-4a58-85a7-979cf3d877c6',room_id:'9e30a8d6-70fa-44c1-8d48-6d706fc3d021',target_actor:'b' as const,kind:'invitation',revision:7,attempts:1};
 let state:any={phase:'pending',round:{awaiting:'b'}},subscriptions=[1,2].map(n=>({endpoint_hash:String(n).repeat(64),subscription:{endpoint:'https://web.push.apple.com/Qfixture'+n,keys:{p256dh:publicKey,auth}}}));
 const cronToken='a'.repeat(43);
-let drawReady=true,enqueueCount=0,ttls:number[]=[];
+let drawReady=true,enqueueCount=0,ttls:number[]=[],cancelled=false,cancelDuringConfig=false;
 const delivered=new Set<string>(),finishes:boolean[]=[],calls:string[]=[];
 const store={
  async rpc(name:string,args:Record<string,unknown>):Promise<any>{
@@ -23,8 +23,8 @@ const store={
   throw Error('Unexpected RPC '+name);
  },
  async request(path:string,options?:{method?:string;body?:unknown}):Promise<any>{
-  if(path.startsWith('desir_rooms?'))return [{state}];
-  if(path.startsWith('desir_push_config?'))return [config];
+  if(path.startsWith('desir_push_outbox?'))return cancelled?[]:[{expires_at:event.expires_at,desir_rooms:{state}}];
+  if(path.startsWith('desir_push_config?')){if(cancelDuringConfig)cancelled=true;return [config];}
   if(path.startsWith('desir_push_scheduler_config?'))return [{cron_token:cronToken}];
   if(path.startsWith('desir_push_deliveries?'))return Array.from(delivered,endpoint_hash=>({endpoint_hash}));
   if(path.startsWith('desir_push_subscriptions?')&&options?.method==='DELETE'){subscriptions=subscriptions.filter(record=>!path.endsWith(record.endpoint_hash));return null;}
@@ -40,12 +40,12 @@ await enqueueScheduled(store);assert(enqueueCount===1,'Scheduler RPC missing');
 const G=(globalThis as any).OndeGame,handlerStore={
  async rpc(name:string):Promise<any>{
   if(name==='desir_rate_limit')return true;
-  if(name==='desir_get_session')return {member:{token_hash:'f'.repeat(64),room_id:event.room_id,actor:'b'},room:{id:event.room_id,state:G.createState(),revision:0},paired:true,quota:{remaining:1}};
+  if(name==='desir_get_session')return {member:{token_hash:'f'.repeat(64),room_id:event.room_id,actor:'b'},room:{id:event.room_id,state:G.createRoom(),revision:0},paired:true,quota:{remaining:1}};
   throw Error('Invalid subscription reached database RPC '+name);
  }
 };
 const handler=createHandler({G,store:handlerStore,push:{saveSubscription},rateSecret:'test-rate-secret',waitUntil:undefined});
-const invalidResponse=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+b64(new Uint8Array(32).fill(1).buffer)},body:JSON.stringify({op:'subscribe',subscription:{endpoint:'https://127.0.0.1/private',keys:{p256dh:publicKey,auth}}})}));
+const invalidResponse=await handler(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+b64(new Uint8Array(32).fill(1).buffer)},body:JSON.stringify({op:'subscribe',gameVersion:4,subscription:{endpoint:'https://127.0.0.1/private',keys:{p256dh:publicKey,auth}}})}));
 assert(invalidResponse.status===400,'Unsafe push subscription was not a client error');
 assert((await invalidResponse.json()).error.code==='invalid_subscription','Subscription error code was lost');
 const previousFetch=globalThis.fetch;
@@ -98,12 +98,29 @@ try{
  const beforeParallel=calls.length;delivered.clear();
  await flushPushOutbox(store,event.room_id);
  assert(calls.length===beforeParallel+2,'Parallel invitation was discarded');
- state.lanes.a.phase='sender_confirmation';event.kind='confirmation';delivered.clear();
+ state.lanes.a.phase='accepted';event.kind='confirmation';delivered.clear();
  await flushPushOutbox(store,event.room_id);
  assert(calls.length===beforeParallel+4,'Parallel confirmation was discarded');
  state.lanes.a.round.id='onde-11';delivered.clear();
  await flushPushOutbox(store,event.room_id);
  assert(calls.length===beforeParallel+4,'Obsolete parallel round was sent');
+ // Protocol 4 sends notify the recipient only while this exact shared task exists.
+ event.kind='invitation';event.round_id='onde-20';delete event.expires_at;
+ state={version:2,lanes:{a:{phase:'category',round:{id:'onde-21'}},b:{phase:'category',round:{id:'onde-22'}}},pendingRounds:[],tasks:[{id:'onde-20',to:'b',expiresAt:new Date(Date.now()+3600000).toISOString()}]};
+ delivered.clear();const beforeTask=calls.length;
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeTask+2,'Immediately queued task was not announced');
+ state.tasks=[];delivered.clear();
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeTask+2,'A refused/reset task was announced');
+ state.tasks=[{id:'onde-20',to:'b',expiresAt:new Date(Date.now()+3600000).toISOString()}];
+ cancelled=true;delivered.clear();
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeTask+2,'An already claimed event cancelled by reset was sent');
+ cancelled=false;cancelDuringConfig=true;delivered.clear();
+ await flushPushOutbox(store,event.room_id);
+ assert(calls.length===beforeTask+2,'Cancellation during subscription/configuration reads was ignored');
+ cancelled=false;cancelDuringConfig=false;
  delete event.round_id;
  event.kind='invitation';delete event.expires_at;
  state={phase:'pending',round:{awaiting:'b'}};delivered.clear();subscriptions=subscriptions.slice(0,1);removed=true;
