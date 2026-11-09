@@ -1,36 +1,77 @@
-/* One small, self-contained SVG per award. No image or font request. */
+/* Small, standalone constellations shared by the app and its SVG exports. */
 (function (scope) {
   'use strict';
-  const scenes=[...scope.OndeBadgeScenesIndividual,...scope.OndeBadgeScenesShared,...scope.OndeBadgeScenesIntimacy];
-  const catalogue=Object.freeze(scenes.map(({id,motif,shape,tone})=>Object.freeze({id,motif,shape,tone})));
+  const game=scope.OndeGame||(typeof require==='function'?require('./onde-app-core.js'):null);
+  const instances=new Set(['recent','collection','notice','detail','asset']);
+  const tones=Object.freeze({
+    ice:'#A7C7DC', gold:'#D6B594', teal:'#87BDBE', violet:'#BCACDB', rose:'#D2A2B7'
+  });
+  const familyTones={
+    draws:'ice', proposals:'gold', participations:'teal', initiative:'gold', received:'teal',
+    categories:'ice', regularity:'violet', exploration:'teal', milestones:'violet', variants:'gold',
+    'intimacy-specific':'rose', 'hardcore-specific':'rose', 'offrandes-deck':'gold',
+    'aventures-deck':'teal', 'braises-deck':'rose'
+  };
+  // Each base figure has its own topology. The badge ID gives its sky a fixed
+  // orientation, spacing and a lead star, independent of its gallery position.
+  const figures=[
+    {stars:[[-46,-6],[-25,-29],[1,-17],[34,-29],[44,10],[18,31],[-9,37]],traces:[[0,1,2,3,4,5,6],[2,5]]},
+    {stars:[[-41,29],[-23,4],[2,-36],[19,-11],[39,17],[10,33]],traces:[[0,1,2,3,4,5,1],[3,5]]},
+    {stars:[[-42,-20],[-15,4],[6,-29],[34,-8],[37,27],[8,35],[-19,29]],traces:[[0,1,2,3,4,5,6,1],[1,3]]},
+    {stars:[[-39,20],[-28,-17],[-2,-32],[27,-16],[42,11],[16,24],[0,10]],traces:[[0,1,2,3,4,5,6,1],[2,6,5]]},
+    {stars:[[-44,-24],[-18,-22],[-6,5],[14,29],[42,18],[35,-19]],traces:[[0,1,2,3,4,5],[2,5]]},
+    {stars:[[-41,15],[-25,-10],[4,-37],[18,-16],[39,15],[9,11],[7,37]],traces:[[0,1,2,3,4],[1,5,3],[5,6]]},
+    {stars:[[-45,10],[-28,29],[-5,8],[5,-25],[33,-32],[44,-4],[29,21]],traces:[[0,1,2,3,4,5,6,2]]},
+    {stars:[[-36,-27],[-40,12],[-15,33],[7,2],[32,-26],[43,12],[27,33]],traces:[[0,1,2,3,0],[3,4,5,6,3]]},
+    {stars:[[-44,4],[-29,-19],[-4,-36],[17,-14],[39,-9],[38,18],[11,36],[-17,24]],traces:[[0,1,2,3,4,5,6,7,0],[1,3,6]]},
+    {stars:[[-39,24],[-30,-11],[-9,-28],[18,-31],[37,-6],[21,12],[38,33]],traces:[[0,1,2,3,4,5,6],[2,5]]},
+    {stars:[[-39,-11],[-22,23],[3,31],[13,4],[31,-29],[43,13],[1,-27]],traces:[[0,1,2,3,4,5,3,6,0]]},
+    {stars:[[-42,-20],[-25,15],[-3,-3],[15,-29],[42,-16],[35,19],[11,34]],traces:[[0,1,2,3,4,5,6,2],[1,6]]}
+  ];
+  function seed(id){
+    let hash=2166136261;
+    for(const letter of id)hash=Math.imul(hash^letter.charCodeAt(0),16777619);
+    return hash>>>0;
+  }
+  const format=value=>Number(value.toFixed(1));
+  function constellation(id){
+    let state=seed(id);
+    const figure=figures[state%figures.length],lead=(state>>>8)%figure.stars.length;
+    const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
+    const angle=(random()-.5)*1.45,stretch=.88+random()*.21,mirror=random()>.5?-1:1;
+    const cos=Math.cos(angle),sin=Math.sin(angle);
+    const stars=figure.stars.map(([x,y],index)=>{
+      const u=(x+(random()-.5)*13)*mirror,v=y+(random()-.5)*13;
+      return {x:format(80+(u*cos-v*sin)*stretch),y:format(82+(u*sin+v*cos)*stretch),
+        radius:format(index===lead?3:1.9+random()*1.15),lead:index===lead};
+    });
+    const trace=figure.traces.map(part=>part.map((index,i)=>
+      (i?'L':'M')+stars[index].x+' '+stars[index].y).join('')).join('');
+    return {stars,trace};
+  }
+  const catalogue=Object.freeze(game.badgeCatalog.map(({id,family})=>
+    Object.freeze({id,motif:'constellation-'+id,tone:familyTones[family]||'ice'})));
   const ids=Object.freeze(catalogue.map(item=>item.id));
   if(new Set(ids).size!==ids.length)throw new Error('Duplicate badge artwork identifier');
-  const records=new Map(scenes.map(item=>[item.id,item]));
-  const instances=new Set(['recent','collection','notice','detail','asset']);
-  const colors=Object.freeze({peach:'#F1D6C6',ivory:'#F0EEE7',sage:'#D0D6B8',rose:'#ECD1CF'});
-  const shapes=Object.freeze({
-    circle:'M80 9 A71 71 0 1 1 79.999 151 A71 71 0 1 1 80 9Z',
-    shield:'M80 9 C105 9 130 20 147 32 L147 83 C147 116 119 143 80 157 C41 143 13 116 13 83 L13 32 C30 20 55 9 80 9Z',
-    hex:'M73 10 Q80 6 87 10 L140 40 Q147 44 147 53 L147 113 Q147 122 140 126 L87 156 Q80 160 73 156 L20 126 Q13 122 13 113 L13 53 Q13 44 20 40Z',
-    oval:'M80 7 C120 7 150 39 150 81 C150 125 120 158 80 158 C40 158 10 125 10 81 C10 39 40 7 80 7Z',
-    rosette:'M80 7 C89 7 94 17 103 17 C112 17 122 13 130 22 C137 30 132 39 139 46 C146 53 155 57 152 69 C149 79 146 82 151 93 C157 107 146 113 138 117 C129 122 134 136 123 141 C111 146 107 140 98 145 C90 150 89 158 80 158 C71 158 70 150 62 145 C53 140 49 146 37 141 C26 136 31 122 22 117 C14 113 3 107 9 93 C14 82 11 79 8 69 C5 57 14 53 21 46 C28 39 23 30 30 22 C38 13 48 17 57 17 C66 17 71 7 80 7Z'
-  });
+  const records=new Map(catalogue.map(item=>[item.id,{...item,...constellation(item.id)}]));
+  function starMarkup({x,y,radius,lead}){
+    const star='<circle cx="'+x+'" cy="'+y+'" r="'+radius+'"/>';
+    return lead?star+'<path d="M'+x+' '+(y-6.2).toFixed(1)+'v12.4M'+(x-6.2).toFixed(1)+' '+y+'h12.4" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/>':star;
+  }
   function render(id,options={}){
     if(!options||typeof options!=='object'||Array.isArray(options))throw new TypeError('Badge options must be an object');
     const item=records.get(id),instance=options.instance===undefined?'asset':options.instance,locked=!!options.locked;
     if(!item)throw new RangeError('Unknown badge artwork');
     if(!instances.has(instance))throw new RangeError('Unknown badge artwork instance');
-    const outline=shapes[item.shape],paper=locked?'#C9C8BC':colors[item.tone],ink=locked?'#66705F':'#176B97';
-    if(!outline||!paper)throw new Error('Invalid badge visual definition');
-    const prefix='oba-'+instance+'-'+id+'-'+(locked?'l':'e'),clip=prefix+'-scene';
+    const tone=locked?'#8296B3':tones[item.tone],starlight=locked?'#A6B6CB':'#F3F1F6';
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 176" aria-hidden="true" focusable="false" data-badge-art="'+id+'" data-art-motif="'+item.motif+'">'+
-      '<defs><clipPath id="'+clip+'"><path d="'+outline+'" transform="translate(80 83) scale(.92) translate(-80 -83)"/></clipPath></defs>'+
-      '<path d="'+outline+'" fill="'+paper+'" stroke="'+(locked?'#B0B1A4':'#DCCCB7')+'" stroke-width="1.8"/>'+
-      '<path d="'+outline+'" transform="translate(80 83) scale(.956) translate(-80 -83)" fill="none" stroke="'+(locked?'#929A8B':'#A59C89')+'" stroke-width=".8"/>'+
-      '<g clip-path="url(#'+clip+')" fill="'+ink+'" stroke="'+ink+'" stroke-width=".55" stroke-linejoin="round">'+
-      '<path d="'+item.path+'" fill-rule="evenodd"/></g></svg>';
+      '<circle cx="80" cy="82" r="65" fill="#111C2F" fill-opacity="'+(locked?'.16':'.27')+'"/>'+
+      '<path d="M27 117A64 64 0 0 1 44 29M122 33A64 64 0 0 1 131 120M56 142Q80 152 104 142" fill="none" stroke="'+tone+'" stroke-width="1.15" stroke-opacity="'+(locked?'.25':'.43')+'" stroke-linecap="round"/>'+
+      '<g fill="'+tone+'" opacity=".30"><circle cx="26" cy="77" r="1.45"/><circle cx="122" cy="51" r="1.35"/><circle cx="110" cy="121" r="1.6"/><circle cx="53" cy="39" r="1.3"/></g>'+
+      '<path data-constellation="" d="'+item.trace+'" fill="none" stroke="'+tone+'" stroke-opacity="'+(locked?'.58':'.87')+'" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<g color="'+starlight+'" fill="'+starlight+'">'+item.stars.map(starMarkup).join('')+'</g></svg>';
   }
-  const api=Object.freeze({version:2,ids,catalogue,render});
+  const api=Object.freeze({version:3,ids,catalogue,render});
   scope.OndeBadgeArt=api;
   if(scope.window)scope.window.OndeBadgeArt=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;

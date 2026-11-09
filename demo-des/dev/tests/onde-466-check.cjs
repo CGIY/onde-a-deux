@@ -16,7 +16,7 @@ assert.deepEqual(G.categories.map(category=>category.id),['complicite','attentio
 assert.deepEqual(G.legacyCategories.map(category=>category.id),['complicite','detente','projets','attention','bouffe','intimite']);
 assert.deepEqual([G.categorySides(2),G.categorySides(1)],[4,6]);
 assert.equal(G.getCategory('attention',1).label,'Attentions');
-assert.equal(G.getCategory('attention',2).label,'Plaisirs');
+assert.equal(G.getCategory('attention',2).label,'Offrandes');
 assert.equal(G.getCategory('intimite',1).number,6);
 assert.equal(G.getCategory('intimite',2).number,4);
 assert.equal(G.cards.length,24);
@@ -136,5 +136,32 @@ assert.deepEqual(restored.stats,{totalCompleted:5,byCategory:{complicite:2,deten
 const sharedScore={totalCompleted:21,byCategory:{complicite:1,detente:2,projets:3,attention:4,bouffe:5,intimite:6}};
 assert.deepEqual(G.categories.map(category=>G.categoryScore(sharedScore,category.id)),[3,9,3,6]);
 assert.equal(G.categories.reduce((total,category)=>total+G.categoryScore(sharedScore,category.id),0),sharedScore.totalCompleted);
+
+// Older D8 saves keep the wording that was selected before the edit.
+for(const [cardId,face,oldText,newText] of [
+ ['eight-complicite-baiser',2,'Sur la joue, par surprise','Sur la joue'],
+ ['eight-complicite-baiser',3,'Sur le bout du nez','Sur la bouche'],
+ ['eight-complicite-baiser',4,'Sur le dos de la main','Avec la langue'],
+ ['eight-complicite-baiser',5,'En guise de bonjour','Sur une partie intime'],
+ ['eight-complicite-aide',2,'Une décision où un deuxième avis ferait du bien','Un deuxième avis sur ce que tu veux'],
+ ['eight-complicite-aide',4,'Quelque chose de cassé à réparer ensemble','Quelque chose à terminer ensemble']
+]){
+ const initial=G.createState();
+ const cocon=act(initial,'ROLL_CATEGORY',{value:1,...G.drawCategory(initial,1,4,sides=>sides)});
+ const picked=act(cocon,'ROLL_CARD',{value:cocon.round.hand.indexOf(cardId)+1});
+ const draft=act(picked,'ROLL_VARIANT',{value:face});
+ const oldDraft=clone(draft);
+ oldDraft.round.proposal=null;
+ for(const [saved,text] of [[oldDraft,oldText],[draft,newText]]){
+  assert.equal(G.getVariant(G.normalizeState(clone(saved)).round),text);
+  const sent=act(saved,'SEND',{directQueue:true});
+  assert.equal(G.getVariant(sent.tasks[0]),text);
+  assert.equal(G.getVariant(sent.history[0]),text);
+  const received=act(sent,'SWITCH_PLAYER',{player:'b'});
+  const refused=act(received,'REFUSE_TASK',{taskId:sent.round.id,value:1});
+  assert.equal(G.getVariant(refused.history[0]),text);
+ }
+ assert.equal(act(draft,'REROLL_CARD',{value:1}).round.proposal,null);
+}
 
 console.log('Dés·ir 4×6×6 : 144 branches validées, relance, persistance et anciens tirages vérifiés.');

@@ -158,4 +158,63 @@ malformed=accepted(draft());malformed.history[0].cardRerolled=true;malformed.his
 malformed=accepted(draft());malformed.history[0].cardRerolled='yes';invalid.push(malformed);
 malformed=accepted(draft2());malformed.history[0].variantRoll=null;invalid.push(malformed);
 for(const state of invalid){eq(G.validateState(state),false,'invalid reroll state rejected');eq(G.normalizeState(state),null,'invalid present flag never reset');}
-console.log(`ONDE one-use D4 reroll: ${checks} targeted assertions passed.`);
+
+// V5 uses a private round limit and a per-player, Paris-day star budget.
+{
+ const start='2026-11-09T10:00:00.000Z',firstRefill='2026-11-09T22:00:00.000Z';
+ const firstSpend='2026-11-09T22:30:00.000Z',nextDay='2026-11-09T23:00:00.000Z';
+ const secondRefill='2026-11-10T10:00:00.000Z',version=G.currentCatalogueVersion;
+ const stars=(state,actor,time)=>G.cardRerollStars(state,actor,time);
+ const step=(room,actor,type,time,fields={})=>{
+  const result=G.reduceRoom(room,{type,actor,roundId:room.lanes[actor].round.id,at:time,...fields});
+  ok(result!==room,'v5 room action succeeds: '+type);
+  ok(G.validateRoom(result),'v5 room stays valid: '+type);
+  return result;
+ };
+ const draftRoom=(room,actor,time)=>{
+  const prepared=G.drawCategory(G.roomView(room,actor),'complicite',version);
+  room=step(room,actor,'ROLL_CATEGORY',time,{value:1,...prepared});
+  room=step(room,actor,'ROLL_CARD',time,{value:1});
+  return step(room,actor,'ROLL_VARIANT',time,{value:1});
+ };
+ const reject=(room,actor,time,fields={})=>
+  eq(G.reduceRoom(room,{type:'REROLL_CARD',actor,roundId:room.lanes[actor].round.id,at:time,value:2,...fields}),room,'unavailable reroll preserves the room');
+ let room=G.createRoom({at:start});
+ eq(stars(room,'a',start),{balance:1,nextAt:firstRefill,usedToday:false});
+ eq(stars(room,'a','2026-11-09T21:59:59.999Z').balance,1);
+ eq(stars(room,'a',firstRefill).balance,2);
+ room=draftRoom(room,'a',start);
+ reject(room,'a',undefined);
+ reject(room,'a',firstSpend,{value:1});
+ reject(room,'a',firstSpend,{value:9});
+ room=step(room,'a','REROLL_CARD',firstSpend,{value:2});
+ eq(room.lanes.a.phase,'variant');
+ eq(stars(room,'a',firstSpend),{balance:1,nextAt:secondRefill,usedToday:true});
+ eq(stars(room,'b',firstSpend),{balance:2,nextAt:secondRefill,usedToday:false});
+ room=step(room,'a','ROLL_VARIANT',firstSpend,{value:2});
+ reject(room,'a',nextDay,{value:3});
+ room=step(room,'a','SEND',firstSpend,{directQueue:true});
+ room=draftRoom(room,'a',firstSpend);
+ reject(room,'a',firstSpend);
+ reject(room,'a','2026-11-08T23:00:00.000Z');
+ ok(G.canRerollCard(G.roomView(room,'a'),nextDay),'Paris midnight resets spend eligibility');
+ room=step(room,'a','REROLL_CARD',nextDay,{value:2});
+ eq(stars(room,'a',nextDay),{balance:0,nextAt:secondRefill,usedToday:true});
+ eq(stars(room,'a',secondRefill),{balance:1,nextAt:'2026-11-10T22:00:00.000Z',usedToday:true});
+ eq(G.roomView(room,'b').cardRerollWallets,room.cardRerollWallets,'both balances are available to the profiles');
+ eq(G.normalizeRoom(clone(room)),room,'wallets roundtrip with the active draws');
+ eq(G.resetRoom(room,{at:secondRefill}).cardRerollWallets,room.cardRerollWallets,'reset cannot renew spent stars');
+
+ const fullAt='2026-11-15T16:45:00.000Z';
+ let full=draftRoom(G.createRoom({at:start}),'a',fullAt);
+ eq(stars(full,'a',fullAt),{balance:3,nextAt:null,usedToday:false});
+ full=step(full,'a','REROLL_CARD',fullAt,{value:2});
+ eq(stars(full,'a',fullAt),{balance:2,nextAt:'2026-11-16T04:45:00.000Z',usedToday:true},'time spent at cap is not banked');
+ const legacyRoom=G.createRoom();
+ eq(stars(legacyRoom,'a',start),{balance:1,nextAt:null,usedToday:false});
+ const initialised=draftRoom(legacyRoom,'b',start);
+ eq(initialised.cardRerollWallets.b.anchorAt,start);
+ const malformed=clone(initialised);malformed.cardRerollWallets.b.balance=4;
+ eq(G.normalizeRoom(malformed),null,'a corrupted wallet cannot be reset silently');
+}
+console.log(`ONDE rerolls and V5 stars: ${checks} targeted assertions passed.`);

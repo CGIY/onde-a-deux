@@ -44,30 +44,34 @@ function badgeRoom(actor='a',sent=false){
    check(()=>assert.equal(invalid.connection,null));
   }
  }
- // Additive badge projections are validated for this actor and preserve unknown dates on imported gains.
+ // Validate the new collection and preserve dates and identities on legacy replies.
  {
   const room=badgeRoom(),badges=G.badgeView(room,'a');
-  const r=create(config,env(async(url,options)=>response({...loginReply(options,'a',1,G.roomView(room,'a')),badges})));
-  await r.login('fixture-a','fixture-secret');check(()=>{assert.deepEqual(r.snapshot.badges,badges);assert.equal(r.snapshot.badges.items.length,90);assert.ok(r.snapshot.badges.items.some(item=>item.award?.id.includes(':individual:a:')));});
-  const imported=JSON.parse(JSON.stringify(badges));for(const item of imported.items)if(item.award){item.award.at=null;item.award.source='imported';}
-  const old=create(config,env(async(url,options)=>response({...loginReply(options),badges:imported})));
-  await old.login('fixture-a','fixture-secret');check(()=>{assert.deepEqual(old.snapshot.badges,imported);assert.equal(old.snapshot.badges.items.find(item=>item.award).award.at,null);});
+  const r=create(config,env(async(url,options)=>response({...loginReply(options,'a',1,G.roomView(room,'a')),gameVersion:8,badges})));
+  await r.login('fixture-a','fixture-secret');check(()=>{assert.deepEqual(r.snapshot.badges,badges);assert.equal(r.snapshot.badges.items.length,120);assert.ok(r.snapshot.badges.items.some(item=>item.award?.id.includes(':individual:a:')));});
+  const imported=G.badgeView(room,'a',{legacy:true});
+  for(const item of imported.items)if(item.award){item.award.at=null;item.award.source='imported';}
+  for(const gameVersion of [6,7]){
+   const old=create(config,env(async(url,options)=>response({...loginReply(options),gameVersion,badges:imported})));
+   await old.login('fixture-a','fixture-secret');
+   check(()=>{assert.deepEqual(old.snapshot.badges,imported);assert.equal(old.snapshot.badges.items.length,90);assert.equal(old.snapshot.badges.items.find(item=>item.award).award.at,null);});
+  }
  }
  // Malformed badge metadata and the other actor's personal award IDs cannot enter an authenticated snapshot.
  {
   const valid=G.badgeView(badgeRoom(),'a');
   const invalid=[null,G.badgeView(badgeRoom('b'),'b'),{...valid,epoch:'2'},{...valid,items:valid.items.slice(1)},{...valid,items:valid.items.slice(0,60)},{...valid,privateCounters:{b:{draws:99}}}];
   for(const mutate of [view=>view.items[0].progress.value=-1,view=>view.items[0].progress.target=999,view=>view.items[1].id=view.items[0].id,view=>view.items[0].award.at=null,view=>view.items[0].award.sequence=9]){const value=JSON.parse(JSON.stringify(valid));mutate(value);invalid.push(value);}
-  for(const badges of invalid){const r=create(config,env(async(url,options)=>response({...loginReply(options),badges})));await assert.rejects(r.login('fixture-a','fixture-secret'),{code:'invalid_response'});check(()=>{assert.equal(r.connection,null);assert.equal(r.authenticated,false);});}
+  for(const badges of invalid){const r=create(config,env(async(url,options)=>response({...loginReply(options),gameVersion:8,badges})));await assert.rejects(r.login('fixture-a','fixture-secret'),{code:'invalid_response'});check(()=>{assert.equal(r.connection,null);assert.equal(r.authenticated,false);});}
  }
- // A current queued receipt without optional badge metadata recovers before an enriched read.
- {
+ // Replay each old durable receipt with its original protocol, then refresh with v8.
+ for(const gameVersion of [6,7]){
   const storage=memory(),calls=[],room=badgeRoom('a',true),badges=G.badgeView(room,'a');
-  const fetcher=async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='login')return response(loginReply(options));if(p.op==='action')return response(reply('a',2,G.roomView(room,'a')));return response(reply('a',3,G.roomView(room,'a'),{badges}));};
+  const fetcher=async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='login')return response(loginReply(options));if(p.op==='action')return response(reply('a',2,G.roomView(room,'a'),{gameVersion}));return response(reply('a',3,G.roomView(room,'a'),{gameVersion:8,badges}));};
   const r=create(config,env(fetcher,storage));await r.login('fixture-a','fixture-secret');calls.length=0;
-  const requestId=webcrypto.randomUUID();storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:6,endpoint,roomId,actor:'a',requestId,action:{type:'SEND',roundId:'onde-1'}}));
+  const requestId=webcrypto.randomUUID();storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion,endpoint,roomId,actor:'a',requestId,action:{type:'SEND',roundId:'onde-1'}}));
   const restored=create(config,env(fetcher,storage));await restored.restore();
-  check(()=>{assert.deepEqual(calls.map(call=>call.op),['action','state']);assert.equal(calls[0].requestId,requestId);assert.equal(restored.authenticated,true);assert.deepEqual(restored.snapshot.badges,badges);assert.equal(restored.snapshot.revision,3);assert.equal(storage.getItem('desir-connection-v1-action'),null);});
+  check(()=>{assert.deepEqual(calls.map(call=>[call.op,call.gameVersion]),[['action',gameVersion],['state',8]]);assert.equal(calls[0].requestId,requestId);assert.equal(restored.authenticated,true);assert.deepEqual(restored.snapshot.badges,badges);assert.equal(restored.snapshot.revision,3);assert.equal(storage.getItem('desir-connection-v1-action'),null);});
  }
  // Missing metadata in an old receipt retains only the same account's last validated collection.
  {
@@ -100,13 +104,73 @@ function badgeRoom(actor='a',sent=false){
   const invalid=[{...expected,incoming:[expected.state]},...[undefined,1,2,3,4,5].map(gameVersion=>({...expected,gameVersion}))];
   for(const snapshot of invalid){const bad=create(config,env(async(url,options)=>response({...snapshot,connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}})));await assert.rejects(bad.login('fixture-user','fixture-password'),{code:'invalid_response'});check(()=>assert.equal(bad.connection,null));}
  }
+ // A D8 receipt is accepted only when its face matches the authoritative Cocon round.
+ {
+  const base=state(),draw=G.drawCategory(base,1,4,n=>n);
+  const cocon=G.reduce(base,{type:'ROLL_CATEGORY',value:1,...draw});
+  const selected=G.reduce(cocon,{type:'ROLL_CARD',value:8});
+  for(const [version,value,valid] of [[7,8,true],[7,7,false],[6,8,false]]){
+   const calls=[],r=create(config,env(async(url,options)=>{
+    const p=payload(options);calls.push(p);
+    if(p.op==='login')return response({...loginReply(options,'a',1,cocon),gameVersion:7});
+    return response(reply('a',2,selected,{gameVersion:version,roll:{kind:8,value}}));
+   }));
+   await r.login('fixture-user','fixture-password');
+   const result=r.action({type:'ROLL_CARD',roundId:cocon.round.id});
+   if(valid){
+    const played=await result;
+    check(()=>{assert.deepEqual(played.roll,{kind:8,value:8});assert.equal(played.state.phase,'variant');});
+   }else await assert.rejects(result,{code:'invalid_response'});
+   check(()=>assert.ok(calls.every(call=>call.gameVersion===8)));
+  }
+ }
+ // V8 confirms D8 results outside Cocon along with the full badge projection.
+ {
+  const at='2026-11-09T10:00:00.000Z',base=G.roomView(G.createRoom({at}),'a');
+  const draw=G.drawCategory(base,'projets',G.currentCatalogueVersion);
+  const dealt=G.reduce(base,{type:'ROLL_CATEGORY',value:3,at,...draw});
+  const selected=G.reduce(dealt,{type:'ROLL_CARD',value:8,at});
+  const badges=G.badgeView(selected,'a'),calls=[];
+  const r=create(config,env(async(url,options)=>{
+   const p=payload(options);calls.push(p);
+   if(p.op==='login')return response({...loginReply(options,'a',1,dealt),gameVersion:8,badges});
+   return response(reply('a',2,selected,{gameVersion:8,roll:{kind:8,value:8},badges,serverTime:at}));
+  }));
+  await r.login('fixture-a','fixture-secret');
+  const played=await r.action({type:'ROLL_CARD',roundId:dealt.round.id});
+  check(()=>{assert.ok(calls.every(call=>call.gameVersion===8));assert.deepEqual(played.roll,{kind:8,value:8});assert.equal(played.state.round.cardId,'eight-projets-ciel');});
+  check(()=>{assert.deepEqual(played.badges,badges);assert.equal(played.badges.items.length,120);assert.deepEqual(played.state.cardRerollWallets,selected.cardRerollWallets);});
+ }
  // An obsolete durable action cannot trap the new client before the parallel state refresh.
  {
   const storage=memory(),calls=[],room=G.createRoom();
   const fetcher=async(url,options)=>{const p=payload(options);calls.push(p);if(p.op==='action')return response({error:{code:'upgrade_required'}},409);return response({...parallelReply(room),...(p.op==='login'?{connection:{token:options.headers.Authorization.slice(7),actor:'a',roomId}}:{})});};
   const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');calls.length=0;
   storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:2,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
-  const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['state',6]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,6);});
+  const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['state',8]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,6);});
+ }
+ // A terminal conflict on a saved request restores the game with the existing token.
+ for(const code of ['stale_round','invalid_phase','upgrade_required']){
+  const storage=memory(),calls=[];
+  const fetcher=async(url,options)=>{
+   const p=payload(options);calls.push([p.op,p.gameVersion,options.headers.Authorization]);
+   if(p.op==='login')return response(loginReply(options));
+   if(p.op==='action')return response({error:{code}},409);
+   return response(reply('a',4,state(),{gameVersion:8}));
+  };
+  const first=create(config,env(fetcher,storage));await first.login('fixture-a','fixture-password');
+  const saved=storage.getItem('desir-connection-v1'),token='Bearer '+JSON.parse(saved).token;
+  calls.length=0;
+  storage.setItem('desir-connection-v1-action',JSON.stringify({
+   version:1,gameVersion:6,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}
+  }));
+  const recovered=create(config,env(fetcher,storage));await recovered.restore();
+  check(()=>{
+   assert.deepEqual(calls,[['action',6,token],['state',8,token]]);
+   assert.equal(recovered.authenticated,true);assert.equal(recovered.snapshot.revision,4);
+   assert.equal(storage.getItem('desir-connection-v1'),saved);
+   assert.equal(storage.getItem('desir-connection-v1-action'),null);
+  });
  }
  // A failing pending mutation never hides a successfully refreshed, authenticated game.
  {
@@ -195,7 +259,7 @@ function badgeRoom(actor='a',sent=false){
  {
   const modern=G.reduce(state(),{type:'ROLL_CATEGORY',value:1,catalogueVersion:2,hand:G.drawHand(state(),1,2)});
   let sent;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));sent=p;return response(reply('a',2,modern,{roll:{kind:4,value:1}}));}));await r.login('fixture-user','fixture-password');
-  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,6));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
+  const result=await r.action({type:'ROLL_CATEGORY',roundId:'onde-1',value:6,actor:'b',hand:['spoiler'],at:'forged'});check(()=>assert.deepEqual(sent.action,{type:'ROLL_CATEGORY',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,8));check(()=>assert.match(sent.requestId,/^[0-9a-f-]{36}$/));check(()=>assert.deepEqual(result.roll,{kind:4,value:1}));check(()=>assert.equal(result.state.round.categoryId,'complicite'));check(()=>assert.equal(r.snapshot.roll,undefined));
   await assert.rejects(r.action({type:'RESET',roundId:'onde-1'}),{code:'not_allowed'});
  }
  // An older protocol command is discarded before validating retired types or sending any mutation.
@@ -206,7 +270,7 @@ function badgeRoom(actor='a',sent=false){
    await r.login('fixture-user','fixture-password');calls.length=0;
    const requestId=webcrypto.randomUUID();storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:version,endpoint,roomId,actor:'a',requestId,action:{type,roundId:'onde-1'}}));
    await r.refresh();
-   check(()=>{assert.deepEqual(calls.map(call=>[call.op,call.gameVersion]),[['state',6]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(r.snapshot.revision,9);assert.equal(r.snapshot.state.phase,'category');assert.equal(r.authenticated,true);});
+   check(()=>{assert.deepEqual(calls.map(call=>[call.op,call.gameVersion]),[['state',8]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(r.snapshot.revision,9);assert.equal(r.snapshot.state.phase,'category');assert.equal(r.authenticated,true);});
   }
  }
  // The refusal submits only its task identity; the authoritative D20 result is used unchanged.
@@ -215,7 +279,7 @@ function badgeRoom(actor='a',sent=false){
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'b'));sent=p;return response(reply('b',2,state('b'),{roll:{kind:20,value:20}}));},storage));
   await r.login('fixture-user','fixture-password');
   const result=await r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1',value:1,actor:'a',penalty:4});
-  check(()=>{assert.deepEqual(sent.action,{type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1'});assert.equal(sent.gameVersion,6);assert.deepEqual(result.roll,{kind:20,value:20});assert.equal(storage.getItem('desir-connection-v1-action'),null);});
+  check(()=>{assert.deepEqual(sent.action,{type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1'});assert.equal(sent.gameVersion,8);assert.deepEqual(result.roll,{kind:20,value:20});assert.equal(storage.getItem('desir-connection-v1-action'),null);});
   for(const type of ['ACCEPT','PASS','SEND_DAILY'])await assert.rejects(r.action({type,roundId:'onde-2'}),{code:'not_allowed'});
   await assert.rejects(r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'invalid'}),{code:'invalid_action'});
  }
@@ -226,7 +290,7 @@ function badgeRoom(actor='a',sent=false){
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'a',1,game));sent=p;return response(reply('a',2,G.reduce(game,{type:'ROLL_VARIANT',value:6}),{roll:{kind:6,value:6}}));}));
   await r.login('fixture-user','fixture-password');
   const result=await r.action({type:'ROLL_VARIANT',roundId:'onde-1',value:1,variantRoll:1});
-  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,6));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
+  check(()=>assert.deepEqual(sent.action,{type:'ROLL_VARIANT',roundId:'onde-1'}));check(()=>assert.equal(sent.gameVersion,8));check(()=>assert.equal(result.state.round.variantRoll,6));check(()=>assert.equal(result.state.phase,'draft'));check(()=>assert.equal(G.getVariant(result.state.round),G.getCard(game.round.cardId).variants[5]));
  }
  // A reroll carries only its intent; the server owns the new D6 face and state.
  {

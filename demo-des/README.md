@@ -1,4 +1,4 @@
-# D6 à deux — version web 0.3.0
+# D6 à deux — version web 0.4.0
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 
@@ -44,7 +44,7 @@ Un gain déclenche une notification dans l’app avec son titre et un accès à 
 
 Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écran d’accueil**. Ouvrir ensuite D6 à deux depuis cette icône, se connecter et toucher **Info → Réglages → Activer les notifications**. Les notifications Web nécessitent iOS/iPadOS 16.4 ou plus et l’app ajoutée à l’écran d’accueil. Sur les autres navigateurs compatibles, le même bouton demande l’autorisation.
 
-L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple. Elle est opaque et conserve les matières et couleurs de l’application.
+L’icône représente un dé minéral à deux points cyan et mauve. Elle est fournie en PNG opaque de 180 px pour iPhone et de 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple.
 
 Les notifications signalent un nouveau challenge, un dé disponible ou un challenge approchant de son expiration (trois heures avant l'échéance). Quand une mise à jour de l'app est prête, un bandeau « Recharger » apparaît en bas de l'écran. Le passage au nouveau protocole peut imposer ce rechargement avant la prochaine action ; les accès enregistrés sont conservés. Leur texte reste générique, sans titre de carte. Aucune demande d’autorisation n’apparaît automatiquement. Au premier plan, les changements sont également actualisés périodiquement et lors du retour dans l’app.
 
@@ -69,7 +69,7 @@ python3 demo-des/dev/build.py --release    # aperçu connecté + index.html publ
 
 Un aperçu doit être servi par HTTP local. Les modes connectés lisent `config.js`, qui ne contient que l’URL du service et sa clé publiable. Ces paramètres sont incorporés au HTML pour éviter qu’un chargement de configuration manquant déclenche le mode démo. Une configuration manquante ou invalide bloque la construction connectée. Aucun identifiant, mot de passe ni secret serveur ne doit être ajouté à ce fichier.
 
-Le générateur place le transport et le moteur de médaillons avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Il vérifie la couverture exacte du catalogue par les dessins, puis exporte les SVG, leur manifeste, la galerie et l'archive reproductible. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 6 à la fonction Edge `desir-game`. Les anciennes actions locales en attente sont écartées avant validation, sans supprimer la connexion ni les actions déjà confirmées côté serveur.
+Le générateur place le transport et le moteur de médaillons avant l’interface, copie les ressources PWA dans l’aperçu et synchronise le moteur canonique vers la fonction serveur. Il vérifie la couverture exacte du catalogue par les dessins, puis exporte les SVG, leur manifeste, la galerie et l'archive reproductible. Le déploiement du service reste une étape distincte : voir [le guide serveur](server/README.md). La version web transmet le protocole de jeu 8 à la fonction Edge `desir-game`. Les actions en attente des protocoles 6 et 7 gardent leur identifiant de reprise. Si le serveur les refuse définitivement, le client recharge la partie avec la connexion existante.
 
 ```sh
 python3 demo-des/dev/tests/onde-build-check.py

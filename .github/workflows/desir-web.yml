@@ -56,7 +56,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: game-and-client
-    if: vars.DESIR_DEPLOY == 'true'
+    if: github.ref == 'refs/heads/main' && vars.DESIR_DEPLOY == 'true'
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
@@ -73,4 +73,4 @@ jobs:
           mkdir -p supabase/functions
           cp -r demo-des/server/functions/desir-game supabase/functions/desir-game
           printf 'project_id = "rdsritcfhwcobqdjcndm"\n\n[functions.desir-game]\nverify_jwt = false\n' > supabase/config.toml
-          supabase functions deploy desir-game --project-ref rdsritcfhwcobqdjcndm
+          supabase functions deploy desir-game --remote=rdsritcfhwcobqdjcndm --yes

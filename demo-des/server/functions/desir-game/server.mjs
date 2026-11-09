@@ -1,4 +1,4 @@
-import {HttpError,validDeviceToken,validRequestId,sha256,privateBucket,normalizeUsername,parseAction,assertClientCompatibility,snapshot,applyAction} from './model.mjs';
+import {HttpError,validDeviceToken,validRequestId,sha256,privateBucket,normalizeUsername,parseAction,assertClientCompatibility,snapshot,applyAction,supportsParallelGame} from './model.mjs';
 
 
 const defaultOrigin='https://cgiy.github.io';
@@ -22,7 +22,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       const current=await store.rpc('desir_get_session',{p_token_hash:tokenHash});
       if(!current)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
       if(!current.member||!['a','b'].includes(current.member.actor)||!current.room||!Number.isSafeInteger(Number(current.room.revision)))throw new Error('Invalid session data');
-      const parallel=gameVersion===6||current.room.state?.version===2;
+      const parallel=supportsParallelGame(gameVersion)||current.room.state?.version===2;
       const normalized=parallel?G.normalizeRoom(current.room.state,{at:iso()}):G.normalizeState(current.room.state,{at:iso()});
       if(!normalized)throw new Error('Invalid stored game');
       const actorState=parallel?normalized:{...normalized,activePlayer:current.member.actor};
@@ -61,9 +61,9 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       }
       if(!['login','state','action','push_config','subscribe','hardcore'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
-      if(![1,2,3,4,5,6].includes(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
+      if(![1,2,3,4,5].includes(gameVersion)&&!supportsParallelGame(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
-      if(gameVersion!==6)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
+      if(!supportsParallelGame(gameVersion))throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
       // The former live combat is retired. Keep this response before all RPCs,
       // so an old tab cannot recreate a session after loading the unified game.
       if(body.op==='hardcore')throw new HttpError(410,'mode_removed','Les cartes Hardcore se trouvent maintenant dans Intimité.');
@@ -99,13 +99,13 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const result=await push.saveSubscription(store,current.member,body.subscription);return respond(result);
       }
       if(!validRequestId(body.requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
-      assertClientCompatibility(G,current.room.state,current.member.actor,gameVersion);
       const action=parseAction(body.action);
       const receiptPayload=gameVersion>=2?{...action,gameVersion}:action;
       const payloadHash=await sha256(JSON.stringify(receiptPayload));
       const existing=await store.rpc('desir_get_request',{p_room_id:current.room.id,p_actor:current.member.actor,p_request_id:body.requestId,p_payload_hash:payloadHash});
       if(existing.kind==='mismatch')throw new HttpError(409,'request_id_reused','Cette requête a déjà été utilisée.');
       if(existing.kind==='replayed'){flush(current.room.id);return respond(existing.response);}
+      assertClientCompatibility(G,current.room.state,current.member.actor,gameVersion);
       for(let attempt=0;attempt<4;attempt++){
         if(action.type==='ROLL_CATEGORY'&&current.quota.remaining===0)await conflict(tokenHash,gameVersion,'quota_exhausted','Ton tirage de cette plage a déjà été utilisé.');
         let result;

@@ -1,18 +1,32 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const filename=require('node:path').join(__dirname,'../src/onde-app-dice.js');
-const src=fs.readFileSync(filename,'utf8').replace('global.OndeDice=Object.freeze({create});','global.OndeDice=Object.freeze({create});global.__qa={CUBE_FACES,POLYS,targetRotation,initialRotation,matrix,transform,support,clampPower,rollDuration,FRAGMENT,VERTEX};');
-let now=0,nextRaf=0,queue=new Map(),uniforms={},labels=[],atlas=[],numerals=[],documentHandlers=new Map();
+const src=fs.readFileSync(filename,'utf8').replace(/global\.OndeDice=Object\.freeze\(\{[^}]*\}\);/,'$&global.__qa={CUBE_FACES,POLYS,ICON_PATHS,targetRotation,initialRotation,matrix,transform,support,clampPower,rollDuration,FRAGMENT,VERTEX};');
+let now=0,nextRaf=0,queue=new Map(),uniforms={},labels=[],atlas=[],numerals=[],pictograms=[],documentHandlers=new Map(),glyphCenter=null;
 const gradient=()=>({stops:[],addColorStop(at,color){this.stops.push([at,color]);}});
-const ctx2d=new Proxy({createRadialGradient:gradient,createLinearGradient:gradient,fillText(text){atlas.push(String(text));numerals.push({text:String(text),ink:this.fillStyle});}}, {get(o,p){return p in o?o[p]:()=>{}},set(o,p,v){o[p]=v;return true;}});
-const gl=new Proxy({VERTEX_SHADER:35633,FRAGMENT_SHADER:35632,COMPILE_STATUS:35713,LINK_STATUS:35714,getShaderParameter:()=>true,getProgramParameter:()=>true,getUniformLocation:(_p,n)=>n,getAttribLocation:()=>0,createShader:()=>({}),createProgram:()=>({}),createBuffer:()=>({}),createTexture:()=>({}),uniformMatrix3fv(n,_transpose,a){uniforms[n]=Array.from(a);},uniform3fv(n,a){uniforms[n]=Array.from(a);},uniform3f(n,...a){uniforms[n]=a;},uniform2f(n,...a){uniforms[n]=a;},uniform1f(n,a){uniforms[n]=a;},uniform1i(n,a){uniforms[n]=a;}},{get(o,p){return p in o?o[p]:()=>{}}});
+const selectedEngraving=mark=>mark.ink?.stops?.some(([,color])=>color==='rgba(188,196,207,0.66)');
+const ctx2d=new Proxy({createRadialGradient:gradient,createLinearGradient:gradient,fillText(text){atlas.push(String(text));numerals.push({text:String(text),ink:this.fillStyle});},fill(path,rule){if(path?.d)pictograms.push({path:path.d,ink:this.fillStyle,rule});},transform(_a,_b,_c,_d,x,y){glyphCenter=[x,y];},stroke(path){if(path?.d)pictograms.push({path:path.d,ink:this.strokeStyle,rule:"stroke",center:glyphCenter});}}, {get(o,p){return p in o?o[p]:()=>{}},set(o,p,v){o[p]=v;return true;}});
+const gl=new Proxy({VERTEX_SHADER:35633,FRAGMENT_SHADER:35632,COMPILE_STATUS:35713,LINK_STATUS:35714,getShaderParameter:()=>true,getProgramParameter:()=>true,getUniformLocation:(_p,n)=>n,getAttribLocation:()=>0,createShader:()=>({}),createProgram:()=>({}),createBuffer:()=>({}),createTexture:()=>({}),uniformMatrix3fv(n,_transpose,a){uniforms[n]=Array.from(a);},uniform3fv(n,a){uniforms[n]=Array.from(a);},uniform3f(n,...a){uniforms[n]=a;},uniform2f(n,...a){uniforms[n]=a;},uniform4f(n,...a){uniforms[n]=a;},uniform1f(n,a){uniforms[n]=a;},uniform1i(n,a){uniforms[n]=a;}},{get(o,p){return p in o?o[p]:()=>{}}});
 const makeCanvas=(useWebgl=true)=>({width:0,height:0,clientWidth:452,clientHeight:238,style:{},listeners:new Map(),getContext:type=>type==='webgl'?(useWebgl?gl:null):ctx2d,setAttribute(n,v){labels.push([n,v]);},addEventListener(n,fn){this.listeners.set(n,fn);},removeEventListener(n){this.listeners.delete(n);},dispatch(n,event={}){this.listeners.get(n)?.(event);},setPointerCapture(){},toDataURL:()=>''});
 const window={devicePixelRatio:3,addEventListener(){},removeEventListener(){}};
-const sandbox={window,document:{createElement:()=>makeCanvas(false),addEventListener(name,fn){if(!documentHandlers.has(name))documentHandlers.set(name,new Set());documentHandlers.get(name).add(fn);},removeEventListener(name,fn){documentHandlers.get(name)?.delete(fn);}},performance:{now:()=>now},requestAnimationFrame(fn){queue.set(++nextRaf,fn);return nextRaf;},cancelAnimationFrame(id){queue.delete(id);},console};
+const sandbox={window,Path2D:class{constructor(d){this.d=d;}},document:{createElement:()=>makeCanvas(false),addEventListener(name,fn){if(!documentHandlers.has(name))documentHandlers.set(name,new Set());documentHandlers.get(name).add(fn);},removeEventListener(name,fn){documentHandlers.get(name)?.delete(fn);}},performance:{now:()=>now},requestAnimationFrame(fn){queue.set(++nextRaf,fn);return nextRaf;},cancelAnimationFrame(id){queue.delete(id);},console};
 vm.createContext(sandbox);vm.runInContext(src,sandbox);const q=window.__qa;
 vm.runInContext('Math.random=()=>.5',sandbox);
 const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0),norm=a=>a.map(x=>x/Math.hypot(...a)),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],maxdiff=(a,b)=>Math.max(...a.map((x,i)=>Math.abs(x-b[i])));
 const view=norm([4.3,5.25,6.4]);let poses=0,minVisible=1;
-for(const kind of [4,6,20])for(let value=1;value<=kind;value++){
+const octahedron=q.POLYS[8].faces;
+assert.equal(octahedron.length,8,'octahedron has eight faces');
+assert.equal(new Set(octahedron.flatMap(f=>f.points.map(p=>p.join(',')))).size,6,'octahedron has six vertices');
+for(let i=0;i<octahedron.length;i++){
+ const {n,b,h,points}=octahedron[i];
+ assert.equal(points.length,3,'octahedron faces are triangular');
+ for(const vertex of points)assert(Math.abs(dot(n,vertex)-h)<1e-12,'face points lie on the face plane');
+ assert(Math.abs(dot(n,octahedron[7-i].n)+1)<1e-12,'opposing D8 results sum to nine');
+ assert(dot(b,points[1])>0,'each number faces its triangular tip');
+ const distance=(a,b)=>Math.hypot(...a.map((value,i)=>value-b[i]));
+ assert(Math.abs(distance(points[0],points[1])-distance(points[1],points[2]))<1e-12);
+ assert(Math.abs(distance(points[1],points[2])-distance(points[2],points[0]))<1e-12);
+}
+for(const kind of [4,6,8,20])for(let value=1;value<=kind;value++){
  const faces=kind===6?q.CUBE_FACES:q.POLYS[kind].faces,m=q.matrix(q.targetRotation(kind,value)),f=faces[value-1],n=q.transform(m,f.n);
  assert(maxdiff(cross(f.t,f.b),f.n)<1e-12,'right-handed label face');
  assert(Math.abs(dot(f.t,f.b))<1e-12,'orthogonal label axes');
@@ -23,7 +37,7 @@ for(const kind of [4,6,20])for(let value=1;value<=kind;value++){
 function advance(t){now=t;const callbacks=[...queue.values()];queue.clear();for(const callback of callbacks)callback(t);return {m:uniforms.uRotation.slice(),p:uniforms.uPosition.slice(),s:uniforms.uScale.slice(),ink:uniforms.uResultLight};}
 let worstJoin=0,joins=0,inkJoins=0;
 (async()=>{
- for(const kind of [4,6,20]){
+ for(const kind of [4,6,8,20]){
   now=0;queue.clear();const canvas=makeCanvas(),die=window.OndeDice.create(canvas,{kind,value:1,duration:2250,maxPixelRatio:2});
   assert.equal(die.mode,'webgl');assert.equal(uniforms.uCount,kind);assert.equal(canvas.width,904);assert.equal(canvas.height,476);
   assert.equal(uniforms.uValue,1);assert.equal(uniforms.uResultLight,1,'rest result starts bright');
@@ -64,7 +78,7 @@ let worstJoin=0,joins=0,inkJoins=0;
  assert(trajectories[1].distance>trajectories[0].distance+Math.PI*4,'strong throw makes genuinely more turns');
  assert(maxdiff(trajectories[0].final,trajectories[1].final)<1e-12,'same result ends in the same pose regardless of force');
  // Every motion/ink transition stays continuous with the extra revolutions.
- for(const kind of [4,6,20])for(const power of [0,.5,1]){
+ for(const kind of [4,6,8,20])for(const power of [0,.5,1]){
   now=0;queue.clear();const die=window.OndeDice.create(makeCanvas(),{kind,value:1}),duration=1650+850*power,done=die.roll(kind,{power});
   for(const boundary of [160,1160,1160+440*.36,1600,2250]){
    const before=advance((boundary-.001)*duration/2250),after=advance((boundary+.001)*duration/2250);
@@ -108,11 +122,134 @@ let worstJoin=0,joins=0,inkJoins=0;
  assert.equal(await die.roll(6,{power:1,duration:0}),6);assert.equal(die.busy,false);assert.equal(uniforms.uResultLight,1);assert.equal(queue.size,0,'reduced motion resolves without animation frames');die.destroy();
  // The real 2D drawing path highlights only the chosen, visible numeral.
  let fallbackValues=[];
- for(const kind of [4,6,20])for(let value=1;value<=kind;value++){
+ for(const kind of [4,6,8,20])for(let value=1;value<=kind;value++){
   atlas=[];numerals=[];const die=window.OndeDice.create(makeCanvas(false),{kind,value,reducedMotion:true});assert.equal(die.mode,'fallback');assert(atlas.includes(String(value)),`numeric fallback face ${kind}/${value}`);
   const bright=numerals.filter(n=>typeof n.ink==='object');assert.equal(bright.length,1,`exactly one bright fallback face ${kind}/${value}`);assert.equal(bright[0].text,String(value));
-  assert.deepEqual(bright[0].ink.stops.map(s=>s[1]),['rgb(247,246,237)','rgb(250,249,241)','rgb(255,254,248)','rgb(250,249,241)','rgb(247,246,237)'],'restrained ivory specular band');
+  assert.deepEqual(bright[0].ink.stops.map(s=>s[1]),['rgb(232,226,212)','rgb(236,230,218)','rgb(239,232,220)','rgb(234,229,215)','rgb(230,225,212)'],'muted ivory specular band');
   fallbackValues.push(`${kind}/${value}`);die.destroy();
+ }
+ // Pictograms change the atlas while accessible labels and numeric results remain available.
+ {
+  const categories=['Cocon','Offrandes','Aventures','Braises'];
+  const cards=['Paper','Selfie','Massage','Soin','Soirée','No Phone','Kiss','Aide'];
+  const categoryIcons=['heart','coins','tent','flame'];
+  const cardIcons=['note','camera','massage','polish','moon','phone-off','kiss','help'];
+  atlas=[];labels=[];pictograms=[];
+  const die=window.OndeDice.create(makeCanvas(),{kind:4,value:3,labels:categories,icons:categoryIcons,reducedMotion:true});
+  assert.equal(die.getResultAnchor(),null,'the preview face has no result anchor');
+  assert.deepEqual(pictograms.map(mark=>mark.path),categoryIcons.map(key=>q.ICON_PATHS[key]),'D4 atlas engraves Lucide pictograms in face order');
+  assert.ok(pictograms.every(mark=>mark.rule==='stroke'),'engraved contours leave the mineral visible');
+  assert.deepEqual(uniforms.uColor,[.19,.25,.36],'the pictogram D4 uses dark slate');
+  const neutralRim=uniforms.uRimColor;
+  die.setColor('#e3bd8b');
+  assert.deepEqual(uniforms.uColor,[.19,.25,.36],'the category tint leaves the body dark');
+  assert.notDeepEqual(uniforms.uRimColor,neutralRim,'the category tint reaches the rim');
+  die.setColor(null);
+  assert.equal(atlas.length,0,'icons replace visible text');
+  assert.equal(uniforms.uAtlasRows,1,'D4 icons use only their occupied row');
+  assert.equal(uniforms.uValue,3);
+  assert(labels.at(-1)[1].endsWith('Aventures.'),'screen readers announce the face word');
+  die.setLabels(categories.slice(),categoryIcons.slice());
+  assert.equal(pictograms.length,categoryIcons.length,'repeating the same icons avoids an upload');
+  die.setKind(8,6);
+  assert.deepEqual(uniforms.uIconScale,[0,0],'changing die type restores numeric marks');
+  assert.equal(uniforms.uAtlasRows,8,'numeric atlas retains its original layout');
+  assert(labels.at(-1)[1].endsWith('6.'));
+  die.setLabels(cards,cardIcons);
+  assert.deepEqual(pictograms.slice(-cardIcons.length).map(mark=>mark.path),cardIcons.map(key=>q.ICON_PATHS[key]),'D8 atlas follows card order');
+  assert.equal(uniforms.uAtlasRows,2,'the second D8 icon row is addressable');
+  assert.equal(new Set([...categoryIcons,...cardIcons].map(key=>q.ICON_PATHS[key])).size,12,'all twelve icons have distinct outlines');
+  assert.deepEqual(uniforms.uColor,[.165,.11,.235],'Cocon keeps its dark mauve material');
+  assert.equal(await die.roll(5),5);
+  assert(labels.at(-1)[1].endsWith('Soirée.'));
+  const anchor=die.getResultAnchor();
+  assert(anchor&&anchor.x>.4&&anchor.x<.6&&anchor.y>.2&&anchor.y<.5,'the upper D8 face is anchored above the canvas midpoint');
+  die.setKind(8,5);
+  assert.equal(die.getResultAnchor().y,anchor.y,'rendering the same result retains its anchor');
+  die.setCharge(1);
+  assert.equal(die.getResultAnchor(),null,'pressure hides the settled anchor');
+  die.setCharge(0);
+  die.setReducedMotion(false);
+  const pendingResult=die.roll(8);
+  assert.equal(die.getResultAnchor(),null,'moving dice have no result anchor');
+  die.setReducedMotion(true);
+  assert.equal(await pendingResult,8);
+  assert(die.getResultAnchor(),'the new result is anchored when its animation settles');
+  assert.throws(()=>die.setLabels(categories),/each face/);
+  assert.throws(()=>die.setLabels(new Array(8)),/nonempty/);
+  assert.throws(()=>die.setLabels(cards,categoryIcons),/each face/);
+  assert.throws(()=>die.setLabels(cards,cardIcons.map(()=> 'unknown')),/Unknown dice pictogram/);
+  atlas=[];pictograms=[];die.setLabels(null);die.setLabels(cards,cardIcons);die.setKind(4,1);die.setLabels(categories,categoryIcons);
+  assert.deepEqual(atlas,[],'numeric, D4 and D8 textures stay cached across stages');
+  assert.deepEqual(pictograms,[],'cached icons require no new drawing');
+  die.destroy();
+  const additionalD8=[
+   ['#3b2a1c',['shirt','book-open','sandwich','utensils','cookie','coffee','shopping-basket','gift']],
+   ['#163239',['footprints','camera','palette','map','armchair','archive','compass','telescope']],
+   ['#411d32',['speech','zap','vibrate','aperture','webcam','image-up','link','target']]
+  ];
+  for(const [color,icons] of additionalD8){
+   pictograms=[];
+   const themed=window.OndeDice.create(makeCanvas(),{kind:8,labels:icons,icons,reducedMotion:true});
+   assert.deepEqual(pictograms.map(mark=>mark.path),icons.map(key=>q.ICON_PATHS[key]),'each D8 glyph maps to the correct atlas cell');
+   assert.equal(new Set(pictograms.map(mark=>mark.path)).size,8,'the eight faces have distinct outlines');
+   const neutralRim=uniforms.uRimColor;
+   themed.setColor(color);
+   assert.deepEqual(uniforms.uColor,[1,3,5].map(index=>parseInt(color.slice(index,index+2),16)/255),'D8 accepts the mineral pigment');
+   assert.notDeepEqual(uniforms.uRimColor,neutralRim,'the D8 pigment also tints its reflection');
+   assert.equal(await themed.roll(8),8);
+   assert(themed.getResultAnchor(),'the eighth glyph keeps its HUD anchor');
+   themed.setColor(null);
+   assert.deepEqual(uniforms.uColor,[.165,.11,.235],'removing the tint restores Cocon mauve');
+   themed.destroy();
+  }
+  const fallbackCanvas=makeCanvas(false);
+  const fallback=window.OndeDice.create(fallbackCanvas,{kind:8,value:6,labels:cards,icons:cardIcons,reducedMotion:true});
+  pictograms=[];assert.equal(await fallback.roll(6),6);
+  assert.deepEqual(pictograms.filter(selectedEngraving).map(mark=>mark.path),[q.ICON_PATHS['phone-off']]);
+  const fallbackAnchor=fallback.getResultAnchor();
+  const [cx,cy]=pictograms.find(selectedEngraving).center;
+  const side=Math.min(fallbackCanvas.width,fallbackCanvas.height);
+  assert(Math.abs(fallbackAnchor.x-(.5+(cx/480-.5)*side/fallbackCanvas.width))<1e-12);
+  assert(Math.abs(fallbackAnchor.y-(.5+(cy/480-.5)*side/fallbackCanvas.height))<1e-12);
+  numerals=[];fallback.setLabels(null);
+  assert.equal(fallback.getResultAnchor(),null,'numeric fallback faces have no glyph anchor');
+  assert.deepEqual(numerals.filter(mark=>typeof mark.ink==='object').map(mark=>mark.text),['6']);
+  fallback.destroy();
+  assert.equal(fallback.getResultAnchor(),null,'a destroyed die has no glyph anchor');
+ }
+ // A variant D6 can use the same engraved material and settled anchor as the D8.
+ {
+  const icons=['heart','coins','tent','flame','note','camera'],color='#411d32';
+  for(const useWebgl of [true,false]){
+   atlas=[];pictograms=[];
+   const canvas=makeCanvas(useWebgl),die=window.OndeDice.create(canvas,{kind:6,labels:icons,icons,color,reducedMotion:true});
+   assert.equal(die.getResultAnchor(),null,'an unrolled D6 keeps its anchor hidden');
+   if(useWebgl){
+    assert.deepEqual(pictograms.map(mark=>mark.path),icons.map(key=>q.ICON_PATHS[key]),'the D6 atlas matches each face to its glyph');
+    assert.equal(uniforms.uAtlasRows,2);
+    assert.deepEqual(uniforms.uColor,[65/255,29/255,50/255],'the D6 retains its themed pigment');
+   }
+   for(let value=1;value<=6;value++){
+    pictograms=[];
+    assert.equal(await die.roll(value),value);
+    const anchor=die.getResultAnchor();
+    assert(anchor&&anchor.x>.4&&anchor.x<.6&&anchor.y>.2&&anchor.y<.5,'each result anchor is on the top face');
+    assert(labels.at(-1)[1].endsWith(icons[value-1]+'.'),'the spoken result matches the selected glyph');
+    if(!useWebgl){
+     const mark=pictograms.find(selectedEngraving);
+     assert.equal(mark.path,q.ICON_PATHS[icons[value-1]]);
+     const [x,y]=mark.center,side=Math.min(canvas.width,canvas.height);
+     assert(Math.abs(anchor.x-(.5+(x/480-.5)*side/canvas.width))<1e-12);
+     assert(Math.abs(anchor.y-(.5+(y/480-.5)*side/canvas.height))<1e-12);
+    }
+   }
+   assert.deepEqual(atlas,[],'there is no numeral in the engraved D6 atlas');
+   die.setLabels(null);
+   assert.equal(die.getResultAnchor(),null,'a numeric D6 keeps the existing presentation');
+   assert(atlas.includes('6'));
+   die.destroy();
+  }
  }
  // A category pigment changes the material, never the physical result or its motion.
  now=0;queue.clear();canvas=makeCanvas();die=window.OndeDice.create(canvas,{kind:4,value:2,color:'#92bdc7'});

@@ -457,6 +457,165 @@ for(const denied of ['authenticated-ip:','device:']){
  const quota=await deliver(intent('ROLL_CATEGORY',2107,view(saved,'a').round.id));equal(quota.status,409);equal(quota.body.error.code,'quota_exhausted');equal(saved.used.size,1);
  const beforeCalls=saved.calls.length,removed=await deliver({op:'hardcore'});equal(removed.status,410);equal(removed.body.error.code,'mode_removed');equal(saved.calls.length,beforeCalls,'retired combat performs no database operation');
 }
+// Cocon draws eight cards through protocol 7 while protocol 6 can finish its
+// own D6 draw and retry a receipt without exposing the new private draw.
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ const rng=[];
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{rng.push(n);return n>20?1:n;}},store:saved,rateSecret:'fixture-cocon',clock:()=>new Date(at)}));
+ const aId=view(saved,'a').round.id,bId=view(saved,'b').round.id;
+ const modern=(type,id,roundId=aId,extra={})=>({...intent(type,id,roundId,extra),gameVersion:7});
+ const draw=await deliver(modern('ROLL_CATEGORY',2300));
+ equal(draw.status,200);equal(draw.body.gameVersion,7);equal(draw.body.roll,{kind:4,value:1});
+ const {round}=draw.body.state;
+ equal(round.catalogueVersion,4);equal(round.hand.length,8);equal(G.cardSides(round),8);
+ equal(round.hand.map(id=>G.getCard(id,4).keyword),['Paper','Selfie','Massage','Soin','Soirée','No Phone','Kiss','Aide']);
+ equal(G.getCard(round.hand[0]).title,'Cacher un petit papier');equal(G.getCard(round.hand[0],4).title,'Petit papier');
+ equal((await deliver({op:'state'})).body.error.code,'upgrade_required');
+ const legacyRequest=intent('ROLL_CATEGORY',2301,bId),legacy=await deliver(legacyRequest,tokenB);
+ equal(legacy.status,200);equal(legacy.body.state.round.hand.length,6);equal(legacy.body.state.round.catalogueVersion,3);
+ for(const id of round.hand.slice(-2))ok(!JSON.stringify(legacy.body).includes(id),'the private D8 hand stays private');
+ equal((await deliver(modern('ROLL_CARD',2302,bId),tokenB)).body.roll,{kind:6,value:6});
+ const relaunch=await deliver(modern('REROLL_CATEGORY',2303));
+ equal(relaunch.body.state.round.hand,round.hand);equal(relaunch.body.state.round.catalogueVersion,4);
+ const selected=await deliver(modern('ROLL_CARD',2304));
+ equal(selected.body.roll,{kind:8,value:8});equal(selected.body.state.round.cardId,'eight-complicite-aide');
+ const variation=await deliver(modern('ROLL_VARIANT',2305));
+ equal(variation.body.roll,{kind:6,value:6});equal(variation.body.state.round.variantRoll,6);
+ const replacement=await deliver(modern('REROLL_CARD',2306));
+ equal(replacement.body.roll,{kind:8,value:7});equal(replacement.body.state.round.cardId,'eight-complicite-baiser');
+ equal(replacement.body.state.round.variantRoll,null);
+ equal((await deliver(modern('ROLL_VARIANT',2307))).body.roll,{kind:6,value:6});
+ equal((await deliver(modern('SEND',2308))).status,200);
+ const task=saved.state.tasks[0];
+ equal(task.catalogueVersion,4);equal(task.cardId,'eight-complicite-baiser');equal(task.variantRoll,6);
+ equal((await deliver({op:'state'},tokenB)).body.error.code,'upgrade_required');
+ equal((await deliver(legacyRequest,tokenB)).body,legacy.body,'a pending pre-update request can still recover its original receipt');
+ const shared=await deliver({op:'state',gameVersion:7},tokenB);
+ equal(shared.body.state.tasks,[task]);ok(!JSON.stringify(shared.body).includes('eight-complicite-aide'));
+ const checkedA=await deliver(modern('TOGGLE_TASK_CHECK',2309,view(saved,'a').round.id,{taskId:aId,checked:true}));
+ const checkedB=await deliver(modern('TOGGLE_TASK_CHECK',2310,bId,{taskId:aId,checked:true}),tokenB);
+ equal([checkedA.status,checkedB.status],[200,200]);equal(saved.state.stats.byCategory.complicite,1);
+ equal(saved.state.history[0].catalogueVersion,4);equal(saved.state.progression.shared.completedByCard[task.cardId],1);
+ const serialized=clone(saved.state);equal(G.normalizeRoom(serialized),serialized);
+ const older=await deliver({op:'state'},tokenB);
+ equal(older.status,200);equal(older.body.state.history.some(item=>item.catalogueVersion===4),false);
+ ok(rng.includes(8));ok(rng.includes(7));
+}
+
+// Protocol 8 uses the unified D8 catalogue for each D4 result. Protocol 7
+// still resolves Braises through its original D20 and six-card hand.
+for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
+ const rng=[],room=G.createRoom({at}),roundId=G.roomView(room,'a').round.id;
+ const result=applyAction(G,room,'a',{type:'ROLL_CATEGORY',roundId},uuid(2400+face),at,sides=>{rng.push(sides);return sides===42?ticket:sides;},8);
+ const drawn=G.roomView(result.state,'a').round;
+ equal(result.roll,{kind:4,value:face});equal(drawn.catalogueVersion,5);equal(drawn.hand.length,8);equal(G.cardSides(drawn),8);
+ equal(drawn.categoryId,G.categories[face-1].id);equal(drawn.modeRoll,null);ok(!rng.includes(20));
+ const card=applyAction(G,result.state,'a',{type:'ROLL_CARD',roundId},uuid(2410+face),at,sides=>{equal(sides,8);return 8;},8);
+ equal(card.roll,{kind:8,value:8});equal(G.roomView(card.state,'a').phase,'variant');
+}
+{
+ const room=G.createRoom({at}),roundId=G.roomView(room,'a').round.id,rng=[];
+ const result=applyAction(G,room,'a',{type:'ROLL_CATEGORY',roundId},uuid(2420),at,sides=>{rng.push(sides);return sides;},7);
+ const drawn=G.roomView(result.state,'a').round;
+ equal(result.roll,{kind:4,value:4});equal(drawn.catalogueVersion,3);equal(G.cardSides(drawn),6);
+ equal(drawn.intimacyPool,'hardcore');ok(rng.includes(20));
+}
+
+// Keep the author's Oral table throughout drawing, sharing, and completion,
+// even after the other player becomes active or reloads their own view.
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ let choice=null,request=2430;
+ const deliver=client(createHandler({G:{...G,randomInt:n=>choice??n},store:saved,rateSecret:'fixture-unified',clock:()=>new Date(at)}));
+ const modern=(type,roundId,extra={})=>({...intent(type,request++,roundId,extra),gameVersion:8});
+ for(const [actor,token,recipientToken,expected] of [['a',tokenA,tokenB,'Sit Face'],['b',tokenB,tokenA,'Golden Shower sur Agathe']]){
+  const recipient=G.otherPlayer(actor),roundId=view(saved,actor).round.id;
+  const drawRequest=modern('ROLL_CATEGORY',roundId),draw=await deliver(drawRequest,token);
+  equal(draw.status,200);equal(draw.body.gameVersion,8);equal(draw.body.roll,{kind:4,value:4});
+  equal(draw.body.state.round.catalogueVersion,5);equal(draw.body.state.round.modeRoll,null);
+  const peer=await deliver({op:'state',gameVersion:7},recipientToken);
+  equal(peer.status,200);equal(peer.body.state.round.from,recipient);equal(peer.body.state.round.hand,[]);
+  const incompatible=await deliver({op:'state',gameVersion:7},token);
+  equal(incompatible.status,409);equal(incompatible.body.error.code,'upgrade_required');equal(incompatible.body.state,undefined);
+  const oralFace=draw.body.state.round.hand.findIndex(id=>G.getCard(id,5).title==='Oral')+1;
+  ok(oralFace>0);
+  choice=oralFace;
+  const card=await deliver(modern('ROLL_CARD',roundId),token);
+  equal(card.status,200);equal(card.body.roll,{kind:8,value:oralFace});equal(card.body.state.phase,'variant');
+  choice=4;
+  const variant=await deliver(modern('ROLL_VARIANT',roundId),token);
+  choice=null;
+  equal(variant.status,200);equal(variant.body.roll,{kind:6,value:4});equal(G.getVariant(variant.body.state.round),expected);
+  equal((await deliver(modern('SEND',roundId),token)).status,200);
+  const task=(await deliver({op:'state',gameVersion:8},recipientToken)).body.state.tasks.find(task=>task.id===roundId);
+  equal(task.from,actor);equal(task.catalogueVersion,5);equal(G.getVariant(task),expected);
+  const oldPeer=await deliver({op:'state',gameVersion:7},recipientToken);
+  equal(oldPeer.status,409);equal(oldPeer.body.error.code,'upgrade_required');
+  for(const [id,checker] of [[actor,token],[recipient,recipientToken]]){
+   equal((await deliver(modern('TOGGLE_TASK_CHECK',view(saved,id).round.id,{taskId:roundId,checked:true}),checker)).status,200);
+  }
+  equal(G.getVariant(saved.state.history.find(entry=>entry.id===roundId)),expected);
+  const after=await deliver({op:'state',gameVersion:7},recipientToken);
+  equal(after.status,200);ok(after.body.state.history.every(entry=>entry.catalogueVersion!==5));
+  equal((await deliver(drawRequest,token)).body,draw.body,'the earlier roll is replayed without drawing again');
+ }
+ equal(saved.state.stats.byCategory.intimite,2);ok(G.validateRoom(saved.state));
+ equal(G.normalizeRoom(clone(saved.state)),saved.state);
+}
+
+// Wallets stay private to compatible transports. A conflicting commit and an
+// idempotent replay must charge only one star, using the server's Paris day.
+{
+ let time='2026-11-09T10:00:00.000Z',request=2500,rolls=0;
+ const saved=new MemoryStore();saved.state=G.createRoom({at:time});await authorize(saved);
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{rolls++;return n===42?1:n;}},store:saved,rateSecret:'fixture-stars',clock:()=>new Date(time)}));
+ const modern=(type,roundId=view(saved,'a').round.id)=>({...intent(type,request++,roundId),gameVersion:8});
+ for(const gameVersion of [6,7]){
+  const old=await deliver({op:'state',gameVersion});
+  equal(old.status,200);equal(old.body.state.cardRerollWallets,undefined);
+  equal(old.body.badges.items.length,90);ok(G.validateBadgeView(old.body.badges,'a'));
+ }
+ const initial=await deliver({op:'state',gameVersion:8});
+ equal(initial.status,200);equal(G.cardRerollStars(initial.body.state,'a',initial.body.serverTime).balance,1);
+ equal(G.cardRerollStars(initial.body.state,'b',initial.body.serverTime).balance,1);
+ equal(initial.body.badges.items.length,120);ok(G.validateBadgeView(initial.body.badges,'a'));
+ const originalPartner=clone(saved.state.cardRerollWallets.b);
+ const draft=async()=>{for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT'])equal((await deliver(modern(type))).status,200);};
+ await draft();
+ time='2026-11-09T22:30:00.000Z';
+ const rerollRequest=modern('REROLL_CARD'),commits=saved.calls.filter(call=>call.name==='desir_commit').length;
+ saved.forceRace=true;
+ const rerolled=await deliver(rerollRequest);
+ equal(rerolled.status,200);equal(rerolled.body.roll.kind,8);
+ equal(saved.calls.filter(call=>call.name==='desir_commit').length,commits+2);
+ equal(G.cardRerollStars(rerolled.body.state,'a',rerolled.body.serverTime),{balance:1,nextAt:'2026-11-10T10:00:00.000Z',usedToday:true});
+ equal(saved.state.cardRerollWallets.b,originalPartner);
+ const walletAfter=clone(saved.state.cardRerollWallets),revision=saved.revision,draws=rolls;
+ equal((await deliver(rerollRequest)).body,rerolled.body);
+ equal(saved.state.cardRerollWallets,walletAfter);equal(saved.revision,revision);equal(rolls,draws);
+ equal((await deliver(modern('ROLL_VARIANT'))).status,200);
+ equal((await deliver(modern('SEND'))).status,200);
+
+ // The in-memory store models one ticket per slot; advance its slot so the
+ // same actor can open a new round while it is still the same Paris day.
+ saved.used.delete('a');
+ time='2026-11-09T22:59:59.999Z';
+ await draft();
+ const deniedRolls=rolls,deniedWallet=clone(saved.state.cardRerollWallets);
+ const denied=await deliver(modern('REROLL_CARD'));
+ equal(denied.status,409);equal(denied.body.error.code,'invalid_phase');
+ equal(rolls,deniedRolls);equal(saved.state.cardRerollWallets,deniedWallet);
+ time='2026-11-09T23:00:00.000Z';
+ const nextDay=await deliver(modern('REROLL_CARD'));
+ equal(nextDay.status,200);
+ equal(G.cardRerollStars(nextDay.body.state,'a',nextDay.body.serverTime),{balance:0,nextAt:'2026-11-10T10:00:00.000Z',usedToday:true});
+ equal(saved.state.cardRerollWallets.b,originalPartner);
+ const refreshed=await deliver({op:'state',gameVersion:8});
+ equal(refreshed.body.state.cardRerollWallets,saved.state.cardRerollWallets);
+ ok(G.validateRoom(saved.state));
+}
+
 // Catalogue expansion keeps old attributed awards and imports only newly
 // introduced qualifications. A real 2 -> 3 completion is still a live gain,
 // committed once with the existing CAS and idempotency receipt.
@@ -477,7 +636,10 @@ for(const denied of ['authenticated-ip:','device:']){
  }
  function legacyRegistry(room){
   const next=clone(room),progress=next.progression;delete progress.catalogueVersion;
-  for(const badge of G.badgeCatalog.slice(60))delete progress.awards.shared[badge.id];
+  for(const badge of G.badgeCatalog.slice(60)){
+   if(badge.scope==='shared')delete progress.awards.shared[badge.id];
+   else for(const actor of ['a','b'])delete progress.awards.individual[actor][badge.id];
+  }
   for(const actor of ['a','b']){
    const rows=[...Object.values(progress.awards.individual[actor]).map(award=>({award,n:award.sequence,shared:false})),...Object.values(progress.awards.shared).map(award=>({award,n:award.sequenceByActor[actor],shared:true}))].sort((a,b)=>a.n-b.n);
    rows.forEach(({award,shared},index)=>{if(shared)award.sequenceByActor[actor]=index+1;else award.sequence=index+1;});progress.sequences[actor]=rows.length;
@@ -494,7 +656,7 @@ for(const denied of ['authenticated-ip:','device:']){
  saved.forceRace=true;
  const actions=[intent('TOGGLE_TASK_CHECK',2200,view(saved,'a').round.id,{taskId:third.taskId,checked:true}),intent('TOGGLE_TASK_CHECK',2201,view(saved,'b').round.id,{taskId:third.taskId,checked:true})];
  const applied=await Promise.all([deliver(actions[0]),deliver(actions[1],tokenB)]);equal(applied.map(result=>result.status),[200,200]);
- equal(saved.state.progression.catalogueVersion,2);equal(saved.state.progression.epoch,epoch);equal(saved.state.stats.totalCompleted,3);equal(saved.state.progression.shared.completedByCard['hardcore-01'],3);equal(saved.receipts.size,2);
+ equal(saved.state.progression.catalogueVersion,3);equal(saved.state.progression.epoch,epoch);equal(saved.state.stats.totalCompleted,3);equal(saved.state.progression.shared.completedByCard['hardcore-01'],3);equal(saved.receipts.size,2);
  const award=saved.state.progression.awards.shared[badgeId];equal(award.at,time);equal(award.source,undefined);
  for(const [id,old] of Object.entries(oldAwards.shared))equal(saved.state.progression.awards.shared[id],old);
  for(const actor of ['a','b'])for(const [id,old] of Object.entries(oldAwards.individual[actor]))equal(saved.state.progression.awards.individual[actor][id],old);
@@ -511,7 +673,7 @@ for(const denied of ['authenticated-ip:','device:']){
  const draw=await reader(intent('ROLL_CATEGORY',2202,view(previous,'a').round.id));equal(draw.status,200);
  equal(draw.body.badges.items.find(item=>item.id===badgeId).award,first.body.badges.items.find(item=>item.id===badgeId).award);
  equal(previous.state.progression.awards.shared[badgeId].at,null);equal(previous.state.progression.awards.shared[badgeId].source,'imported');equal(previous.state.stats,old.stats);equal(previous.state.players,old.players);
- equal(previous.state.progression.epoch,old.progression.epoch);equal(previous.state.progression.catalogueVersion,2);
+ equal(previous.state.progression.epoch,old.progression.epoch);equal(previous.state.progression.catalogueVersion,3);
  const calls=previous.calls.length;
  const obsolete=await reader({...intent('ROLL_CATEGORY',2202,view(previous,'a').round.id),gameVersion:5});
  equal(obsolete.status,409);equal(obsolete.body.error.code,'upgrade_required');equal(previous.calls.length,calls,'v5 cannot replay a saved request after v6 migration');

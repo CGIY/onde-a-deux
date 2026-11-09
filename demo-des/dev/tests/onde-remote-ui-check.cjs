@@ -4,6 +4,7 @@ const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const G=require('../src/onde-app-core.js');
 const BadgeArt=require('../src/onde-badge-art.js');
+const variantGlyphs=require('../data/variant-glyphs.json');
 const code=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-ui.js'),'utf8');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -16,7 +17,22 @@ function finalGame(cardId,variant=1,actor='a'){
  game.activePlayer=actor;assert.equal(game.phase,'draft');assert.ok(G.validateState(game));return game;
 }
 function escapedText(text){return text.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function hasTitle(html,title){const escaped=escapedText(title);return html.includes('>'+escaped+'</h2>')||html.includes('>'+escaped+'</h3>')||html.includes('title="'+escaped+'"');}
+function hasTitle(html,title){const escaped=escapedText(title);return html.includes('>'+escaped+'</h2>')||html.includes('>'+escaped+'</h3>')||html.includes('title="'+escaped+'"')||(html.match(/<p class="oa-roll-status[^>]* data-reveal-mode="[^"]+" aria-hidden="true">([^<]*)<\/p>/)||[])[1]===escaped;}
+function assertPrivateBanner(ui){
+ assert.equal(ui.persona.hidden,true);
+ for(const member of Object.values(ui.persona.members)){
+  assert.equal(member.hidden,true);
+  assert.equal(member.parts['.oa-person-name'].textContent,'');
+  assert.equal(member.parts['.oa-member-initials'].textContent,'');
+ }
+}
+function assertActiveBanner(ui,id){
+ const member=ui.persona.members[id];
+ assert.equal(member.hidden,false);
+ assert.equal(member['aria-current'],'true');
+ assert.equal(member.parts['.oa-person-name'].textContent,'Personne '+id.toUpperCase());
+ assert.equal(member.parts['.oa-member-initials'].textContent,'P'+id.toUpperCase());
+}
 function assertNoEvidence(html){assert.doesNotMatch(html,/oa-card-fact|oa-source|data-source-card|Source & contexte|repère|statistique/i);}
 let checks=0;const check=fn=>{fn();checks++;};
 const roomId='b98c371d-6355-4d37-a9bc-18f1228fd386';
@@ -66,7 +82,7 @@ function mockRemote(restored=null){
 }
 function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues=null,storageBlocked=false,reduced=false,randomFace=null,evidenceTrap=true,mobileScroll=false,viewport=null,autoReveal=true,autoResult=true,installed=false,layoutHeight=874,notes=cardNotesFixture,motionAPI=false,legacyMotionQuery=false,queryAnimations=true,clockAt=null}={}){
  const values=storageValues||new Map();if(welcomeSeen)values.set('desir-welcome-v1','1');
- const handlers={},windowHandlers={},documentHandlers={},timers=[],intervals=[];let mainHTML='',writes=0,rngCalls=0,evidenceReads=0,dieRunning=false,interrupted=0,resolveDie=null,diceCanvas=null;const rngSides=[],categoryCalls=[],localActions=[],gradeAnimations=[],motionAnimations=[],frames=new Map(),elementScrolls=[],scrollCalls=[],announcements=[];let clockMs=0,frameId=0,canvasRelease=null,currentStage=null,currentGrid=null,badgeWrites=0,collectionWrites=0;const artCalls=[];
+ const handlers={},windowHandlers={},documentHandlers={},timers=[],intervals=[];let mainHTML='',writes=0,rngCalls=0,evidenceReads=0,dieRunning=false,interrupted=0,resolveDie=null,diceCanvas=null;const rngSides=[],categoryCalls=[],localActions=[],gradeAnimations=[],motionAnimations=[],frames=new Map(),elementScrolls=[],scrollCalls=[],announcements=[];let clockMs=0,frameId=0,diceInteractive=null,currentStage=null,currentGrid=null,badgeWrites=0,collectionWrites=0;const artCalls=[];
  const AppDate=clockAt?class extends Date{constructor(...args){super(...(args.length?args:[clockAt]));}static now(){return Date.parse(clockAt);}}:Date;
  let document,motionChange;
  function node(dataset={}){const classes=new Set();const element={dataset,hidden:false,disabled:false,inert:false,isConnected:true,innerHTML:'',textContent:'',value:'',checked:false,scrollTop:0,scrollLeft:0,clientHeight:600,children:[],events:{},classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),toggle(x,v){if(v)classes.add(x);else classes.delete(x);},contains:x=>classes.has(x)},style:{values:new Map(),setProperty(k,v){this.values.set(k,v);},getPropertyValue(k){return this.values.get(k)||'';}},getBoundingClientRect(){return {left:0,top:0,right:240,bottom:50,height:50,width:240};},setAttribute(k,v){this[k]=String(v);},hasAttribute(k){return k.startsWith('data-')?Object.hasOwn(this.dataset,k.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())):Object.hasOwn(this,k);},removeAttribute(k){delete this[k];},focus(options){this.focusOptions=options;document.activeElement=this;},matches(){return false;},contains(el){return !!el&&(el===this||this.children.includes(el)||el.parentElement===this);},addEventListener(type,fn){this.events[type]=fn;},querySelector(){return null;},querySelectorAll(){return[];},append(x){this.children.push(x);},prepend(x){x.parentElement=this;},removeChild(x){x.parentElement=null;},scrollIntoView(options){elementScrolls.push({node:this,options});},scrollTo(options){this.scrollTop=options.top||0;this.scrollLeft=options.left||0;scrollCalls.push({node:this,options});}};if(motionAPI)element.animate=(keyframes,options)=>{const animation={node:element,keyframes,options,cancelled:false,finished:false,cancel(){this.cancelled=true;this.oncancel?.();},finish(){this.finished=true;this.onfinish?.();}};motionAnimations.push(animation);return animation;};return element;}
@@ -97,6 +113,16 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  sheet.hidden=true;persona.innerHTML='DEMO-PROFILE-CONTROLS';username.matches=password.matches=selector=>selector==='input,textarea,[contenteditable="true"]';
  const navButtons=['play','tasks','us','info'].map(tab=>node({action:'tab',tab}));
  const profileButtons=['a','b'].map(player=>node({action:'profile',player}));
+ persona.members=Object.fromEntries(['a','b'].map(id=>{
+  const member=node({member:id});
+  member.parts=Object.fromEntries(['.oa-member-initials','.oa-person-name','.oa-unread'].map(selector=>[selector,node()]));
+  member.querySelector=selector=>member.parts[selector]||null;
+  return [id,member];
+ }));
+ persona.profileControls=profileButtons;
+ for(const control of profileButtons)control.remove=()=>{control.isConnected=false;};
+ persona.querySelectorAll=selector=>selector==='[data-member]'?Object.values(persona.members):selector==='[data-action="profile"]'?profileButtons.filter(control=>control.isConnected):[];
+
  const actionButtons=new Map([['roll',rollButton],...['reroll','send','new','reconnect','refuse-task','badges-all','badge-dismiss','badge-view'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
  for(const action of ['badge-dismiss','badge-view'])actionButtons.get(action).parentElement=badgeNotice;
  const controls=[...navButtons,...profileButtons,help,...actionButtons.values()];
@@ -122,14 +148,15 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  root.querySelectorAll=selector=>selector==='.oa-nav button'?navButtons:selector==='.oa-switch [data-action="profile"]'?profileButtons:controls;
  shellNode.children=[persona,main,navigation,toast,badgeNotice,badgeAnnouncement,sheet,announcement];
  document={activeElement:null,hidden:false,documentElement:{clientHeight:layoutHeight},body:{style:{}},getElementById:id=>id==='onde-app-v1'?root:null,createElement:()=>node(),addEventListener(type,fn){documentHandlers[type]=fn;}};
- const die={setKind(kind,value){if(dieRunning){interrupted++;resolveDie?.();}die.kinds.push([kind,value]);},setReducedMotion(value){die.reduced.push(value);},setColor(color){die.colors.push(color);},setCharge(power){die.charges.push(power);},async roll(value,options){die.calls.push(value);die.options.push(options);die.visible.push(!!diceCanvas?.parentElement&&mainHTML.includes('data-stage'));dieRunning=true;if(delayedDie)await new Promise(resolve=>resolveDie=resolve);dieRunning=false;},calls:[],kinds:[],options:[],visible:[],charges:[],colors:[],reduced:[]};
- const ctx={visualViewport:viewport,getComputedStyle:()=>({overflowY:mobileScroll?(main.style.overflow||'auto'):'visible'}),performance:{now:()=>clockMs},requestAnimationFrame(fn){const id=++frameId;frames.set(id,fn);return id;},cancelAnimationFrame(id){frames.delete(id);},console,Date:AppDate,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem(k){if(storageBlocked)throw Error('Storage unavailable');return values.get(k)||null;},setItem(k,v){if(storageBlocked)throw Error('Storage unavailable');values.set(k,String(v));},removeItem(k){if(storageBlocked)throw Error('Storage unavailable');values.delete(k);}},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,rollCategory(version,draw,at){categoryCalls.push({version,at});return G.rollCategory(version,draw,at);},reduceRoom(room,action){localActions.push(copy(action));return G.reduceRoom(room,action);},randomInt(n){rngCalls++;rngSides.push(n);return typeof randomFace==='function'?randomFace(n):randomFace===null?G.randomInt(n):Math.min(n,randomFace);}},OndeDice:{create:(canvas,options)=>{diceCanvas=canvas;canvasRelease=options.onRelease;return die;}},OndeBadgeArt:{render(id,options){artCalls.push({id,...copy(options)});return BadgeArt.render(id,options);}},DesirCardNotes:notes,OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:query=>({matches:query==='(display-mode: standalone)'?installed:reduced,...(legacyMotionQuery?{addListener(fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}}:{addEventListener(type,fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}})}),setTimeout(fn,ms){const timer={fn,ms,active:true,scrollTop:main.scrollTop};timers.push(timer);if(ms===900&&autoReveal||ms===450&&autoResult)Promise.resolve().then(()=>{if(timer.active){timer.active=false;fn();}});return timers.length;},clearTimeout(id){if(timers[id-1])timers[id-1].active=false;},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;},removeEventListener(type,fn){if(windowHandlers[type]===fn)delete windowHandlers[type];}};
+ const die={setKind(kind,value){if(dieRunning){interrupted++;resolveDie?.();}die.kinds.push([kind,value]);},setLabels(labels,icons){die.labels.push(copy(labels));die.icons.push(copy(icons));},setReducedMotion(value){die.reduced.push(value);},setColor(color){die.colors.push(color);},setCharge(power){die.charges.push(power);},async roll(value,options){die.calls.push(value);die.options.push(options);die.visible.push(!!diceCanvas?.parentElement&&mainHTML.includes('data-stage'));dieRunning=true;if(delayedDie)await new Promise(resolve=>resolveDie=resolve);dieRunning=false;},calls:[],kinds:[],labels:[],icons:[],options:[],visible:[],charges:[],colors:[],reduced:[]};
+ const ctx={visualViewport:viewport,getComputedStyle:()=>({overflowY:mobileScroll?(main.style.overflow||'auto'):'visible'}),performance:{now:()=>clockMs},requestAnimationFrame(fn){const id=++frameId;frames.set(id,fn);return id;},cancelAnimationFrame(id){frames.delete(id);},console,Date:AppDate,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem(k){if(storageBlocked)throw Error('Storage unavailable');return values.get(k)||null;},setItem(k,v){if(storageBlocked)throw Error('Storage unavailable');values.set(k,String(v));},removeItem(k){if(storageBlocked)throw Error('Storage unavailable');values.delete(k);}},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,rollCategory(version,draw,at){categoryCalls.push({version,at});return G.rollCategory(version,draw,at);},reduceRoom(room,action){localActions.push(copy(action));return G.reduceRoom(room,action);},randomInt(n){rngCalls++;rngSides.push(n);return typeof randomFace==='function'?randomFace(n):randomFace===null?G.randomInt(n):Math.min(n,randomFace);}},OndeDice:{create:(canvas,options)=>{diceCanvas=canvas;diceInteractive=options.interactive;return die;}},OndeBadgeArt:{render(id,options){artCalls.push({id,...copy(options)});return BadgeArt.render(id,options);}},DesirCardNotes:notes,OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:query=>({matches:query==='(display-mode: standalone)'?installed:reduced,...(legacyMotionQuery?{addListener(fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}}:{addEventListener(type,fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}})}),setTimeout(fn,ms){const timer={fn,ms,active:true,scrollTop:main.scrollTop};timers.push(timer);if(ms===900&&autoReveal||ms===450&&autoResult)Promise.resolve().then(()=>{if(timer.active){timer.active=false;fn();}});return timers.length;},clearTimeout(id){if(timers[id-1])timers[id-1].active=false;},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;},removeEventListener(type,fn){if(windowHandlers[type]===fn)delete windowHandlers[type];}};
  Object.defineProperty(ctx,'OndeHardcore',{get(){throw Error('The retired live controller must never be mounted.');}});
  if(evidenceTrap)for(const key of ['OndeEvidence','OndeEvidenceData'])Object.defineProperty(ctx,key,{get(){evidenceReads++;throw Error('Statistics must never be accessed by the game UI');}});
+ ctx.DesirVariantGlyphs=variantGlyphs;
  ctx.window=ctx;
  vm.runInNewContext(code,ctx,{filename:'onde-app-ui.js'});
  function event(target,props={}){return {target,detail:0,preventDefault(){this.defaultPrevented=true;},...props};}
- return {root,main,sheet,persona,navigation,help,motionAnimations,setMotion(matches){motionChange({matches});},setStorageBlocked(blocked){storageBlocked=blocked;},get canvas(){return diceCanvas;},get stage(){return currentStage;},get grid(){return currentGrid;},username,password,loginMessage,rollStatus,die,rngSides,categoryCalls,localActions,gradeAnimations,controls,timers,intervals,values,announcement,toast,dialog,closeButton,badgeNotice,badgeAnnouncement,badgeCollection,badgeFilterButtons,badgeTiles,recentBadgeTiles,badgeHeading,badgeMedal,artCalls,get collectionWrites(){return collectionWrites;},get badgeWrites(){return badgeWrites;},noticeEvent(type,props={}){return badgeNotice.events[type]?.(event(badgeNotice,props));},elementScrolls,scrollCalls,announcements,bodyStyle:document.body.style,get html(){return mainHTML;},get diceVisible(){return !!diceCanvas?.parentElement&&mainHTML.includes('data-stage');},get activeElement(){return document.activeElement;},get writes(){return writes;},get rngCalls(){return rngCalls;},get evidenceReads(){return evidenceReads;},get interrupted(){return interrupted;},get frameCount(){return frames.size;},get resultPending(){return timers.filter(timer=>timer.ms===450&&timer.active).length;},finishResult(){const timer=timers.findLast(timer=>timer.ms===450&&timer.active);assert.ok(timer,'a category result is pending');timer.active=false;timer.fn();},get revealPending(){return timers.filter(timer=>timer.ms===900&&timer.active).length;},finishReveal(){const timer=timers.findLast(timer=>timer.ms===900&&timer.active);assert.ok(timer,'a reveal is pending');timer.active=false;timer.fn();},documentEvent(type,props={}){if(typeof props.hidden==='boolean')document.hidden=props.hidden;return documentHandlers[type]?.(event(null,props));},advance(ms){clockMs+=ms;const pending=Array.from(frames.values());frames.clear();for(const fn of pending)fn();},windowEvent(type,props={}){return windowHandlers[type]?.(event(null,props));},async pointer(type,action='roll',props={}){const button=actionButtons.get(action);return handlers[type](event(button,{button:0,isPrimary:true,pointerId:1,clientX:50,clientY:25,...props}));},async key(type,key=' ',props={}){const button=actionButtons.get('roll');if(type==='keydown'&&!props.noFocus)button.focus();return handlers[type](event(button,{key,code:key===' '?'Space':key,...props}));},button(action='roll'){return actionButtons.get(action);},async releaseCanvas(power){return canvasRelease(power);},finishDie(){resolveDie();},async click(action,extra={},detail=0){const el=(action==='badge-filter'?badgeFilterButtons.get(extra.scope):action==='badge-detail'?(sheet.hidden?recentBadgeTiles:badgeTiles).get(extra.badge):action==='badge-back'?badgeBack:actionButtons.get(action))||node({action,...extra});Object.assign(el.dataset,extra);el.closest=()=>el;await handlers.click(event(el,{detail}));return el;},async submit(user,secret){username.value=user;password.value=secret;const form=node();form.matches=selector=>selector==='[data-login-form]';return handlers.submit(event(form));},async taskCheck(id,checked,player='a'){const label=node(),article=node(),input=node({taskCheck:id,player});input.checked=checked;input.closest=selector=>selector==='label'?label:article;const promise=handlers.change(event(input));return {input,label,promise};}};
+ return {root,main,sheet,persona,navigation,help,motionAnimations,setMotion(matches){motionChange({matches});},setStorageBlocked(blocked){storageBlocked=blocked;},get canvas(){return diceCanvas;},get stage(){return currentStage;},get grid(){return currentGrid;},username,password,loginMessage,rollStatus,die,rngSides,categoryCalls,localActions,gradeAnimations,controls,timers,intervals,values,announcement,toast,dialog,closeButton,badgeNotice,badgeAnnouncement,badgeCollection,badgeFilterButtons,badgeTiles,recentBadgeTiles,badgeHeading,badgeMedal,artCalls,get collectionWrites(){return collectionWrites;},get badgeWrites(){return badgeWrites;},noticeEvent(type,props={}){return badgeNotice.events[type]?.(event(badgeNotice,props));},elementScrolls,scrollCalls,announcements,bodyStyle:document.body.style,get html(){return mainHTML;},get diceVisible(){return !!diceCanvas?.parentElement&&mainHTML.includes('data-stage');},get activeElement(){return document.activeElement;},get writes(){return writes;},get rngCalls(){return rngCalls;},get evidenceReads(){return evidenceReads;},get interrupted(){return interrupted;},get frameCount(){return frames.size;},get resultPending(){return timers.filter(timer=>timer.ms===450&&timer.active).length;},finishResult(){const timer=timers.findLast(timer=>timer.ms===450&&timer.active);assert.ok(timer,'a category result is pending');timer.active=false;timer.fn();},get revealPending(){return timers.filter(timer=>timer.ms===900&&timer.active).length;},finishReveal(){const timer=timers.findLast(timer=>timer.ms===900&&timer.active);assert.ok(timer,'a reveal is pending');timer.active=false;timer.fn();},documentEvent(type,props={}){if(typeof props.hidden==='boolean')document.hidden=props.hidden;return documentHandlers[type]?.(event(null,props));},advance(ms){clockMs+=ms;const pending=Array.from(frames.values());frames.clear();for(const fn of pending)fn();},windowEvent(type,props={}){return windowHandlers[type]?.(event(null,props));},async pointer(type,action='roll',props={}){const button=actionButtons.get(action);return handlers[type](event(button,{button:0,isPrimary:true,pointerId:1,clientX:50,clientY:25,...props}));},async key(type,key=' ',props={}){const button=actionButtons.get('roll');if(type==='keydown'&&!props.noFocus)button.focus();return handlers[type](event(button,{key,code:key===' '?'Space':key,...props}));},button(action='roll'){return actionButtons.get(action);},get diceInteractive(){return diceInteractive;},finishDie(){resolveDie();},async click(action,extra={},detail=0){const el=(action==='badge-filter'?badgeFilterButtons.get(extra.scope):action==='badge-detail'?(sheet.hidden?recentBadgeTiles:badgeTiles).get(extra.badge):action==='badge-back'?badgeBack:actionButtons.get(action))||node({action,...extra});Object.assign(el.dataset,extra);el.closest=()=>el;await handlers.click(event(el,{detail}));return el;},async submit(user,secret){username.value=user;password.value=secret;const form=node();form.matches=selector=>selector==='[data-login-form]';return handlers.submit(event(form));},async taskCheck(id,checked,player='a'){const label=node(),article=node(),input=node({taskCheck:id,player});input.checked=checked;input.closest=selector=>selector==='label'?label:article;const promise=handlers.change(event(input));return {input,label,promise};}};
 }
 async function rollSession(options={}){
  const remote=mockRemote(snap(initial()));remote.actionImpl=async action=>{assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',catalogueVersion:3,roundId:'onde-1'});const game=drawCurrent(remote.snapshot.state);return {...snap(game,remote.snapshot.revision+1,0),roll:{kind:4,value:2}};};
@@ -171,22 +198,55 @@ async function rollSession(options={}){
   const legacy=draftGame(),legacyUI=shell(mockRemote(snap(legacy)));await tick();
   check(()=>{assert.ok(legacyUI.html.includes(cardNotesFixture[legacy.round.cardId]));assertNoEvidence(legacyUI.html);});
  }
- // New draws expose four category labels, then six unreadable challenge slots.
- {
-  const ui=shell(mockRemote(),{mode:false,randomFace:12,clockAt:'2026-11-02T12:00:00.000Z'});
-  check(()=>{assert.equal((ui.html.match(/class="oa-category"/g)||[]).length,4);assert.ok(ui.html.includes('Complicité'));assert.ok(ui.html.includes('Plaisirs'));assert.ok(!ui.html.includes('Détente'));assert.ok(ui.html.includes('data-kind="4" data-value="3" data-roll-role="category"'));});
-  await ui.click('roll');check(()=>{assert.equal(ui.rngSides[0],42);assert.ok(ui.rngSides.slice(1).every(sides=>sides>=2&&sides<=6));assert.deepEqual(ui.die.calls,[2]);assert.equal(ui.stage.dataset.rollRole,'card');assert.equal(ui.stage.dataset.kind,'6');assert.ok(ui.html.includes('class="oa-card-grid is-six"'));assert.ok(ui.html.includes('Six cartes face cachée'));assert.equal((ui.html.match(/aria-label="Carte [1-6] face cachée"/g)||[]).length,6);});
+ // Each new theme uses its eight labelled faces and a distinct mineral tint.
+ for(const [ticket,face,labels,icons,tint] of [
+  [12,2,['Vinted','En Ville','Fast Food','Cuisine du monde','Douceur maison','Préparer un petit truc','Monoprix','Passage du Désir'],['shirt','book-open','sandwich','utensils','cookie','coffee','shopping-basket','gift'],'#3b2a1c'],
+  [22,3,['Balade','Photo','Atelier','Escapade','Aménager','Désencombrer','Piste','Ciel'],['footprints','camera','palette','map','armchair','archive','compass','telescope'],'#163239'],
+  [32,4,['Oral','Quickie','Lovense','Photoshoot','Webcam','Nudes','BDSM','Anal'],['speech','zap','vibrate','aperture','webcam','image-up','link','target'],'#411d32'],
+ ]){
+  const ui=shell(mockRemote(),{mode:false,randomFace:ticket,clockAt:'2026-11-02T12:00:00.000Z'});
+  check(()=>{assert.doesNotMatch(ui.html,/oa-category-grid|oa-steps/);assert.deepEqual(ui.die.labels.at(-1),['Cocon','Offrandes','Aventures','Braises']);assert.deepEqual(ui.die.icons.at(-1),['heart','coins','tent','flame']);assert.match(ui.html,/data-roll-role="category"><button type="button" class="oa-die-hit/);assert.ok(!ui.html.includes('Détente'));assert.ok(ui.html.includes('data-kind="4" data-value="3" data-roll-role="category"'));});
+  await ui.click('roll');check(()=>{assert.deepEqual(ui.rngSides,[42]);assert.deepEqual(ui.die.calls,[face]);assert.equal(ui.stage.dataset.rollRole,'card');assert.equal(ui.stage.dataset.kind,'8');assert.deepEqual(ui.die.labels.at(-1),labels);assert.deepEqual(ui.die.icons.at(-1),icons);assert.equal(ui.die.colors.at(-1),tint);assert.doesNotMatch(ui.html,/oa-card-grid|Hardcore/);});
  }
- // Current Intimité hands use one D6; only the classic pool asks for a real variant.
+ // Cocon places its eight labels on the die and uses the same touch area to charge it.
+ {
+  const at='2026-11-02T12:00:00.000Z';
+  const ui=shell(mockRemote(),{mode:false,clockAt:at,randomFace:n=>n===42?1:n,autoReveal:false});
+  await ui.click('roll');
+  const round=G.roomView(JSON.parse(ui.values.get('onde-couple-prototype-v1')),'a').round;
+  const labels=['Paper','Selfie','Massage','Soin','Soirée','No Phone','Kiss','Aide'];
+  const icons=['note','camera','massage','polish','moon','phone-off','kiss','help'];
+  check(()=>{
+   assert.equal(round.catalogueVersion,G.currentCatalogueVersion);
+   assert.equal(ui.stage.dataset.kind,'8');
+   assert.deepEqual(ui.die.labels.at(-1),labels);
+   assert.deepEqual(ui.die.icons.at(-1),icons);
+   assert.match(ui.html,/data-roll-role="card"><button type="button" class="oa-die-hit/);
+   assert.doesNotMatch(ui.html,/oa-card-grid|oa-category-grid|oa-steps/);
+   assert.ok(!ui.html.includes('Une aide concernant'));
+  });
+  await ui.pointer('pointerdown');ui.advance(600);const work=ui.pointer('pointerup');await tick();
+  check(()=>{
+   assert.equal(ui.die.options.at(-1).power,.5);
+   assert.deepEqual(ui.die.calls,[1,8]);
+   assert.deepEqual(ui.die.labels.at(-1),labels);
+   assert.deepEqual(ui.die.icons.at(-1),icons);
+   assert.ok(ui.html.includes('Une aide concernant'));
+   assert.doesNotMatch(ui.html,/oa-card-grid|data-action="roll"/);
+  });
+  ui.finishReveal();await work;
+  check(()=>{assert.equal(ui.stage.dataset.kind,'6');assert.deepEqual(ui.die.labels.at(-1),G.getCard('eight-complicite-aide',5).variants);assert.deepEqual(ui.die.icons.at(-1),variantGlyphs['eight-complicite-aide']);assert.equal(ui.die.colors.at(-1),'#2a1c3c');});
+ }
+ // A connected catalogue v3 still uses its original split, including the D6 hand.
  {
   for(const pool of ['classic','hardcore'])for(const face of [1,6]){
    const game=drawCurrent(initial(),4,pool),remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false,motionAPI:true});await tick();
-   check(()=>{assert.equal(game.round.catalogueVersion,3);assert.equal(game.round.intimacyPool,pool);assert.equal(game.round.hand.length,6);assert.ok(ui.html.includes('Six cartes face cachée'));assert.ok(ui.html.includes('<b>D4</b>Catégorie'));assert.ok(ui.html.includes('<b>D6</b>Carte'));assert.equal(ui.html.includes('>Variante</span>'),pool==='classic');assert.equal(ui.html.includes('>Hardcore</p>'),pool==='hardcore');assert.doesNotMatch(ui.html,/data-kind="20"|data-hardcore-offer|hardcore-open|oa-hc-/);for(const id of game.round.hand)assert.ok(!hasTitle(ui.html,G.getCard(id).title));});
+   check(()=>{assert.equal(game.round.catalogueVersion,3);assert.equal(game.round.intimacyPool,pool);assert.equal(game.round.hand.length,6);assert.ok(ui.html.includes('Six cartes face cachée'));assert.doesNotMatch(ui.html,/oa-steps/);assert.equal(ui.stage.dataset.kind,'6');assert.equal(ui.html.includes('>Hardcore</p>'),pool==='hardcore');assert.doesNotMatch(ui.html,/data-kind="20"|data-hardcore-offer|hardcore-open|oa-hc-/);for(const id of game.round.hand)assert.ok(!hasTitle(ui.html,G.getCard(id).title));});
    const before=ui.writes,grid=ui.grid;remote.emit(snap(game,2));check(()=>{assert.equal(ui.writes,before);assert.equal(ui.grid,grid);});
    let selected=G.reduce(game,{type:'ROLL_CARD',value:face});
    remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'ROLL_CARD',roundId:game.round.id}));return {...snap(selected,3),roll:{kind:6,value:face}};};
    const work=ui.click('roll');await tick();
-   check(()=>{assert.equal(ui.revealPending,1);assert.ok(ui.html.includes('data-catalogue-version="3"'));assert.ok(ui.html.includes('Carte '+face+' choisie'));assert.ok(hasTitle(ui.html,G.getCard(selected.round.cardId).title));assert.ok(ui.html.includes('--category:'+G.getCategory('intimite',3).color));assert.equal(ui.html.includes('Intimité · Hardcore'),pool==='hardcore');assert.equal(ui.rngCalls,0);assert.equal(ui.sheet.hidden,true);assert.deepEqual(ui.die.calls,[face]);});
+   check(()=>{assert.equal(ui.revealPending,1);assert.ok(ui.html.includes('data-catalogue-version="3"'));assert.ok(ui.html.includes('Carte '+face+' choisie'));assert.ok(hasTitle(ui.html,G.getCard(selected.round.cardId).title));assert.ok(ui.html.includes('--category:'+G.getCategory('intimite',3).color));assert.equal(ui.html.includes('Braises · Hardcore'),pool==='hardcore');assert.equal(ui.rngCalls,0);assert.equal(ui.sheet.hidden,true);assert.deepEqual(ui.die.calls,[face]);});
    ui.finishReveal();await work;
    if(pool==='classic'){
     check(()=>{assert.equal(selected.phase,'variant');assert.equal(ui.stage.dataset.rollRole,'variant');assert.ok(ui.html.includes('Tirer la variante'));assert.ok(!ui.html.includes('data-action="send"'));});
@@ -198,7 +258,7 @@ async function rollSession(options={}){
     check(()=>{assert.equal(selected.phase,'draft');assert.equal(selected.round.variantRoll,undefined);assert.ok(ui.html.includes('data-action="send"'));assert.doesNotMatch(ui.html,/Variante|VARIANTE|data-roll-role="variant"|oa-card-description|oa-roleplay/);assert.equal(ui.diceVisible,false);});
     const replacement=face===6?1:2,rerolled=G.reduce(selected,{type:'REROLL_CARD',value:replacement});
     remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'REROLL_CARD',roundId:game.round.id}));return {...snap(rerolled,4),roll:{kind:6,value:replacement}};};
-    const reroll=ui.click('reroll');await tick();check(()=>{assert.equal(ui.revealPending,1);assert.ok(ui.html.includes('oa-card-discarded'));assert.ok(ui.html.includes('Intimité · Hardcore'));assert.ok(hasTitle(ui.html,G.getCard(rerolled.round.cardId).title));});
+    const reroll=ui.click('reroll');await tick();check(()=>{assert.equal(ui.revealPending,1);assert.ok(ui.html.includes('oa-card-discarded'));assert.ok(ui.html.includes('Braises · Hardcore'));assert.ok(hasTitle(ui.html,G.getCard(rerolled.round.cardId).title));});
     ui.finishReveal();await reroll;
     check(()=>{assert.equal(rerolled.round.intimacyPool,'hardcore');assert.deepEqual(rerolled.round.hand,selected.round.hand);assert.deepEqual(ui.die.calls,[face,replacement]);assert.ok(ui.html.includes('data-action="send"'));assert.ok(!ui.html.includes('data-action="reroll"'));assert.doesNotMatch(ui.html,/data-roll-role="variant"|data-hardcore-offer|hardcore-open|oa-hc-/);});
    }
@@ -209,7 +269,7 @@ async function rollSession(options={}){
  {
   const game=drawModern(initial(),4);game.round.modeRoll=20;game.round.hardcoreOffer=true;assert.ok(G.validateState(game));
   const remote=mockRemote(snap(game)),ui=shell(remote);await tick();const before=remote.calls.length;
-  check(()=>{assert.ok(ui.html.includes('>Variante</span>'));assert.doesNotMatch(ui.html,/data-hardcore-offer|hardcore-open|Ouvrir Hardcore|oa-hc-/);});
+  check(()=>{assert.equal(ui.stage.dataset.kind,'6');assert.doesNotMatch(ui.html,/data-hardcore-offer|hardcore-open|Ouvrir Hardcore|oa-hc-/);});
   await ui.click('hardcore-open');check(()=>{assert.equal(remote.calls.length,before);assert.equal(ui.sheet.hidden,true);});
   const css=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-ui.html'),'utf8');check(()=>assert.doesNotMatch(css,/oa-hc-|oa-hc-ready/));
  }
@@ -218,21 +278,22 @@ async function rollSession(options={}){
   const id='six-attention-cadeau';let game=drawCurrent(initial(),2);game=G.reduce(game,{type:'ROLL_CARD',value:game.round.hand.indexOf(id)+1});game=G.reduce(game,{type:'ROLL_VARIANT',value:6});
   const ui=shell(mockRemote(snap(game)));await tick();check(()=>{assert.doesNotMatch(ui.html,/oa-roleplay/);assert.ok(ui.html.includes(escapedText(G.getVariant(game.round))));assertNoEvidence(ui.html);});
  }
- // Local draws, category rerolls and the Joker all choose the current pool without a mode die.
+ // New Braises draws, relances and the Joker use the same eight-card pack.
  {
-  const at='2026-11-08T12:00:00.000Z';let pool='classic';
-  const draw=n=>n===155?63:n===20?(pool==='hardcore'?20:1):n;
+  const at='2026-11-08T12:00:00.000Z';
+  const draw=n=>n===155?63:n;
   const ui=shell(mockRemote(),{mode:false,clockAt:at,randomFace:draw});await ui.click('roll');
   let room=JSON.parse(ui.values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(room.lanes.a.round.catalogueVersion,3);assert.equal(room.lanes.a.round.intimacyPool,'classic');assert.deepEqual(ui.die.calls,[4]);assert.ok(ui.html.includes('>Variante</span>'));});
-  pool='hardcore';await ui.click('reroll-category');room=JSON.parse(ui.values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(room.lanes.a.round.intimacyPool,'hardcore');assert.equal(room.lanes.a.round.hand.length,6);assert.ok(room.lanes.a.round.hand.every(id=>G.hardcoreCards.some(card=>card.id===id)));assert.deepEqual(ui.die.calls,[4]);assert.ok(ui.html.includes('>Hardcore</p>'));assert.doesNotMatch(ui.html,/Variante|data-kind="20"|hardcore-open/);});
+  const hand=G.cardsForCategory('intimite',5).map(card=>card.id);
+  check(()=>{assert.equal(room.lanes.a.round.catalogueVersion,5);assert.equal(room.lanes.a.round.intimacyPool,null);assert.equal(room.lanes.a.round.modeRoll,null);assert.deepEqual(room.lanes.a.round.hand,hand);assert.deepEqual(ui.die.calls,[4]);assert.equal(ui.stage.dataset.kind,'8');});
+  await ui.click('reroll-category');room=JSON.parse(ui.values.get('onde-couple-prototype-v1'));
+  check(()=>{assert.deepEqual(room.lanes.a.round.hand,hand);assert.equal(room.lanes.a.round.modeRoll,null);assert.deepEqual(ui.rngSides,[155,155]);assert.deepEqual(ui.die.calls,[4]);assert.doesNotMatch(ui.html,/Hardcore|Variante|data-kind="20"|hardcore-open/);});
   const jokerRoom=G.createRoom({at});jokerRoom.joker={weekKey:G.isoWeekKey(at),usedBy:null};
   const values=new Map([['onde-couple-prototype-v1',JSON.stringify(jokerRoom)]]),joker=shell(mockRemote(),{mode:false,clockAt:at,randomFace:n=>n,storageValues:values});
   await joker.click('joker',{category:'4'});const selected=JSON.parse(values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(selected.lanes.a.round.catalogueVersion,3);assert.equal(selected.lanes.a.round.intimacyPool,'hardcore');assert.equal(selected.joker.usedBy,'a');assert.equal(joker.die.calls.length,0);assert.ok(joker.html.includes('Lancer le D6'));assert.doesNotMatch(joker.html,/Variante|data-kind="20"|hardcore-open/);});
-  await joker.click('roll');const drafted=JSON.parse(values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(drafted.lanes.a.phase,'draft');assert.deepEqual(joker.die.calls,[6]);assert.ok(joker.html.includes('data-action="send"'));assert.equal(drafted.lanes.a.round.variantRoll,undefined);});
+  check(()=>{assert.equal(selected.lanes.a.round.catalogueVersion,5);assert.deepEqual(selected.lanes.a.round.hand,hand);assert.equal(selected.joker.usedBy,'a');assert.equal(joker.die.calls.length,0);assert.ok(joker.html.includes('Lancer le D8'));assert.doesNotMatch(joker.html,/Hardcore|Variante|data-kind="20"|hardcore-open/);});
+  await joker.click('roll');const variant=JSON.parse(values.get('onde-couple-prototype-v1'));
+  check(()=>{assert.equal(variant.lanes.a.phase,'variant');assert.deepEqual(joker.die.calls,[8]);assert.ok(joker.html.includes('Tirer la variante'));assert.equal(variant.lanes.a.round.variantRoll,null);});
  }
  // Remote Joker and category reroll intents contain no caller-chosen pool, hand or timestamp.
  {
@@ -247,11 +308,60 @@ async function rollSession(options={}){
   await ui.click('joker',{category:'4'});await ui.click('reroll-category');
   check(()=>{assert.deepEqual(remote.calls.filter(call=>call.method==='action').map(call=>call.action.type),['JOKER_DRAW','REROLL_CATEGORY']);assert.equal(ui.rngCalls,0);assert.equal(ui.die.calls.length,0);assert.equal(room.lanes.a.round.intimacyPool,'hardcore');assert.ok(ui.html.includes('Lancer le D6'));assert.doesNotMatch(ui.html,/Variante|data-kind="20"|hardcore-open/);});
  }
+ // In catalogue v5, keeping an available reroll is a choice. Exhaustion
+ // queues the result automatically, even if another click or update arrives.
+ for(const balance of [1,0]){
+  const at='2026-11-09T12:00:00.000Z',actor='a';
+  let room=G.createRoom({at}),revision=1,finishSend;
+  const roundId=room.lanes[actor].round.id;
+  room.cardRerollWallets[actor].balance=balance;
+  const apply=action=>{room=G.reduceRoom(room,{...action,at,actor,roundId});};
+  apply({type:'ROLL_CATEGORY',value:4,...G.drawCategory(G.roomView(room,actor),4,5)});
+  apply({type:'ROLL_CARD',value:1});
+  const versioned=()=>({...roomSnapshot(room,actor,revision),gameVersion:8,serverTime:at});
+  const remote=mockRemote(versioned()),ui=shell(remote,{clockAt:at});
+  const actionTypes=()=>remote.calls.filter(call=>call.method==='action').map(call=>call.action.type);
+  remote.actionImpl=async action=>{
+   assert.equal(action.roundId,roundId);
+   if(action.type==='ROLL_VARIANT'){
+    apply({...action,value:1});revision++;
+    return {...versioned(),roll:{kind:6,value:1}};
+   }
+   assert.equal(action.type,'SEND');
+   return new Promise(resolve=>finishSend=()=>{
+    apply({...action,directQueue:true});revision++;resolve(versioned());
+   });
+  };
+  await tick();
+  await ui.click('roll');await tick();
+  if(balance)check(()=>{
+   assert.deepEqual(actionTypes(),['ROLL_VARIANT']);
+   assert.match(ui.html,/Garder la carte/);
+   assert.match(ui.html,/Relancer · 1 étoile/);
+  });
+  else check(()=>{
+   assert.deepEqual(actionTypes(),['ROLL_VARIANT','SEND']);
+   assert.match(ui.html,/Ajout aux Missions/);
+   assert.doesNotMatch(ui.html,/data-action="(?:send|reroll)"/);
+  });
+  const manual=balance?ui.click('send'):null;
+  await tick();await ui.click('send');remote.emit();await tick();
+  check(()=>assert.deepEqual(actionTypes(),['ROLL_VARIANT','SEND']));
+  finishSend();
+  await manual;await tick();
+  check(()=>{
+   assert.equal(room.tasks.length,1);assert.equal(room.tasks[0].id,roundId);
+   assert.equal(G.getVariant(room.tasks[0]),'Cunni');
+   assert.match(ui.html,/class="oa-task-list"/);
+   assert.deepEqual(actionTypes(),['ROLL_VARIANT','SEND']);
+   assert.equal(ui.rngCalls,0);
+  });
+ }
  // A settled category remains readable before its six hidden challenges appear.
  {
   const {remote,ui}=await rollSession({autoResult:false});
   const work=ui.click('roll');await tick();
-  check(()=>{assert.equal(ui.resultPending,1);assert.equal(ui.stage.dataset.rollRole,'category');assert.equal(ui.button().textContent,'D4 · Plaisirs');assert.equal(ui.button()['aria-busy'],'false');assert.equal(ui.button().disabled,true);assert.ok(!ui.html.includes('Six cartes face cachée'));assert.deepEqual(ui.announcements,['D4 : 2. Catégorie Plaisirs']);});
+  check(()=>{assert.equal(ui.resultPending,1);assert.equal(ui.stage.dataset.rollRole,'category');assert.equal(ui.button()['aria-busy'],'false');assert.equal(ui.button().disabled,true);assert.ok(!ui.html.includes('Six cartes face cachée'));assert.deepEqual(ui.announcements,['D4 : 2. Catégorie Offrandes']);});
   await ui.click('roll');await ui.click('tab',{tab:'us'});await tick();
   check(()=>{assert.equal(remote.calls.filter(c=>c.method==='action').length,1);assert.equal(ui.resultPending,1);assert.equal(ui.stage.dataset.rollRole,'category');assert.equal(ui.revealPending,0);});
   ui.finishResult();await work;
@@ -299,7 +409,7 @@ async function rollSession(options={}){
   let saved=JSON.parse(local.values.get('onde-couple-prototype-v1'));const first=[...saved.lanes.a.round.hand];
   await local.click('profile',{player:'b'});check(()=>assert.ok(local.html.includes('Lancer le D4')));await local.click('roll');
   saved=JSON.parse(local.values.get('onde-couple-prototype-v1'));check(()=>{assert.equal(saved.version,2);assert.equal(saved.lanes.a.phase,'card');assert.equal(saved.lanes.b.phase,'card');assert.notEqual(saved.lanes.a.round.id,saved.lanes.b.round.id);assert.deepEqual(saved.lanes.a.round.hand,first);});
-  await local.click('profile',{player:'a'});check(()=>{assert.equal(local.stage.dataset.rollRole,'card');assert.ok(local.html.includes('Six cartes face cachée'));});
+  await local.click('profile',{player:'a'});check(()=>{assert.equal(local.stage.dataset.rollRole,'card');assert.equal(local.stage.dataset.kind,'8');assert.doesNotMatch(local.html,/oa-card-grid/);});
  }
  // Either account can claim a truly idle category draw; only server availability grants it.
  {
@@ -344,7 +454,7 @@ async function rollSession(options={}){
    check(()=>{assert.equal(ui.stage.dataset.rollRole,['category','card','variant'][index]);assert.equal(ui.die.calls.at(-1),action.value);assert.ok(!ui.html.includes('data-action="send"'));assert.equal(ui.revealPending,0);});
    ui.finishDie();await tick();
    if(index===1){
-    check(()=>{assert.equal(ui.revealPending,1);assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title));assert.ok(ui.html.includes('Carte 5 choisie'));assert.equal((ui.html.match(/oa-card-ghost/g)||[]).length,5);assert.ok(!ui.html.includes('Tirer la variante'));});
+    check(()=>{assert.equal(ui.revealPending,1);assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title));assert.ok(ui.html.includes('Carte 5 choisie'));assert.equal((ui.html.match(/class="oa-slot-label">Carte<\/span>/g)||[]).length,5);assert.ok(!ui.html.includes('Tirer la variante'));});
     ui.finishReveal();
    }
    await work;game=next;
@@ -382,7 +492,7 @@ async function rollSession(options={}){
   let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)});game=copy(game);game.round.hand=game.round.hand.slice(0,4);assert.ok(G.validateState(game));
   const remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false});await tick();
   check(()=>{assert.equal(ui.stage.dataset.kind,'4');assert.equal(ui.stage.dataset.rollRole,'card');assert.ok(ui.html.includes('Quatre cartes face cachée'));assert.ok(!ui.html.includes('is-six'));assert.ok(ui.html.includes('Lancer le D4'));});
-  const selected=G.reduce(game,{type:'ROLL_CARD',value:4});remote.actionImpl=async()=>({...snap(selected,2),roll:{kind:4,value:4}});const work=ui.click('roll');await tick();check(()=>{assert.equal(ui.revealPending,1);assert.ok(ui.html.includes('Quatre emplacements, carte 4 choisie'));assert.equal((ui.html.match(/class="oa-card-ghost"/g)||[]).length,3);assert.deepEqual(ui.announcements,['D4 : 4. '+G.getCard(selected.round.cardId).title]);});ui.finishReveal();await work;
+  const selected=G.reduce(game,{type:'ROLL_CARD',value:4});remote.actionImpl=async()=>({...snap(selected,2),roll:{kind:4,value:4}});const work=ui.click('roll');await tick();check(()=>{assert.equal(ui.revealPending,1);assert.ok(ui.html.includes('Quatre emplacements, carte 4 choisie'));assert.equal((ui.html.match(/class="oa-slot-label">Carte<\/span>/g)||[]).length,3);assert.deepEqual(ui.announcements,['D4 : 4. '+G.getCard(selected.round.cardId).title]);});ui.finishReveal();await work;
   const values=new Map([['onde-couple-prototype-v1',JSON.stringify(selected)]]),local=shell(mockRemote(),{mode:false,storageValues:values,randomFace:1});await local.click('reroll');check(()=>{assert.deepEqual(local.rngSides,[3]);assert.deepEqual(local.die.calls,[1]);assert.ok(!local.html.includes('data-action="challenge-draft"'));assert.ok(!local.html.includes('data-action="reroll"'));});
  }
  // A durable pre-update category receipt resumes its original four-card hand.
@@ -391,7 +501,7 @@ async function rollSession(options={}){
    const category=G.getCategory(oldId,1),hand=G.legacyCards.filter(c=>c.categoryId===category.id).slice(0,6).map(c=>c.id);let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:category.number,hand});game=copy(game);game.round.hand=game.round.hand.slice(0,4);game.round.categoryId=oldId;game.round.categoryRoll=index+1;
    const remote=mockRemote(snap(initial())),ui=shell(remote,{motionAPI:true});await tick();remote.actionImpl=async()=>({...snap(game,2,0),roll:{kind:6,value:index+1}});await ui.click('roll');
    check(()=>{assert.equal(ui.toast.textContent,'');assert.deepEqual(ui.die.calls,[]);assert.equal(ui.revealPending,0);assert.equal(ui.motionAnimations.filter(a=>a.node===ui.canvas).length,0);assert.ok(ui.html.includes('Lancer le D4'));assert.ok(ui.html.includes('Quatre cartes face cachée'));assert.equal(ui.stage.dataset.rollRole,'card');assert.equal((ui.html.match(/aria-label="Carte [1-4] face cachée"/g)||[]).length,4);assert.equal(remote.calls.filter(c=>c.method==='action').length,1);});
-   const restored=G.normalizeState(game),next=G.reduce(restored,{type:'ROLL_CARD',value:4});remote.actionImpl=async()=>({...snap(next,3,0),roll:{kind:4,value:4}});await ui.click('roll');check(()=>{assert.deepEqual(ui.die.calls,[4]);assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title));assert.ok(ui.html.includes('Proposer à'));});
+   const restored=G.normalizeState(game),next=G.reduce(restored,{type:'ROLL_CARD',value:4});remote.actionImpl=async()=>({...snap(next,3,0),roll:{kind:4,value:4}});await ui.click('roll');check(()=>{assert.deepEqual(ui.die.calls,[4]);assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title));assert.ok(ui.html.includes('Ajouter aux Missions'));});
   }
  }
  // The compatibility path does not animate or silently accept a mismatched new receipt.
@@ -401,7 +511,7 @@ async function rollSession(options={}){
  // The first launch explains the game once, before login, without starting an action.
  {
   const remote=mockRemote(),ui=shell(remote,{welcomeSeen:false});const before=ui.writes;await tick();
-  for(const sentence of ['Les dés choisissent une idée à deux.','Propose-la, ou relance-la d’un geste.','Deux coches dans les 24 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
+  for(const sentence of ['Les dés choisissent une idée à deux.','Ta carte rejoint les Missions quand le tirage est terminé.','Deux coches dans les 24 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
   check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('C’est parti')));check(()=>assert.ok(!ui.html.includes('autocomplete="username"')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assert.equal(ui.help.hidden,true));
   await ui.click('roll');await ui.click('rules');await ui.submit('fixture-user','fixture-password');check(()=>assert.equal(remote.calls.filter(c=>['action','login'].includes(c.method)).length,0));check(()=>assert.equal(ui.sheet.hidden,true));
   await ui.click('welcome-start');check(()=>assert.equal(ui.values.get('desir-welcome-v1'),'1'));check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(!ui.html.includes('C’est parti')));
@@ -412,8 +522,8 @@ async function rollSession(options={}){
  {
   const remote=mockRemote(snap(initial())),ui=shell(remote,{welcomeSeen:false});await tick();const before=ui.writes;
   let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)});game=G.reduce(game,{type:'ROLL_CARD',value:1});remote.emit(snap(game,3));remote.emit();
-  check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('C’est parti')));check(()=>assert.ok(!hasTitle(ui.html,G.getCard(game.round.cardId).title)));check(()=>assert.equal(ui.persona.innerHTML,''));check(()=>assert.equal(ui.navigation.hidden,true));
-  await ui.click('welcome-start');check(()=>assert.ok(hasTitle(ui.html,G.getCard(game.round.cardId).title)));check(()=>assert.ok(ui.persona.innerHTML.includes('Personne A')));check(()=>assert.equal(ui.navigation.hidden,false));check(()=>assert.equal(remote.calls.filter(c=>c.method==='login'||c.method==='action').length,0));
+  check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('C’est parti')));check(()=>assert.ok(!hasTitle(ui.html,G.getCard(game.round.cardId).title)));check(()=>assertPrivateBanner(ui));check(()=>assert.equal(ui.navigation.hidden,true));
+  await ui.click('welcome-start');check(()=>assert.ok(hasTitle(ui.html,G.getCard(game.round.cardId).title)));check(()=>assertActiveBanner(ui,'a'));check(()=>assert.equal(ui.navigation.hidden,false));check(()=>assert.equal(remote.calls.filter(c=>c.method==='login'||c.method==='action').length,0));
   const reloaded=shell(mockRemote(snap(game,3)),{welcomeSeen:false,storageValues:ui.values});await tick();check(()=>assert.ok(reloaded.html.includes(G.getCard(game.round.cardId).title)));check(()=>assert.ok(!reloaded.html.includes('C’est parti')));
  }
  // Dismissing during a slow restore reveals its pending screen, then the recovered game.
@@ -431,20 +541,20 @@ async function rollSession(options={}){
   remote.restore=async()=>{throw Object.assign(new Error('Connexion interrompue.'),{code:'offline',isDesirRemoteError:true});};
   remote.refresh=async()=>{refreshes++;return snap(initial('b'));};
   const ui=shell(remote);await tick();
-  check(()=>{assert.ok(ui.html.includes('data-action="reconnect"'));assert.ok(!ui.html.includes('data-login-form'));assert.ok(!ui.html.includes('Lancer le D4'));assert.equal(ui.persona.innerHTML,'');});
+  check(()=>{assert.ok(ui.html.includes('data-action="reconnect"'));assert.ok(!ui.html.includes('data-login-form'));assert.ok(!ui.html.includes('Lancer le D4'));assertPrivateBanner(ui);});
   await ui.click('reconnect');
-  check(()=>{assert.equal(refreshes,1);assert.ok(ui.html.includes('Lancer le D4'));assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B'));assert.equal(remote.calls.filter(c=>c.method==='login').length,0);});
+  check(()=>{assert.equal(refreshes,1);assert.ok(ui.html.includes('Lancer le D4'));assertActiveBanner(ui,'b');assert.equal(remote.calls.filter(c=>c.method==='login').length,0);});
  }
  // A server-confirmed revocation during recovery replaces the retry view with the login form.
  {
   const remote=mockRemote(snap(initial('b')));remote.restore=async()=>{throw Object.assign(new Error('Connexion interrompue.'),{code:'offline',isDesirRemoteError:true});};
   const ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('data-action="reconnect"')));remote.revoke();
-  check(()=>{assert.ok(ui.html.includes('data-login-form'));assert.ok(!ui.html.includes('data-action="reconnect"'));assert.equal(ui.persona.innerHTML,'');});
+  check(()=>{assert.ok(ui.html.includes('data-login-form'));assert.ok(!ui.html.includes('data-action="reconnect"'));assertPrivateBanner(ui);});
  }
  // No local game or private identity is rendered while the login is required.
  {
-  const remote=mockRemote(),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(!ui.html.includes('Lancer le D4')));check(()=>assert.ok(!ui.html.includes('Personne A')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assert.equal(ui.persona.innerHTML,''));check(()=>assert.equal(ui.navigation.hidden,true));
-  let finish;remote.loginImpl=()=>new Promise(resolve=>finish=resolve);const work=ui.submit('fixture-user','fixture-password');await tick();check(()=>assert.equal(ui.password.value,''));check(()=>assert.ok(!Array.from(ui.values.values()).join('').includes('fixture-password')));check(()=>assert.ok(ui.html.includes('Connexion…')));finish(snap(initial()));await work;check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.ok(ui.persona.innerHTML.includes('Personne A')));check(()=>assert.ok(!ui.persona.innerHTML.includes('<button')));check(()=>assert.equal(ui.navigation.hidden,false));await ui.click('profile',{player:'b'});check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne A')));
+  const remote=mockRemote(),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(!ui.html.includes('Lancer le D4')));check(()=>assert.ok(!ui.html.includes('Personne A')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assertPrivateBanner(ui));check(()=>assert.equal(ui.navigation.hidden,true));
+  let finish;remote.loginImpl=()=>new Promise(resolve=>finish=resolve);const work=ui.submit('fixture-user','fixture-password');await tick();check(()=>assert.equal(ui.password.value,''));check(()=>assert.ok(!Array.from(ui.values.values()).join('').includes('fixture-password')));check(()=>assert.ok(ui.html.includes('Connexion…')));finish(snap(initial()));await work;check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assertActiveBanner(ui,'a'));check(()=>assert.ok(ui.persona.profileControls.every(control=>!control.isConnected)));check(()=>assert.equal(ui.navigation.hidden,false));await ui.click('profile',{player:'b'});check(()=>assertActiveBanner(ui,'a'));
  }
  // All 88 cards remain playable even if an old cached statistics module is still present and trapped.
  {
@@ -462,7 +572,7 @@ async function rollSession(options={}){
   const remote=mockRemote(roomSnapshot(room,'a')),ui=shell(remote);await tick();
   remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'SEND',roundId}));room=G.reduceRoom(room,{...action,actor:'a',at:new Date().toISOString(),directQueue:true});return roomSnapshot(room,'a',2);};
   await ui.click('send');
-  check(()=>{assert.ok(ui.html.includes('Les choses'));assert.ok(hasTitle(ui.html,G.getCard(room.tasks[0].cardId).title));assert.equal(room.tasks.length,1);assert.equal(room.pendingRounds.length,0);assert.equal(remote.snapshot.state.phase,'category');assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.doesNotMatch(ui.html,/data-action="(?:accept|pass|open-invitation|send-daily)"|Carte du jour|Refuser · D20/);assert.ok(ui.announcements.includes('Proposition ajoutée à À faire.'));assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===4000).length,0);});
+  check(()=>{assert.ok(ui.html.includes('Les choses'));assert.ok(hasTitle(ui.html,G.getCard(room.tasks[0].cardId).title));assert.equal(room.tasks.length,1);assert.equal(room.pendingRounds.length,0);assert.equal(remote.snapshot.state.phase,'category');assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.doesNotMatch(ui.html,/data-action="(?:accept|pass|open-invitation|send-daily)"|Carte du jour|Refuser · D20/);assert.ok(ui.announcements.includes('Proposition ajoutée aux Missions.'));assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===4000).length,0);});
   await ui.click('tab',{tab:'play'});check(()=>{assert.ok(ui.html.includes('Lancer le D4'));assert.doesNotMatch(ui.html,/Carte du jour|send-daily/);});
   const before=remote.calls.length;await ui.click('send-daily');check(()=>assert.equal(remote.calls.length,before));
  }
@@ -475,7 +585,7 @@ async function rollSession(options={}){
    const remote=mockRemote(snapshot('a')),ui=shell(remote);await tick();
    remote.actionImpl=async action=>{room=G.reduceRoom(room,{...action,actor:'a',at,...(action.type==='SEND'?{directQueue:true}:{})});revision++;return snapshot('a');};
    await ui.click('send');
-   check(()=>{assert.equal(room.tasks.length,1);assert.equal(room.pendingRounds.length,0);assert.equal(room.tasks[0].catalogueVersion,3);assert.equal(room.tasks[0].intimacyPool,pool);assert.equal(room.lanes.a.phase,'category');assert.ok(hasTitle(ui.html,card.title));assert.equal((ui.html.match(/data-task-check=/g)||[]).length,2);assert.equal(ui.html.includes('Intimité · Hardcore'),pool==='hardcore');assert.doesNotMatch(ui.html,/data-action="(?:accept|pass|hardcore-open|refuse-task)"/);if(detail)assert.ok(ui.html.includes(escapedText(detail)));else assert.ok(!ui.html.includes('oa-task-proposal'));});
+   check(()=>{assert.equal(room.tasks.length,1);assert.equal(room.pendingRounds.length,0);assert.equal(room.tasks[0].catalogueVersion,3);assert.equal(room.tasks[0].intimacyPool,pool);assert.equal(room.lanes.a.phase,'category');assert.ok(hasTitle(ui.html,card.title));assert.equal((ui.html.match(/data-task-check=/g)||[]).length,2);assert.equal(ui.html.includes('Braises · Hardcore'),pool==='hardcore');assert.doesNotMatch(ui.html,/data-action="(?:accept|pass|hardcore-open|refuse-task)"/);if(detail)assert.ok(ui.html.includes(escapedText(detail)));else assert.ok(!ui.html.includes('oa-task-proposal'));});
    const first=await ui.taskCheck(taskId,true);await first.promise;const firstSettle=ui.timers.findLast(timer=>timer.ms===1200&&timer.active);assert.ok(firstSettle);firstSettle.active=false;firstSettle.fn();
    check(()=>{assert.equal(room.tasks.length,1);assert.equal(room.tasks[0].checks.a,true);assert.equal(room.tasks[0].checks.b,false);assert.equal(room.stats.totalCompleted,0);});
    const otherRemote=mockRemote(snapshot('b')),other=shell(otherRemote);await tick();await other.click('tab',{tab:'tasks'});
@@ -505,7 +615,7 @@ async function rollSession(options={}){
    const work=ui.click('refuse-task',{task:taskId});await tick();
    check(()=>{assert.ok(ui.html.includes('Un D20'));assert.ok(ui.html.includes('Confirmation du refus…'));assert.equal(ui.stage.dataset.kind,'20');assert.equal(ui.die.calls.length,0);assert.equal(ui.rngCalls,0);});
    confirm();await tick();const rollingWrites=ui.writes;
-   check(()=>{assert.deepEqual(ui.die.calls,[face]);assert.deepEqual(ui.die.visible,[true]);assert.ok(ui.html.includes('data-roll-role="refusal"'));assert.equal(ui.rollStatus.textContent,'Le dé roule…');assert.equal(ui.interrupted,0);assert.equal(ui.rngCalls,0);});
+   check(()=>{assert.deepEqual(ui.die.calls,[face]);assert.deepEqual(ui.die.visible,[true]);assert.ok(ui.html.includes('data-roll-role="refusal"'));assert.ok(!ui.rollStatus.textContent);assert.equal(ui.interrupted,0);assert.equal(ui.rngCalls,0);});
    const same=roomSnapshot(room,'b',3);remote.emit(same);check(()=>assert.equal(ui.writes,rollingWrites));
    ui.finishDie();await work;
    check(()=>{assert.ok(ui.html.includes('Rien en attente.'));assert.equal(room.tasks.length,0);assert.equal(room.stats.totalCompleted,before.stats.totalCompleted);assert.deepEqual(room.stats,before.stats);assert.deepEqual(room.lanes,before.lanes);assert.equal(remote.snapshot.quota.remaining,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.equal(ui.interrupted,0);assert.ok(ui.announcements.includes('D20 : '+face+'. Carte refusée, sans pénalité.'));assert.equal(ui.rngCalls,0);});
@@ -523,7 +633,7 @@ async function rollSession(options={}){
   let room=roomDraw(G.createRoom(),'a');const taskId=room.lanes.a.round.id;room=G.reduceRoom(room,{type:'SEND',directQueue:true,roundId:taskId,actor:'a',at:new Date().toISOString()});
   const remote=mockRemote(roomSnapshot(room,'b')),ui=shell(remote,{delayedDie:true});await tick();await ui.click('tab',{tab:'tasks'});remote.actionImpl=async action=>{room=G.reduceRoom(room,{...action,actor:'b',value:20,at:new Date().toISOString()});return {...roomSnapshot(room,'b',2),roll:{kind:20,value:20}};};
   const work=ui.click('refuse-task',{task:taskId});await tick();remote.revoke();ui.finishDie();await work;
-  check(()=>{assert.ok(ui.html.includes('autocomplete="current-password"'));assert.doesNotMatch(ui.html,/data-stage|data-task-check|Refuser · D20/);assert.equal(ui.navigation.hidden,true);assert.equal(ui.persona.innerHTML,'');});
+  check(()=>{assert.ok(ui.html.includes('autocomplete="current-password"'));assert.doesNotMatch(ui.html,/data-stage|data-task-check|Refuser · D20/);assert.equal(ui.navigation.hidden,true);assertPrivateBanner(ui);});
  }
  // The local demo uses the same direct queue and refusal reducer, with one D20 only.
  {
@@ -540,15 +650,16 @@ async function rollSession(options={}){
   check(()=>{assert.equal(ui.writes,writes);assert.equal(ui.grid,grid);assert.equal(ui.stage,stage);assert.equal(ui.canvas.parentElement,stage);assert.equal(ui.motionAnimations.filter(animation=>animation.node===grid).length,0);});
   const css=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-ui.html'),'utf8');check(()=>{assert.doesNotMatch(css,/\.oa-entering \.oa-mini-card\s*\{/);assert.match(css,/\.oa-mini-card\{animation:none;isolation:isolate\}/);});
  }
- // The collection shows five latest awards by stable sequence and all 90 accessible goals on demand.
+ // The collection shows five latest awards by stable sequence and all 120 accessible goals on demand.
  {
   const ids=[0,5,10,30,31,32,39].map(index=>G.badgeCatalog[index].id),view=badgeFixture('a',ids,{imported:[ids.at(-1)]});view.items[4].progress.value=17;
   const remote=mockRemote(badgeSnapshot(view)),ui=shell(remote,{mobileScroll:true});await tick();await ui.click('tab',{tab:'us'});
-  check(()=>{assert.deepEqual(badgeIds(ui.html),ids.slice(-5).reverse());assert.ok(ui.html.includes('7 / 90'));assert.ok(ui.html.includes('Tout afficher'));assert.equal(ui.badgeNotice.hidden,true);assert.equal(ui.badgeAnnouncement.textContent,'');assert.doesNotMatch(ui.html,/Invalid Date|null|undefined/);assert.equal(seenBadges(ui).value.seen.length,7);});
+  check(()=>{assert.deepEqual(badgeIds(ui.html),ids.slice(-5).reverse());assert.ok(ui.html.includes('7 / 120'));assert.ok(ui.html.includes('Tout afficher'));assert.equal(ui.badgeNotice.hidden,true);assert.equal(ui.badgeAnnouncement.textContent,'');assert.doesNotMatch(ui.html,/Invalid Date|null|undefined/);assert.equal(seenBadges(ui).value.seen.length,7);});
   ui.main.scrollTop=275;ui.button('badges-all').focus();await ui.click('badges-all');
-  check(()=>{assert.equal(ui.sheet.hidden,false);assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,90);assert.ok(ui.badgeCollection.innerHTML.includes('À débloquer'));assert.ok(ui.badgeCollection.innerHTML.includes('17 / 75'));assert.ok(ui.badgeCollection.innerHTML.includes('data-action="badge-detail"'));assert.equal(ui.activeElement,ui.closeButton);assert.equal(ui.main.inert,true);});
+  check(()=>{assert.equal(ui.sheet.hidden,false);assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,120);assert.ok(ui.badgeCollection.innerHTML.includes('À débloquer'));assert.ok(ui.badgeCollection.innerHTML.includes('17 / 75'));assert.ok(ui.badgeCollection.innerHTML.includes('data-action="badge-detail"'));assert.equal(ui.activeElement,ui.closeButton);assert.equal(ui.main.inert,true);});
+  for(const theme of ['Cocon','Offrandes','Aventures','Braises'])assert.ok(ui.badgeCollection.innerHTML.includes('défis '+theme+' validés à deux.'));
   await ui.click('badge-filter',{scope:'individual'});check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,30);assert.ok(badgeIds(ui.badgeCollection.innerHTML).every(id=>id.startsWith('ind-')));assert.ok(ui.badgeCollection.innerHTML.includes('data-scope="individual" aria-pressed="true"'));});
-  await ui.click('badge-filter',{scope:'shared'});check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,60);assert.ok(badgeIds(ui.badgeCollection.innerHTML).every(id=>id.startsWith('duo-')));});
+  await ui.click('badge-filter',{scope:'shared'});check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,90);assert.ok(badgeIds(ui.badgeCollection.innerHTML).every(id=>id.startsWith('duo-')));});
   ui.closeButton.focus();await ui.key('keydown','Tab',{noFocus:true,shiftKey:true});check(()=>assert.equal(ui.activeElement,[...ui.badgeTiles.values()].at(-1)));
   await ui.key('keydown','Escape',{noFocus:true});check(()=>{assert.equal(ui.sheet.hidden,true);assert.equal(ui.main.scrollTop,275);assert.equal(ui.activeElement,ui.button('badges-all'));assert.equal(ui.main.inert,false);});
  }
@@ -556,7 +667,7 @@ async function rollSession(options={}){
  {
   const id=G.badgeCatalog[4].id,view=badgeFixture();view.items[4].progress.value=17;
   const remote=mockRemote(badgeSnapshot(view)),ui=shell(remote,{mobileScroll:true});await tick();await ui.click('tab',{tab:'us'});ui.button('badges-all').focus();await ui.click('badges-all');
-  check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,90);assert.equal((ui.badgeCollection.innerHTML.match(/<svg\b/g)||[]).length,90);assert.equal(new Set(ui.artCalls.filter(call=>call.instance==='collection').map(call=>call.id)).size,90);assert.ok(ui.artCalls.filter(call=>call.instance==='collection').every(call=>call.locked));assert.doesNotMatch(ui.badgeCollection.innerHTML,/oa-achievement-icon|<image\b|<img\b/);assert.ok(ui.badgeCollection.innerHTML.includes(escapedText(G.badgeCatalog[4].description)));});
+  check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,120);assert.equal((ui.badgeCollection.innerHTML.match(/<svg\b/g)||[]).length,120);assert.equal(new Set(ui.artCalls.filter(call=>call.instance==='collection').map(call=>call.id)).size,120);assert.ok(ui.artCalls.filter(call=>call.instance==='collection').every(call=>call.locked));assert.doesNotMatch(ui.badgeCollection.innerHTML,/oa-achievement-icon|<image\b|<img\b/);assert.ok(ui.badgeCollection.innerHTML.includes(escapedText(G.badgeCatalog[4].description)));});
   await ui.click('badge-filter',{scope:'individual'});ui.dialog.scrollTop=410;ui.badgeTiles.get(id).focus();await ui.click('badge-detail',{badge:id});
   check(()=>{assert.equal(ui.sheet.hidden,false);assert.ok(ui.badgeCollection.innerHTML.includes('data-badge-detail="'+id+'"'));assert.ok(ui.badgeCollection.innerHTML.includes('data-badge-instance="detail"'));assert.ok(ui.badgeCollection.innerHTML.includes(escapedText(G.badgeCatalog[4].description)));assert.ok(ui.badgeCollection.innerHTML.includes('aria-valuemax="75" aria-valuenow="17"'));assert.equal(ui.dialog.scrollTop,0);assert.equal(ui.activeElement,ui.badgeHeading);assert.ok(!ui.badgeCollection.innerHTML.includes('data-action="badge-filter"'));});
   ui.dialog.scrollTop=120;const changed=copy(view);changed.items[4].progress.value=21;remote.emit(badgeSnapshot(changed,'a',2));
@@ -584,17 +695,17 @@ async function rollSession(options={}){
   check(()=>{assert.equal(ui.badgeNotice.hidden,false);assert.ok(ui.badgeNotice.innerHTML.includes('data-badge-medallion="'+fresh+'"'));assert.ok(!ui.badgeNotice.innerHTML.includes('data-badge-medallion="'+imported+'"'));});
   await ui.click('badge-dismiss');const restored=shell(mockRemote(badgeSnapshot(latest)),{storageValues:ui.values});await tick();check(()=>{assert.equal(restored.badgeNotice.hidden,true);assert.equal(seenBadges(restored).value.seen.length,3);});
  }
- // A new medal animates once without fading, fetching an image or stealing focus; suspension never replays it.
+ // A new medal pulses twice without fetching an image or stealing focus; suspension never replays it.
  {
   const id=G.badgeCatalog[0].id,remote=mockRemote(badgeSnapshot(badgeFixture())),ui=shell(remote,{motionAPI:true});await tick();ui.button().focus();
   const gained=badgeFixture('a',[id]);remote.emit(badgeSnapshot(gained,'a',2));
   const animations=ui.motionAnimations.filter(animation=>animation.node===ui.badgeMedal),markup=ui.badgeNotice.innerHTML,writes=ui.badgeWrites;
-  check(()=>{assert.equal(animations.length,1);assert.equal(animations[0].options.duration,520);assert.ok(animations[0].keyframes.every(frame=>!Object.hasOwn(frame,'opacity')&&!Object.hasOwn(frame,'filter')));assert.equal(ui.activeElement,ui.button());assert.equal(ui.main.inert,false);assert.doesNotMatch(markup,/aria-modal|<img\b|<image\b/);assert.ok(markup.includes('<svg'));});
+  check(()=>{assert.equal(animations.length,1);assert.equal(animations[0].options.duration,1000);assert.equal(animations[0].keyframes.filter(frame=>frame.filter?.includes('brightness')).length,2);assert.equal(ui.activeElement,ui.button());assert.equal(ui.main.inert,false);assert.doesNotMatch(markup,/aria-modal|<img\b|<image\b/);assert.ok(markup.includes('<svg'));});
   remote.emit(badgeSnapshot(gained,'a',3));ui.documentEvent('visibilitychange',{hidden:true});ui.documentEvent('visibilitychange',{hidden:false});
   check(()=>{assert.equal(animations[0].cancelled,true);assert.equal(ui.badgeWrites,writes);assert.equal(ui.badgeNotice.innerHTML,markup);assert.equal(ui.motionAnimations.filter(animation=>animation.node===ui.badgeMedal).length,1);assert.equal(ui.activeElement,ui.button());});
   await ui.click('tab',{tab:'us'});await ui.click('badges-all');
   const all=ui.html+ui.badgeCollection.innerHTML+ui.badgeNotice.innerHTML,svgIds=[...all.matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]);
-  check(()=>{assert.equal(new Set(svgIds).size,svgIds.length);assert.ok(svgIds.length>90);assert.ok(ui.artCalls.some(call=>call.instance==='notice'));assert.ok(ui.artCalls.some(call=>call.instance==='recent'));assert.ok(ui.artCalls.some(call=>call.instance==='collection'));});
+  check(()=>{assert.equal(new Set(svgIds).size,svgIds.length);assert.equal((all.match(/data-constellation=/g)||[]).length,122);assert.ok(ui.artCalls.some(call=>call.instance==='notice'));assert.ok(ui.artCalls.some(call=>call.instance==='recent'));assert.ok(ui.artCalls.some(call=>call.instance==='collection'));});
  }
  // A runtime reduced-motion change stops the medal effect and leaves its finished artwork in place.
  {
@@ -659,11 +770,11 @@ async function rollSession(options={}){
  // Popup lifetime pauses on hover/focus and resume, without focus stealing or a second announcement.
  {
   const id=G.badgeCatalog[0].id,remote=mockRemote(badgeSnapshot(badgeFixture())),ui=shell(remote,{reduced:true,motionAPI:true});await tick();ui.button().focus();remote.emit(badgeSnapshot(badgeFixture('a',[id]),'a',2));const text=ui.badgeAnnouncement.textContent,writes=ui.badgeWrites;
-  ui.advance(2000);ui.noticeEvent('mouseenter');check(()=>assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===8000).length,0));
-  ui.button('badge-dismiss').focus();ui.noticeEvent('focusin',{relatedTarget:ui.button()});ui.noticeEvent('mouseleave');check(()=>assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===6000).length,0));
+  ui.advance(800);ui.noticeEvent('mouseenter');check(()=>assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===2600).length,0));
+  ui.button('badge-dismiss').focus();ui.noticeEvent('focusin',{relatedTarget:ui.button()});ui.noticeEvent('mouseleave');check(()=>assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===1800).length,0));
   ui.button().focus();ui.noticeEvent('focusout',{relatedTarget:ui.button()});
-  check(()=>{assert.ok(ui.timers.some(timer=>timer.active&&timer.ms===6000));assert.equal(ui.badgeAnnouncement.textContent,text);assert.equal(ui.badgeWrites,writes);assert.equal(ui.motionAnimations.length,0);assert.equal(ui.activeElement,ui.button());});
-  const timer=ui.timers.findLast(timer=>timer.active&&timer.ms===6000);timer.active=false;timer.fn();check(()=>assert.equal(ui.badgeNotice.hidden,true));
+  check(()=>{assert.ok(ui.timers.some(timer=>timer.active&&timer.ms===1800));assert.equal(ui.badgeAnnouncement.textContent,text);assert.equal(ui.badgeWrites,writes);assert.equal(ui.motionAnimations.length,0);assert.equal(ui.activeElement,ui.button());});
+  const timer=ui.timers.findLast(timer=>timer.active&&timer.ms===1800);timer.active=false;timer.fn();check(()=>assert.equal(ui.badgeNotice.hidden,true));
  }
  // Missing badge metadata keeps the current account's validated collection.
  {
@@ -703,7 +814,7 @@ async function rollSession(options={}){
  {
   for(const [at,tickets,face] of [['2026-11-02T12:00:00.000Z',42,2],['2026-11-07T12:00:00.000Z',155,4]]){
    const ui=shell(mockRemote(),{mode:false,clockAt:at,randomFace:n=>n===155?63:n===42?12:1});await ui.click('roll');
-   check(()=>{assert.deepEqual(copy(ui.categoryCalls),[{version:3,at}]);assert.equal(ui.rngSides[0],tickets);assert.equal(ui.die.calls[0],face);assert.equal(ui.localActions.find(action=>action.type==='ROLL_CATEGORY').at,at);});
+   check(()=>{assert.deepEqual(copy(ui.categoryCalls),[{version:G.currentCatalogueVersion,at}]);assert.equal(ui.rngSides[0],tickets);assert.equal(ui.die.calls[0],face);assert.equal(ui.localActions.find(action=>action.type==='ROLL_CATEGORY').at,at);});
    await ui.click('reroll-category');check(()=>{assert.equal(ui.categoryCalls.length,2);assert.equal(ui.categoryCalls[1].at,at);assert.equal(ui.localActions.find(action=>action.type==='REROLL_CATEGORY').at,at);assert.equal(ui.rngSides.filter(sides=>sides===tickets).length,2);});
   }
  }
@@ -712,7 +823,7 @@ async function rollSession(options={}){
   const remote=mockRemote(snap(initial())),ui=shell(remote,{delayedDie:true});await tick();
   const next=drawCurrent();
   remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',catalogueVersion:3,roundId:'onde-1'}));return {...snap(next,2,0),roll:{kind:4,value:2}};};
-  const before=ui.writes,work=ui.click('roll');await tick();check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Plaisirs')));check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.interrupted,0));
+  const before=ui.writes,work=ui.click('roll');await tick();check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Offrandes')));check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.interrupted,0));
  }
  // The category D4 hands off only after its confirmed face settles; the six slots never translate or stagger.
  {
@@ -757,8 +868,8 @@ async function rollSession(options={}){
  }
  // The local demo uses the same visual handoff and persists only the regular card phase.
  {
-  const ui=shell(mockRemote(),{mode:false,motionAPI:true,randomFace:2});await ui.click('roll');const saved=G.roomView(JSON.parse(ui.values.get('onde-couple-prototype-v1')),'a');
-  check(()=>{assert.equal(ui.motionAnimations.filter(a=>a.node===ui.canvas).length,1);assert.equal(saved.phase,'card');assert.equal(G.validateState(saved),true);assert.ok(!Object.hasOwn(saved,'contentTransitions'));assert.equal((ui.html.match(/aria-label="Carte [1-6] face cachée"/g)||[]).length,6);});
+  const ui=shell(mockRemote(),{mode:false,motionAPI:true,randomFace:12});await ui.click('roll');const saved=G.roomView(JSON.parse(ui.values.get('onde-couple-prototype-v1')),'a');
+  check(()=>{assert.equal(ui.motionAnimations.filter(a=>a.node===ui.canvas).length,1);assert.equal(saved.phase,'card');assert.equal(G.validateState(saved),true);assert.ok(!Object.hasOwn(saved,'contentTransitions'));assert.equal(ui.stage.dataset.kind,'8');assert.doesNotMatch(ui.html,/oa-card-grid/);});
  }
  // Holding changes only visual power, caps its work, and cannot add a second native click roll.
  {
@@ -769,7 +880,7 @@ async function rollSession(options={}){
   const tap=await rollSession();await tap.ui.pointer('pointerdown');await tap.ui.pointer('pointerup');await tap.ui.click('roll',{},1);check(()=>assert.equal(tap.remote.calls.filter(c=>c.method==='action').length,1));check(()=>assert.equal(tap.ui.die.options[0].power,0));
   const enter=await rollSession();await enter.ui.key('keydown','Enter');await enter.ui.click('roll');check(()=>assert.equal(enter.ui.die.options[0].power,0));
   const space=await rollSession();await space.ui.key('keydown');space.ui.advance(300);await space.ui.key('keydown',' ',{repeat:true});space.ui.advance(300);await space.ui.key('keyup');await space.ui.click('roll');check(()=>assert.equal(space.remote.calls.filter(c=>c.method==='action').length,1));check(()=>assert.equal(space.ui.die.options[0].power,.5));
-  const canvas=await rollSession();await canvas.ui.releaseCanvas(.7);check(()=>assert.equal(canvas.ui.die.options[0].power,.7));
+  check(()=>{assert.equal(tap.ui.diceInteractive,false);assert.match(tap.ui.html,/data-roll-role="card"><button type="button" class="oa-die-hit/);});
  }
  // Cancellation remains effective even if the finger stays down for seconds after the cancelled gesture.
  {
@@ -794,7 +905,7 @@ async function rollSession(options={}){
  }
  // Waiting for the server is distinct from the animation, and power never enters the action payload.
  {
-  const {remote,ui}=await rollSession({delayedDie:true});let reply;remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',catalogueVersion:3,roundId:'onde-1'}));return new Promise(resolve=>reply=()=>{const game=drawCurrent();resolve({...snap(game,2,0),roll:{kind:4,value:2}});});};await ui.pointer('pointerdown');ui.advance(600);const work=ui.pointer('pointerup');await tick();check(()=>assert.equal(ui.button().textContent,'Tirage…'));check(()=>assert.equal(ui.die.calls.length,0));reply();await tick();check(()=>assert.equal(ui.button().textContent,'Le dé roule…'));check(()=>assert.equal(ui.die.options[0].power,.5));ui.finishDie();await work;await ui.click('roll',{},1);check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
+  const {remote,ui}=await rollSession({delayedDie:true});let reply;remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',catalogueVersion:3,roundId:'onde-1'}));return new Promise(resolve=>reply=()=>{const game=drawCurrent();resolve({...snap(game,2,0),roll:{kind:4,value:2}});});};await ui.pointer('pointerdown');ui.advance(600);const work=ui.pointer('pointerup');await tick();check(()=>assert.equal(ui.button()['aria-busy'],'true'));check(()=>assert.equal(ui.die.calls.length,0));reply();await tick();check(()=>assert.equal(ui.button()['aria-busy'],'true'));check(()=>assert.equal(ui.die.options[0].power,.5));ui.finishDie();await work;await ui.click('roll',{},1);check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
  }
  // Network actions have immediate waiting feedback and preserve disabled controls until acknowledgement.
  {
@@ -826,7 +937,9 @@ async function rollSession(options={}){
   check(()=>{assert.ok(ui.html.includes('VOTRE SCORE À DEUX'));assert.ok(!ui.html.includes('oa-score-grid'));});
   await ui.click('tab',{tab:'info'});
   const rows=Array.from(ui.html.matchAll(/class="oa-score-label"><i aria-hidden="true"><\/i>([^<]+)<\/span><strong>(\d+)<\/strong>/g),row=>row.slice(1));
-  check(()=>assert.deepEqual(rows,[['Complicité','3'],['Plaisirs','7'],['Projets','3'],['Intimité','1']]));
+  check(()=>assert.deepEqual(rows,[['Cocon','3'],['Offrandes','7'],['Aventures','3'],['Braises','1']]));
+  const overview=ui.html.match(/<section class="oa-info-card oa-info-summary"[^>]*>[\s\S]*?<\/section>/)[0];
+  check(()=>{assert.match(overview,/Série en cours[\s\S]*Tirages du jour[\s\S]*Vos cartes partagées[\s\S]*Deux oui en 24 h[\s\S]*\+1 point/);assert.doesNotMatch(overview,/Tirages de thème|Propositions envoyées|Mes dernières cartes tirées|Chacun peut dire non/);});
  }
  // Info displays the personal quota, including exhaustion and renewal, as three dots.
  {
@@ -849,7 +962,7 @@ async function rollSession(options={}){
   remote.emit({...base,activity,serverTime:'2026-11-09T23:01:00.000Z'});
   check(()=>assert.match(ui.html,/class="oa-info-streak-count">0<\/b><small>jour<\/small><\/strong><span>Série en cours<\/span>/));
  }
- // Info shows the authenticated actor's own draw history and updates after a proposal.
+ // Info stays compact while a private draw exists and after it is proposed.
  {
   const at='2026-11-08T12:00:00.000Z';
   let room=roomDrawCurrent(G.createRoom(),'a','classic',at);
@@ -857,22 +970,22 @@ async function rollSession(options={}){
   const ownCard=G.getCard(room.lanes.a.round.cardId),otherCard=G.getCard(room.lanes.b.round.cardId);
   const snapshot=(revision)=>({...roomSnapshot(room,'a',revision),badges:G.badgeView(room,'a')});
   const remote=mockRemote(snapshot(1)),ui=shell(remote);await tick();await ui.click('tab',{tab:'info'});
-  check(()=>{assert.ok(ui.html.includes(escapedText(ownCard.title)));assert.ok(!ui.html.includes(escapedText(otherCard.title)));assert.match(ui.html,/<strong>1<\/strong><span>Tirages de thème/);assert.match(ui.html,/<strong>0<\/strong><span>Propositions envoyées/);});
+  check(()=>{assert.doesNotMatch(ui.html,/Mes dernières cartes tirées|data-info-recent/);assert.ok(!ui.html.includes(escapedText(ownCard.title)));assert.ok(!ui.html.includes(escapedText(otherCard.title)));});
   room=G.reduceRoom(room,{type:'SEND',at,actor:'a',roundId:room.lanes.a.round.id,directQueue:true});
   remote.emit(snapshot(2));
-  check(()=>{assert.match(ui.html,/<strong>1<\/strong><span>Propositions envoyées/);assert.equal(ui.html.split(escapedText(ownCard.title)).length,2);assert.ok(!ui.html.includes(escapedText(otherCard.title)));});
+  check(()=>{assert.ok(!ui.html.includes(escapedText(ownCard.title)));assert.ok(!ui.html.includes(escapedText(otherCard.title)));});
  }
  // Only the highest earned grade is shown; future and previous grade names stay out of the DOM.
  {
-  const levels=[[5,'Couple complice'],[8,'Duo accordé'],[10,'Couple stable'],[12,'Couple soudé'],[15,'Super couple'],[20,'Duo inséparable'],[25,'Couple remarquable'],[30,'Couple légendaire'],[35,'Duo d’exception'],[40,'Couple iconique'],[45,'Duo mythique'],[50,'Couple éternel']];
-  for(const total of [0,4,5,7,8,10,12,15,20,25,30,35,40,45,49,50,51,95]){
+  const levels=G.gradeLevels;
+  for(const total of [0,4,5,7,8,10,12,15,20,25,30,35,40,45,49,50,51,95,499,500,501]){
    const remote=mockRemote(snap(scored(total))),ui=shell(remote);await tick();const keys=Array.from(ui.values.keys());await ui.click('tab',{tab:'us'});const section=gradeSection(ui.html),got=gradeProgress(ui.html),current=levels.filter(g=>g[0]<=total).at(-1),next=levels.find(g=>g[0]>total);
-   check(()=>{assert.equal(got.points,current?.[0]||null);assert.equal((section.match(/<article\b/g)||[]).length,current?1:0);assert.deepEqual(levels.filter(g=>section.includes(g[1])).map(g=>g[1]),current?[current[1]]:[]);assert.equal(got.max,next?next[0]-(current?.[0]||0):50);assert.equal(got.value,next?total-(current?.[0]||0):50);assert.ok(!/<(?:button|input)\b|data-action=/.test(section));assert.ok(ui.html.indexOf('class="oa-shared-score"')<ui.html.indexOf('class="oa-grade-area'));assert.ok(!ui.html.includes('class="oa-score-grid"'));if(!current)assert.ok(section.includes('Premier grade à 5 points'));else if(next)assert.ok(section.includes((next[0]-total)+' point'));else assert.ok(section.includes('Grade maximal atteint.'));assert.equal(ui.gradeAnimations.length,0);assert.deepEqual(Array.from(ui.values.keys()),keys);assert.equal(remote.calls.filter(c=>c.method==='action').length,0);});
+   check(()=>{assert.equal(got.points,current?.[0]||null);assert.equal((section.match(/<article\b/g)||[]).length,current?1:0);assert.deepEqual(levels.filter(g=>section.includes(g[1])).map(g=>g[1]),current?[current[1]]:[]);assert.equal(got.max,next?next[0]-(current?.[0]||0):500);assert.equal(got.value,next?total-(current?.[0]||0):500);assert.ok(!/<(?:button|input)\b|data-action=/.test(section));assert.ok(ui.html.indexOf('class="oa-shared-score"')<ui.html.indexOf('class="oa-grade-area'));assert.ok(!ui.html.includes('class="oa-score-grid"'));if(!current)assert.ok(section.includes('Premier grade à 5 points'));else if(next)assert.ok(section.includes((next[0]-total)+' point'));else assert.ok(section.includes('Grade maximal atteint.'));assert.equal(ui.gradeAnimations.length,0);assert.deepEqual(Array.from(ui.values.keys()),keys);assert.equal(remote.calls.filter(c=>c.method==='action').length,0);});
   }
  }
  // A grade replaces its predecessor once at a crossing, never on polls, tab changes, reload, or another identity.
  {
-  const remote=mockRemote(snap(scored(4))),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});remote.emit(snap(scored(5),2));const earned=gradeSection(ui.html);check(()=>assert.equal(ui.gradeAnimations.length,1));remote.emit();remote.emit(snap(scored(6),3));check(()=>assert.equal(ui.gradeAnimations.length,1));remote.emit(snap(scored(8),4));check(()=>assert.equal(ui.gradeAnimations.length,2));check(()=>assert.ok(!gradeSection(ui.html).includes('Couple complice')));remote.emit(snap(scored(5),2));check(()=>assert.equal(gradeProgress(ui.html).points,8));await ui.click('tab',{tab:'play'});await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.gradeAnimations.length,2));
+  const remote=mockRemote(snap(scored(4))),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});remote.emit(snap(scored(5),2));const earned=gradeSection(ui.html);check(()=>assert.equal(ui.gradeAnimations.length,1));remote.emit();remote.emit(snap(scored(6),3));check(()=>assert.equal(ui.gradeAnimations.length,1));remote.emit(snap(scored(10),4));check(()=>assert.equal(ui.gradeAnimations.length,2));check(()=>assert.ok(!gradeSection(ui.html).includes('Couple complice')));remote.emit(snap(scored(5),2));check(()=>assert.equal(gradeProgress(ui.html).points,10));await ui.click('tab',{tab:'play'});await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.gradeAnimations.length,2));
   const other=shell(mockRemote(snap(scored(5,'b'),2)));await tick();await other.click('tab',{tab:'us'});check(()=>assert.equal(gradeSection(other.html),earned));check(()=>assert.equal(other.gradeAnimations.length,0));
   const reloaded=shell(mockRemote(snap(scored(5),2)),{storageValues:ui.values});await tick();await reloaded.click('tab',{tab:'us'});check(()=>assert.equal(gradeSection(reloaded.html),earned));check(()=>assert.equal(reloaded.gradeAnimations.length,0));
   const reducedRemote=mockRemote(snap(scored(4))),still=shell(reducedRemote,{reduced:true});await tick();await still.click('tab',{tab:'us'});reducedRemote.emit(snap(scored(5),2));check(()=>assert.equal(still.gradeAnimations.length,0));check(()=>assert.equal(gradeProgress(still.html).points,5));
@@ -880,14 +993,14 @@ async function rollSession(options={}){
  // A remote reroll visibly mounts the D6 before the network reply and reveals only after its animation.
  {
   const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote,{delayedDie:true});await tick();check(()=>assert.ok(ui.html.includes('Relancer la carte')));let resolveAction;const next=G.reduce(game,{type:'REROLL_CARD',value:2});remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'REROLL_CARD',roundId:game.round.id}));return new Promise(resolve=>resolveAction=()=>resolve({...snap(next,2),roll:{kind:6,value:2}}));};
-  const work=ui.click('reroll');await tick();check(()=>assert.equal(ui.diceVisible,true));check(()=>{assert.ok(ui.html.includes('class="oa-roll-status" data-roll-status role="status" aria-busy="true"'));assert.ok(!ui.html.includes('data-action="roll"'));assert.equal(ui.rollStatus.textContent,'Tirage…');assert.equal(ui.rollStatus['aria-busy'],'true');assert.equal(ui.rollStatus.disabled,false);});check(()=>assert.ok(ui.html.includes('Le D6')));check(()=>assert.ok(ui.controls.filter(c=>c.dataset.action!=='badge-dismiss').every(c=>c.disabled)));await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));resolveAction();await tick();check(()=>assert.equal(ui.rollStatus.textContent,'Le dé roule…'));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.deepEqual(ui.die.visible,[true]));check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.ok(!hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(!ui.html.includes('data-roll-status')));check(()=>assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.ok(!ui.html.includes('Relancer la carte')));check(()=>assert.ok(!ui.html.includes('data-action="challenge-draft"')));check(()=>assert.ok(ui.html.includes('Proposer à')));await ui.click('reroll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
+  const work=ui.click('reroll');await tick();check(()=>assert.equal(ui.diceVisible,true));check(()=>{assert.match(ui.html,/class="oa-die-readout" data-roll-status role="status" aria-busy="true"><\/p>/);assert.ok(!ui.html.includes('data-action="roll"'));assert.equal(ui.rollStatus.disabled,false);});check(()=>assert.ok(ui.html.includes('02 / UNE AUTRE CARTE')));check(()=>assert.ok(ui.controls.filter(c=>c.dataset.action!=='badge-dismiss').every(c=>c.disabled)));await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));resolveAction();await tick();check(()=>assert.ok(!ui.rollStatus.textContent));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.deepEqual(ui.die.visible,[true]));check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.ok(!hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(!ui.html.includes('data-roll-status')));check(()=>assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title)));check(()=>assert.ok(!ui.html.includes('Relancer la carte')));check(()=>assert.ok(!ui.html.includes('data-action="challenge-draft"')));check(()=>assert.ok(ui.html.includes('Ajouter aux Missions')));await ui.click('reroll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
  }
  // Every selected D6 slot is revealed only after the confirmed die, then replaced by its full invitation.
  {
   for(const reroll of [false,true])for(const face of [1,2,3,4,5,6]){
    const oldFace=face%6+1,game=reroll?draftGame('a',oldFace):G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false,delayedDie:true,evidenceTrap:true,mobileScroll:true});await tick();const actionType=reroll?'REROLL_CARD':'ROLL_CARD',next=G.reduce(game,{type:actionType,value:face}),chosen=G.getCard(next.round.cardId);remote.actionImpl=async action=>{assert.deepEqual(copy(action),{type:actionType,roundId:game.round.id});return {...snap(next,2),roll:{kind:6,value:face}};};const work=ui.click(reroll?'reroll':'roll');await tick();
    check(()=>{assert.ok(!hasTitle(ui.html,chosen.title));assert.ok(!ui.html.includes('data-reveal-selected'));assert.equal(ui.revealPending,0);assert.equal(ui.announcements.filter(text=>text.includes(chosen.title)).length,0);});
-   ui.finishDie();await tick();check(()=>{assert.ok(ui.html.includes('oa-card-revealed'));assert.equal(ui.html.includes('is-first-reveal'),!reroll);assert.ok(ui.html.includes('data-reveal-selected aria-label="Carte '+face+' choisie"'));assert.ok(ui.html.includes('<h3>'+chosen.title+'</h3>'));assertNoEvidence(ui.html);assert.ok(!ui.html.includes('oa-playing-card'));assert.ok(!ui.html.includes('oa-card-note'));assert.ok(!ui.html.includes('data-action='));assert.equal((ui.html.match(/class="oa-card-ghost"/g)||[]).length,reroll?4:5);for(const id of game.round.hand.filter(id=>id!==chosen.id&&(!reroll||id!==game.round.cardId)))assert.ok(!hasTitle(ui.html,G.getCard(id).title));if(reroll)assert.ok(ui.html.includes('Carte '+oldFace+' écartée : '+G.getCard(game.round.cardId).title));assert.equal(ui.revealPending,1);assert.equal(ui.timers.findLast(timer=>timer.ms===900).scrollTop,ui.main.scrollTop);assert.equal(ui.main.scrollTop,0);assert.ok(ui.html.includes('aria-hidden="true">'+chosen.title+'</p>'));assert.deepEqual(ui.announcements,['D6 : '+face+'. '+chosen.title]);});
+   ui.finishDie();await tick();check(()=>{assert.ok(ui.html.includes('oa-card-revealed'));assert.equal(ui.html.includes('is-first-reveal'),!reroll);assert.ok(ui.html.includes('data-reveal-selected aria-label="Carte '+face+' choisie"'));assert.match(ui.html,/class="oa-slot-label" title="[^"]+">Choisie<\/span>/);assert.ok(ui.html.indexOf('data-reveal-mode')<ui.html.indexOf('class="oa-card-grid'));assertNoEvidence(ui.html);assert.ok(!ui.html.includes('oa-playing-card'));assert.ok(!ui.html.includes('oa-card-note'));assert.ok(!ui.html.includes('data-action='));assert.equal((ui.html.match(/class="oa-slot-label">Carte<\/span>/g)||[]).length,reroll?4:5);for(const id of game.round.hand.filter(id=>id!==chosen.id&&(!reroll||id!==game.round.cardId)))assert.ok(!hasTitle(ui.html,G.getCard(id).title));if(reroll)assert.ok(ui.html.includes('Carte '+oldFace+' écartée : '+G.getCard(game.round.cardId).title));assert.equal(ui.revealPending,1);assert.equal(ui.timers.findLast(timer=>timer.ms===900).scrollTop,ui.main.scrollTop);assert.equal(ui.main.scrollTop,0);assert.ok(ui.html.includes('aria-hidden="true">'+chosen.title+'</p>'));assert.deepEqual(ui.announcements,['D6 : '+face+'. '+chosen.title]);});
    await ui.click('tab',{tab:'us'});await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
    if(face===1){remote.emit(snap(game,1));check(()=>assert.equal(ui.revealPending,1));}
    if(face===4&&!reroll){const latest=copy(next);latest.stats.totalCompleted=1;latest.stats.byCategory.attention=1;remote.emit(snap(latest,3));check(()=>assert.equal(ui.revealPending,1));}
@@ -910,22 +1023,22 @@ async function rollSession(options={}){
  }
  // Revocation during the die or reading pause never restores private content from its deferred snapshot.
  {
-  for(const duringPause of [false,true]){const game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false,delayedDie:!duringPause});await tick();remote.actionImpl=async()=>({...snap(G.reduce(game,{type:'ROLL_CARD',value:2}),2),roll:{kind:6,value:2}});const work=ui.click('roll');await tick();remote.revoke();ui.password.value='still-typing';const writes=ui.writes;if(!duringPause)ui.finishDie();await work;check(()=>{assert.ok(ui.html.includes('autocomplete="current-password"'));assert.ok(!ui.html.includes('data-reveal-selected'));assert.equal(ui.revealPending,0);assert.equal(ui.navigation.hidden,true);assert.equal(ui.persona.innerHTML,'');assert.equal(ui.announcement.textContent,'');assert.equal(ui.password.value,'still-typing');assert.equal(ui.writes,writes);});}
+  for(const duringPause of [false,true]){const game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false,delayedDie:!duringPause});await tick();remote.actionImpl=async()=>({...snap(G.reduce(game,{type:'ROLL_CARD',value:2}),2),roll:{kind:6,value:2}});const work=ui.click('roll');await tick();remote.revoke();ui.password.value='still-typing';const writes=ui.writes;if(!duringPause)ui.finishDie();await work;check(()=>{assert.ok(ui.html.includes('autocomplete="current-password"'));assert.ok(!ui.html.includes('data-reveal-selected'));assert.equal(ui.revealPending,0);assert.equal(ui.navigation.hidden,true);assertPrivateBanner(ui);assert.equal(ui.announcement.textContent,'');assert.equal(ui.password.value,'still-typing');assert.equal(ui.writes,writes);});}
  }
  // A newer choice or another identity cannot be replaced by an old D6 visual receipt.
  {
   const game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),next=G.reduce(game,{type:'ROLL_CARD',value:1}),remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false,delayedDie:true});await tick();remote.actionImpl=async()=>({...snap(next,2),roll:{kind:6,value:1}});const work=ui.click('roll');await tick();const newer=G.reduce(next,{type:'REROLL_CARD',value:2});remote.emit(snap(newer,3));ui.finishDie();await work;check(()=>{assert.equal(ui.revealPending,0);assert.ok(!ui.html.includes('data-reveal-selected'));assert.ok(ui.html.includes(G.getCard(newer.round.cardId).title));assert.equal(ui.announcements.length,0);});
-  const otherRemote=mockRemote(snap(game)),other=shell(otherRemote,{autoReveal:false,delayedDie:true});await tick();otherRemote.actionImpl=async()=>({...snap(next,2),roll:{kind:6,value:1}});const old=other.click('roll');await tick();otherRemote.revoke();otherRemote.loginImpl=async()=>snap(initial('b'),1);await other.submit('fixture-b','fixture-secret');other.finishDie();await old;check(()=>{assert.ok(other.persona.innerHTML.includes('aria-current="true">Personne B'));assert.ok(!other.html.includes(G.getCard(next.round.cardId).title));assert.ok(!other.html.includes('data-reveal-selected'));assert.equal(other.revealPending,0);assert.equal(other.announcement.textContent,'');});
+  const otherRemote=mockRemote(snap(game)),other=shell(otherRemote,{autoReveal:false,delayedDie:true});await tick();otherRemote.actionImpl=async()=>({...snap(next,2),roll:{kind:6,value:1}});const old=other.click('roll');await tick();otherRemote.revoke();otherRemote.loginImpl=async()=>snap(initial('b'),1);await other.submit('fixture-b','fixture-secret');other.finishDie();await old;check(()=>{assertActiveBanner(other,'b');assert.ok(!other.html.includes(G.getCard(next.round.cardId).title));assert.ok(!other.html.includes('data-reveal-selected'));assert.equal(other.revealPending,0);assert.equal(other.announcement.textContent,'');});
  }
  // During a reroll, the original slot alone stays readable and the other five slots contain no hidden titles.
  {
   for(const slot of [1,2,3,4,5,6]){
    const game=draftGame('a',slot),remote=mockRemote(snap(game)),ui=shell(remote,{delayedDie:true});await tick();let resolveAction;const face=slot%6+1,next=G.reduce(game,{type:'REROLL_CARD',value:face});remote.actionImpl=()=>new Promise(resolve=>resolveAction=()=>resolve({...snap(next,2),roll:{kind:6,value:face}}));const work=ui.click('reroll');await tick();
    const grid=ui.html.slice(ui.html.indexOf('<div class="oa-card-grid')),tiles=Array.from(grid.matchAll(/<div class="oa-mini-card oa-card-back([^"]*)" aria-label="([^"]+)">/g));
-   check(()=>{assert.equal(tiles.length,6);assert.equal(tiles.filter(tile=>tile[1].includes('oa-card-discarded')).length,1);assert.ok(tiles[slot-1][1].includes('oa-card-discarded'));assert.ok(tiles[slot-1][2].includes(G.getCard(game.round.cardId).title));assert.ok(grid.includes('Écartée'));assert.equal((grid.match(/class="oa-card-ghost"/g)||[]).length,5);assert.ok(!/<(?:button|input)\b|data-action=|tabindex=/.test(grid));for(const id of game.round.hand.filter(id=>id!==game.round.cardId)){assert.ok(!hasTitle(grid,G.getCard(id).title));assert.ok(!grid.includes(id));}});
+   check(()=>{assert.equal(tiles.length,6);assert.equal(tiles.filter(tile=>tile[1].includes('oa-card-discarded')).length,1);assert.ok(tiles[slot-1][1].includes('oa-card-discarded'));assert.ok(tiles[slot-1][2].includes(G.getCard(game.round.cardId).title));assert.ok(grid.includes('Écartée'));assert.equal((grid.match(/class="oa-slot-label">Carte<\/span>/g)||[]).length,5);assert.ok(!/<(?:button|input)\b|data-action=|tabindex=/.test(grid));for(const id of game.round.hand.filter(id=>id!==game.round.cardId)){assert.ok(!hasTitle(grid,G.getCard(id).title));assert.ok(!grid.includes(id));}});
    resolveAction();await tick();check(()=>{assert.ok(hasTitle(ui.html,G.getCard(game.round.cardId).title));assert.ok(!hasTitle(ui.html,G.getCard(next.round.cardId).title));assert.equal(ui.diceVisible,true);});ui.finishDie();await work;check(()=>{assert.ok(hasTitle(ui.html,G.getCard(next.round.cardId).title));assert.ok(!ui.html.includes('oa-card-discarded'));assert.ok(!ui.html.includes('data-action="challenge-draft"'));});
   }
-  const longest=G.legacyCards.reduce((a,b)=>a.title.length>b.title.length?a:b),others=G.legacyCards.filter(c=>c.categoryId===longest.categoryId&&c.id!==longest.id).slice(0,5);let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:G.getCategory(longest.categoryId,1).number,hand:[longest.id,...others.map(c=>c.id)]});game=G.reduce(game,{type:'ROLL_CARD',value:1});const values=new Map([['onde-couple-prototype-v1',JSON.stringify(game)]]),local=shell(mockRemote(),{mode:false,storageValues:values,delayedDie:true,randomFace:1});const work=local.click('reroll');await tick();check(()=>{assert.ok(local.html.includes('<h3 class="oa-discarded-title" title="'+longest.title+'">'+longest.title+'</h3>'));assert.ok(local.html.includes('Carte 1 écartée : '+longest.title));assert.equal((local.html.match(/class="oa-card-ghost"/g)||[]).length,5);});local.finishDie();await work;check(()=>assert.ok(!local.html.includes('oa-card-discarded')));
+  const longest=G.legacyCards.reduce((a,b)=>a.title.length>b.title.length?a:b),others=G.legacyCards.filter(c=>c.categoryId===longest.categoryId&&c.id!==longest.id).slice(0,5);let game=G.reduce(initial(),{type:'ROLL_CATEGORY',value:G.getCategory(longest.categoryId,1).number,hand:[longest.id,...others.map(c=>c.id)]});game=G.reduce(game,{type:'ROLL_CARD',value:1});const values=new Map([['onde-couple-prototype-v1',JSON.stringify(game)]]),local=shell(mockRemote(),{mode:false,storageValues:values,delayedDie:true,randomFace:1});const work=local.click('reroll');await tick();check(()=>{assert.ok(local.html.includes('<span class="oa-slot-label" title="'+longest.title+'">Écartée</span>'));assert.ok(local.html.includes('Carte 1 écartée : '+longest.title));assert.equal((local.html.match(/class="oa-slot-label">Carte<\/span>/g)||[]).length,5);});local.finishDie();await work;check(()=>assert.ok(!local.html.includes('oa-card-discarded')));
  }
  // Wrong phases and the other perspective cannot reroll; a failed request keeps the original choice available.
  {
@@ -939,12 +1052,12 @@ async function rollSession(options={}){
  // The native checkbox waits for server acknowledgement before the wave starts.
  {
   const at=new Date().toISOString();let game=initial();game=G.reduce(game,{type:'ROLL_CATEGORY',value:1,hand:G.legacyCards.filter(c=>c.categoryId==='complicite').slice(0,6).map(c=>c.id)});game=G.reduce(game,{type:'ROLL_CARD',value:1});game=G.reduce(game,{type:'SEND',at});game=G.reduce(game,{type:'SWITCH_PLAYER',player:'b'});game=G.reduce(game,{type:'ACCEPT',at});game.activePlayer='a';
-  const remote=mockRemote(snap(game)),ui=shell(remote);await tick();await ui.click('tab',{tab:'tasks'});check(()=>assert.ok(ui.html.includes('Une fois vécu, chacun coche sa case.')));let resolveAction;remote.actionImpl=action=>{check(()=>assert.equal(action.type,'TOGGLE_TASK_CHECK'));check(()=>assert.equal(action.checked,true));return new Promise(resolve=>resolveAction=()=>{game=G.reduce(game,{...action,at:new Date().toISOString()});resolve(snap(game,2));});};
+  const remote=mockRemote(snap(game)),ui=shell(remote);await tick();await ui.click('tab',{tab:'tasks'});check(()=>assert.ok(!ui.html.includes('Une fois vécu, chacun coche sa case.')));let resolveAction;remote.actionImpl=action=>{check(()=>assert.equal(action.type,'TOGGLE_TASK_CHECK'));check(()=>assert.equal(action.checked,true));return new Promise(resolve=>resolveAction=()=>{game=G.reduce(game,{...action,at:new Date().toISOString()});resolve(snap(game,2));});};
   const before=ui.writes,change=await ui.taskCheck(game.tasks[0].id,true);await tick();check(()=>assert.equal(change.input.checked,false));check(()=>assert.equal(change.input.disabled,true));check(()=>assert.equal(ui.writes,before));resolveAction();await change.promise;check(()=>assert.equal(change.input.checked,true));check(()=>assert.equal(change.label.classList.contains('is-waving'),true));check(()=>assert.equal(game.stats.totalCompleted,0));const settle=ui.timers.find(t=>t.ms===1200);check(()=>assert.ok(settle));settle.fn();check(()=>assert.ok(ui.html.includes('Les choses')));check(()=>assert.ok(ui.html.includes('Ta coche est posée · Personne B doit encore cocher.')));game.activePlayer='b';const otherUI=shell(mockRemote(snap(game,3)));await tick();await otherUI.click('tab',{tab:'tasks'});check(()=>assert.ok(otherUI.html.includes('Personne A a coché · à toi de jouer.')));
  }
  // Revocation hides the previous private screen rather than falling back to the demo.
  {
-  const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('Lancer le D4')));remote.revoke();check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(!ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assert.equal(ui.persona.innerHTML,''));
+  const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('Lancer le D4')));remote.revoke();check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(!ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assertPrivateBanner(ui));
  }
  // Recovery keeps the typed form and pending screen stable, then accepts another actor's lower revision.
  {
@@ -956,8 +1069,8 @@ async function rollSession(options={}){
   check(()=>assert.ok(ui.html.includes('Connexion…')));check(()=>assert.ok(!ui.html.includes('autocomplete="current-password"')));const pendingWrites=ui.writes;remote.emit();check(()=>assert.equal(ui.writes,pendingWrites));
   rejectLogin(Object.assign(new Error('L’identifiant ou le mot de passe n’est pas reconnu.'),{code:'invalid_credentials',isDesirRemoteError:true}));await retry;
   check(()=>assert.ok(ui.html.includes('autocomplete="current-password"')));check(()=>assert.ok(ui.html.includes('n’est pas reconnu.')));ui.password.value='correcting-password';const afterError=ui.writes;remote.emit();check(()=>assert.equal(ui.writes,afterError));check(()=>assert.equal(ui.password.value,'correcting-password'));
-  remote.loginImpl=async()=>snap(initial('b'),1);await ui.submit('fixture-b','fixture-secret-b');check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B')));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.navigation.hidden,false));
-  const afterLogin=ui.writes;remote.emit(snap(initial('a'),99));check(()=>assert.equal(ui.writes,afterLogin));check(()=>assert.ok(ui.persona.innerHTML.includes('aria-current="true">Personne B')));check(()=>assert.ok(!Array.from(ui.values.values()).join('').includes('secret')));
+  remote.loginImpl=async()=>snap(initial('b'),1);await ui.submit('fixture-b','fixture-secret-b');check(()=>assertActiveBanner(ui,'b'));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.navigation.hidden,false));
+  const afterLogin=ui.writes;remote.emit(snap(initial('a'),99));check(()=>assert.equal(ui.writes,afterLogin));check(()=>assertActiveBanner(ui,'b'));check(()=>assert.ok(!Array.from(ui.values.values()).join('').includes('secret')));
  }
  // Mobile rendering preserves reading position and the useful action's focus through unrelated updates.
  {

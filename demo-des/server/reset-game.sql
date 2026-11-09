@@ -13,6 +13,7 @@ declare
   reset_at timestamptz := now();
   stamp text := to_char(reset_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
   sequence_before bigint;
+  initial_wallet jsonb := jsonb_build_object('balance',1,'anchorAt',stamp,'spentAt',null);
   next_state jsonb := $blank${"version":2,"sequence":2,"players":[{"id":"a","name":"Joueur 1"},{"id":"b","name":"Joueur 2"}],"prefs":{"reducedMotion":false,"sound":false,"discreet":true,"reminder":true},"favorites":[],"history":[],"seen":{},"stats":{"totalCompleted":0,"byCategory":{"complicite":0,"detente":0,"projets":0,"attention":0,"bouffe":0,"intimite":0}},"tasks":[],"daily":null,"dailyReroll":{"dateKey":null,"used":[]},"joker":null,"pendingRounds":[],"lanes":{"a":{"phase":"category","round":{"id":"onde-1","from":"a","to":"b","awaiting":null,"categoryId":null,"categoryRoll":null,"hand":[],"cardId":null,"cardRoll":null,"cardRerolled":false,"hp":null,"rolls":[],"rollTokens":[],"challengeUsed":false,"status":"drawing","draftRolls":[],"draftRollTokens":[],"draftChallengeUsed":false,"autoProposed":false,"fromConfirmed":false,"toConfirmed":false,"adapted":false,"proposal":null,"schedule":null,"createdAt":null,"sentAt":null,"acceptedAt":null,"endedAt":null,"closedBy":null,"modeRoll":null,"hardcoreOffer":false}},"b":{"phase":"category","round":{"id":"onde-2","from":"b","to":"a","awaiting":null,"categoryId":null,"categoryRoll":null,"hand":[],"cardId":null,"cardRoll":null,"cardRerolled":false,"hp":null,"rolls":[],"rollTokens":[],"challengeUsed":false,"status":"drawing","draftRolls":[],"draftRollTokens":[],"draftChallengeUsed":false,"autoProposed":false,"fromConfirmed":false,"toConfirmed":false,"adapted":false,"proposal":null,"schedule":null,"createdAt":null,"sentAt":null,"acceptedAt":null,"endedAt":null,"closedBy":null,"modeRoll":null,"hardcoreOffer":false}}}}$blank$::jsonb;
   quota jsonb := public.desir_quota_window(reset_at);
 begin
@@ -38,6 +39,7 @@ begin
   next_state := next_state || jsonb_build_object(
     'players', room.state->'players', 'prefs', room.state->'prefs',
     'favorites', room.state->'favorites', 'sequence', sequence_before+2,
+    'cardRerollWallets', coalesce(room.state->'cardRerollWallets', jsonb_build_object('a',initial_wallet,'b',initial_wallet)),
     'dailyReroll', jsonb_build_object('dateKey', to_char(reset_at at time zone 'Europe/Paris','YYYY-MM-DD'), 'used', '[]'::jsonb));
   next_state := jsonb_set(next_state, '{lanes,a,round,id}', to_jsonb('onde-'||(sequence_before+1)::text));
   next_state := jsonb_set(next_state, '{lanes,b,round,id}', to_jsonb('onde-'||(sequence_before+2)::text));

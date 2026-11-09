@@ -2,6 +2,8 @@
 (function(scope){
  'use strict';
  const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
+ const GAME_VERSION=8;
+ const SUPPORTED_GAME_VERSIONS=[6,7,GAME_VERSION];
  const TOKEN=/^[A-Za-z0-9_-]{43}$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
@@ -43,19 +45,21 @@
    if(!identity||!raw||raw.roomId!==identity.roomId||!Number.isSafeInteger(raw.revision)||raw.revision<0||raw.actor!==identity.actor||typeof raw.paired!=='boolean')throw failure('invalid_response','La partie reçue est incomplète. Réessaie.');
    const state=G.normalizeState(raw.state);
    if(!state||state.activePlayer!==identity.actor)throw failure('invalid_response','La partie reçue ne correspond pas à ce joueur.');
-   if(raw.gameVersion!==6)throw failure('invalid_response','La version reçue est invalide.');
-   let incoming,pendingOutgoing=0;
-   if(raw.gameVersion===6){
-    if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
-    incoming=raw.incoming.map(value=>G.normalizeState(value));
-    if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
-    pendingOutgoing=raw.pendingOutgoing===undefined?0:raw.pendingOutgoing;
-    if(!Number.isInteger(pendingOutgoing)||pendingOutgoing<0||pendingOutgoing>80)throw failure('invalid_response','Les invitations envoyées sont invalides.');
-   }
+   if(!SUPPORTED_GAME_VERSIONS.includes(raw.gameVersion))throw failure('invalid_response','La version reçue est invalide.');
+   if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
+   const incoming=raw.incoming.map(value=>G.normalizeState(value));
+   if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
+   const pendingOutgoing=raw.pendingOutgoing===undefined?0:raw.pendingOutgoing;
+   if(!Number.isInteger(pendingOutgoing)||pendingOutgoing<0||pendingOutgoing>80)throw failure('invalid_response','Les invitations envoyées sont invalides.');
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
    let quota=null;if(raw.quota!==undefined&&raw.quota!==null){const q=raw.quota;if(!q||typeof q!=='object'||!Number.isInteger(q.remaining)||q.remaining<0||q.remaining>3||typeof q.label!=='string'||q.label.length>160||!(q.nextAt===null||typeof q.nextAt==='string'&&Number.isFinite(Date.parse(q.nextAt)))||!(typeof q.window==='string'||q.window&&typeof q.window==='object')||JSON.stringify(q).length>2000)throw failure('invalid_response','La plage de jeu reçue est invalide.');quota=clone(q);}
    let roll;
-   if(raw.roll!==undefined){if(!raw.roll||![4,6,20].includes(raw.roll.kind)||!Number.isInteger(raw.roll.value)||raw.roll.value<1||raw.roll.value>raw.roll.kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');roll={kind:raw.roll.kind,value:raw.roll.value};}
+   if(raw.roll!==undefined){
+    const kind=raw.roll?.kind,value=raw.roll?.value;
+    const validD8=kind===8&&raw.gameVersion>=7&&G.cardSides(state)===8&&state.round.cardRoll===value;
+    if(!([4,6,20].includes(kind)||validD8)||!Number.isInteger(value)||value<1||value>kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');
+    roll={kind,value};
+   }
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    let badges;
    if(raw.badges!==undefined){if(typeof G.validateBadgeView!=='function'||!G.validateBadgeView(raw.badges,identity.actor))throw failure('invalid_response','La collection de badges reçue est invalide.');badges=clone(raw.badges);}
@@ -65,7 +69,7 @@
     activity={streak:raw.activity.streak,lastDay:raw.activity.lastDay};
    }
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:6,incoming,pendingOutgoing,...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -98,7 +102,7 @@
    for(let attempt=0;attempt<attempts;attempt++){
     const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
     try{
-     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:6,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
+     const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:GAME_VERSION,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
      if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
@@ -144,9 +148,8 @@
    return value;
   }
   function storedAction(){const value=parsed(actionKey);if(!value)return null;
-   // Never replay or reinterpret a command saved under an older game protocol.
-   // Inspect the protocol before validating types removed by this release.
-   if(value.gameVersion!==6){remove(actionKey);return null;}
+   // Preserve the original version when retrying a compatible stored command.
+   if(!SUPPORTED_GAME_VERSIONS.includes(value.gameVersion)){remove(actionKey);return null;}
    if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
   async function sendAction(pending){
    requireConnection();
@@ -162,7 +165,7 @@
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
-    const next=pending||{version:1,gameVersion:6,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
+    const next=pending||{version:1,gameVersion:GAME_VERSION,endpoint,roomId:connection.roomId,actor:connection.actor,requestId:requestId(),action:cleaned};
     write(actionKey,next);return await sendAction(next);
    }catch(error){markFailure(error);throw error;}});
   }
@@ -182,10 +185,12 @@
    refreshing=Promise.resolve().then(async()=>{try{
     const pending=storedAction();let pendingError=null;
     if(pending)try{await recoverPendingAction(pending,identity);}catch(error){
-     // A failed write is not evidence that the session or read service is lost.
-     // Keep its durable ID, while allowing the latest confirmed state to load.
-     if(error.code!=='offline'&&error.status!==429&&!(error.status>=500))throw error;
-     pendingError=error;
+     // A terminal conflict has already removed the old command. Fetch the current game.
+     // Keep the durable ID for retryable failures while fetching the same snapshot.
+     if(error.status!==409){
+      if(error.code!=='offline'&&error.status!==429&&!(error.status>=500))throw error;
+      pendingError=error;
+     }
     }
     if(connection!==identity)throw connectionChanged();
     const value=await fetchState(identity);

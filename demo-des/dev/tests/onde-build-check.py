@@ -72,6 +72,20 @@ class WebBuild(BuildFixture):
         self.assertEqual((self.dev / 'src/onde-app-core.js').read_bytes(),
                          (self.demo / 'server/functions/desir-game/core.js').read_bytes())
 
+    def test_personal_avatars_only_appear_in_local_demo(self):
+        portraits = self.dev / 'local-avatars'
+        portraits.mkdir()
+        (portraits / 'a.jpg').write_bytes(b'avatar-a')
+        (portraits / 'b.jpg').write_bytes(b'avatar-b')
+        preview = self.dev / 'dist/index.html'
+        self.build()
+        self.assertRegex(preview.read_text(), r'data-player="a"[^>]*><span class="oa-player-avatar">[^>]+alt="Clément"')
+        self.assertRegex(preview.read_text(), r'data-player="b"[^>]*><span class="oa-player-avatar">[^>]+alt="Agathe"')
+
+        self.build('--release')
+        for output in [self.release, preview]:
+            self.assertNotIn('class="oa-player-avatar"', output.read_text())
+
     def test_connected_preview_has_inline_config_and_self_contained_pwa(self):
         self.build('--connected')
         html = (self.dev / 'dist/index.html').read_text()
@@ -119,7 +133,7 @@ class WebBuild(BuildFixture):
         self.build('--release')
         html = self.release.read_text()
         modules = re.findall(r'<template id="oa-libido-([^"]+)">', html)
-        self.assertCountEqual(modules, ['places', 'benchmarks', 'destinations', 'rough', 'women'])
+        self.assertCountEqual(modules, ['places', 'benchmarks', 'destinations', 'women'])
         self.assertNotIn('href="#source-', html)
         self.assertNotIn('Sources & périmètres', html)
         self.assertNotIn('www.ipsos.com', html)
@@ -134,8 +148,20 @@ class WebBuild(BuildFixture):
         self.assertEqual(html.count('class="frequency-label"'), 2)
         self.assertNotIn('class="place-extras"', html)
         women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]
-        self.assertEqual(re.findall(r'data-info-count="([^"]+)"', women),
-                         ['64.6', '57.3', '56.5', '52.1', '46.7', '36.3', '32.5'])
+        fantasies, experiences = women.split('<section class="oa-libido-subsection" id="oa-libido-card-rough"')
+        self.assertEqual(re.findall(r'data-info-count="([^"]+)"', fantasies),
+                         ['64.6', '57.3', '56.5', '36.3', '32.5'])
+        self.assertNotIn('799 répondantes', fantasies)
+        self.assertNotIn('Être attachée', fantasies)
+        self.assertNotIn('>Dominer<', fantasies)
+        self.assertIn('<h3 id="oa-libido-title-rough">Roleplay et jeux rudes.</h3>', experiences)
+        self.assertTrue(experiences.endswith('</section></section>'))
+        places = re.search(r'<template id="oa-libido-places">(.*?)</template>', html, re.S)[1]
+        self.assertNotIn('>Cinéma<', places)
+        self.assertNotIn('>Travail<', places)
+        destinations = re.search(r'<template id="oa-libido-destinations">(.*?)</template>', html, re.S)[1]
+        self.assertIn('À la maison', destinations)
+        self.assertIn('Hors de chez soi', destinations)
         self.assertIn('data-info-count="72"', html)
 
     def test_missing_or_invalid_config_fails_before_any_release_write(self):
@@ -160,12 +186,12 @@ class BadgeArtworkBuild(BuildFixture):
         folder = self.demo / 'badges'
         manifest = json.loads((folder / 'manifest.json').read_text())
         self.assertEqual(manifest['version'], 2)
-        self.assertEqual(manifest['count'], 90)
+        self.assertEqual(manifest['count'], 120)
         rows = manifest['assets']
-        self.assertEqual(len(rows), 90)
-        self.assertEqual(len({row['id'] for row in rows}), 90)
+        self.assertEqual(len(rows), 120)
+        self.assertEqual(len({row['id'] for row in rows}), 120)
         self.assertEqual(sum(row['scope'] == 'individual' for row in rows), 30)
-        self.assertEqual(sum(row['scope'] == 'shared' for row in rows), 60)
+        self.assertEqual(sum(row['scope'] == 'shared' for row in rows), 90)
         with zipfile.ZipFile(folder / 'desir-badges.zip') as archive:
             self.assertEqual(set(archive.namelist()), {row['file'] for row in rows} | {'manifest.json'})
             for row in rows:
@@ -189,17 +215,17 @@ class BadgeArtworkBuild(BuildFixture):
         self.assertEqual(first, {path.name: path.read_bytes() for path in folder.iterdir()})
 
     def test_missing_artwork_cannot_publish_a_partial_release(self):
-        path = self.dev / 'src/onde-badge-scenes-intimacy.js'
+        path = self.dev / 'src/onde-badge-frame.js'
         path.unlink()
         result = self.build('--release', ok=False)
-        self.assertIn('Badge artwork requires every editable component', result.stderr)
+        self.assertIn('Badge artwork requires its constellation renderer', result.stderr)
         self.assertEqual(self.release.read_text(), 'existing-release')
         self.assertFalse((self.dev / 'dist').exists())
         self.assertFalse((self.demo / 'badges').exists())
 
-    def test_incomplete_scene_catalogue_cannot_publish(self):
-        path = self.dev / 'src/onde-badge-scenes-individual.js'
-        path.write_text(path.read_text().replace('ind-draws-1', 'unknown-draws-1', 1))
+    def test_incomplete_constellation_catalogue_cannot_publish(self):
+        path = self.dev / 'src/onde-badge-frame.js'
+        path.write_text(path.read_text().replace('game.badgeCatalog.map', 'game.badgeCatalog.slice(1).map', 1))
         generated = (self.dev / 'src/onde-badge-art.js').read_bytes()
         result = self.build('--release', ok=False)
         self.assertIn('Badge artwork coverage or catalogue order mismatch', result.stderr)
@@ -207,7 +233,7 @@ class BadgeArtworkBuild(BuildFixture):
         self.assertEqual((self.dev / 'src/onde-badge-art.js').read_bytes(), generated)
         self.assertFalse((self.dev / 'dist').exists())
 
-    def test_generated_module_can_be_rebuilt_from_its_components(self):
+    def test_generated_module_can_be_rebuilt_from_its_renderer(self):
         path = self.dev / 'src/onde-badge-art.js'
         path.unlink()
         self.build('--release')

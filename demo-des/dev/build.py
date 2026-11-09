@@ -5,6 +5,7 @@ Default: isolated local demo preview. --connected: authenticated web preview.
 """
 from pathlib import Path
 import argparse
+from base64 import b64encode
 import shutil
 import json
 import re
@@ -91,11 +92,32 @@ def libido_modules():
             continue
         if key in cards:
             raise SystemExit(f'Duplicate libido card: {key}.')
-        label, title = titles[key]
         body, count = re.subn(r'<p class="section-no">[^<]+</p>', '', body, count=1)
         if count != 1:
             raise SystemExit(f'Missing libido card heading: {key}.')
         if key == 'places':
+            rows = list(re.finditer(
+                r'<div class="place-row"><span>([^<]+)</span>.*?<i style="--width:(\d+)%"></i>.*?</b></div>',
+                body, re.S,
+            ))
+            nature_labels = {'Campagne', 'Bois', 'Mer'}
+            nature_rows = [row for row in rows if row[1] in nature_labels]
+            if len(nature_rows) != len(nature_labels) or {row[1] for row in nature_rows} != nature_labels:
+                raise SystemExit('Missing or duplicated nature rows in the places chart.')
+            average = round(sum(int(row[2]) for row in nature_rows) / len(nature_rows))
+            ranked_rows = [(int(row[2]), row[0]) for row in rows if row[1] not in nature_labels]
+            ranked_rows.append((average, (
+                '<div class="place-row"><span>Dans la nature'
+                '<small class="place-average">Moyenne de 3 lieux</small></span>'
+                '<div class="place-track" aria-hidden="true">'
+                f'<i style="--width:{average}%"></i></div>'
+                '<b><span aria-hidden="true">≈</span>'
+                f'<span class="count-value" data-count="{average}" aria-hidden="true">{average}</span>'
+                f'<span class="sr-only">Environ {average}</span><small>%</small></b></div>'
+            )))
+            ranked_rows.sort(key=lambda row: row[0], reverse=True)
+            body = body[:rows[0].start()] + ''.join(markup for _, markup in ranked_rows) + body[rows[-1].end():]
+
             def place_band(match):
                 value = int(match[2])
                 band = 'high' if value >= 65 else 'mid' if value >= 50 else 'low' if value >= 25 else 'rare'
@@ -106,11 +128,12 @@ def libido_modules():
                                 '<div class="place-fantasy-featured"><span>Lieux de culte / religieux</span>')
             body = body.replace('Couples cohabitants · France 2025 · expériences vécues', 'Expériences de couples cohabitants en France')
             body = re.sub(r'<div class="place-extras">.*?(?=<div class="place-fantasies">)', '', body, flags=re.S)
+            body = re.sub(r'<div><span>(?:Cinéma|Travail)</span><b>.*?</b></div>', '', body, flags=re.S)
             body = body.replace('<small>Rapport France 2025</small>', '')
         if key == 'rough':
             body = highlight_rough(body)
             body = body.replace('<p class="base">Repère international · enquête universitaire · 2021</p>', '')
-            body = body.replace('Autre enquête · expériences consenties', 'Autres expériences consenties')
+            body = re.sub(r'<p class="rough-group-label">.*?</p>', '', body, flags=re.S)
             body = re.sub(r'<small>≈ [^<]+</small>', '', body)
             body = body.replace('des <b>étudiants ayant un partenaire</b> interrogés déclarent des jeux rudes avec lui.',
                                 'des étudiants interrogés ayant un partenaire déclarent des jeux rudes.')
@@ -120,20 +143,28 @@ def libido_modules():
             body = re.sub(r'<span>(≈ [^<]+)<br>\s*<strong>(.*?)</strong>\s*</span>',
                           r'<strong class="frequency-label">\2</strong><span class="frequency-estimate">\1</span>',
                           body, flags=re.S)
+            body = body.replace('<br>par semaine', ' par semaine')
+            body = body.replace('>au moins 1 rapport', '>Au moins 1 rapport')
             body = body.replace('<br>chez les 18–24 ans interrogés', ' · chez les 18–24 ans interrogés')
         if key == 'women':
             body = body.split('<div class="women-porn">', 1)[0]
             body = body.replace('<p class="women-kicker">Fantasmes déclarés</p>', '')
-            body = body.replace('class="women-source">799 répondantes · Québec · 2014/2015', 'class="base">36 799 répondantes Québec, France, Allemagne')
-            match = re.search(r'<div class="women-fantasies">(.*?)</div><p class="base">', body, re.S)
+            match = re.search(r'<div class="women-fantasies">(.*?)</div><p class="women-source">.*?</p>', body, re.S)
             if match is None:
                 raise SystemExit('Missing fantasy ranking.')
-            rows = re.findall(r'<div class="women-fantasy-row">.*?</b></div>', match[1], re.S)
+            rows = [
+                row for row in re.findall(r'<div class="women-fantasy-row">.*?</b></div>', match[1], re.S)
+                if '<span>Être attachée</span>' not in row and '<span>Dominer</span>' not in row
+            ]
             if not rows:
                 raise SystemExit('Empty fantasy ranking.')
             rows.sort(key=lambda row: float(re.search(r'data-count="([0-9.]+)"', row)[1]), reverse=True)
-            body = body[:match.start(1)] + ''.join(rows) + body[match.end(1):]
-            body += '<p class="women-invitation">Cap d’en choisir un qui nous tente tous les deux ?</p>'
+            body = body[:match.start(1)] + ''.join(rows) + '</div>' + body[match.end():]
+            question = 'Cap d’en choisir un qui nous tente tous les deux ?'
+            body += (
+                f'<p class="women-invitation"><span class="oa-sr">{question}</span>'
+                f'<span class="women-invitation-ink" aria-hidden="true"><span>{question}</span><span></span></span></p>'
+            )
         if key == 'destinations':
             split = re.search(r'<div class="setting-labels">.*?</div>', body, re.S)
             proportions = re.findall(r'data-count="(\d+)"', split[0]) if split else []
@@ -142,31 +173,41 @@ def libido_modules():
             inside, outside = proportions
             body = body.replace('<div class="setting-bars"', f'<div class="setting-bars" style="--inside:{inside}fr;--outside:{outside}fr"', 1)
             body = body.replace('Expériences déclarées · France 2021<br><strong>Sélection hors vagin et tissus</strong>',
-                                'Expériences déclarées en France au cours de la vie<br>Réponses multiples, hors vagin et tissus')
-            body = body.replace('Maison / intérieur</span>', 'À l’intérieur</span>').replace('Dehors / ville / plage</span>', 'À l’extérieur</span>')
+                                'France · vie entière · choix multiples (hors vagin et tissus).')
+            body = body.replace('Maison / intérieur</span>', 'À la maison</span>').replace('Dehors / ville / plage</span>', 'Hors de chez soi</span>')
             body = re.sub(r'<p>≈ [^<]+ des participantes</p>', '', body)
             body = re.sub(r'<div class="dest-choice">.*?</div>', '', body, flags=re.S)
-            body = body.replace('Mon cadre idéal, préférence personnelle', 'Préférence personnelle de lieu')
+            body = body.replace('Mon cadre idéal, préférence personnelle : maison ou intérieur', 'Préférence personnelle : à la maison')
+            body = body.replace('; dehors, ville ou plage', '; hors de chez soi')
             body = body.replace('<div class="dest-cell"><h3>Dans la bouche</h3>',
                                 '<div class="dest-cell dest-featured"><h3>Dans la bouche</h3>')
         body = re.sub(r'<p class="(?:context-note|dest-ideal-caption|rough-fraction|rough-enjoyment|rough-unmeasured|anal-foot)">.*?</p>',
                       '', body, flags=re.S)
         body = re.sub(r'\s*<a\b[^>]*href="#source-\d+"[^>]*>[^<]*</a>', '', body)
         body = body.replace('class="sr-only"', 'class="oa-sr"').replace('data-count=', 'data-info-count=')
-        cards[key] = (
-            f'<section class="oa-info-card oa-libido {key}" id="oa-libido-card-{key}" '
-            f'aria-labelledby="oa-libido-title-{key}">'
-            f'<p class="oa-info-kicker">{label}</p><h2 id="oa-libido-title-{key}">{title}</h2>{body}</section>'
-        )
+        cards[key] = body
     if cards.keys() != titles.keys():
         raise SystemExit('Missing libido cards in p/index.html.')
 
-    return '\n'.join(f'<template id="oa-libido-{key}">{markup}</template>'
-                     for key, markup in cards.items()) + '\n'
+    def reading_section(key, content, *, nested=False):
+        label, title = titles[key]
+        css_class = 'oa-libido-subsection' if nested else f'oa-info-card oa-libido {key}'
+        heading = 'h3' if nested else 'h2'
+        return (
+            f'<section class="{css_class}" id="oa-libido-card-{key}" '
+            f'aria-labelledby="oa-libido-title-{key}">'
+            f'<p class="oa-info-kicker">{label}</p><{heading} id="oa-libido-title-{key}">{title}</{heading}>'
+            f'{content}</section>'
+        )
+
+    cards['women'] += reading_section('rough', cards.pop('rough'), nested=True)
+    return '\n'.join(f'<template id="oa-libido-{key}">{reading_section(key, body)}</template>'
+                     for key, body in cards.items()) + '\n'
 
 
 configuration = public_config() if connected else ''
 notes = json.loads((root / 'data/card-notes.json').read_text())
+variant_glyphs = json.loads((root / 'data/variant-glyphs.json').read_text())
 core = (source / 'onde-app-core.js').read_text()
 catalog = core.split('const catalogRows = [', 1)[1].split('];', 1)[0]
 card_ids = set(re.findall(r"id:'([^']+)'", catalog))
@@ -176,10 +217,21 @@ if (not isinstance(notes, dict) or set(notes) != card_ids or
         len({value.casefold().strip() for value in notes.values()}) != len(notes)):
     raise SystemExit('Each card requires its own short, non-numerical sentence.')
 html = (source / 'onde-app-ui.html').read_text()
+# Personal portraits belong only to this checkout's isolated demo.
+if not connected:
+    profiles = [('a', 1, 'Clément'), ('b', 2, 'Agathe')]
+    avatar_dir = root / 'local-avatars'
+    if all((avatar_dir / f'{player}.jpg').is_file() for player, _, _ in profiles):
+        for player, number, name in profiles:
+            portrait = b64encode((avatar_dir / f'{player}.jpg').read_bytes()).decode('ascii')
+            avatar = (f'<span class="oa-player-avatar"><img src="data:image/jpeg;base64,{portrait}" '
+                      f'alt="{name}" width="80" height="80"></span>')
+            html = html.replace(f'<!-- profile-{player} -->Joueur {number}', avatar, 1)
 html += libido_modules()
 html += '\n<script>window.DesirInfoQuestions=' + json.dumps(info_questions(), ensure_ascii=False).replace('<', '\\u003c') + ';</script>\n'
 html += '\n<style>\n' + (source / 'onde-app-info.css').read_text() + '</style>\n'
 html += '\n<script>window.DesirCardNotes=Object.freeze(' + json.dumps(notes, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
+html += '\n<script>window.DesirVariantGlyphs=Object.freeze(' + json.dumps(variant_glyphs).replace('<', '\\u003c') + ');</script>\n'
 if connected:
     # Inline this public setting: a failed config request must never select local demo mode.
     html += '\n<script>' + configuration + '</script>\n'
@@ -196,19 +248,19 @@ if canonical_hardcore != hardcore:
     raise SystemExit('The unified Hardcore catalogue must exactly match its existing card data.')
 artwork = badge_source(source)
 badges = badge_bundle(source, artwork)
-for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-badge-art.js', 'onde-app-ui.js']:
+for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-badge-art.js', 'onde-app-ui.js', 'onde-app-sky.js']:
     html += '\n<script>\n' + (artwork if filename == 'onde-badge-art.js' else (source / filename).read_text()) + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#282725"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.3.0">
+<meta name="theme-color" content="#090c16"><meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.0">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/desir-192.png">
 <title>D6 à deux</title>
-<style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
+<style>html{background:#05060d;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 18%,#151d31,#05060d 74%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#090c16}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
 </head><body>''' + html + '</body></html>\n'
 (root / 'dist').mkdir(exist_ok=True)
 (source / 'onde-badge-art.js').write_text(artwork)
