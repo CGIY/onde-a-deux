@@ -160,7 +160,7 @@ def libido_modules():
         if key == 'women':
             body = body.split('<div class="women-porn">', 1)[0]
             body = body.replace('<p class="women-kicker">Fantasmes déclarés</p>', '')
-            body = body.replace('class="women-source">799 répondantes · Québec · 2014/2015', 'class="base">799 répondantes au Québec')
+            body = body.replace('class="women-source">799 répondantes · Québec · 2014/2015', 'class="base">36 799 répondantes Québec, France, Allemagne')
             match = re.search(r'<div class="women-fantasies">(.*?)</div><p class="base">', body, re.S)
             if match is None:
                 raise SystemExit('Missing fantasy ranking.')
