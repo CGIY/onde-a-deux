@@ -77,6 +77,70 @@ def roleplay_content(core):
     return roleplay
 
 
+def libido_modules():
+    """Adapt the standalone carnet's data cards and source notes to the app."""
+    reference = (demo.parent / 'p/index.html').read_text(encoding='utf-8')
+    titles = {
+        'rhythm': ('Préférence personnelle', 'Plus souvent.'),
+        'places': ('Lieux et expériences', 'Au-delà de la chambre.'),
+        'benchmarks': ('Fréquence déclarée', 'Les rythmes du couple.'),
+        'oral-manual': ('Repère d’étude', 'Les pratiques hors pénétration.'),
+        'destinations': ('Enquête et préférences', 'Où va le sperme ?'),
+        'rough': ('Expériences et enquêtes', 'Roleplay et jeux rudes.'),
+        'women': ('Fantasmes et visionnage', 'Et du côté des femmes ?'),
+        'fantasy': ('Fréquence déclarée', 'Des fantasmes réguliers.'),
+        'personal': ('Préférences personnelles', 'Quelques accents personnels.'),
+    }
+    cards = {}
+    for classes, body in re.findall(r'<section class="block ([^"]+)">(.*?)</section>', reference, re.S):
+        keys = classes.split()
+        key = 'benchmarks' if 'benchmarks' in keys else keys[0]
+        if key not in titles:
+            continue
+        if key in cards:
+            raise SystemExit(f'Duplicate libido card: {key}.')
+        label, title = titles[key]
+        body, count = re.subn(r'<p class="section-no">[^<]+</p>', '', body, count=1)
+        if count != 1:
+            raise SystemExit(f'Missing libido card heading: {key}.')
+        if key == 'personal':
+            body = body.replace('<h2>Quelques accents personnels.</h2>', '', 1)
+        if key == 'benchmarks':
+            body = re.sub(r'<p class="context-note">[^<]+</p>',
+                          '<p class="context-note">Des repères pour en parler, à votre rythme.</p>', body, count=1)
+        if key == 'oral-manual':
+            body = re.sub(r'<p class="activity-frequency">.*?</p>',
+                          '<p class="activity-frequency">Au moins une des pratiques étudiées chaque semaine.</p>',
+                          body, count=1)
+            body = body.replace('Pratiques à deux · étude 2023', '431 hommes de 50 ans et plus · Tchéquie · étude 2023')
+        if key == 'destinations':
+            split = re.search(r'<div class="setting-labels">.*?</div>', body, re.S)
+            proportions = re.findall(r'data-count="(\d+)"', split[0]) if split else []
+            if len(proportions) != 2 or sum(map(int, proportions)) != 100:
+                raise SystemExit('The personal setting split must add up to 100%.')
+            inside, outside = proportions
+            body = body.replace('<div class="setting-bars"', f'<div class="setting-bars" style="--inside:{inside}fr;--outside:{outside}fr"', 1)
+            body = body.replace('<div class="setting-split"', '<p class="dest-label">Mon cadre idéal</p><div class="setting-split"', 1)
+            body = body.replace('Expériences déclarées · France 2021', 'Expériences déclarées au cours de la vie · France 2021')
+            body = body.replace('Sélection hors vagin et tissus</strong>', 'Sélection hors vagin et tissus</strong> · réponses multiples')
+        body = body.replace('class="sr-only"', 'class="oa-sr"').replace('data-count=', 'data-info-count=')
+        cards[key] = (
+            f'<section class="oa-info-card oa-libido {key}" id="oa-libido-card-{key}" '
+            f'aria-labelledby="oa-libido-title-{key}">'
+            f'<p class="oa-info-kicker">{label}</p><h2 id="oa-libido-title-{key}">{title}</h2>{body}</section>'
+        )
+    sources = re.search(r'<details class="sources">(.*?)</details>', reference, re.S)
+    if cards.keys() != titles.keys() or sources is None:
+        raise SystemExit('Missing libido cards or sources in p/index.html.')
+    cards['sources'] = '<details class="oa-info-install oa-libido-sources">' + sources[1] + '</details>'
+    fragments = []
+    for key, markup in cards.items():
+        markup = re.sub(r'href="#(source-\d+)"', r'href="#oa-libido-\1" data-action="info-jump"', markup)
+        markup = re.sub(r'id="(source-\d+)"', r'id="oa-libido-\1"', markup)
+        fragments.append(f'<template id="oa-libido-{key}">{markup}</template>')
+    return '\n'.join(fragments) + '\n'
+
+
 configuration = public_config() if connected else ''
 notes = json.loads((root / 'data/card-notes.json').read_text())
 core = (source / 'onde-app-core.js').read_text()
@@ -89,6 +153,8 @@ if (not isinstance(notes, dict) or set(notes) != card_ids or
     raise SystemExit('Each card requires its own short, non-numerical sentence.')
 roleplay = roleplay_content(core)
 html = (source / 'onde-app-ui.html').read_text()
+html += libido_modules()
+html += '\n<style>\n' + (source / 'onde-app-info.css').read_text() + '</style>\n'
 html += '\n<script>window.DesirCardNotes=Object.freeze(' + json.dumps(notes, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
 html += '\n<script>window.DesirRoleplay=Object.freeze(' + json.dumps(roleplay, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
 if connected:

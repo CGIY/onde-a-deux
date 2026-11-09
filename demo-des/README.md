@@ -42,7 +42,7 @@ Un gain déclenche une notification dans l’app avec son titre et un accès à 
 
 ## Installer et recevoir les notifications
 
-Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écran d’accueil**. Ouvrir ensuite Dés·ir depuis cette icône, se connecter et toucher **Nous → Activer les notifications**. Les notifications Web nécessitent iOS/iPadOS 16.4 ou plus et l’app ajoutée à l’écran d’accueil. Sur les autres navigateurs compatibles, le même bouton demande l’autorisation.
+Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écran d’accueil**. Ouvrir ensuite Dés·ir depuis cette icône, se connecter et toucher **Info → Réglages → Activer les notifications**. Les notifications Web nécessitent iOS/iPadOS 16.4 ou plus et l’app ajoutée à l’écran d’accueil. Sur les autres navigateurs compatibles, le même bouton demande l’autorisation.
 
 L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple. Elle est opaque et conserve les matières et couleurs de l’application.
 
@@ -50,7 +50,7 @@ Les notifications signalent un nouveau challenge, un dé disponible ou un challe
 
 ## Direction artistique
 
-La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Les statistiques, leurs sources et la page de sélection ont été retirées. Le score commun et les grades restent les éléments du jeu.
+La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Le carnet Info rassemble les repères sur la libido de la page de référence, leurs sources, les tirages personnels, les cartes partagées et les réglages. Le score commun et les grades restent les éléments du jeu.
 
 La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Le score commun et les accents passent au corail grisé, avec une texture propre au panneau pour rester visible. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète. Le chiffre du résultat s’éclaire progressivement en blanc ivoire brillant à la fin du lancer, y compris dans le rendu de secours.
 

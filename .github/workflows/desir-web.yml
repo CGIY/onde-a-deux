@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'demo-des/**'
+      - 'p/index.html'
       - '.github/workflows/desir-web.yml'
   pull_request:
     paths:
       - 'demo-des/**'
+      - 'p/index.html'
       - '.github/workflows/desir-web.yml'
   workflow_dispatch:
 

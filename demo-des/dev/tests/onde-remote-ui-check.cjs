@@ -97,7 +97,7 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  badgeNotice.querySelector=selector=>selector==='[data-badge-medallion]'&&noticeHTML.includes('data-badge-medallion')?badgeMedal:null;
  badgeNotice.hidden=true;badgeNotice.id='oa-badge-notice';badgeAnnouncement.id='oa-badge-announcement';let announced='';Object.defineProperty(announcement,'textContent',{get:()=>announced,set:value=>{announced=value;announcements.push(value);}});
  sheet.hidden=true;persona.innerHTML='DEMO-PROFILE-CONTROLS';username.matches=password.matches=selector=>selector==='input,textarea,[contenteditable="true"]';
- const navButtons=['play','tasks','us'].map(tab=>node({action:'tab',tab}));
+ const navButtons=['play','tasks','us','info'].map(tab=>node({action:'tab',tab}));
  const profileButtons=['a','b'].map(player=>node({action:'profile',player}));
  const actionButtons=new Map([['roll',rollButton],...['reroll','send','new','reconnect','refuse-task','badges-all','badge-dismiss','badge-view'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
  for(const action of ['badge-dismiss','badge-view'])actionButtons.get(action).parentElement=badgeNotice;
@@ -697,7 +697,7 @@ async function rollSession(options={}){
  {
   const id=G.badgeCatalog[0].id,remote=mockRemote(badgeSnapshot(badgeFixture())),ui=shell(remote);await tick();remote.emit(badgeSnapshot(badgeFixture('a',[id]),'a',2));await ui.click('badge-dismiss');remote.emit(badgeSnapshot(badgeFixture('a',[],{epoch:8}),'a',3));
   check(()=>{assert.equal(seenBadges(ui).value.epoch,8);assert.deepEqual(seenBadges(ui).value.seen,[]);assert.equal(ui.badgeNotice.hidden,true);});remote.emit(badgeSnapshot(badgeFixture('a',[id],{epoch:8}),'a',4));check(()=>{assert.equal(ui.badgeNotice.hidden,false);assert.match(ui.badgeNotice.dataset.award,/^8:individual:a:/);assert.equal(seenBadges(ui).value.seen.length,1);});
-  const local=shell(mockRemote(),{mode:false,randomFace:1,clockAt:'2026-11-07T12:00:00.000Z'});await local.click('roll');const first=seenBadges(local).value.epoch;await local.click('badge-dismiss');await local.click('reset');await local.click('roll');check(()=>{assert.ok(seenBadges(local).value.epoch>first);assert.equal(local.badgeNotice.hidden,false);assert.equal(seenBadges(local).value.seen.length,1);});
+  const local=shell(mockRemote(),{mode:false,randomFace:1,clockAt:'2026-11-07T12:00:00.000Z'});await local.click('roll');const first=seenBadges(local).value.epoch;await local.click('badge-dismiss');await local.click('tab',{tab:'info'});check(()=>assert.ok(local.html.includes('reset-confirm')));await local.click('reset');await local.click('roll');check(()=>{assert.ok(seenBadges(local).value.epoch>first);assert.equal(local.badgeNotice.hidden,false);assert.equal(seenBadges(local).value.seen.length,1);});
  }
  // A cached receipt from before a known reset cannot resurrect old-generation badge notices.
  {
@@ -827,21 +827,40 @@ async function rollSession(options={}){
  }
  // Personal settings and notification permissions remain on this device.
  {
-  const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});check(()=>assert.ok(!ui.html.includes('À notre')));check(()=>assert.ok(!ui.html.includes('reset-confirm')));check(()=>assert.ok(ui.html.includes('Activer les notifications')));await ui.click('enable-notifications');check(()=>assert.equal(remote.calls.filter(c=>c.method==='notifications').length,1));check(()=>assert.ok(ui.html.includes('Activées sur cet appareil.')));
+  const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();await ui.click('tab',{tab:'us'});
+  check(()=>{assert.ok(!ui.html.includes('À notre'));assert.ok(!ui.html.includes('data-pref="sound"'));assert.ok(!ui.html.includes('enable-notifications'));});
+  await ui.click('tab',{tab:'info'});
+  check(()=>{assert.ok(ui.html.includes('data-pref="sound"'));assert.ok(!ui.html.includes('reset-confirm'));assert.ok(ui.html.includes('Activer les notifications'));});
+  await ui.click('enable-notifications');check(()=>assert.equal(remote.calls.filter(c=>c.method==='notifications').length,1));check(()=>assert.ok(ui.html.includes('Activées sur cet appareil.')));
  }
  // The four displayed scores include counts from both historical merged categories.
  {
   const game=initial();game.stats.totalCompleted=14;Object.assign(game.stats.byCategory,{complicite:1,detente:2,attention:3,bouffe:4,projets:3,intimite:1});
   const ui=shell(mockRemote(snap(game)));await tick();await ui.click('tab',{tab:'us'});
+  check(()=>{assert.ok(ui.html.includes('VOTRE SCORE À DEUX'));assert.ok(!ui.html.includes('oa-score-grid'));});
+  await ui.click('tab',{tab:'info'});
   const rows=Array.from(ui.html.matchAll(/class="oa-score-label"><i aria-hidden="true"><\/i>([^<]+)<\/span><strong>(\d+)<\/strong>/g),row=>row.slice(1));
   check(()=>assert.deepEqual(rows,[['Complicité','3'],['Plaisirs','7'],['Projets','3'],['Intimité','1']]));
+ }
+ // Info shows the authenticated actor's own draw history and updates after a proposal.
+ {
+  const at='2026-11-08T12:00:00.000Z';
+  let room=roomDrawCurrent(G.createRoom(),'a','classic',at);
+  room=roomDrawCurrent(room,'b','hardcore',at);
+  const ownCard=G.getCard(room.lanes.a.round.cardId),otherCard=G.getCard(room.lanes.b.round.cardId);
+  const snapshot=(revision)=>({...roomSnapshot(room,'a',revision),badges:G.badgeView(room,'a')});
+  const remote=mockRemote(snapshot(1)),ui=shell(remote);await tick();await ui.click('tab',{tab:'info'});
+  check(()=>{assert.ok(ui.html.includes(escapedText(ownCard.title)));assert.ok(!ui.html.includes(escapedText(otherCard.title)));assert.match(ui.html,/<strong>1<\/strong><span>Tirages de thème/);assert.match(ui.html,/<strong>0<\/strong><span>Propositions envoyées/);});
+  room=G.reduceRoom(room,{type:'SEND',at,actor:'a',roundId:room.lanes.a.round.id,directQueue:true});
+  remote.emit(snapshot(2));
+  check(()=>{assert.match(ui.html,/<strong>1<\/strong><span>Propositions envoyées/);assert.equal(ui.html.split(escapedText(ownCard.title)).length,2);assert.ok(!ui.html.includes(escapedText(otherCard.title)));});
  }
  // Only the highest earned grade is shown; future and previous grade names stay out of the DOM.
  {
   const levels=[[5,'Couple complice'],[8,'Duo accordé'],[10,'Couple stable'],[12,'Couple soudé'],[15,'Super couple'],[20,'Duo inséparable'],[25,'Couple remarquable'],[30,'Couple légendaire'],[35,'Duo d’exception'],[40,'Couple iconique'],[45,'Duo mythique'],[50,'Couple éternel']];
   for(const total of [0,4,5,7,8,10,12,15,20,25,30,35,40,45,49,50,51,95]){
    const remote=mockRemote(snap(scored(total))),ui=shell(remote);await tick();const keys=Array.from(ui.values.keys());await ui.click('tab',{tab:'us'});const section=gradeSection(ui.html),got=gradeProgress(ui.html),current=levels.filter(g=>g[0]<=total).at(-1),next=levels.find(g=>g[0]>total);
-   check(()=>{assert.equal(got.points,current?.[0]||null);assert.equal((section.match(/<article\b/g)||[]).length,current?1:0);assert.deepEqual(levels.filter(g=>section.includes(g[1])).map(g=>g[1]),current?[current[1]]:[]);assert.equal(got.max,next?next[0]-(current?.[0]||0):50);assert.equal(got.value,next?total-(current?.[0]||0):50);assert.ok(!/<(?:button|input)\b|data-action=/.test(section));assert.ok(ui.html.indexOf('class="oa-shared-score"')<ui.html.indexOf('class="oa-grade-area'));assert.ok(ui.html.indexOf('class="oa-grade-area')<ui.html.indexOf('class="oa-score-grid"'));if(!current)assert.ok(section.includes('Premier grade à 5 points'));else if(next)assert.ok(section.includes((next[0]-total)+' point'));else assert.ok(section.includes('Grade maximal atteint.'));assert.equal(ui.gradeAnimations.length,0);assert.deepEqual(Array.from(ui.values.keys()),keys);assert.equal(remote.calls.filter(c=>c.method==='action').length,0);});
+   check(()=>{assert.equal(got.points,current?.[0]||null);assert.equal((section.match(/<article\b/g)||[]).length,current?1:0);assert.deepEqual(levels.filter(g=>section.includes(g[1])).map(g=>g[1]),current?[current[1]]:[]);assert.equal(got.max,next?next[0]-(current?.[0]||0):50);assert.equal(got.value,next?total-(current?.[0]||0):50);assert.ok(!/<(?:button|input)\b|data-action=/.test(section));assert.ok(ui.html.indexOf('class="oa-shared-score"')<ui.html.indexOf('class="oa-grade-area'));assert.ok(!ui.html.includes('class="oa-score-grid"'));if(!current)assert.ok(section.includes('Premier grade à 5 points'));else if(next)assert.ok(section.includes((next[0]-total)+' point'));else assert.ok(section.includes('Grade maximal atteint.'));assert.equal(ui.gradeAnimations.length,0);assert.deepEqual(Array.from(ui.values.keys()),keys);assert.equal(remote.calls.filter(c=>c.method==='action').length,0);});
   }
  }
  // A grade replaces its predecessor once at a crossing, never on polls, tab changes, reload, or another identity.

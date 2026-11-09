@@ -22,6 +22,8 @@ class BuildFixture(unittest.TestCase):
         self.demo = Path(self.scratch.name) / 'demo-des'
         self.dev = self.demo / 'dev'
         self.dev.mkdir(parents=True)
+        (self.demo.parent / 'p').mkdir()
+        shutil.copyfile(DEV.parent.parent / 'p/index.html', self.demo.parent / 'p/index.html')
         for filename in ['build.py', 'badges.py']:
             shutil.copyfile(DEV / filename, self.dev / filename)
         for directory in ['src', 'data']:
@@ -92,6 +94,20 @@ class WebBuild(BuildFixture):
         self.assertEqual(html, (self.dev / 'dist/index.html').read_text())
         self.assertIn(CONFIG['endpoint'], html)
         self.assert_archive_preserved()
+
+    def test_libido_cards_and_source_links_are_assembled_from_the_reference(self):
+        self.build('--release')
+        html = self.release.read_text()
+        modules = re.findall(r'<template id="oa-libido-([^"]+)">', html)
+        self.assertCountEqual(modules, ['rhythm', 'places', 'benchmarks', 'oral-manual',
+                                         'destinations', 'rough', 'women', 'fantasy',
+                                         'personal', 'sources'])
+        source_links = set(re.findall(r'href="#(oa-libido-source-\d+)" data-action="info-jump"', html))
+        source_ids = set(re.findall(r'<li id="(oa-libido-source-\d+)">', html))
+        self.assertTrue(source_links)
+        self.assertTrue(source_links <= source_ids)
+        self.assertIn('Au moins une des pratiques étudiées chaque semaine.', html)
+        self.assertIn('data-info-count="72"', html)
 
     def test_missing_or_invalid_config_fails_before_any_release_write(self):
         (self.demo / 'config.js').unlink()

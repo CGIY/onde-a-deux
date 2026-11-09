@@ -514,14 +514,55 @@
  }
  function sharedScore(){
   const stats=state.stats,total=stats.totalCompleted;
-  return '<section class="oa-shared-score" aria-label="Score commun"><h1 class="oa-eyebrow">VOTRE SCORE À DEUX</h1><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section>'+sharedGrade(total)+'<div class="oa-section-head"><h2>Vos cartes partagées</h2></div><div class="oa-score-grid">'+G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+G.categoryScore(stats,c.id).toLocaleString('fr-FR')+'</strong></div>').join('')+'</div>';
+  return '<section class="oa-shared-score" aria-label="Score commun"><h1 class="oa-eyebrow">VOTRE SCORE À DEUX</h1><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section>'+sharedGrade(total);
  }
  function notificationSetting(){
   const n=remote.notificationStatus;
   return '<section class="oa-notification-setting"><div class="oa-section-head"><h2>Les notifications</h2></div>'+(n.subscribed?'<p class="oa-note">Activées sur cet appareil.</p>':n.supported&&n.permission!=='denied'?btn('Activer les notifications','enable-notifications','oa-secondary'):'')+(n.message?'<p class="oa-note">'+h(n.message)+'</p>':'')+'</section>';
  }
- function renderUs(){if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);return sharedScore()+badgesSection()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>');}
+ function renderUs(){return sharedScore()+badgesSection();}
 
+ function infoSettings(){
+  if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);
+  return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+'</section>';
+ }
+ function infoActivity(){
+  const metrics=[
+   ['ind-draws-1','Tirages de thème'],
+   ['ind-proposals-1','Propositions envoyées'],
+   ['ind-active-days-3','Jours actifs']
+  ];
+  const metricCards=metrics.map(([id,label])=>{
+   const value=badgeView?.items.find(item=>item.id===id)?.progress.value;
+   return '<div><strong>'+(value?.toLocaleString('fr-FR')??'—')+'</strong><span>'+label+'</span></div>';
+  }).join('');
+  const own=ownState||state;
+  const draws=new Map();
+  for(const round of [own.round,...own.tasks,...own.history]){
+   const drawn=round.from===viewPlayer&&G.getCard(round.cardId);
+   if(drawn&&!draws.has(round.id))draws.set(round.id,{round,drawn});
+  }
+  const time=round=>Date.parse(round.createdAt||round.sentAt||round.endedAt)||0;
+  const recent=[...draws.values()].sort((a,b)=>time(b.round)-time(a.round)).slice(0,3);
+  return `<section class="oa-info-card oa-info-activity" id="oa-info-activity" aria-labelledby="oa-info-activity-title">
+   <p class="oa-info-kicker">Dés·ir · Mon activité</p>
+   <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
+   <div class="oa-info-activity-metrics">${metricCards}</div>
+   <h3>Mes dernières cartes tirées</h3>
+   ${recent.length?'<ul class="oa-info-recent">'+recent.map(({round,drawn})=>{
+    const theme=G.getCategory(round.categoryId,roundVersion(round));
+    return '<li style="--category:'+h(theme?.color||'var(--oa-sage)')+'"><span>'+h(drawn.title)+'</span><small>'+h(theme?.label||'')+'</small></li>';
+   }).join('')+'</ul>':'<p>Ta première carte apparaîtra ici.</p>'}
+  </section>`;
+ }
+ function infoShared(){
+  return `<section class="oa-info-card oa-info-shared" aria-labelledby="oa-info-shared-title">
+   <p class="oa-info-kicker">Dés·ir · À deux</p>
+   <h2 id="oa-info-shared-title">Vos cartes partagées.</h2>
+   <div class="oa-score-grid">${G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+G.categoryScore(state.stats,c.id).toLocaleString('fr-FR')+'</strong></div>').join('')}</div>
+   <p>Les cartes validées par vos deux coches, par thème.</p>
+  </section>`;
+ }
 
  const infoIdeas=[
   'Quel petit rituel vous ferait plaisir cette semaine ?',
@@ -530,6 +571,7 @@
   'De quel genre de proximité avez-vous envie aujourd’hui ?'
  ];
  function renderInfo(){
+  const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
   const themes=G.categories.map(category=>`<li style="--category:${h(category.color)}"><i aria-hidden="true"></i>${h(category.label)}</li>`).join('');
   const mosaic=[0,0,2,2,0,2,3,3,1,1,2,3,1,1,1,3].map(index=>`<i style="--tile:${h(G.categories[index].color)}"></i>`).join('');
   return `<article class="oa-info" aria-labelledby="oa-info-title">
@@ -542,6 +584,13 @@
     </div>
     <div class="oa-info-mosaic" aria-hidden="true">${mosaic}</div>
    </header>
+   <div class="oa-info-shortcuts" role="group" aria-label="Accès rapides">
+    <a href="#oa-info-activity" data-action="info-jump">Tirages</a>
+    <a href="#oa-libido-card-rhythm" data-action="info-jump">Rythme</a>
+    <a href="#oa-libido-card-places" data-action="info-jump">Lieux</a>
+    <a href="#oa-libido-card-destinations" data-action="info-jump">Où va le sperme ?</a>
+    <a href="#oa-info-settings" data-action="info-jump">Réglages</a>
+   </div>
    <div class="oa-info-ticker">
     <div class="oa-info-ticker-head">
      <p class="oa-info-kicker">Les quatre thèmes</p>
@@ -561,6 +610,8 @@
      </div>
      ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
     </section>
+    ${libido('rhythm')}
+    <div data-info-activity>${infoActivity()}</div>
     <section class="oa-info-card" aria-labelledby="oa-info-dice">
      <p class="oa-info-kicker">01 / Le tirage</p>
      <h2 id="oa-info-dice">Du thème à la carte.</h2>
@@ -571,6 +622,9 @@
      </ol>
      <p>* Le dernier dé se lance quand la carte a des variantes. Ton tirage reste privé jusqu’à l’envoi.</p>
     </section>
+    ${libido('places')}
+    <div data-info-shared>${infoShared()}</div>
+    ${libido('benchmarks')}
     <section class="oa-info-card" aria-labelledby="oa-info-tickets">
      <p class="oa-info-kicker">02 / Les tickets</p>
      <h2 id="oa-info-tickets">La réserve du jour.</h2>
@@ -581,19 +635,10 @@
      <div class="oa-info-tickets" aria-hidden="true"><i></i><i></i><i></i></div>
      <p>Une relance de thème gratuite par jour. Un joker par semaine pour que l’un de vous choisisse le thème.</p>
     </section>
-    <section class="oa-info-card oa-info-weekend" aria-labelledby="oa-info-weekend">
-     <p class="oa-info-kicker">03 / Le week-end</p>
-     <h2 id="oa-info-weekend">Une autre cadence.</h2>
-     <div class="oa-info-reading">
-      <div class="oa-info-ring" aria-hidden="true">
-       <svg viewBox="0 0 86 86"><circle cx="43" cy="43" r="38"/><circle cx="43" cy="43" r="38" pathLength="100"/></svg>
-       <span class="oa-info-number"><span data-info-count>60</span><small>%</small></span>
-      </div>
-      <p><span class="oa-sr">60 % </span>de chances de tirer <strong>Intimité</strong> au D4 le samedi et le dimanche, heure de Paris.</p>
-     </div>
-    </section>
+    ${libido('destinations')}
+    ${libido('oral-manual')}
     <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
-     <p class="oa-info-kicker">04 / À faire</p>
+     <p class="oa-info-kicker">03 / À faire</p>
      <h2 id="oa-info-agreement">Il faut deux oui.</h2>
      <div class="oa-info-reading">
       <span class="oa-info-checks" aria-hidden="true"><i>✓</i><i>✓</i></span>
@@ -601,10 +646,16 @@
      </div>
      <p>Un défi envoyé reste une proposition. Chacun peut dire non. « Refuser · D20 » retire la carte, quelle que soit la face.</p>
     </section>
+    ${libido('fantasy')}
+    ${libido('women')}
+    ${libido('rough')}
+    ${libido('personal')}
+    ${libido('sources')}
+    <div data-info-settings>${infoSettings()}</div>
    </div>
    <details class="oa-info-install">
     <summary>Retrouver Dés·ir sur l’écran d’accueil</summary>
-    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis Nous.</p>
+    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis <strong>Info → Réglages</strong>.</p>
    </details>
   </article>`;
  }
@@ -622,29 +673,61 @@
    entries.forEach(({target,isIntersecting})=>{
     if(!isIntersecting||systemReduce)return;
     observer.unobserve(target);
-    target.classList.add('is-reading');
-    const count=target.querySelector('[data-info-count]');
-    if(!count)return;
-    const final=Number(count.textContent),duration=final===3?1050:1500;
-    const started=chargeNow();
+    target.classList.add('is-reading');target.dataset.infoVisited='';
+    const counts=Array.from(target.querySelectorAll('[data-info-count]'),node=>{
+     const final=node.textContent, value=node.dataset.infoCount||final;
+     const digits=value.split('.')[1]?.length||0;
+     const format=new Intl.NumberFormat('fr-FR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+     return {node,final,value:Number(value),format};
+    });
+    if(!counts.length)return;
+    const started=chargeNow(), duration=1350;
     const step=now=>{
-     const ratio=Math.min(1,(now-started)/duration);
-     count.textContent=String(Math.round(final*(1-Math.pow(1-ratio,2))));
-     if(ratio<1)frames.get(count).id=requestAnimationFrame(step);
-     else frames.delete(count);
+     const ratio=Math.max(0,Math.min(1,(now-started)/duration));
+     const eased=1-Math.pow(1-ratio,2);
+     counts.forEach(({node,final,value,format})=>node.textContent=ratio===1?final:format.format(value*eased));
+     if(ratio<1)frames.get(target).id=requestAnimationFrame(step);
+     else frames.delete(target);
     };
-    count.textContent='0';
-    frames.set(count,{id:requestAnimationFrame(step),final});
+    counts.forEach(({node,format})=>node.textContent=format.format(0));
+    frames.set(target,{id:requestAnimationFrame(step),counts});
    });
   },{root:main,threshold:.18});
   const stopCounts=()=>{
-   frames.forEach(({id,final},node)=>{cancelAnimationFrame(id);node.textContent=String(final);});
+   frames.forEach(({id,counts})=>{
+    cancelAnimationFrame(id);
+    counts.forEach(({node,final})=>node.textContent=final);
+   });
    frames.clear();
   };
   const updateMotion=()=>{
    observer?.disconnect();
    if(systemReduce)stopCounts();
-   else panel.querySelectorAll('.oa-info-card:not(.is-reading)').forEach(card=>observer?.observe(card));
+   else panel.querySelectorAll('.oa-info-card:not([data-info-visited])').forEach(card=>observer?.observe(card));
+  };
+  const widgets=[
+   ['[data-info-activity]',infoActivity],
+   ['[data-info-shared]',infoShared],
+   ['[data-info-settings]',infoSettings]
+  ].map(([selector,render])=>({node:panel.querySelector(selector),render,markup:render()}));
+  const refresh=()=>{
+   for(const widget of widgets){
+    const markup=widget.render();
+    if(markup===widget.markup)continue;
+    const focused=widget.node.contains(document.activeElement)?document.activeElement:null;
+    const previous=widget.node.firstElementChild;
+    observer?.unobserve(previous);
+    widget.node.innerHTML=markup;widget.markup=markup;
+    const card=widget.node.firstElementChild;
+    if(previous.hasAttribute('data-info-visited'))card.dataset.infoVisited='';
+    else if(!systemReduce)observer?.observe(card);
+    if(focused){
+     const control=focused.dataset.pref&&widget.node.querySelector('[data-pref="sound"]');
+     const replacement=control||widget.node.querySelector('h2');
+     if(!control)replacement.setAttribute('tabindex','-1');
+     replacement.focus({preventScroll:true});
+    }
+   }
   };
   const resize=window.ResizeObserver&&new ResizeObserver(updateProgress);
   resize?.observe(panel);
@@ -654,7 +737,7 @@
   panel.addEventListener('toggle',updateProgress,true);
   updateProgress();
   updateMotion();
-  return {updateMotion,dispose(){
+  return {refresh,updateMotion,dispose(){
    observer?.disconnect();resize?.disconnect();stopCounts();
    main.removeEventListener('scroll',updateProgress);
    window.removeEventListener('resize',updateProgress);
@@ -740,7 +823,7 @@
   const previousKey=renderKey;
   renderPersona();
   const key=visibleViewKey();
-  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():tab==='info'?renderInfo():renderUs();
+  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():tab==='info'?(infoReading?renderedMarkup:renderInfo()):renderUs();
   const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
   if(replaceMain){infoReading?.dispose();infoReading=null;cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
@@ -750,7 +833,7 @@
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
-  if(!replaceMain){scheduleExpiry();scheduleAutoNewRound();updateBadgeNotice();return;}
+  if(!replaceMain){infoReading?.refresh();scheduleExpiry();scheduleAutoNewRound();updateBadgeNotice();return;}
   const holder=main.querySelector('[data-stage]');
   if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:refusal?.color||category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
   else die.pauseMotion?.();
@@ -931,7 +1014,7 @@
   if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;updateBadgeNotice();
  }
 
- function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories. Le week-end, Intimité a 60 % de chances.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte.</h3><p>Le D6 choisit une carte parmi six. Les cartes classiques ont ensuite une variante D6 ; les cartes Hardcore sont prêtes à proposer. En Intimité, le tirage choisit à parts égales une main classique ou Hardcore.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
+ function rules(){openSheet('Les règles.','<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div><div class="oa-rule"><b>D6</b><div><h3>La carte.</h3><p>Le D6 choisit une carte parmi six. Les cartes classiques ont ensuite une variante D6 ; les cartes Hardcore sont prêtes à proposer. En Intimité, le tirage choisit à parts égales une main classique ou Hardcore.</p></div></div><div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>Une fois par tour, la carte tirée peut être relancée avant d’être proposée.</p></div></div><div class="oa-rule"><b>✓</b><div><h3>Proposer ou refuser.</h3><p>Une proposition rejoint directement À faire. Son destinataire peut la refuser avec un D20 : tous les résultats écartent la carte, sans pénalité.</p></div></div><div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans À faire. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div><div class="oa-actions">'+btn('Fermer','close')+'</div>');}
 
  root.addEventListener('input',event=>{if(event.target.id==='oa-username')loginUsername=event.target.value;});
  root.addEventListener('submit',async event=>{
@@ -967,6 +1050,14 @@
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,catalogueVersion:3,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,3,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
+  if(action==='info-jump'){
+   const target=main.querySelector(el.hash);
+   if(!target)return;
+   const disclosure=target.closest('details');
+   if(disclosure)disclosure.open=true;
+   target.setAttribute('tabindex','-1');target.focus({preventScroll:true});
+   target.scrollIntoView({block:'start',behavior:systemReduce?'instant':'smooth'});return;
+  }
   if(action==='info-idea'){showInfoIdea(el);return;}
   if(action==='info-pause'){
    const paused=el.closest('.oa-info-ticker').toggleAttribute('data-paused');
@@ -1042,7 +1133,7 @@
     }
     if(event.snapshot)receiveRemote(event.snapshot);
     else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);
-    if(remoteReady&&tab==='us'&&!busy&&!operationBusy&&!pendingChecks.size&&notificationSignature!==JSON.stringify(remote.notificationStatus))render();
+    if(remoteReady&&tab==='info'&&!busy&&!operationBusy&&!pendingChecks.size&&notificationSignature!==JSON.stringify(remote.notificationStatus))render();
    });
    remote.start();
    remote.restore().then(value=>{if(value)flushRemote(value,false);else remoteReady=false;authBusy=false;render();}).catch(error=>{remoteReady=false;authBusy=false;loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';render();});
