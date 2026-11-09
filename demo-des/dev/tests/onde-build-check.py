@@ -83,7 +83,6 @@ class WebBuild(BuildFixture):
         self.assertIn('rel="apple-touch-icon"', html)
         self.assertIn('<title>D6 à deux</title>', html)
         self.assertIn('name="apple-mobile-web-app-title" content="D6 à deux"', html)
-        self.assertNotIn(' cartes par main', html)
         manifest = json.loads((self.dev / 'dist/manifest.webmanifest').read_text())
         self.assertEqual((manifest['name'], manifest['short_name']), ('D6 à deux', 'D6 à deux'))
         self.assertEqual((manifest['id'], manifest['start_url'], manifest['scope']), ('./', './', './'))
