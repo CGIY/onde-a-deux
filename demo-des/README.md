@@ -1,6 +1,6 @@
-# Dés·ir — version web 0.3.0
+# D6 à deux — version web 0.3.0
 
-[Ouvrir Dés·ir](https://cgiy.github.io/onde-a-deux/demo-des/)
+[Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 
 Chaque personne se connecte sur son téléphone avec son identifiant et son mot de passe. Les deux comptes sont créés dans la base privée ; il n’y a ni inscription publique ni code d’association. Les noms ne sont retournés qu’après connexion. Le mot de passe n’est jamais conservé par l’application ; l’accès de cet appareil reste enregistré pour les prochaines ouvertures.
 
@@ -42,7 +42,7 @@ Un gain déclenche une notification dans l’app avec son titre et un accès à 
 
 ## Installer et recevoir les notifications
 
-Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écran d’accueil**. Ouvrir ensuite Dés·ir depuis cette icône, se connecter et toucher **Nous → Activer les notifications**. Les notifications Web nécessitent iOS/iPadOS 16.4 ou plus et l’app ajoutée à l’écran d’accueil. Sur les autres navigateurs compatibles, le même bouton demande l’autorisation.
+Sur iPhone ou iPad, ouvrir l’app dans Safari puis **Partager → Sur l’écran d’accueil**. Ouvrir ensuite D6 à deux depuis cette icône, se connecter et toucher **Nous → Activer les notifications**. Les notifications Web nécessitent iOS/iPadOS 16.4 ou plus et l’app ajoutée à l’écran d’accueil. Sur les autres navigateurs compatibles, le même bouton demande l’autorisation.
 
 L’icône D6 sauge est fournie en PNG 180 px pour iPhone et 192/512 px pour l’installation web, avec le manifeste et les métadonnées Apple. Elle est opaque et conserve les matières et couleurs de l’application.
 

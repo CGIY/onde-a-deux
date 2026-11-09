@@ -1,4 +1,4 @@
-/* Dés·ir — device-bound connection to the authoritative game service. */
+/* D6 à deux — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
  const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
@@ -77,7 +77,7 @@
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre Dés·ir.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -205,7 +205,7 @@
   function inspectNotifications(){
    const install=iosInstallRequired(),supported=!!(Notification&&nav.serviceWorker&&(environment.PushManager||scope.PushManager));
    const permission=Notification?.permission||'unsupported';
-   setNotification({supported:supported&&!install,permission,reason:install?'install_required':!supported?'unsupported':permission==='denied'?'denied':null,message:install?'Ajoute Dés·ir à l’écran d’accueil pour activer les notifications.':!supported?'Ce navigateur ne prend pas en charge les notifications.':permission==='denied'?'Les notifications sont désactivées dans les réglages du navigateur.':''});
+   setNotification({supported:supported&&!install,permission,reason:install?'install_required':!supported?'unsupported':permission==='denied'?'denied':null,message:install?'Ajoute D6 à deux à l’écran d’accueil pour activer les notifications.':!supported?'Ce navigateur ne prend pas en charge les notifications.':permission==='denied'?'Les notifications sont désactivées dans les réglages du navigateur.':''});
    return notificationStatus;
   }
   async function serviceWorker(){

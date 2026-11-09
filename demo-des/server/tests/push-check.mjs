@@ -68,7 +68,7 @@ const sandbox={URL,Request,Response,Set,Object,Promise,self:{location:{origin:'h
 vm.runInNewContext(fs.readFileSync(new URL('../../sw.js',import.meta.url),'utf8'),sandbox);
 async function event(name,data){let pending;handlers[name]({...data,waitUntil:promise=>{pending=promise;}});await pending;}
 await event('push',{data:{json:()=>({kind:'invitation',eventId:'fixture',title:'DO NOT DISPLAY',body:'secret title',url:'https://attacker.example'})}});
-check(()=>assert.equal(shown[0].title,'Dés·ir'));
+check(()=>assert.equal(shown[0].title,'D6 à deux'));
 check(()=>assert.equal(shown[0].options.body,'Un nouveau challenge t’attend.'));
 check(()=>assert.equal(shown[0].options.tag,'desir-fixture'));
 check(()=>assert.equal(shown[0].options.body.includes('secret'),false));
@@ -106,4 +106,4 @@ check(()=>assert.equal(writes.length,0,'Install cached a private response'));
 sandbox.fetch=async()=>{const response=new Response('public shell');Object.defineProperty(response,'type',{value:'basic'});return response;};
 await event('install',{});
 check(()=>assert.equal(writes.length,7,'Public app resources were not cached'));
-console.log(`Dés·ir push/PWA: ${checks} security and notification assertions passed.`);
+console.log(`D6 à deux push/PWA: ${checks} security and notification assertions passed.`);
