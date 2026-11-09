@@ -37,7 +37,9 @@ function inspect(svg,prefix,label){
     else{if(tag==='svg')roots++;if(!empty)stack.push(tag);}
   }
   eq(stack,[],label+' leaves no open groups');eq(roots,1,label+' is not a nested document');
-  ok(elements>=15,label+' contains a complete frame and figurative scene');
+  ok(elements>=12,label+' contains the frame, clip and scene');
+  const scene=svg.slice(svg.indexOf('<g clip-path='));
+  ok(/<path d="M[^"]{100,}" fill-rule="evenodd"\/>/i.test(scene),label+' has visible vector contours');
   const ids=[...svg.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
   const references=[...svg.matchAll(/url\(#([^)]*)\)/g)].map(match=>match[1]);
   eq(ids.length,new Set(ids).size,label+' does not reuse a definition ID');
@@ -56,7 +58,7 @@ ok(Object.isFrozen(Art)&&Object.isFrozen(Art.ids)&&Object.isFrozen(Art.catalogue
 ok(Art.catalogue.every(Object.isFrozen));
 eq([...new Set(Art.catalogue.map(item=>item.shape))].sort(),['circle','hex','oval','rosette','shield'],'the five approved soft silhouettes are used');
 eq([...new Set(Art.catalogue.map(item=>item.tone))].sort(),['ivory','peach','rose','sage'],'only the four approved matte fields are used');
-const allowedColors=new Set(['#F1D6C6','#F0EEE7','#D0D6B8','#ECD1CF','#4F6573','#DCCCB7','#A59C89','#C9C8BC','#66705F','#B0B1A4','#929A8B']);
+const allowedColors=new Set(['#F1D6C6','#F0EEE7','#D0D6B8','#ECD1CF','#176B97','#DCCCB7','#A59C89','#C9C8BC','#66705F','#B0B1A4','#929A8B']);
 
 // Distinct artwork is checked after removing identifiers and metadata, so a
 // unique badge name alone cannot make a repeated pictogram pass this check.
