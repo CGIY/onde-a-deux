@@ -8,8 +8,6 @@ const code=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-
 const copy=x=>JSON.parse(JSON.stringify(x));
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const cardNotesFixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../data/card-notes.json'),'utf8'));
-const roleplayFixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../data/card-roleplay.json'),'utf8'));
-function roleplayCount(html){return (html.match(/class="oa-roleplay(?:\s[^"]*)?"/g)||[]).length;}
 function finalGame(cardId,variant=1,actor='a'){
  const c=G.getCard(cardId),category=G.categories.find(item=>item.id===c.categoryId);
  let game=drawModern(initial(),category.number);
@@ -66,7 +64,7 @@ function mockRemote(restored=null){
  const calls=[],r={enabled:true,status:{phase:restored?'connected':'disconnected',message:'',errorCode:null},notificationStatus:{supported:true,permission:'default',subscribed:false,message:''},calls,get connection(){return identity;},get authenticated(){return authenticated;},get snapshot(){return current&&copy(current);},subscribeToChanges(fn){listener=fn;return()=>listener=null;},start(){calls.push({method:'start'});},restore:async()=>current&&copy(current),refresh:async()=>current&&copy(current),async login(username,password){calls.push({method:'login',username,password});r.status={phase:'connecting',message:'',errorCode:null};r.emit();try{const next=await (r.loginImpl?r.loginImpl(username,password):snap(initial()));identity={roomId,actor:next.actor};authenticated=true;r.status={phase:'connected',message:'',errorCode:null};r.emit(next);return copy(next);}catch(error){r.status={phase:'error',message:error.message,errorCode:error.code};r.emit();throw error;}},async action(action){calls.push({method:'action',action:copy(action)});const next=await r.actionImpl(action);r.emit({...next,roll:undefined});return copy(next);},async enableNotifications(){calls.push({method:'notifications'});r.notificationStatus={...r.notificationStatus,permission:'granted',subscribed:true};r.emit();return r.notificationStatus;},emit(next){if(next)current=copy(next);if(listener)listener({snapshot:current&&copy(current),status:{...r.status},notificationStatus:{...r.notificationStatus}});},revoke(){authenticated=false;r.status={phase:'error',message:'Reconnecte cet appareil.',errorCode:'unauthorized'};r.emit();}};
  return r;
 }
-function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues=null,storageBlocked=false,reduced=false,randomFace=null,evidenceTrap=true,mobileScroll=false,viewport=null,autoReveal=true,autoResult=true,installed=false,layoutHeight=874,notes=cardNotesFixture,roleplay=roleplayFixture,motionAPI=false,legacyMotionQuery=false,queryAnimations=true,clockAt=null}={}){
+function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues=null,storageBlocked=false,reduced=false,randomFace=null,evidenceTrap=true,mobileScroll=false,viewport=null,autoReveal=true,autoResult=true,installed=false,layoutHeight=874,notes=cardNotesFixture,motionAPI=false,legacyMotionQuery=false,queryAnimations=true,clockAt=null}={}){
  const values=storageValues||new Map();if(welcomeSeen)values.set('desir-welcome-v1','1');
  const handlers={},windowHandlers={},documentHandlers={},timers=[],intervals=[];let mainHTML='',writes=0,rngCalls=0,evidenceReads=0,dieRunning=false,interrupted=0,resolveDie=null,diceCanvas=null;const rngSides=[],categoryCalls=[],localActions=[],gradeAnimations=[],motionAnimations=[],frames=new Map(),elementScrolls=[],scrollCalls=[],announcements=[];let clockMs=0,frameId=0,canvasRelease=null,currentStage=null,currentGrid=null,badgeWrites=0,collectionWrites=0;const artCalls=[];
  const AppDate=clockAt?class extends Date{constructor(...args){super(...(args.length?args:[clockAt]));}static now(){return Date.parse(clockAt);}}:Date;
@@ -125,9 +123,8 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  shellNode.children=[persona,main,navigation,toast,badgeNotice,badgeAnnouncement,sheet,announcement];
  document={activeElement:null,hidden:false,documentElement:{clientHeight:layoutHeight},body:{style:{}},getElementById:id=>id==='onde-app-v1'?root:null,createElement:()=>node(),addEventListener(type,fn){documentHandlers[type]=fn;}};
  const die={setKind(kind,value){if(dieRunning){interrupted++;resolveDie?.();}die.kinds.push([kind,value]);},setReducedMotion(value){die.reduced.push(value);},setColor(color){die.colors.push(color);},setCharge(power){die.charges.push(power);},async roll(value,options){die.calls.push(value);die.options.push(options);die.visible.push(!!diceCanvas?.parentElement&&mainHTML.includes('data-stage'));dieRunning=true;if(delayedDie)await new Promise(resolve=>resolveDie=resolve);dieRunning=false;},calls:[],kinds:[],options:[],visible:[],charges:[],colors:[],reduced:[]};
- const ctx={visualViewport:viewport,getComputedStyle:()=>({overflowY:mobileScroll?(main.style.overflow||'auto'):'visible'}),performance:{now:()=>clockMs},requestAnimationFrame(fn){const id=++frameId;frames.set(id,fn);return id;},cancelAnimationFrame(id){frames.delete(id);},console,Date:AppDate,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem(k){if(storageBlocked)throw Error('Storage unavailable');return values.get(k)||null;},setItem(k,v){if(storageBlocked)throw Error('Storage unavailable');values.set(k,String(v));},removeItem(k){if(storageBlocked)throw Error('Storage unavailable');values.delete(k);}},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,rollCategory(version,draw,at){categoryCalls.push({version,at});return G.rollCategory(version,draw,at);},reduceRoom(room,action){localActions.push(copy(action));return G.reduceRoom(room,action);},randomInt(n){rngCalls++;rngSides.push(n);return typeof randomFace==='function'?randomFace(n):randomFace===null?G.randomInt(n):Math.min(n,randomFace);}},OndeDice:{create:(canvas,options)=>{diceCanvas=canvas;canvasRelease=options.onRelease;return die;}},OndeBadgeArt:{render(id,options){artCalls.push({id,...copy(options)});return BadgeArt.render(id,options);}},DesirCardNotes:notes,DesirRoleplay:roleplay,OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:query=>({matches:query==='(display-mode: standalone)'?installed:reduced,...(legacyMotionQuery?{addListener(fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}}:{addEventListener(type,fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}})}),setTimeout(fn,ms){const timer={fn,ms,active:true,scrollTop:main.scrollTop};timers.push(timer);if(ms===900&&autoReveal||ms===450&&autoResult)Promise.resolve().then(()=>{if(timer.active){timer.active=false;fn();}});return timers.length;},clearTimeout(id){if(timers[id-1])timers[id-1].active=false;},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;},removeEventListener(type,fn){if(windowHandlers[type]===fn)delete windowHandlers[type];}};
+ const ctx={visualViewport:viewport,getComputedStyle:()=>({overflowY:mobileScroll?(main.style.overflow||'auto'):'visible'}),performance:{now:()=>clockMs},requestAnimationFrame(fn){const id=++frameId;frames.set(id,fn);return id;},cancelAnimationFrame(id){frames.delete(id);},console,Date:AppDate,Map,Set,Array,JSON,String,Number,Math,Promise,document,localStorage:{getItem(k){if(storageBlocked)throw Error('Storage unavailable');return values.get(k)||null;},setItem(k,v){if(storageBlocked)throw Error('Storage unavailable');values.set(k,String(v));},removeItem(k){if(storageBlocked)throw Error('Storage unavailable');values.delete(k);}},sessionStorage:{getItem(){return null;},setItem(){}},OndeGame:{...G,rollCategory(version,draw,at){categoryCalls.push({version,at});return G.rollCategory(version,draw,at);},reduceRoom(room,action){localActions.push(copy(action));return G.reduceRoom(room,action);},randomInt(n){rngCalls++;rngSides.push(n);return typeof randomFace==='function'?randomFace(n):randomFace===null?G.randomInt(n):Math.min(n,randomFace);}},OndeDice:{create:(canvas,options)=>{diceCanvas=canvas;canvasRelease=options.onRelease;return die;}},OndeBadgeArt:{render(id,options){artCalls.push({id,...copy(options)});return BadgeArt.render(id,options);}},DesirCardNotes:notes,OndeRemote:{create:()=>remote},DesirConfig:mode?{endpoint:'https://example.supabase.co/functions/v1/desir-game'}:{},matchMedia:query=>({matches:query==='(display-mode: standalone)'?installed:reduced,...(legacyMotionQuery?{addListener(fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}}:{addEventListener(type,fn){if(query.includes('prefers-reduced-motion'))motionChange=fn;}})}),setTimeout(fn,ms){const timer={fn,ms,active:true,scrollTop:main.scrollTop};timers.push(timer);if(ms===900&&autoReveal||ms===450&&autoResult)Promise.resolve().then(()=>{if(timer.active){timer.active=false;fn();}});return timers.length;},clearTimeout(id){if(timers[id-1])timers[id-1].active=false;},setInterval(fn,ms){intervals.push({fn,ms});return intervals.length;},clearInterval(){},addEventListener(type,fn){windowHandlers[type]=fn;},removeEventListener(type,fn){if(windowHandlers[type]===fn)delete windowHandlers[type];}};
  Object.defineProperty(ctx,'OndeHardcore',{get(){throw Error('The retired live controller must never be mounted.');}});
- if(roleplay===null)delete ctx.DesirRoleplay;
  if(evidenceTrap)for(const key of ['OndeEvidence','OndeEvidenceData'])Object.defineProperty(ctx,key,{get(){evidenceReads++;throw Error('Statistics must never be accessed by the game UI');}});
  ctx.window=ctx;
  vm.runInNewContext(code,ctx,{filename:'onde-app-ui.js'});
@@ -146,44 +143,33 @@ async function rollSession(options={}){
   ui.setMotion(true);check(()=>{assert.equal(ui.die.reduced.at(-1),true);assert.equal(ui.root.classList.contains('oa-entering'),false);});
   ui.setMotion(false);check(()=>{assert.equal(ui.die.reduced.at(-1),false);assert.equal(ui.root.classList.contains('oa-entering'),false);});
  }
- // Final roleplay copy follows the exact variant, not merely the parent card.
+ // A tab change frosts only the reading area, and reduced motion cancels the effect.
  {
-  const cardId='six-attention-cadeau',first=roleplayFixture.cards[cardId+':v1'],second=roleplayFixture.cards[cardId+':v6'];
-  check(()=>{assert.ok(first);assert.ok(second);assert.notEqual(first.text,second.text);});
+  const ui=shell(mockRemote(snap(initial())),{motionAPI:true});await tick();
+  await ui.click('tab',{tab:'tasks'});
+  const frost=ui.motionAnimations.find(animation=>animation.node===ui.main);
+  check(()=>{assert.match(frost.keyframes[0].filter,/blur\(/);assert.equal(frost.keyframes.at(-1).filter,'none');});
+  ui.setMotion(true);
+  check(()=>assert.equal(frost.cancelled,true));
+  const count=ui.motionAnimations.length;
+  await ui.click('tab',{tab:'info'});
+  check(()=>assert.equal(ui.motionAnimations.length,count));
+ }
+ // The variant and sharing controls stay visible, including for previously saved rounds.
+ {
+  const cardId='six-attention-cadeau';
   for(const variant of [1,6]){
-   const game=finalGame(cardId,variant),before=copy(game),entry=roleplayFixture.cards[cardId+':v'+variant],other=variant===1?second:first;
-   const remote=mockRemote(snap(game)),ui=shell(remote);await tick();
-   check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes('class="oa-roleplay-value"'));assert.ok(ui.html.includes('class="oa-roleplay-copy"'));assert.ok(ui.html.includes(escapedText(entry.metric)));assert.ok(ui.html.includes(escapedText(entry.text)));assert.ok(!ui.html.includes(escapedText(other.text)));assert.doesNotMatch(ui.html,/Club des Deux|du club|roleplay-label|>\s*Roleplay\s*</i);assert.doesNotMatch(ui.html,/<a\b|Source & contexte|data-source-card/);assert.equal(ui.evidenceReads,0);});
-   const without=shell(mockRemote(snap(game)),{roleplay:null});await tick();
-   check(()=>{assert.equal(roleplayCount(without.html),0);assert.ok(hasTitle(without.html,G.getCard(cardId).title));for(const action of ['send'])assert.equal(ui.html.includes('data-action="'+action+'"'),without.html.includes('data-action="'+action+'"'));assert.deepEqual(game,before);assert.equal(game.stats.totalCompleted,0);assert.equal(G.rules.completedCardPoints,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,0);});
+   const game=finalGame(cardId,variant),before=copy(game),remote=mockRemote(snap(game)),ui=shell(remote);
+   await tick();
+   check(()=>{assert.ok(hasTitle(ui.html,G.getCard(cardId).title));assert.ok(ui.html.includes(escapedText(G.getVariant(game.round))));assert.ok(ui.html.includes('data-action="send"'));assert.doesNotMatch(ui.html,/oa-roleplay|DesirRoleplay/);assert.deepEqual(game,before);assert.equal(remote.calls.filter(call=>call.method==='action').length,0);assertNoEvidence(ui.html);});
   }
- }
- // Unfinished and private variants stay hidden; sent cards appear directly in the shared tasks.
- {
-  const cardId='six-attention-cadeau',entry=roleplayFixture.cards[cardId+':v1'];
-  let game=drawModern(initial(),2);game=G.reduce(game,{type:'ROLL_CARD',value:game.round.hand.indexOf(cardId)+1});
-  const unfinished=shell(mockRemote(snap(game)));await tick();
-  check(()=>{assert.equal(game.phase,'variant');assert.equal(roleplayCount(unfinished.html),0);assert.ok(!unfinished.html.includes(escapedText(entry.text)));});
-  const privateGame=finalGame(cardId,1,'b'),hidden=shell(mockRemote(snap(privateGame)));await tick();
-  check(()=>{assert.equal(roleplayCount(hidden.html),0);assert.ok(!hidden.html.includes(escapedText(entry.metric)));assert.ok(!hidden.html.includes(escapedText(entry.text)));assert.ok(!hasTitle(hidden.html,G.getCard(cardId).title));});
-  game=G.reduce(finalGame(cardId,1),{type:'SEND',directQueue:true,at:new Date().toISOString()});game.activePlayer='b';
-  const received=shell(mockRemote(snap(game)));await tick();
-  check(()=>{assert.equal(roleplayCount(received.html),0);assert.ok(!received.html.includes(escapedText(entry.text)));});
-  await received.click('tab',{tab:'tasks'});
-  check(()=>{assert.ok(hasTitle(received.html,G.getCard(cardId).title));assert.ok(received.html.includes(escapedText(G.getVariant(game.round))));assert.ok(!received.html.includes('data-action="accept"'));assert.ok(received.html.includes('data-action="refuse-task"'));assertNoEvidence(received.html);});
- }
- // Roleplay is optional, leaves old cards intact, and escapes its text as plain copy.
- {
+  const hidden=shell(mockRemote(snap(finalGame(cardId,1,'b'))));await tick();
+  check(()=>assert.ok(!hasTitle(hidden.html,G.getCard(cardId).title)));
+  const sent=G.reduce(finalGame(cardId,1),{type:'SEND',directQueue:true,at:new Date().toISOString()});sent.activePlayer='b';
+  const received=shell(mockRemote(snap(sent)));await tick();await received.click('tab',{tab:'tasks'});
+  check(()=>{assert.ok(hasTitle(received.html,G.getCard(cardId).title));assert.ok(received.html.includes(escapedText(G.getVariant(sent.round))));assert.ok(!received.html.includes('data-action="accept"'));assert.ok(received.html.includes('data-action="refuse-task"'));assertNoEvidence(received.html);});
   const legacy=draftGame(),legacyUI=shell(mockRemote(snap(legacy)));await tick();
-  check(()=>{assert.equal(roleplayCount(legacyUI.html),0);assert.ok(legacyUI.html.includes(cardNotesFixture[legacy.round.cardId]));assertNoEvidence(legacyUI.html);});
-  const cardId='six-attention-cadeau',game=finalGame(cardId,1);
-  for(const roleplay of [null,{}, {...roleplayFixture,mode:'evidence'}]){
-   const ui=shell(mockRemote(snap(game)),{roleplay});await tick();
-   check(()=>{assert.equal(roleplayCount(ui.html),0);assert.ok(hasTitle(ui.html,G.getCard(cardId).title));assert.ok(ui.html.includes('data-action="send"'));assert.equal(ui.evidenceReads,0);});
-  }
-  const text='<img src=x onerror="alert(1)"> & une phrase du jeu',roleplay={mode:'roleplay',universe:'Dés·ir',cards:{[cardId+':v1']:{metric:'91,3 %',text}}};
-  const ui=shell(mockRemote(snap(game)),{roleplay});await tick();
-  check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes(escapedText(text)));assert.ok(!ui.html.includes('<img src=x'));assert.equal(ui.evidenceReads,0);});
+  check(()=>{assert.ok(legacyUI.html.includes(cardNotesFixture[legacy.round.cardId]));assertNoEvidence(legacyUI.html);});
  }
  // New draws expose four category labels, then six unreadable challenge slots.
  {
@@ -227,10 +213,10 @@ async function rollSession(options={}){
   await ui.click('hardcore-open');check(()=>{assert.equal(remote.calls.length,before);assert.equal(ui.sheet.hidden,true);});
   const css=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-ui.html'),'utf8');check(()=>assert.doesNotMatch(css,/oa-hc-|oa-hc-ready/));
  }
- // Current classic cards retain their exact existing variant text and optional annotation.
+ // Current classic cards retain their exact existing variant text.
  {
   const id='six-attention-cadeau';let game=drawCurrent(initial(),2);game=G.reduce(game,{type:'ROLL_CARD',value:game.round.hand.indexOf(id)+1});game=G.reduce(game,{type:'ROLL_VARIANT',value:6});
-  const ui=shell(mockRemote(snap(game)));await tick();check(()=>{assert.equal(roleplayCount(ui.html),1);assert.ok(ui.html.includes(escapedText(roleplayFixture.cards[id+':v6'].text)));assert.ok(ui.html.includes(escapedText(G.getVariant(game.round))));assertNoEvidence(ui.html);});
+  const ui=shell(mockRemote(snap(game)));await tick();check(()=>{assert.doesNotMatch(ui.html,/oa-roleplay/);assert.ok(ui.html.includes(escapedText(G.getVariant(game.round))));assertNoEvidence(ui.html);});
  }
  // Local draws, category rerolls and the Joker all choose the current pool without a mode die.
  {
@@ -726,7 +712,7 @@ async function rollSession(options={}){
   const remote=mockRemote(snap(initial())),ui=shell(remote,{delayedDie:true});await tick();
   const next=drawCurrent();
   remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'ROLL_CATEGORY',catalogueVersion:3,roundId:'onde-1'}));return {...snap(next,2,0),roll:{kind:4,value:2}};};
-  const before=ui.writes,work=ui.click('roll');await tick();check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('Un peu de hasard.')));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Plaisirs')));check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.interrupted,0));
+  const before=ui.writes,work=ui.click('roll');await tick();check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Plaisirs')));check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.interrupted,0));
  }
  // The category D4 hands off only after its confirmed face settles; the six slots never translate or stagger.
  {
@@ -901,7 +887,7 @@ async function rollSession(options={}){
   for(const reroll of [false,true])for(const face of [1,2,3,4,5,6]){
    const oldFace=face%6+1,game=reroll?draftGame('a',oldFace):G.reduce(initial(),{type:'ROLL_CATEGORY',value:4,hand:G.legacyCards.filter(c=>c.categoryId==='attention').slice(0,6).map(c=>c.id)}),remote=mockRemote(snap(game)),ui=shell(remote,{autoReveal:false,delayedDie:true,evidenceTrap:true,mobileScroll:true});await tick();const actionType=reroll?'REROLL_CARD':'ROLL_CARD',next=G.reduce(game,{type:actionType,value:face}),chosen=G.getCard(next.round.cardId);remote.actionImpl=async action=>{assert.deepEqual(copy(action),{type:actionType,roundId:game.round.id});return {...snap(next,2),roll:{kind:6,value:face}};};const work=ui.click(reroll?'reroll':'roll');await tick();
    check(()=>{assert.ok(!hasTitle(ui.html,chosen.title));assert.ok(!ui.html.includes('data-reveal-selected'));assert.equal(ui.revealPending,0);assert.equal(ui.announcements.filter(text=>text.includes(chosen.title)).length,0);});
-   ui.finishDie();await tick();check(()=>{assert.ok(ui.html.includes('oa-card-revealed'));assert.equal(ui.html.includes('is-first-reveal'),!reroll);assert.ok(ui.html.includes('data-reveal-selected aria-label="Carte '+face+' choisie"'));assert.ok(ui.html.includes('<h3>'+chosen.title+'</h3>'));assertNoEvidence(ui.html);assert.ok(!ui.html.includes('oa-playing-card'));assert.ok(!ui.html.includes('oa-card-note'));assert.ok(!ui.html.includes('data-action='));assert.equal((ui.html.match(/class="oa-card-ghost"/g)||[]).length,reroll?4:5);for(const id of game.round.hand.filter(id=>id!==chosen.id&&(!reroll||id!==game.round.cardId)))assert.ok(!hasTitle(ui.html,G.getCard(id).title));if(reroll)assert.ok(ui.html.includes('Carte '+oldFace+' écartée : '+G.getCard(game.round.cardId).title));assert.equal(ui.revealPending,1);assert.equal(ui.timers.findLast(timer=>timer.ms===900).scrollTop,ui.main.scrollTop);if(face>3)assert.ok(ui.main.scrollTop>0);assert.deepEqual(ui.announcements,['D6 : '+face+'. '+chosen.title]);});
+   ui.finishDie();await tick();check(()=>{assert.ok(ui.html.includes('oa-card-revealed'));assert.equal(ui.html.includes('is-first-reveal'),!reroll);assert.ok(ui.html.includes('data-reveal-selected aria-label="Carte '+face+' choisie"'));assert.ok(ui.html.includes('<h3>'+chosen.title+'</h3>'));assertNoEvidence(ui.html);assert.ok(!ui.html.includes('oa-playing-card'));assert.ok(!ui.html.includes('oa-card-note'));assert.ok(!ui.html.includes('data-action='));assert.equal((ui.html.match(/class="oa-card-ghost"/g)||[]).length,reroll?4:5);for(const id of game.round.hand.filter(id=>id!==chosen.id&&(!reroll||id!==game.round.cardId)))assert.ok(!hasTitle(ui.html,G.getCard(id).title));if(reroll)assert.ok(ui.html.includes('Carte '+oldFace+' écartée : '+G.getCard(game.round.cardId).title));assert.equal(ui.revealPending,1);assert.equal(ui.timers.findLast(timer=>timer.ms===900).scrollTop,ui.main.scrollTop);assert.equal(ui.main.scrollTop,0);assert.ok(ui.html.includes('aria-hidden="true">'+chosen.title+'</p>'));assert.deepEqual(ui.announcements,['D6 : '+face+'. '+chosen.title]);});
    await ui.click('tab',{tab:'us'});await ui.click('send');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,1));
    if(face===1){remote.emit(snap(game,1));check(()=>assert.equal(ui.revealPending,1));}
    if(face===4&&!reroll){const latest=copy(next);latest.stats.totalCompleted=1;latest.stats.byCategory.attention=1;remote.emit(snap(latest,3));check(()=>assert.equal(ui.revealPending,1));}

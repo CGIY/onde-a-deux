@@ -41,42 +41,6 @@ def public_config():
     return 'window.DesirConfig=Object.freeze(' + json.dumps(config, ensure_ascii=False).replace('<', '\\u003c') + ');'
 
 
-def roleplay_content(core):
-    """Require one fictional repère for every final result of the active catalogue."""
-    try:
-        match = re.search(r'\bconst newCards = (\[.*?\n  \]);', core, re.S)
-        catalogue = json.loads(match.group(1)) if match else None
-        roleplay = json.loads((root / 'data/card-roleplay.json').read_text())
-    except (OSError, ValueError):
-        raise SystemExit('Roleplay requires its complete local data and active catalogue.')
-    if (not isinstance(catalogue, list) or not catalogue or
-            any(not isinstance(card, dict) or not isinstance(card.get('id'), str) or
-                not isinstance(card.get('variants'), list) or not card['variants']
-                for card in catalogue) or
-            len({card['id'] for card in catalogue}) != len(catalogue)):
-        raise SystemExit('The active final-card catalogue could not be validated.')
-    expected = {card['id'] + ':v' + str(index + 1)
-                for card in catalogue for index in range(len(card['variants']))}
-    if (not isinstance(roleplay, dict) or set(roleplay) != {'mode', 'universe', 'cards'} or
-            roleplay['mode'] != 'roleplay' or roleplay['universe'] != 'D6 à deux' or
-            not isinstance(roleplay['cards'], dict) or set(roleplay['cards']) != expected):
-        raise SystemExit('Roleplay must identify its fictional universe and cover every final card exactly.')
-    texts = set()
-    for row in roleplay['cards'].values():
-        if (not isinstance(row, dict) or set(row) != {'metric', 'text'} or
-                not isinstance(row['metric'], str) or
-                not re.fullmatch(r'\+?\d{1,3}(?:,\d{1,2})? %', row['metric']) or
-                not 0 < float(row['metric'].replace('+', '').replace(' %', '').replace(',', '.')) <= 100 or
-                not isinstance(row['text'], str) or not row['text'].strip() or len(row['text']) > 180 or
-                re.search(r'https?://|www\.|sb_(?:secret|publishable)_|\bBearer\s+|\beyJ[\w-]+\.[\w-]+\.', row['text'])):
-            raise SystemExit('Each final roleplay card requires a percentage and short text, without source or credentials.')
-        normalized = row['text'].casefold().strip()
-        if normalized in texts:
-            raise SystemExit('Every final roleplay card requires its own unique text.')
-        texts.add(normalized)
-    return roleplay
-
-
 def info_questions():
     questions = json.loads((root / 'data/info-questions.json').read_text(encoding='utf-8'))
     categories = {'complicite', 'attention', 'projets', 'intimite'}
@@ -211,13 +175,11 @@ if (not isinstance(notes, dict) or set(notes) != card_ids or
             re.search(r'[%\d]|https?://', value) for value in notes.values()) or
         len({value.casefold().strip() for value in notes.values()}) != len(notes)):
     raise SystemExit('Each card requires its own short, non-numerical sentence.')
-roleplay = roleplay_content(core)
 html = (source / 'onde-app-ui.html').read_text()
 html += libido_modules()
 html += '\n<script>window.DesirInfoQuestions=' + json.dumps(info_questions(), ensure_ascii=False).replace('<', '\\u003c') + ';</script>\n'
 html += '\n<style>\n' + (source / 'onde-app-info.css').read_text() + '</style>\n'
 html += '\n<script>window.DesirCardNotes=Object.freeze(' + json.dumps(notes, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
-html += '\n<script>window.DesirRoleplay=Object.freeze(' + json.dumps(roleplay, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
 if connected:
     # Inline this public setting: a failed config request must never select local demo mode.
     html += '\n<script>' + configuration + '</script>\n'

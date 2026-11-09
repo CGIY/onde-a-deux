@@ -4,7 +4,6 @@
  if(!root || !window.OndeGame || !window.OndeDice)return;
  const G=window.OndeGame, main=root.querySelector('#oa-main'), sheet=root.querySelector('#oa-sheet');
  const cardNotes=Object.freeze(Object.assign({},window.DesirCardNotes||{}));
- const roleplayCards=Object.freeze(Object.assign({},window.DesirRoleplay?.mode==='roleplay'?window.DesirRoleplay.cards||{}:{}));
  const storageKey='onde-couple-prototype-v1';
  const remote=window.OndeRemote&&window.OndeRemote.create(window.DesirConfig||{});
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
@@ -66,7 +65,7 @@
  }
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
- const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,reducedMotion:!!systemReduce,idleMotion:true,onRelease:power=>{if(tab==='play'&&!busy)return roll(false,power);}});
+ const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,maxPixels:400000,reducedMotion:!!systemReduce,idleMotion:true,onRelease:power=>{if(tab==='play'&&!busy)return roll(false,power);}});
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
@@ -238,14 +237,9 @@
  }).join('')+'</div>';}
  function statusStrip(text,amber=false){return '<div class="oa-status-strip '+(amber?'oa-amber':'')+'"><span class="oa-status-dot"></span><span>'+text+'</span></div>';}
  function proposalDetail(round){return G.getVariant(round)||(round.adapted?round.proposal:null);}
- function roleplayNote(c){
-  const r=state.round,entry=G.needsVariant(r)&&Number.isInteger(r.variantRoll)?roleplayCards[c.id+':v'+r.variantRoll]:null;
-  if(!entry||typeof entry.metric!=='string'||typeof entry.text!=='string')return '';
-  return '<aside class="oa-roleplay" aria-label="Une phrase pour le jeu"><p class="oa-roleplay-value">'+h(entry.metric)+'</p><p class="oa-roleplay-copy">'+h(entry.text)+'</p></aside>';
- }
  function playingCard(c,compact=false){
   const r=state.round,cat=G.getCategory(c.categoryId,r.catalogueVersion??1),detail=proposalDetail(r),note=(r.catalogueVersion??1)===1?cardNotes[c.id]:null;
-  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(categoryLabel(r))+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+roleplayNote(c)+'</article>';
+  return '<article class="oa-playing-card" style="--category:'+cat.color+'"><div class="oa-card-top"><span class="oa-card-category">'+h(categoryLabel(r))+(r.adapted?' · VARIANTE':'')+'</span></div>'+(!compact?'<div class="oa-card-illustration" aria-hidden="true"><i></i><i></i><i></i></div>':'')+'<h2 class="oa-card-title">'+h(c.title)+'</h2>'+(detail?'<p class="oa-card-description">'+h(detail)+'</p>':'')+(note?'<p class="oa-card-note">'+h(note)+'</p>':'')+'</article>';
  }
 
  function badgeMedallion(badge,instance){
@@ -323,6 +317,7 @@
   if(!badgeDetailId)badgeGalleryScroll=dialog?.scrollTop||0;
   badgeDetailId=id;badgeHighlight=id;updateBadgeCollection();if(dialog)dialog.scrollTop=0;
   sheet.querySelector('[data-badge-heading]')?.focus({preventScroll:true});
+  frostTransition(sheet.querySelector('.oa-achievement-detail'),260,4);
  }
  function backToBadgeCollection(){
   if(!badgeSheetOpen||!badgeDetailId)return;
@@ -413,7 +408,7 @@
    if(!next){badgeNotice.hidden=true;return;}
    badgeActive={id:next.id,awardId:next.award.id,remaining:8000};badgeHover=false;badgeFocus=false;
    badgeRegistry.seen.push(next.award.id);badgeRegistry.pending=badgeRegistry.pending.filter(id=>id!==next.award.id);saveBadgeRegistry();
-   badgeNotice.innerHTML=badgeMedallion(next,'notice')+'<div class="oa-badge-notice-copy"><p>Badge débloqué · '+badgeScopeLabel(next)+'</p><h2>'+h(next.title)+'</h2><button type="button" class="oa-text-button cursor-interaction" data-action="badge-view" data-badge="'+h(next.id)+'">Voir le badge <span aria-hidden="true">↗</span></button></div><button type="button" class="oa-badge-notice-close cursor-interaction" data-action="badge-dismiss" aria-label="Fermer la notification du badge">×</button>';
+   badgeNotice.innerHTML='<button type="button" class="oa-badge-notice-open cursor-interaction" data-action="badge-view" data-badge="'+h(next.id)+'" aria-haspopup="dialog" aria-label="Voir le badge '+h(next.title)+'">'+badgeMedallion(next,'notice')+'<span class="oa-badge-notice-copy"><small>Badge débloqué</small><strong>'+h(next.title)+'</strong></span></button><button type="button" class="oa-badge-notice-close cursor-interaction" data-action="badge-dismiss" aria-label="Fermer la notification du badge">×</button>';
    badgeNotice.dataset.award=next.award.id;
    if(badgeAnnouncement)badgeAnnouncement.textContent='Badge débloqué : '+next.title+'. '+badgeScopeLabel(next)+'.';
    entered=true;
@@ -451,6 +446,9 @@
   return btn('Lancer le D'+G.rules.categorySides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
  }
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
+ function rollScreen(headingMarkup,stageMarkup,actionMarkup,following=''){
+  return '<div class="oa-roll-heading">'+headingMarkup+'</div>'+stageMarkup+'<div class="oa-roll-action">'+actionMarkup+'</div>'+following;
+ }
 
  function privateHome(incoming=false){
   const r=state.round;
@@ -458,14 +456,25 @@
  }
  function renderPlay(){const r=state.round,c=card();
   if(!canSeeCurrentRound())return privateHome();
-  if(cardReveal){const reveal=cardReveal,sides=reveal.hand.length;return (reveal.reroll?heading('Le D'+sides+'<br><em>rejoue.</em>',null,null):cardHeading(reveal)+steps(2,sides,reveal.hasVariant,reveal.catalogueVersion))+stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card')+'<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">Carte choisie.</p>'+handGrid({hand:reveal.hand,catalogueVersion:reveal.catalogueVersion,intimacyPool:reveal.intimacyPool,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}});}
-  if(state.phase==='category')return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+steps(1,G.rules.cardSides,false)+stage(G.rules.categorySides,'01 / LE THÈME',3,'category')+categoryAction()+'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2></div>'+categoriesGrid();
+  if(cardReveal){
+   const reveal=cardReveal,sides=reveal.hand.length,title=G.getCard(reveal.cardId).title;
+   const top=reveal.reroll?heading('Le D'+sides+' <em>rejoue.</em>',null,null):cardHeading(reveal)+steps(2,sides,reveal.hasVariant,reveal.catalogueVersion);
+   return rollScreen(top,stage(sides,reveal.reroll?'02 / UNE AUTRE CARTE':'02 / LA CARTE',reveal.face,'card'),
+    '<p class="oa-roll-status'+(reveal.reroll?'':' is-first-reveal')+'" data-reveal-mode="'+(reveal.reroll?'reroll':'card')+'" aria-hidden="true">'+h(title)+'</p>',
+    handGrid({hand:reveal.hand,catalogueVersion:reveal.catalogueVersion,intimacyPool:reveal.intimacyPool,discarded:reveal.discarded,selected:{slot:reveal.face,cardId:reveal.cardId}}));
+  }
+  if(state.phase==='category')return rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Jouer</h1>'+steps(1,G.rules.cardSides,false),
+   stage(G.rules.categorySides,'01 / LE THÈME',3,'category'),categoryAction(),'<div class="oa-section-head"><h2>Quatre façons de se retrouver</h2></div>'+categoriesGrid());
   if(state.phase==='card'){
    const sides=G.cardSides(state);
-   return cardHeading(r)+steps(2,sides,G.needsVariant(r),r.catalogueVersion??1)+stage(sides,'02 / LA CARTE',1,'card')+btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll')+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid();
+   return rollScreen(cardHeading(r)+steps(2,sides,G.needsVariant(r),r.catalogueVersion??1),stage(sides,'02 / LA CARTE',1,'card'),
+    btn('Lancer le D'+sides+' <span class="oa-arrow" aria-hidden="true">↗</span>','roll'),(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':'')+handGrid());
   }
-  if(state.phase==='variant')return heading(h(c.title),null,null)+steps(3,G.cardSides(r),true,r.catalogueVersion??1)+stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant')+btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll');
-  if(state.phase==='draft'&&rerolling)return heading('Le D'+G.cardSides(state)+'<br><em>rejoue.</em>',null,null)+stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card')+'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>'+handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}});
+  if(state.phase==='variant')return rollScreen(heading(h(c.title),null,null)+steps(3,G.cardSides(r),true,r.catalogueVersion??1),
+   stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant'),btn('Tirer la variante <span class="oa-arrow" aria-hidden="true">↗</span>','roll'));
+  if(state.phase==='draft'&&rerolling)return rollScreen(heading('Le D'+G.cardSides(state)+' <em>rejoue.</em>',null,null),
+   stage(G.cardSides(state),'02 / UNE AUTRE CARTE',r.cardRoll,'card'),'<p class="oa-roll-status" data-roll-status role="status" aria-busy="true">Tirage…</p>',
+   handGrid({discarded:{cardId:r.cardId,slot:r.cardRoll}}));
   if(state.phase==='draft')return heading(canDraw()?'Ta prochaine<br><em>idée à deux.</em>':'Une carte<br><em>à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+(canDraw()?'<div class="oa-actions">'+btn('Proposer à '+h(name(r.to))+' <span class="oa-arrow">↗</span>','send')+(G.canRerollCard(state)?textBtn('Relancer la carte','reroll'):'')+'</div>':'<div class="oa-actions">'+switchButton(r.from)+'</div>');
   if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise D6 à deux pour retrouver votre liste.',null);
   if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
@@ -489,7 +498,7 @@
  function renderTasks(){
   const tasks=state.tasks||[];
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'Le dé roule…':'Confirmation du refus…')+'</p>';
-  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';}).join('')+'</div>':'<div class="oa-task-empty"><span aria-hidden="true">〰</span><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
+  return heading('Les choses<br><em>à faire.</em>',null,null)+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{const c=G.getCard(task.cardId),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+timeLeft(task)+'">'+timeLeft(task)+'</time></div><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'<p class="oa-task-status">'+h(taskStatus(task))+'</p><div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';}).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+'<div class="oa-actions">'+(state.phase==='accepted'?btn('Un nouveau tour <span class="oa-arrow">↗</span>','new'):textBtn('Revenir au jeu','tab','data-tab="play"'))+'</div>';
  }
  function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=[
@@ -646,16 +655,22 @@
   const panel=main.querySelector('.oa-info');
   if(!panel)return;
   const progress=panel.querySelector('.oa-info-progress i');
+  const agreement=panel.querySelector('.oa-info-agreement');
+  let progressFrame=0;
   const updateProgress=()=>{
+   progressFrame=0;
    const distance=main.scrollHeight-main.clientHeight;
    const ratio=distance>0?Math.max(0,Math.min(1,main.scrollTop/distance)):1;
    progress.style.transform='scaleX('+ratio+')';
   };
+  const scheduleProgress=()=>{if(!progressFrame)progressFrame=requestAnimationFrame(updateProgress);};
   const frames=new Map();
   const observer=window.IntersectionObserver&&new IntersectionObserver(entries=>{
-   entries.forEach(({target,isIntersecting})=>{
-    if(!isIntersecting||systemReduce)return;
-    observer.unobserve(target);
+   entries.forEach(({target,isIntersecting,intersectionRatio})=>{
+    const visible=isIntersecting&&intersectionRatio>=.18;
+    if(target===agreement)target.classList.toggle('is-in-view',visible);
+    if(!visible||systemReduce||target.hasAttribute('data-info-visited'))return;
+    if(target!==agreement)observer.unobserve(target);
     target.classList.add('is-reading');target.dataset.infoVisited='';
     const counts=Array.from(target.querySelectorAll('[data-info-count]'),node=>{
      const final=node.textContent, value=node.dataset.infoCount||final;
@@ -664,11 +679,14 @@
      return {node,final,value:Number(value),format};
     });
     if(!counts.length)return;
-    const started=chargeNow(), duration=1350;
+    const started=chargeNow(),duration=880;
     const step=now=>{
      const ratio=Math.max(0,Math.min(1,(now-started)/duration));
      const eased=1-Math.pow(1-ratio,2);
-     counts.forEach(({node,final,value,format})=>node.textContent=ratio===1?final:format.format(value*eased));
+     counts.forEach(({node,final,value,format})=>{
+      const display=ratio===1?final:format.format(value*eased);
+      if(node.textContent!==display)node.textContent=display;
+     });
      if(ratio<1)frames.get(target).id=requestAnimationFrame(step);
      else frames.delete(target);
     };
@@ -685,8 +703,11 @@
   };
   const updateMotion=()=>{
    observer?.disconnect();
-   if(systemReduce)stopCounts();
-   else panel.querySelectorAll('.oa-info-card:not([data-info-visited])').forEach(card=>observer?.observe(card));
+   if(systemReduce){stopCounts();agreement?.classList.remove('is-in-view');}
+   else{
+    panel.querySelectorAll('.oa-info-card:not([data-info-visited])').forEach(card=>observer?.observe(card));
+    if(agreement?.hasAttribute('data-info-visited'))observer?.observe(agreement);
+   }
   };
   const widgets=[
    ['[data-info-activity]',infoActivity],
@@ -713,19 +734,20 @@
     }
    }
   };
-  const resize=window.ResizeObserver&&new ResizeObserver(updateProgress);
+  const resize=window.ResizeObserver&&new ResizeObserver(scheduleProgress);
   resize?.observe(panel);
   resize?.observe(main);
-  main.addEventListener('scroll',updateProgress,{passive:true});
-  window.addEventListener('resize',updateProgress);
-  panel.addEventListener('toggle',updateProgress,true);
+  main.addEventListener('scroll',scheduleProgress,{passive:true});
+  window.addEventListener('resize',scheduleProgress);
+  panel.addEventListener('toggle',scheduleProgress,true);
   updateProgress();
   updateMotion();
   return {refresh,updateMotion,dispose(){
    observer?.disconnect();resize?.disconnect();stopCounts();
-   main.removeEventListener('scroll',updateProgress);
-   window.removeEventListener('resize',updateProgress);
-   panel.removeEventListener('toggle',updateProgress,true);
+   if(progressFrame)cancelAnimationFrame(progressFrame);
+   main.removeEventListener('scroll',scheduleProgress);
+   window.removeEventListener('resize',scheduleProgress);
+   panel.removeEventListener('toggle',scheduleProgress,true);
   }};
  }
  function showInfoIdea(){
@@ -737,7 +759,10 @@
   [infoIdea]=infoDeck.splice(index,1);
   const output=main.querySelector('.oa-info-idea-output');
   output.innerHTML=infoIdeaMarkup();
-  if(!systemReduce)playContentTransition(output,[{opacity:.45,transform:'translateY(4px)'},{opacity:1,transform:'none'}],320);
+  if(!systemReduce){
+   output.getAnimations?.().forEach(animation=>animation.cancel());
+   playContentTransition(output,[{opacity:.45,transform:'translateY(4px)'},{opacity:1,transform:'none'}],240);
+  }
  }
 
  function scheduleExpiry(){
@@ -767,19 +792,21 @@
  function waitForReveal(duration=900){return new Promise(resolve=>{const wait={resolve,timer:null};revealWait=wait;wait.timer=setTimeout(()=>{if(revealWait===wait){revealWait=null;resolve();}},duration);});}
  function presentationValid(context){return context.epoch===presentationEpoch&&context.actor===viewPlayer&&(!remoteMode||remote?.authenticated&&samePerspective(context,remote.connection));}
  function revealMatches(game,reveal){return game&&game.phase===(reveal.hasVariant?'variant':'draft')&&game.round.id===reveal.roundId&&game.round.from===reveal.actor&&game.round.cardId===reveal.cardId&&game.round.cardRoll===reveal.face;}
- function showSelectedTile(){
-  const tile=main.querySelector('[data-reveal-selected]');if(!tile)return;
-  if(/^(auto|scroll)$/.test(window.getComputedStyle?.(main)?.overflowY||'')){
-   const box=tile.getBoundingClientRect(),area=main.getBoundingClientRect();
-   if(box.bottom>area.bottom-8)main.scrollTop+=box.bottom-area.bottom+8;else if(box.top<area.top+8)main.scrollTop=Math.max(0,main.scrollTop+box.top-area.top-8);
-  }else tile.scrollIntoView({block:'nearest',behavior:'instant'});
- }
  function cancelContentTransitions(){for(const animation of contentTransitions)animation.cancel();contentTransitions.clear();}
- function playContentTransition(element,keyframes,duration,finish){
+ function playContentTransition(element,keyframes,duration,finish,delay=0){
   if(!element?.animate)return;
-  const animation=element.animate(keyframes,{duration,easing:'cubic-bezier(.22,1,.36,1)'});contentTransitions.add(animation);
+  const animation=element.animate(keyframes,{duration,delay,fill:'backwards',easing:'cubic-bezier(.22,1,.36,1)'});contentTransitions.add(animation);
   animation.onfinish=()=>{contentTransitions.delete(animation);finish?.(true);};
   animation.oncancel=()=>{contentTransitions.delete(animation);finish?.(false);};
+ }
+ function frostTransition(element,duration,blur,finish){
+  if(systemReduce||document.hidden||presentationHidden||!element?.animate)return false;
+  playContentTransition(element,[
+   {opacity:.44,filter:'blur('+blur+'px)'},
+   {opacity:.88,filter:'blur(2px)',offset:.45},
+   {opacity:1,filter:'none'}
+  ],duration,finish);
+  return true;
  }
  function animateDiceHandoff(previousStage){
   if(!previousStage||systemReduce||document.hidden||presentationHidden||!canvas.animate)return false;
@@ -792,8 +819,8 @@
   // Layout is final before the first frame. Only the die moves; all card slots stay in place.
   grid?.querySelectorAll('.oa-mini-card').forEach(tile=>{tile.style.animation='none';});
   const overflow=holder.style.overflow||'';holder.style.overflow='hidden';
-  playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.72},{transformOrigin:'50% 50%',transform:'none',opacity:1}],360,completed=>{holder.style.overflow=overflow;if(completed&&canvas.parentElement===holder&&!busy&&!operationBusy&&!systemReduce&&!document.hidden&&!presentationHidden)die.breathe?.();});
-  playContentTransition(main.querySelector('h1'),[{opacity:.35},{opacity:1}],220);
+  playContentTransition(canvas,[{transformOrigin:'50% 50%',transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:.88},{transformOrigin:'50% 50%',transform:'none',opacity:1}],310,completed=>{holder.style.overflow=overflow;if(completed&&canvas.parentElement===holder&&!busy&&!operationBusy&&!systemReduce&&!document.hidden&&!presentationHidden)die.breathe?.();});
+  frostTransition(main.querySelector('.oa-roll-heading')||main.querySelector('h1'),220,4);
   return true;
  }
  function render(transition=null){
@@ -807,6 +834,10 @@
   const previousKey=renderKey;
   renderPersona();
   const key=visibleViewKey();
+  const page=key.split('|',1)[0];
+  const previousPage=previousKey.split('|',1)[0];
+  const gamePages=['play','tasks','us','info'];
+  const pageChanged=page!==previousPage&&gamePages.includes(page)&&gamePages.includes(previousPage);
   const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():tab==='info'?(infoReading?renderedMarkup:renderInfo()):renderUs();
   const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
@@ -819,14 +850,20 @@
   const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
   if(!replaceMain){infoReading?.refresh();scheduleExpiry();scheduleAutoNewRound();updateBadgeNotice();return;}
   const holder=main.querySelector('[data-stage]');
-  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:refusal?.color||category()?.color);die.setReducedMotion(systemReduce);if(animate&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();}
+  if(holder){holder.prepend(canvas);die.setKind(Number(holder.dataset.kind),Number(holder.dataset.value));die.setColor?.(holder.dataset.rollRole==='category'?null:refusal?.color||category()?.color);die.setReducedMotion(systemReduce);}
   else die.pauseMotion?.();
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
-  if(animate&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
-   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-subtitle,:scope > .oa-steps,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score');
-   blocks.forEach((el,i)=>{const pinned=window.getComputedStyle?.(el)?.position==='sticky';el.animate(pinned?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'translateY(14px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,delay:Math.min(i*28,100),easing:'cubic-bezier(.18,.8,.2,1)',fill:'backwards'});});
-   main.querySelectorAll('.oa-category').forEach((el,i)=>el.animate([{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'scale(1)'}],{duration:440,delay:90+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'}));
+  const frost=pageChanged&&!transition&&frostTransition(main,340,7,completed=>{if(completed&&holder&&canvas.parentElement===holder&&!busy&&!operationBusy)die.breathe?.();});
+  if(holder&&animate&&!frost&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();
+  if(animate&&!frost&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
+   frostTransition(main.querySelector(':scope > .oa-card-stage'),300,5);
+   const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score,:scope > .oa-achievements,:scope > .oa-task-empty,:scope > .oa-task-list');
+   blocks.forEach((el,i)=>{
+    const pinned=window.getComputedStyle?.(el)?.position==='sticky';
+    const start=pinned?{opacity:.65}:{opacity:.55,transform:'translateY(6px)'};
+    playContentTransition(el,[start,{opacity:1,transform:'none'}],320,undefined,Math.min(i*24,72));
+   });
   }
   animateGrade();
   if(!cardReveal)visibleCardId=state.round.cardId;
@@ -938,7 +975,7 @@
     if(['ROLL_CARD','REROLL_CARD'].includes(action.type)){
      const preview={...context,reroll,face:faceValue,cardId:context.hand[faceValue-1]},latest=remoteMode?(deferredSnapshot?focusedReply(deferredSnapshot,roundId):next):state;
      if(!document.hidden&&!presentationHidden&&G.getCard(preview.cardId)&&revealMatches(latest,preview)){
-      cardReveal=preview;render();setControlsBusy(true);showSelectedTile();
+      cardReveal=preview;render();setControlsBusy(true);
       announce('D'+sides+' : '+faceValue+'. '+G.getCard(preview.cardId).title);await waitForReveal();
      }
     }else if(!document.hidden&&!presentationHidden){

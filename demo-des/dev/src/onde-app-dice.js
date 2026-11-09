@@ -23,7 +23,8 @@ vec3 localGradient(vec3 p){
  float exponent=uType==4?.25:.0625;return grad*pow(max(s,1.e-12),exponent-1.)/pow(float(uCount),exponent);
 }
 vec3 worldGradient(vec3 lp){return (uRotation*localGradient(lp))/uScale*min(uScale.x,min(uScale.y,uScale.z));}
-float stamp(vec2 uv,float idx){if(uv.x<.02||uv.x>.98||uv.y<.02||uv.y>.98)return 0.;vec2 cell=vec2(mod(idx,4.),floor(idx/4.));return texture2D(uAtlas,(cell+vec2(uv.x,1.-uv.y))/vec2(4.,8.)).r;}
+// The padded, black cell edge keeps adjacent numerals out of both ink and bump samples.
+float stamp(vec2 uv,float idx){vec2 cell=vec2(mod(idx,4.),floor(idx/4.));vec2 inset=clamp(uv,vec2(.035),vec2(.965));return texture2D(uAtlas,(cell+vec2(inset.x,1.-inset.y))/vec2(4.,8.)).r;}
 float grain(vec3 p){return sin(p.x*71.)*sin(p.y*59.+sin(p.z*43.))*sin(p.z*67.+p.x*13.);}
 void main(){
  vec2 uv=(gl_FragCoord.xy/uResolution-.5)*vec2(uResolution.x/uResolution.y,1.);
@@ -192,7 +193,7 @@ void main(){
         a.fillStyle='#000';a.fillRect(0,0,512,1024);a.fillStyle='#fff';a.font='500 67px Arial,sans-serif';a.textAlign='center';a.textBaseline='middle';
         for(let i=0;i<20;i++)a.fillText(String(i+1),(i%4+.5)*128,(Math.floor(i/4)+.5)*128+4);
         texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);
-        gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.uniform1i(uniforms.uAtlas,0);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.uniform1i(uniforms.uAtlas,0);
         mode='webgl';renderError='';rendererStatus();setGeometry();
       } catch(error) {
         mode='fallback';renderError=String(error.message||error).slice(0,1800);rendererStatus();try{if(gl){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}
@@ -271,7 +272,10 @@ void main(){
     }
     function resize() {
       if(!alive)return;
-      const w=canvas.clientWidth||300,h=canvas.clientHeight||w,dpr=Math.min(global.devicePixelRatio||1,Number(options.maxPixelRatio)||2);
+      const w=canvas.clientWidth||300,h=canvas.clientHeight||w;
+      // The fragment shader runs once per pixel, including during a roll.
+      const pixelLimit=mode==='webgl'&&options.maxPixels>0?Math.sqrt(options.maxPixels/(w*h)):Infinity;
+      const dpr=Math.min(global.devicePixelRatio||1,Number(options.maxPixelRatio)||2,pixelLimit);
       const rw=Math.max(1,Math.round(w*dpr)),rh=Math.max(1,Math.round(h*dpr));if(canvas.width!==rw)canvas.width=rw;if(canvas.height!==rh)canvas.height=rh;
       if(mode==='webgl'){gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);gl.uniform2f(uniforms.uResolution,canvas.width,canvas.height);}
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z,lastFrame.spreadBias);
