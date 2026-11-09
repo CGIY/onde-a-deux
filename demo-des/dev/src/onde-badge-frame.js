@@ -20,15 +20,15 @@
     const item=records.get(id),instance=options.instance===undefined?'asset':options.instance,locked=!!options.locked;
     if(!item)throw new RangeError('Unknown badge artwork');
     if(!instances.has(instance))throw new RangeError('Unknown badge artwork instance');
-    const outline=shapes[item.shape],paper=locked?'#C9C8BC':colors[item.tone],ink=locked?'#66705F':'#4F6573';
+    const outline=shapes[item.shape],paper=locked?'#C9C8BC':colors[item.tone],ink=locked?'#66705F':'#176B97';
     if(!outline||!paper)throw new Error('Invalid badge visual definition');
     const prefix='oba-'+instance+'-'+id+'-'+(locked?'l':'e'),clip=prefix+'-scene';
-    const D=scope.OndeBadgeDrawing.create(paper,ink),body=item.draw(D);
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 176" aria-hidden="true" focusable="false" data-badge-art="'+id+'" data-art-motif="'+item.motif+'">'+
       '<defs><clipPath id="'+clip+'"><path d="'+outline+'" transform="translate(80 83) scale(.92) translate(-80 -83)"/></clipPath></defs>'+
       '<path d="'+outline+'" fill="'+paper+'" stroke="'+(locked?'#B0B1A4':'#DCCCB7')+'" stroke-width="1.8"/>'+
       '<path d="'+outline+'" transform="translate(80 83) scale(.956) translate(-80 -83)" fill="none" stroke="'+(locked?'#929A8B':'#A59C89')+'" stroke-width=".8"/>'+
-      '<g clip-path="url(#'+clip+')" fill="none" stroke="'+ink+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+body+'</g></svg>';
+      '<g clip-path="url(#'+clip+')" fill="'+ink+'" stroke="'+ink+'" stroke-width=".55" stroke-linejoin="round">'+
+      '<path d="'+item.path+'" fill-rule="evenodd"/></g></svg>';
   }
   const api=Object.freeze({version:2,ids,catalogue,render});
   scope.OndeBadgeArt=api;

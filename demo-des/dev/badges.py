@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
-BADGE_COMPONENTS = ('onde-badge-drawing.js', 'onde-badge-scenes-individual.js',
+BADGE_COMPONENTS = ('onde-badge-scenes-individual.js',
                     'onde-badge-scenes-shared.js', 'onde-badge-scenes-intimacy.js',
                     'onde-badge-frame.js')
 
@@ -97,7 +97,7 @@ footer{border-top:1px solid #3c3c34;padding-top:20px;margin-top:40px;color:#a9a7
 @media(max-width:760px){ol{grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 14px}main{padding:28px 18px 44px}.condition{font-size:10px}h2{font-size:12px}}
 @media(max-width:360px){main{padding-inline:12px}ol{gap:25px 9px}h2{font-size:11px}.condition{font-size:9.5px}}</style>
 <main><header><p class="eyebrow">Dés·ir / Collection</p><h1>''' + str(len(rows)) + ''' emblèmes.<br>Autant de petits trophées.</h1>
-<p>Le trait complice : des scènes en lignes souples, une palette minérale et cinq formes de médaillons. Retrouvez les conditions de déblocage sous chaque dessin.</p></header>
+<p>Le trait complice, en lignes bleues et souples. Une scène originale par médaille, dans la palette minérale de Dés·ir. Retrouvez les conditions de déblocage sous chaque dessin.</p></header>
 <nav aria-label="Filtrer les emblèmes"><button type="button" data-filter="all" aria-pressed="true">Tous</button><button type="button" data-filter="individual" aria-pressed="false">Individuels</button><button type="button" data-filter="shared" aria-pressed="false">À deux</button><a href="./desir-badges.zip">Télécharger les SVG</a></nav>
 <ol aria-label="Les emblèmes de la collection">''' + ''.join(cards) + '''</ol>
 <footer>Cette galerie présente tous les dessins ; votre progression personnelle se trouve dans <a href="../">Dés·ir</a>.</footer></main>
