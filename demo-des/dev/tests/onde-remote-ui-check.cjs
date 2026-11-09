@@ -920,7 +920,19 @@ async function rollSession(options={}){
  }
  // Quota exhaustion affects only the category action and does not open another server request.
  {
-  const remote=mockRemote(snap(initial(),1,0)),ui=shell(remote);await tick();check(()=>assert.ok(ui.html.includes('Prochain tirage')));check(()=>assert.ok(!ui.html.includes('data-action="roll"')));await ui.click('roll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));remote.emit(snap(initial(),1,1));check(()=>assert.ok(ui.html.includes('Lancer le D4')));await ui.click('rules');check(()=>assert.ok(!ui.sheet.innerHTML.includes('oa-odds-table')));check(()=>assert.ok(!ui.sheet.innerHTML.includes('quota')));check(()=>assert.ok(!ui.sheet.innerHTML.includes('77,25')));
+  const exhausted=snap(initial(),1,0),at='2026-11-09T18:30:00.000Z';
+  exhausted.quota.nextAt='2026-11-10T04:00:00.000Z';exhausted.serverTime=at;
+  const remote=mockRemote(exhausted),ui=shell(remote,{clockAt:at});await tick();
+  check(()=>{assert.match(ui.html,/3 tirages utilisés · Prochain tirage <strong>demain à 5 h<\/strong> \(Paris\)/);assert.ok(!ui.html.includes('data-action="roll"'));assert.equal(ui.navigation.hidden,false);});
+  await ui.click('roll');check(()=>assert.equal(remote.calls.filter(c=>c.method==='action').length,0));
+  await ui.click('tab',{tab:'tasks'});check(()=>assert.equal(ui.navigation.hidden,false));
+  await ui.click('tab',{tab:'play'});
+  remote.emit({...exhausted,serverTime:'2026-11-10T03:30:00.000Z'});
+  check(()=>assert.match(ui.html,/Prochain tirage <strong>à 5 h<\/strong> \(Paris\)/));
+  remote.emit({...exhausted,serverTime:'2026-11-10T04:00:01.000Z'});
+  check(()=>assert.match(ui.html,/Prochain tirage après actualisation du quota/));
+  remote.emit(snap(initial(),1,1));check(()=>assert.ok(ui.html.includes('Lancer le D4')));
+  await ui.click('rules');check(()=>assert.ok(!ui.sheet.innerHTML.includes('oa-odds-table')));check(()=>assert.ok(!ui.sheet.innerHTML.includes('quota')));check(()=>assert.ok(!ui.sheet.innerHTML.includes('77,25')));
  }
  // Personal settings and notification permissions remain on this device.
  {
@@ -1093,16 +1105,18 @@ async function rollSession(options={}){
  {
   const listeners=new Set(),viewport={height:874,scale:1,addEventListener(type,fn){listeners.add(fn);},removeEventListener(type,fn){listeners.delete(fn);},emit(){for(const fn of listeners)fn();}};const ui=shell(mockRemote(),{viewport,mobileScroll:true});await tick();const before=ui.writes;ui.password.value='being-typed';ui.password.focus();ui.main.scrollTop=80;check(()=>assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'874px'));viewport.height=500;viewport.emit();check(()=>{assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'500px');assert.equal(ui.writes,before);assert.equal(ui.password.value,'being-typed');assert.equal(ui.activeElement,ui.password);assert.equal(ui.main.scrollTop,80);});viewport.scale=2;viewport.height=250;viewport.emit();check(()=>assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'500px'));viewport.scale=1;viewport.height=600;viewport.emit();ui.windowEvent('pagehide');check(()=>assert.equal(listeners.size,0));viewport.height=450;viewport.emit();check(()=>assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'600px'));ui.windowEvent('pageshow');ui.windowEvent('pageshow');check(()=>{assert.equal(listeners.size,1);assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'450px');assert.equal(ui.writes,before);});
  }
- // Installed iOS must not treat the status-bar-sized visual viewport deficit as a keyboard.
+ // Installed iOS keeps the dock at the visible bottom, including during viewport pan.
  {
-  const listeners=new Set(),viewport={height:812,scale:1,addEventListener(type,fn){listeners.add(fn);},removeEventListener(type,fn){listeners.delete(fn);},emit(){for(const fn of listeners)fn();}};
+  const listeners=new Map(),viewport={height:812,offsetTop:0,scale:1,addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type){listeners.delete(type);},emit(type){listeners.get(type)?.();}};
   const ui=shell(mockRemote(),{viewport,installed:true,layoutHeight:874,mobileScroll:true});await tick();
   const before=ui.writes;
-  check(()=>{assert.equal(ui.root.classList.contains('oa-installed'),true);assert.equal(ui.root.classList.contains('oa-keyboard'),false);});
-  ui.password.focus();ui.documentEvent('focusin');check(()=>assert.equal(ui.root.classList.contains('oa-keyboard'),false));
-  viewport.height=500;viewport.emit();check(()=>{assert.equal(ui.root.classList.contains('oa-keyboard'),true);assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'500px');assert.equal(ui.activeElement,ui.password);assert.equal(ui.writes,before);});
-  viewport.height=812;viewport.emit();check(()=>assert.equal(ui.root.classList.contains('oa-keyboard'),false));
-  viewport.height=500;viewport.emit();ui.help.focus();ui.documentEvent('focusout');check(()=>assert.equal(ui.root.classList.contains('oa-keyboard'),false));
+  check(()=>{assert.equal(ui.root.classList.contains('oa-installed'),true);assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'812px');});
+  viewport.offsetTop=62;viewport.emit('scroll');check(()=>assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'874px'));
+  ui.password.focus();viewport.height=500;viewport.offsetTop=36;viewport.emit('resize');
+  check(()=>{assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'536px');assert.equal(ui.activeElement,ui.password);assert.equal(ui.writes,before);});
+  ui.windowEvent('pagehide');check(()=>assert.equal(listeners.size,0));
+  viewport.height=812;viewport.offsetTop=0;ui.windowEvent('pageshow');
+  check(()=>{assert.deepEqual([...listeners.keys()],['resize','scroll']);assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'812px');});
  }
  // The unconfigured local demo remains usable without the remote connection.
  {

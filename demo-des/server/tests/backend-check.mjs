@@ -172,6 +172,28 @@ function client(handler){
 const intent=(type,id,roundId='onde-1',extra={})=>({op:'action',requestId:uuid(id),action:{type,roundId,...extra}});
 const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 
+// Portraits use only the device's verified room and never change the game.
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ const before=clone(saved.state),revision=saved.revision,paths=[];
+ saved.request=async path=>{
+  paths.push(path);
+  return [{actor:'a',jpeg_base64:'/9j/2Q=='},{actor:'b',jpeg_base64:'/9j/AA=='},{actor:'c',jpeg_base64:'/9j/2Q=='}];
+ };
+ const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-portraits'}));
+ const request={op:'portraits',gameVersion:8};
+ equal((await deliver(request,'X'.repeat(43))).status,401);
+ equal((await deliver({...request,roomId:'unauthorized-room'})).status,400);
+ equal(paths,[]);
+ for(const token of [tokenA,tokenB]){
+  const reply=await deliver(request,token);
+  equal(reply.status,200);equal(reply.headers.get('cache-control'),'no-store');
+  equal(reply.body,{portraits:{a:'/9j/2Q==',b:'/9j/AA=='}});
+ }
+ equal(paths,Array(2).fill('desir_room_portraits?select=actor,jpeg_base64&room_id=eq.'+roomId));
+ equal(saved.state,before);equal(saved.revision,revision);equal(saved.used.size,0);equal(saved.receipts.size,0);
+}
+
 // Outdated clients receive a safe upgrade before migration or any game mutation.
 {
  const saved=new MemoryStore();await authorize(saved);

@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#090c16"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.0">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.1">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -22,8 +22,8 @@
       <div class="oa-switch" role="group" aria-label="Compagnons de jeu">
         <button type="button" class="cursor-interaction" data-action="profile" data-player="a" aria-pressed="true"><!-- profile-a -->Joueur 1<span class="oa-unread" hidden></span></button>
         <button type="button" class="cursor-interaction" data-action="profile" data-player="b" aria-pressed="false"><!-- profile-b -->Joueur 2<span class="oa-unread" hidden></span></button>
-        <span class="oa-member" data-member="a" hidden><span class="oa-member-initials" aria-hidden="true"></span><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
-        <span class="oa-member" data-member="b" hidden><span class="oa-member-initials" aria-hidden="true"></span><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
+        <span class="oa-member" data-member="a" hidden><span class="oa-member-initials" aria-hidden="true"></span><img class="oa-member-portrait" alt="" width="58" height="58" hidden><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
+        <span class="oa-member" data-member="b" hidden><span class="oa-member-initials" aria-hidden="true"></span><img class="oa-member-portrait" alt="" width="58" height="58" hidden><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
         <span class="oa-duo-orbit">
           <svg class="oa-duo-wave" viewBox="0 0 88 46" aria-hidden="true" focusable="false" fill="none">
             <defs>
@@ -671,12 +671,13 @@
  gap:5px;min-width:0;text-align:center;
 }
 #onde-app-v1 .oa-member[data-member=b]{--oa-member-ink:var(--oa-iris-violet)}
-#onde-app-v1 .oa-member-initials{
+#onde-app-v1 :is(.oa-member-initials,.oa-member-portrait){
  display:grid;place-items:center;width:58px;aspect-ratio:1;border-radius:50%;border:1px solid color-mix(in srgb,var(--oa-member-ink) 38%,transparent);
  background:radial-gradient(circle at 28% 18%,color-mix(in srgb,var(--oa-member-ink) 24%,#172237),#131829 80%);
  box-shadow:inset 0 0 0 3px #1118277a,0 3px 9px #060b1838;color:var(--oa-member-ink);font:500 19px/1 ui-monospace,monospace;
 }
-#onde-app-v1 .oa-member[aria-current=true] .oa-member-initials{outline:1px solid var(--oa-member-ink);outline-offset:3px}
+#onde-app-v1 .oa-member-portrait{display:block;object-fit:cover}
+#onde-app-v1 .oa-member[aria-current=true] :is(.oa-member-initials,.oa-member-portrait){outline:1px solid var(--oa-member-ink);outline-offset:3px}
 #onde-app-v1 .oa-person-name{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--oa-muted);font-size:11px;line-height:13px}
 #onde-app-v1 .oa-member[aria-current=true] .oa-person-name{color:var(--oa-text)}
 #onde-app-v1 .oa-member>.oa-unread{position:absolute;top:12px;right:14px;width:7px;height:7px;margin:0;box-shadow:0 0 0 2px #182237}
@@ -703,9 +704,7 @@
  html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#090c16}
  body{padding:0}
  #onde-app-v1{height:100vh;height:var(--oa-viewport-height,100dvh);min-height:0;padding:0;overflow:hidden}
- /* Installed iOS may report a visual viewport shorter than the full CSS screen. */
- #onde-app-v1.oa-installed{height:100vh}
- #onde-app-v1.oa-installed.oa-keyboard{height:var(--oa-viewport-height,100vh)}
+ #onde-app-v1.oa-installed{height:var(--oa-viewport-height,100vh)}
  #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 4px max(18px,env(safe-area-inset-left))}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
@@ -4270,7 +4269,7 @@ void main(){
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
   }
-  async function request(payload,token,attempts=2){
+  async function request(payload,token,attempts=2,publishSnapshot=true){
    requireEnabled();
    const identity=connection?.token===token?connection:null;
    const headers={'Content-Type':'application/json'};
@@ -4283,7 +4282,7 @@ void main(){
      const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:GAME_VERSION,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
      let body;try{body=JSON.parse(text);}catch(_){throw failure('invalid_response','Le duo a renvoyé une réponse illisible.');}
-     if(!response.ok){const error=remoteError(response,body,identity);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
+     if(!response.ok){const error=remoteError(response,body,publishSnapshot?identity:null);if(response.status>=500&&attempt+1<attempts){last=error;continue;}throw error;}
      return body;
     }catch(error){
      if(error?.isDesirRemoteError)throw error;
@@ -4329,13 +4328,13 @@ void main(){
    // Preserve the original version when retrying a compatible stored command.
    if(!SUPPORTED_GAME_VERSIONS.includes(value.gameVersion)){remove(actionKey);return null;}
    if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
-  async function sendAction(pending){
+  async function sendAction(pending,publishSnapshot=true){
    requireConnection();
    const identity=connection;
    try{
-    const raw=await request({op:'action',gameVersion:pending.gameVersion,requestId:pending.requestId,action:pending.action},identity.token);
+    const raw=await request({op:'action',gameVersion:pending.gameVersion,requestId:pending.requestId,action:pending.action},identity.token,2,publishSnapshot);
     if(connection!==identity||authFailed)throw connectionChanged();
-    const value=acceptSnapshot(raw,identity);remove(actionKey);return value;
+    const value=publishSnapshot?acceptSnapshot(raw,identity):validateSnapshot(raw,identity);remove(actionKey);return value;
    }catch(error){if(connection!==identity||authFailed)throw connectionChanged();if(error.status>=400&&error.status<500&&error.status!==429)remove(actionKey);throw error;}
   }
   async function fetchState(identity=connection){requireConnection();try{const raw=await request({op:'state'},identity.token);if(connection!==identity||authFailed)throw connectionChanged();return acceptSnapshot(raw,identity);}catch(error){if(connection!==identity||authFailed)throw connectionChanged();throw error;}}
@@ -4352,7 +4351,8 @@ void main(){
     if(connection!==identity)throw connectionChanged();
     // An action ahead of this recovery in the queue may already have succeeded.
     const current=storedAction();if(!current||current.requestId!==pending.requestId)return null;
-    return sendAction(current);
+    // A receipt can contain an older protocol and quota window. The state read follows.
+    return sendAction(current,false);
    });
   }
   function refresh(){
@@ -4389,6 +4389,18 @@ void main(){
     if(saved){connection=checkStored(saved);const value=await refresh();prepareNotifications().catch(()=>{});return value;}
     setStatus('disconnected');return null;
    }catch(error){markFailure(error);throw error;}finally{restoring=null;}});return restoring;
+  }
+  async function loadPortraits(){
+   requireConnection();
+   const identity=connection;
+   const raw=await request({op:'portraits'},identity.token,1,false);
+   if(connection!==identity||authFailed)throw connectionChanged();
+   const portraits={};
+   for(const actor of ['a','b']){
+    const jpeg=raw?.portraits?.[actor];
+    if(typeof jpeg==='string'&&jpeg.length>=8&&jpeg.length<=65536&&jpeg.length%4===0&&/^\/9j\/[A-Za-z0-9+/]*={0,2}$/.test(jpeg))portraits[actor]='data:image/jpeg;base64,'+jpeg;
+   }
+   return portraits;
   }
   function iosInstallRequired(){const ua=nav.userAgent||'',ios=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&nav.maxTouchPoints>1);let standalone=nav.standalone===true;try{standalone=standalone||!!scope.matchMedia?.('(display-mode: standalone)').matches;}catch(_){}return ios&&!standalone;}
   function inspectNotifications(){
@@ -4431,7 +4443,7 @@ void main(){
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
@@ -4533,8 +4545,17 @@ void main(){
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
  const persona=root.querySelector('.oa-persona'),navigation=root.querySelector('.oa-nav');
  const remoteMembers=remoteMode?Array.from(persona.querySelectorAll('[data-member]'),member=>({
-  member,label:member.querySelector('.oa-person-name'),initials:member.querySelector('.oa-member-initials'),dot:member.querySelector('.oa-unread')
+  member,label:member.querySelector('.oa-person-name'),initials:member.querySelector('.oa-member-initials'),
+  portrait:member.querySelector('.oa-member-portrait'),dot:member.querySelector('.oa-unread')
  })):[];
+ let portraitScope=null;
+ for(const {portrait,initials} of remoteMembers){
+  portrait?.addEventListener?.('load',()=>{if(portraitScope&&portrait.hasAttribute('src')){portrait.hidden=false;initials.hidden=true;}});
+  portrait?.addEventListener?.('error',()=>{
+   portrait.hidden=true;initials.hidden=false;portrait.removeAttribute('src');
+   if(portraitScope)portraitScope.retryAt=Date.now()+60000;
+  });
+ }
  if(remoteMode)persona.querySelectorAll('[data-action="profile"]').forEach(control=>control.remove());
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
  const welcomeKey='desir-welcome-v1';
@@ -4571,18 +4592,29 @@ void main(){
  root.classList.toggle('oa-installed',installed);
  function updateViewportHeight(){
   if(!viewport||viewport.height<=0||Math.abs((viewport.scale||1)-1)>=.02)return;
-  root.style.setProperty('--oa-viewport-height',Math.round(viewport.height)+'px');
-  const layoutHeight=document.documentElement?.clientHeight||window.innerHeight||0;
-  const editing=!!document.activeElement?.matches?.('input,textarea,[contenteditable="true"]');
-  root.classList.toggle('oa-keyboard',installed&&editing&&layoutHeight-viewport.height>150);
+  // The shell starts at the layout origin. Keep its dock inside the visible bottom,
+  // including when standalone WebKit reports less space than 100vh.
+  const visibleBottom=viewport.height+Math.max(0,viewport.offsetTop||0);
+  root.style.setProperty('--oa-viewport-height',Math.floor(visibleBottom)+'px');
  }
- function startViewport(){if(!viewport||viewportListening)return;viewportListening=true;viewport.addEventListener('resize',updateViewportHeight);window.addEventListener('resize',updateViewportHeight);updateViewportHeight();}
- function stopViewport(){if(!viewportListening)return;viewportListening=false;viewport.removeEventListener('resize',updateViewportHeight);window.removeEventListener('resize',updateViewportHeight);}
+ function startViewport(){
+  if(!viewport||viewportListening)return;
+  viewportListening=true;
+  viewport.addEventListener('resize',updateViewportHeight);
+  viewport.addEventListener('scroll',updateViewportHeight);
+  window.addEventListener('resize',updateViewportHeight);
+  updateViewportHeight();
+ }
+ function stopViewport(){
+  if(!viewportListening)return;
+  viewportListening=false;
+  viewport.removeEventListener('resize',updateViewportHeight);
+  viewport.removeEventListener('scroll',updateViewportHeight);
+  window.removeEventListener('resize',updateViewportHeight);
+ }
  const syncDuoVisibility=()=>root.classList.toggle('oa-duo-suspended',document.hidden||presentationHidden);
  syncDuoVisibility();
  if(viewport)startViewport();
- document.addEventListener('focusin',updateViewportHeight);
- document.addEventListener('focusout',updateViewportHeight);
  window.addEventListener('pageshow',()=>{presentationHidden=false;syncDuoVisibility();startViewport();updateBadgeNotice();});
  window.addEventListener('pagehide',()=>{presentationHidden=true;syncDuoVisibility();stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();updateBadgeNotice();});
  if(!remoteMode){
@@ -4702,6 +4734,29 @@ void main(){
  function serverNow(){return Date.now()+serverOffset;}
  function samePerspective(a,b){return a&&b&&a.roomId===b.roomId&&a.actor===b.actor;}
  function currentPerspective(value){const identity=remote?.connection;return !identity||samePerspective(value,identity);}
+ function clearMemberPortraits(){
+  portraitScope=null;
+  for(const {portrait,initials} of remoteMembers)if(portrait){portrait.hidden=true;portrait.removeAttribute('src');initials.hidden=false;}
+ }
+ function loadMemberPortraits(value){
+  if(!remote?.loadPortraits)return;
+  if(!samePerspective(value,portraitScope)){
+   clearMemberPortraits();
+   portraitScope={roomId:value.roomId,actor:value.actor,pending:false,retryAt:0};
+  }
+  const scope=portraitScope;
+  if(scope.pending||Date.now()<scope.retryAt)return;
+  scope.pending=true;
+  scope.retryAt=Date.now()+60000;
+  remote.loadPortraits().then(photos=>{
+   if(portraitScope!==scope||!remote.authenticated)return;
+   if(photos.a&&photos.b)scope.retryAt=Infinity;
+   for(const {member,portrait} of remoteMembers){
+    const source=photos[member.dataset.member];
+    if(portrait&&source&&source!==portrait.getAttribute('src'))portrait.src=source;
+   }
+  }).catch(()=>{}).finally(()=>{scope.pending=false;});
+ }
  function applyRemote(value,renderNow=true){
   if(remoteMode&&!remote?.authenticated||!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
   if(samePerspective(value,remoteSnapshot)&&value.revision<remoteSnapshot.revision)return false;
@@ -4709,9 +4764,12 @@ void main(){
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(serverNow()).toISOString()):null});
+  const now=serverNow(),nextQuotaAt=Date.parse(value.quota?.nextAt);
+  const quotaClock=value.quota?.remaining===0&&Number.isFinite(nextQuotaAt)?(nextQuotaAt<=now?'elapsed':G.parisDateKey(now)):null;
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
+  loadMemberPortraits(value);
   if(renderNow&&changed)render();return changed;
  }
  function receiveRemote(value){
@@ -5059,8 +5117,20 @@ void main(){
   }
  }
  function categoryAction(){
-  if(remoteMode&&remoteSnapshot?.quota?.remaining===0){const at=remoteSnapshot.quota.nextAt;let time='';try{time=new Date(at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Paris'});}catch(_){}return '<div class="oa-next-draw" role="status">Prochain tirage'+(time?' à <strong>'+h(time)+'</strong>':' à la prochaine plage')+'</div>';}
-  return rollReadout;
+  const quota=remoteSnapshot?.quota;
+  if(!remoteMode||quota?.remaining!==0)return rollReadout;
+  const nextAt=Date.parse(quota.nextAt),now=serverNow();
+  let renewal='à la prochaine plage';
+  if(Number.isFinite(nextAt)){
+   if(nextAt<=now)renewal='après actualisation du quota';
+   else{
+    const parts=new Intl.DateTimeFormat('fr-FR',{hour:'numeric',minute:'2-digit',timeZone:'Europe/Paris'}).formatToParts(nextAt);
+    const hour=Number(parts.find(part=>part.type==='hour').value),minute=parts.find(part=>part.type==='minute').value;
+    const day=G.parisDateKey(nextAt)===G.parisDateKey(now)?'':'demain ';
+    renewal='<strong>'+day+'à '+hour+' h'+(minute==='00'?'':' '+minute)+'</strong> (Paris)';
+   }
+  }
+  return '<div class="oa-next-draw" role="status">3 tirages utilisés · Prochain tirage '+renewal+'</div>';
  }
  const rollReadout='<p class="oa-die-readout" data-roll-readout aria-hidden="true"></p>';
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
@@ -5918,6 +5988,7 @@ void main(){
   else{
    remote.subscribeToChanges(event=>{
     if(remote.connection&&!remote.authenticated){
+     clearMemberPortraits();
      clearBadgeContext();
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
@@ -5933,25 +6004,34 @@ void main(){
  }
  const swApi=window.navigator&&window.navigator.serviceWorker;
  if(remoteMode&&swApi){
-  const hadController=!!swApi.controller;
+  const shellVersion=document.querySelector('meta[name="onde-version"]')?.content;
   const showShellUpdate=()=>{
    if(root.querySelector('.oa-update'))return;
    const bar=document.createElement('section');bar.className='oa-update';bar.setAttribute('aria-label','Mise à jour disponible');
    bar.inert=!sheet.hidden;
    const label=document.createElement('span');label.textContent='Une mise à jour de D6 à deux est prête.';
    const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
-   reload.addEventListener('click',()=>location.reload());
+   reload.addEventListener('click',()=>{
+    if(busy||operationBusy||missionSending||pendingChecks.size){announce('Attends la fin de l’action en cours.');return;}
+    location.reload();
+   });
    bar.append(label,reload);root.querySelector('.oa-shell').append(bar);announce('Une mise à jour de D6 à deux est prête. Recharge pour l’utiliser.');
   };
-  swApi.addEventListener('controllerchange',()=>{if(hadController&&swApi.controller)showShellUpdate();});
-  swApi.ready.then(registration=>{
-   if(!registration)return;
-   registration.addEventListener('updatefound',()=>{
-    const worker=registration.installing;if(!worker)return;
-    worker.addEventListener('statechange',()=>{if(hadController&&(worker.state==='installed'||worker.state==='activating'))showShellUpdate();});
-   });
-   return registration.update().catch(()=>{});
-  }).catch(()=>{});
+  swApi.addEventListener('message',event=>{
+   const update=event.data;
+   if(update?.type==='desir-shell-active'&&shellVersion&&typeof update.version==='string'&&/^\d+\.\d+\.\d+$/.test(update.version)&&
+     update.version.localeCompare(shellVersion,'en',{numeric:true})>0)showShellUpdate();
+  });
+  const askShellVersion=()=>swApi.controller?.postMessage({type:'desir-shell-version'});
+  const checkShellUpdate=()=>{
+   if(document.hidden)return;
+   askShellVersion();
+   swApi.ready.then(registration=>registration?.update()).catch(()=>{});
+  };
+  swApi.addEventListener('controllerchange',askShellVersion);
+  document.addEventListener('visibilitychange',checkShellUpdate);
+  window.addEventListener('pageshow',checkShellUpdate);
+  checkShellUpdate();
  }
  root.dataset.ready='true';
 })();

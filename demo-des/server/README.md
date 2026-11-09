@@ -11,6 +11,7 @@ Pour une base neuve, appliquer les schémas consolidés dans cet ordre :
 3. `push-scheduler.sql` : échéancier des notifications et appel cron protégé.
 4. `additive-device-index.sql` : index supplémentaire des appareils par compte.
 5. `hardcore-schema.sql` : tables historiques du combat retiré, conservées pour la compatibilité administrative et les sauvegardes ; aucune route de jeu actuelle ne les utilise.
+6. `portraits-schema.sql` : portraits privés du duo, lus par la fonction après vérification de la session.
 
 Sur une base existante, appliquer uniquement les migrations manquantes de `migrations/`, dans l’ordre de leur version. Ne pas rejouer ces anciennes migrations par-dessus une installation des schémas consolidés : elles décrivent les états antérieurs de la base.
 
@@ -30,6 +31,7 @@ Toutes les opérations utilisent `POST` JSON. Les requêtes du client indiquent 
 
 - `login` : `{op:"login", username, password}` et `Authorization: Bearer <session-prospective>`. Les identifiants sont normalisés en minuscules, sans accents ; le mot de passe reste exact. Le client génère et conserve auparavant 32 octets aléatoires encodés en base64url (43 caractères). La réponse ajoute `connection:{token,roomId,actor}`.
 - `state` : session existante, retour du snapshot courant et expiration des tâches selon l’horloge serveur.
+- `portraits` : session existante, portraits JPEG des membres de sa propre salle. Le client les conserve en mémoire.
 - `action` : `{op:"action", requestId:<UUID>, action:{type,roundId,taskId?,checked?}}`.
 - `hardcore` : ancienne route retirée ; protocole 6 → HTTP 410 `mode_removed`, avant tout RPC, reçu, présence ou mutation. Les protocoles antérieurs reçoivent d’abord `upgrade_required`.
 - `push_config` : session existante, retour `{vapidPublicKey}`.

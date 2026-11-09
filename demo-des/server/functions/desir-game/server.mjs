@@ -12,6 +12,7 @@ async function boundedBody(req){
   try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{throw new HttpError(400,'invalid_json','Requête invalide.');}
 }
 function bodyObject(value){return value&&typeof value==='object'&&!Array.isArray(value);}
+function validPortrait(value){return typeof value==='string'&&value.length>=8&&value.length<=65536&&value.length%4===0&&/^\/9j\/[A-Za-z0-9+/]*={0,2}$/.test(value);}
 export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allowedOrigins=[defaultOrigin],waitUntil}){
   if(!G||!store||!rateSecret)throw new Error('Missing server dependencies');
   const iso=()=>clock().toISOString();
@@ -59,7 +60,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const job=push.flushPushOutbox(store).catch(()=>{});if(waitUntil)waitUntil(job);else await job;
         return respond({queued:true},202);
       }
-      if(!['login','state','action','push_config','subscribe','hardcore'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
+      if(!['login','state','action','portraits','push_config','subscribe','hardcore'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
       if(![1,2,3,4,5].includes(gameVersion)&&!supportsParallelGame(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
@@ -88,6 +89,17 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         rate('authenticated-ip:'+ipBucket,600,60),
         rate('device:'+tokenHash,240,60)
       ]);
+      if(body.op==='portraits'){
+        if(Object.keys(body).some(key=>!['op','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
+        const current=await store.rpc('desir_get_session',{p_token_hash:tokenHash});
+        if(!current)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
+        const roomId=current.member?.room_id;
+        if(!['a','b'].includes(current.member?.actor)||typeof roomId!=='string'||roomId!==current.room?.id)throw new Error('Invalid portrait session');
+        const rows=await store.request('desir_room_portraits?select=actor,jpeg_base64&room_id=eq.'+encodeURIComponent(roomId));
+        const portraits={};
+        for(const row of rows)if(['a','b'].includes(row.actor)&&validPortrait(row.jpeg_base64))portraits[row.actor]=row.jpeg_base64;
+        return respond({portraits});
+      }
       let current=await context(tokenHash,gameVersion);
       if(body.op==='state')return respond(snapshot(G,current,{},gameVersion));
       if(body.op==='push_config'){

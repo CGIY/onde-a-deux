@@ -9,8 +9,17 @@
  const remoteMode=!!(window.DesirConfig&&window.DesirConfig.endpoint);
  const persona=root.querySelector('.oa-persona'),navigation=root.querySelector('.oa-nav');
  const remoteMembers=remoteMode?Array.from(persona.querySelectorAll('[data-member]'),member=>({
-  member,label:member.querySelector('.oa-person-name'),initials:member.querySelector('.oa-member-initials'),dot:member.querySelector('.oa-unread')
+  member,label:member.querySelector('.oa-person-name'),initials:member.querySelector('.oa-member-initials'),
+  portrait:member.querySelector('.oa-member-portrait'),dot:member.querySelector('.oa-unread')
  })):[];
+ let portraitScope=null;
+ for(const {portrait,initials} of remoteMembers){
+  portrait?.addEventListener?.('load',()=>{if(portraitScope&&portrait.hasAttribute('src')){portrait.hidden=false;initials.hidden=true;}});
+  portrait?.addEventListener?.('error',()=>{
+   portrait.hidden=true;initials.hidden=false;portrait.removeAttribute('src');
+   if(portraitScope)portraitScope.retryAt=Date.now()+60000;
+  });
+ }
  if(remoteMode)persona.querySelectorAll('[data-action="profile"]').forEach(control=>control.remove());
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
  const welcomeKey='desir-welcome-v1';
@@ -47,18 +56,29 @@
  root.classList.toggle('oa-installed',installed);
  function updateViewportHeight(){
   if(!viewport||viewport.height<=0||Math.abs((viewport.scale||1)-1)>=.02)return;
-  root.style.setProperty('--oa-viewport-height',Math.round(viewport.height)+'px');
-  const layoutHeight=document.documentElement?.clientHeight||window.innerHeight||0;
-  const editing=!!document.activeElement?.matches?.('input,textarea,[contenteditable="true"]');
-  root.classList.toggle('oa-keyboard',installed&&editing&&layoutHeight-viewport.height>150);
+  // The shell starts at the layout origin. Keep its dock inside the visible bottom,
+  // including when standalone WebKit reports less space than 100vh.
+  const visibleBottom=viewport.height+Math.max(0,viewport.offsetTop||0);
+  root.style.setProperty('--oa-viewport-height',Math.floor(visibleBottom)+'px');
  }
- function startViewport(){if(!viewport||viewportListening)return;viewportListening=true;viewport.addEventListener('resize',updateViewportHeight);window.addEventListener('resize',updateViewportHeight);updateViewportHeight();}
- function stopViewport(){if(!viewportListening)return;viewportListening=false;viewport.removeEventListener('resize',updateViewportHeight);window.removeEventListener('resize',updateViewportHeight);}
+ function startViewport(){
+  if(!viewport||viewportListening)return;
+  viewportListening=true;
+  viewport.addEventListener('resize',updateViewportHeight);
+  viewport.addEventListener('scroll',updateViewportHeight);
+  window.addEventListener('resize',updateViewportHeight);
+  updateViewportHeight();
+ }
+ function stopViewport(){
+  if(!viewportListening)return;
+  viewportListening=false;
+  viewport.removeEventListener('resize',updateViewportHeight);
+  viewport.removeEventListener('scroll',updateViewportHeight);
+  window.removeEventListener('resize',updateViewportHeight);
+ }
  const syncDuoVisibility=()=>root.classList.toggle('oa-duo-suspended',document.hidden||presentationHidden);
  syncDuoVisibility();
  if(viewport)startViewport();
- document.addEventListener('focusin',updateViewportHeight);
- document.addEventListener('focusout',updateViewportHeight);
  window.addEventListener('pageshow',()=>{presentationHidden=false;syncDuoVisibility();startViewport();updateBadgeNotice();});
  window.addEventListener('pagehide',()=>{presentationHidden=true;syncDuoVisibility();stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();updateBadgeNotice();});
  if(!remoteMode){
@@ -178,6 +198,29 @@
  function serverNow(){return Date.now()+serverOffset;}
  function samePerspective(a,b){return a&&b&&a.roomId===b.roomId&&a.actor===b.actor;}
  function currentPerspective(value){const identity=remote?.connection;return !identity||samePerspective(value,identity);}
+ function clearMemberPortraits(){
+  portraitScope=null;
+  for(const {portrait,initials} of remoteMembers)if(portrait){portrait.hidden=true;portrait.removeAttribute('src');initials.hidden=false;}
+ }
+ function loadMemberPortraits(value){
+  if(!remote?.loadPortraits)return;
+  if(!samePerspective(value,portraitScope)){
+   clearMemberPortraits();
+   portraitScope={roomId:value.roomId,actor:value.actor,pending:false,retryAt:0};
+  }
+  const scope=portraitScope;
+  if(scope.pending||Date.now()<scope.retryAt)return;
+  scope.pending=true;
+  scope.retryAt=Date.now()+60000;
+  remote.loadPortraits().then(photos=>{
+   if(portraitScope!==scope||!remote.authenticated)return;
+   if(photos.a&&photos.b)scope.retryAt=Infinity;
+   for(const {member,portrait} of remoteMembers){
+    const source=photos[member.dataset.member];
+    if(portrait&&source&&source!==portrait.getAttribute('src'))portrait.src=source;
+   }
+  }).catch(()=>{}).finally(()=>{scope.pending=false;});
+ }
  function applyRemote(value,renderNow=true){
   if(remoteMode&&!remote?.authenticated||!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
   if(samePerspective(value,remoteSnapshot)&&value.revision<remoteSnapshot.revision)return false;
@@ -185,9 +228,12 @@
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(serverNow()).toISOString()):null});
+  const now=serverNow(),nextQuotaAt=Date.parse(value.quota?.nextAt);
+  const quotaClock=value.quota?.remaining===0&&Number.isFinite(nextQuotaAt)?(nextQuotaAt<=now?'elapsed':G.parisDateKey(now)):null;
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
+  loadMemberPortraits(value);
   if(renderNow&&changed)render();return changed;
  }
  function receiveRemote(value){
@@ -535,8 +581,20 @@
   }
  }
  function categoryAction(){
-  if(remoteMode&&remoteSnapshot?.quota?.remaining===0){const at=remoteSnapshot.quota.nextAt;let time='';try{time=new Date(at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Paris'});}catch(_){}return '<div class="oa-next-draw" role="status">Prochain tirage'+(time?' à <strong>'+h(time)+'</strong>':' à la prochaine plage')+'</div>';}
-  return rollReadout;
+  const quota=remoteSnapshot?.quota;
+  if(!remoteMode||quota?.remaining!==0)return rollReadout;
+  const nextAt=Date.parse(quota.nextAt),now=serverNow();
+  let renewal='à la prochaine plage';
+  if(Number.isFinite(nextAt)){
+   if(nextAt<=now)renewal='après actualisation du quota';
+   else{
+    const parts=new Intl.DateTimeFormat('fr-FR',{hour:'numeric',minute:'2-digit',timeZone:'Europe/Paris'}).formatToParts(nextAt);
+    const hour=Number(parts.find(part=>part.type==='hour').value),minute=parts.find(part=>part.type==='minute').value;
+    const day=G.parisDateKey(nextAt)===G.parisDateKey(now)?'':'demain ';
+    renewal='<strong>'+day+'à '+hour+' h'+(minute==='00'?'':' '+minute)+'</strong> (Paris)';
+   }
+  }
+  return '<div class="oa-next-draw" role="status">3 tirages utilisés · Prochain tirage '+renewal+'</div>';
  }
  const rollReadout='<p class="oa-die-readout" data-roll-readout aria-hidden="true"></p>';
  function switchButton(id,label){return btn(label||'Voir côté '+h(name(id)),'profile','oa-secondary','data-player="'+id+'"');}
@@ -1394,6 +1452,7 @@
   else{
    remote.subscribeToChanges(event=>{
     if(remote.connection&&!remote.authenticated){
+     clearMemberPortraits();
      clearBadgeContext();
      // A reconnect owns its pending screen. Background status must not reset it.
      if(authBusy)return;
@@ -1409,25 +1468,34 @@
  }
  const swApi=window.navigator&&window.navigator.serviceWorker;
  if(remoteMode&&swApi){
-  const hadController=!!swApi.controller;
+  const shellVersion=document.querySelector('meta[name="onde-version"]')?.content;
   const showShellUpdate=()=>{
    if(root.querySelector('.oa-update'))return;
    const bar=document.createElement('section');bar.className='oa-update';bar.setAttribute('aria-label','Mise à jour disponible');
    bar.inert=!sheet.hidden;
    const label=document.createElement('span');label.textContent='Une mise à jour de D6 à deux est prête.';
    const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
-   reload.addEventListener('click',()=>location.reload());
+   reload.addEventListener('click',()=>{
+    if(busy||operationBusy||missionSending||pendingChecks.size){announce('Attends la fin de l’action en cours.');return;}
+    location.reload();
+   });
    bar.append(label,reload);root.querySelector('.oa-shell').append(bar);announce('Une mise à jour de D6 à deux est prête. Recharge pour l’utiliser.');
   };
-  swApi.addEventListener('controllerchange',()=>{if(hadController&&swApi.controller)showShellUpdate();});
-  swApi.ready.then(registration=>{
-   if(!registration)return;
-   registration.addEventListener('updatefound',()=>{
-    const worker=registration.installing;if(!worker)return;
-    worker.addEventListener('statechange',()=>{if(hadController&&(worker.state==='installed'||worker.state==='activating'))showShellUpdate();});
-   });
-   return registration.update().catch(()=>{});
-  }).catch(()=>{});
+  swApi.addEventListener('message',event=>{
+   const update=event.data;
+   if(update?.type==='desir-shell-active'&&shellVersion&&typeof update.version==='string'&&/^\d+\.\d+\.\d+$/.test(update.version)&&
+     update.version.localeCompare(shellVersion,'en',{numeric:true})>0)showShellUpdate();
+  });
+  const askShellVersion=()=>swApi.controller?.postMessage({type:'desir-shell-version'});
+  const checkShellUpdate=()=>{
+   if(document.hidden)return;
+   askShellVersion();
+   swApi.ready.then(registration=>registration?.update()).catch(()=>{});
+  };
+  swApi.addEventListener('controllerchange',askShellVersion);
+  document.addEventListener('visibilitychange',checkShellUpdate);
+  window.addEventListener('pageshow',checkShellUpdate);
+  checkShellUpdate();
  }
  root.dataset.ready='true';
 })();

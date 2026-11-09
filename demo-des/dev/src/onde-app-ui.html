@@ -12,8 +12,8 @@
       <div class="oa-switch" role="group" aria-label="Compagnons de jeu">
         <button type="button" class="cursor-interaction" data-action="profile" data-player="a" aria-pressed="true"><!-- profile-a -->Joueur 1<span class="oa-unread" hidden></span></button>
         <button type="button" class="cursor-interaction" data-action="profile" data-player="b" aria-pressed="false"><!-- profile-b -->Joueur 2<span class="oa-unread" hidden></span></button>
-        <span class="oa-member" data-member="a" hidden><span class="oa-member-initials" aria-hidden="true"></span><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
-        <span class="oa-member" data-member="b" hidden><span class="oa-member-initials" aria-hidden="true"></span><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
+        <span class="oa-member" data-member="a" hidden><span class="oa-member-initials" aria-hidden="true"></span><img class="oa-member-portrait" alt="" width="58" height="58" hidden><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
+        <span class="oa-member" data-member="b" hidden><span class="oa-member-initials" aria-hidden="true"></span><img class="oa-member-portrait" alt="" width="58" height="58" hidden><span class="oa-person-name"></span><i class="oa-unread" aria-label="Invitation en attente" hidden></i></span>
         <span class="oa-duo-orbit">
           <svg class="oa-duo-wave" viewBox="0 0 88 46" aria-hidden="true" focusable="false" fill="none">
             <defs>
@@ -661,12 +661,13 @@
  gap:5px;min-width:0;text-align:center;
 }
 #onde-app-v1 .oa-member[data-member=b]{--oa-member-ink:var(--oa-iris-violet)}
-#onde-app-v1 .oa-member-initials{
+#onde-app-v1 :is(.oa-member-initials,.oa-member-portrait){
  display:grid;place-items:center;width:58px;aspect-ratio:1;border-radius:50%;border:1px solid color-mix(in srgb,var(--oa-member-ink) 38%,transparent);
  background:radial-gradient(circle at 28% 18%,color-mix(in srgb,var(--oa-member-ink) 24%,#172237),#131829 80%);
  box-shadow:inset 0 0 0 3px #1118277a,0 3px 9px #060b1838;color:var(--oa-member-ink);font:500 19px/1 ui-monospace,monospace;
 }
-#onde-app-v1 .oa-member[aria-current=true] .oa-member-initials{outline:1px solid var(--oa-member-ink);outline-offset:3px}
+#onde-app-v1 .oa-member-portrait{display:block;object-fit:cover}
+#onde-app-v1 .oa-member[aria-current=true] :is(.oa-member-initials,.oa-member-portrait){outline:1px solid var(--oa-member-ink);outline-offset:3px}
 #onde-app-v1 .oa-person-name{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--oa-muted);font-size:11px;line-height:13px}
 #onde-app-v1 .oa-member[aria-current=true] .oa-person-name{color:var(--oa-text)}
 #onde-app-v1 .oa-member>.oa-unread{position:absolute;top:12px;right:14px;width:7px;height:7px;margin:0;box-shadow:0 0 0 2px #182237}
@@ -693,9 +694,7 @@
  html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#090c16}
  body{padding:0}
  #onde-app-v1{height:100vh;height:var(--oa-viewport-height,100dvh);min-height:0;padding:0;overflow:hidden}
- /* Installed iOS may report a visual viewport shorter than the full CSS screen. */
- #onde-app-v1.oa-installed{height:100vh}
- #onde-app-v1.oa-installed.oa-keyboard{height:var(--oa-viewport-height,100vh)}
+ #onde-app-v1.oa-installed{height:var(--oa-viewport-height,100vh)}
  #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 4px max(18px,env(safe-area-inset-left))}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}

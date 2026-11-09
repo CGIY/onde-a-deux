@@ -30,6 +30,24 @@ function badgeRoom(actor='a',sent=false){
  assert.ok(G.validateRoom(room));assert.ok(G.validateBadgeView(G.badgeView(room,actor),actor));return room;
 }
 (async()=>{
+ // Private image loading accepts only bounded JPEG data and never persists it.
+ {
+  const storage=memory(),calls=[];let unavailable=false;
+  const r=create(config,env(async(url,options)=>{
+   const body=payload(options);calls.push({body,token:options.headers.Authorization,cache:options.cache});
+   if(body.op==='login')return response(loginReply(options));
+   if(unavailable)return response({error:{code:'server_error'}},503);
+   return response({portraits:{a:'/9j/2Q==',b:'https://outside.example/portrait',c:'/9j/AA=='}});
+  },storage));
+  await assert.rejects(r.loadPortraits(),{code:'not_connected'});
+  await r.login('fixture-a','fixture-secret');
+  const before=r.snapshot;
+  const photos=await r.loadPortraits();
+  check(()=>assert.deepEqual(photos,{a:'data:image/jpeg;base64,/9j/2Q=='}));
+  check(()=>{assert.deepEqual(calls[1].body,{op:'portraits',gameVersion:8});assert.equal(calls[0].token,calls[1].token);assert.equal(calls[1].cache,'no-store');assert.deepEqual(r.snapshot,before);assert.ok([...storage.values.values()].every(value=>!value.includes('/9j/')));});
+  unavailable=true;await assert.rejects(r.loadPortraits(),{status:503});
+  check(()=>assert.equal(r.authenticated,true));
+ }
  // New activity metadata is optional and only the streak and date are retained.
  {
   const activity={streak:2,lastDay:'2026-11-08'},r=create(config,env(async(url,options)=>{
@@ -171,6 +189,26 @@ function badgeRoom(actor='a',sent=false){
    assert.equal(storage.getItem('desir-connection-v1'),saved);
    assert.equal(storage.getItem('desir-connection-v1-action'),null);
   });
+ }
+ // A replayed receipt never flashes an older protocol or quota before the state read.
+ {
+  const storage=memory(),emitted=[];let releaseState;
+  const fetcher=async(url,options)=>{
+   const p=payload(options);
+   if(p.op==='login')return response(loginReply(options));
+   if(p.op==='action')return response(reply('a',2,state(),{quota:{remaining:0,window:'old',label:'Hier',nextAt:null}}));
+   return new Promise(resolve=>{releaseState=()=>resolve(response(reply('a',3,state(),{gameVersion:8})));});
+  };
+  const first=create(config,env(fetcher,storage));await first.login('fixture-a','fixture-password');
+  storage.setItem('desir-connection-v1-action',JSON.stringify({
+   version:1,gameVersion:6,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}
+  }));
+  const recovered=create(config,env(fetcher,storage));
+  recovered.subscribeToChanges(event=>{if(event.snapshot)emitted.push(event.snapshot.gameVersion);});
+  const work=recovered.restore();await tick();
+  check(()=>{assert.equal(typeof releaseState,'function');assert.equal(recovered.snapshot,null);assert.deepEqual(emitted,[]);});
+  releaseState();await work;
+  check(()=>{assert.equal(recovered.authenticated,true);assert.ok(emitted.length);assert.ok(emitted.every(version=>version===8));assert.equal(storage.getItem('desir-connection-v1-action'),null);});
  }
  // A failing pending mutation never hides a successfully refreshed, authenticated game.
  {

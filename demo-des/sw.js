@@ -3,7 +3,10 @@
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const CACHE_NAME = CACHE_PREFIX + 'connected-v39';
+const RELEASE_VERSION = '0.4.1';
+const CACHE_NAME = CACHE_PREFIX + 'connected-' + RELEASE_VERSION;
+const INDEX_URL = new URL('./index.html', APP_URL).href;
+const SHELL_ACTIVE = {type: 'desir-shell-active', version: RELEASE_VERSION};
 const PUBLIC_FILES = [
   './', './index.html', './manifest.webmanifest',
   './icons/desir-180.png', './icons/desir-192.png', './icons/desir-512.png', './icons/desir-badge.png'
@@ -11,13 +14,25 @@ const PUBLIC_FILES = [
 const PUBLIC_PATHS = new Set(PUBLIC_FILES.map(value => new URL(value).pathname));
 const mayCache = response => response.ok && response.type === 'basic' && !/no-store|private/i.test(response.headers.get('cache-control') || '');
 
+const htmlVersion = async response => {
+  const header = (await response.clone().text()).slice(0, 2048);
+  return header.match(/<meta name="onde-version" content="(\d+\.\d+\.\d+)">/)?.[1];
+};
+
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
+    // Pages can serve the new worker before its matching HTML reaches the CDN.
+    // Keep the previous worker and its offline shell until the pair matches.
+    const shell = await fetch(new Request(INDEX_URL, {cache: 'reload'}));
+    if (!mayCache(shell) || await htmlVersion(shell) !== RELEASE_VERSION) {
+      throw Error('D6 à deux shell version is not ready');
+    }
     const cache = await caches.open(CACHE_NAME);
-    await Promise.allSettled(PUBLIC_FILES.map(async url => {
-      const request = new Request(url, {cache: 'reload'});
-      const response = await fetch(request);
-      if (mayCache(response)) await cache.put(request, response);
+    await cache.put(INDEX_URL, shell.clone());
+    await cache.put(APP_URL, shell);
+    await Promise.allSettled(PUBLIC_FILES.filter(url => url !== APP_URL && url !== INDEX_URL).map(async url => {
+      const response = await fetch(new Request(url, {cache: 'reload'}));
+      if (mayCache(response)) await cache.put(url, response);
     }));
     await self.skipWaiting();
   })());
@@ -27,7 +42,11 @@ self.addEventListener('activate', event => {
     const names = await caches.keys();
     await Promise.all(names.filter(name => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME).map(name => caches.delete(name)));
     await self.clients.claim();
+    for (const client of await appWindows()) client.postMessage(SHELL_ACTIVE);
   })());
+});
+self.addEventListener('message', event => {
+  if (event.data?.type === 'desir-shell-version' && isAppWindow(event.source)) event.source.postMessage(SHELL_ACTIVE);
 });
 self.addEventListener('fetch', event => {
   const request = event.request;
@@ -37,18 +56,23 @@ self.addEventListener('fetch', event => {
   if (url.search && request.mode !== 'navigate') return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-    const cacheKey = new Request(url.origin + url.pathname);
+    const cacheKey = url.origin + url.pathname;
+    const isShell = cacheKey === APP_URL || cacheKey === INDEX_URL;
     try {
       const response = await fetch(new Request(request, {cache: 'no-cache'}));
-      if (mayCache(response)) await cache.put(cacheKey, response.clone());
+      if (isShell && mayCache(response)) {
+        const version = await htmlVersion(response);
+        if (version === RELEASE_VERSION) await cache.put(cacheKey, response.clone());
+        else if (!version || version.localeCompare(RELEASE_VERSION, 'en', {numeric: true}) < 0) {
+          return await cache.match(INDEX_URL) || response;
+        }
+      } else if (mayCache(response)) {
+        await cache.put(cacheKey, response.clone());
+      }
       return response;
     } catch (error) {
-      const cached = await cache.match(cacheKey);
+      const cached = await cache.match(cacheKey) || (isShell ? await cache.match(INDEX_URL) : null);
       if (cached) return cached;
-      if (request.mode === 'navigate') {
-        const shell = await cache.match(APP_URL) || await cache.match(new URL('./index.html', APP_URL).href);
-        if (shell) return shell;
-      }
       throw error;
     }
   })());
@@ -92,11 +116,14 @@ function safeNotification(raw) {
     }
   };
 }
+function isAppWindow(client) {
+  try {const url = new URL(client?.url); return url.origin === self.location.origin && url.pathname.startsWith(APP_PATH);} catch (_) {return false;}
+}
+async function appWindows() {
+  return (await self.clients.matchAll({type: 'window', includeUncontrolled: true})).filter(isAppWindow);
+}
 async function refreshClients() {
-  const windows = await self.clients.matchAll({type: 'window', includeUncontrolled: true});
-  const own = windows.filter(client => {
-    try {const url = new URL(client.url); return url.origin === self.location.origin && url.pathname.startsWith(APP_PATH);} catch (_) {return false;}
-  });
+  const own = await appWindows();
   for (const client of own) client.postMessage({type: 'desir-state-refresh'});
   return own;
 }
