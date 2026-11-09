@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#090c16"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.1">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.2">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -703,8 +703,8 @@
 @media(max-width:480px),(max-width:1000px) and (max-height:500px){
  html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#090c16}
  body{padding:0}
- #onde-app-v1{height:100vh;height:var(--oa-viewport-height,100dvh);min-height:0;padding:0;overflow:hidden}
- #onde-app-v1.oa-installed{height:var(--oa-viewport-height,100vh)}
+ /* Keep the measured keyboard viewport, but cap a stale or oversized reading to the CSS viewport. */
+ #onde-app-v1{height:var(--oa-viewport-height,100vh);max-height:100dvh;min-height:0;padding:0;overflow:hidden}
  #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 4px max(18px,env(safe-area-inset-left))}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
@@ -4181,8 +4181,10 @@ void main(){
  const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
  const GAME_VERSION=8;
  const SUPPORTED_GAME_VERSIONS=[6,7,GAME_VERSION];
- const TOKEN=/^[A-Za-z0-9_-]{43}$/;
+ const TOKEN=/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+ const REQUEST_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ const ROUND_ID=/^onde-[1-9]\d*$/;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
  function failure(code,message,status=0,snapshot=null){const error=new Error(message);error.code=code;error.status=status;error.isDesirRemoteError=true;if(snapshot)error.snapshot=clone(snapshot);return error;}
  function create(config={},environment={}){
@@ -4203,10 +4205,15 @@ void main(){
   function emit(){const event={snapshot:clone(snapshot),status:{...status},notificationStatus:{...notificationStatus}};for(const listener of listeners){try{listener(event);}catch(_){}}}
   function setStatus(phase,message='',errorCode=null){status={...status,phase,message,errorCode};emit();}
   function setNotification(patch){notificationStatus={...notificationStatus,...patch};emit();}
-  function read(key){try{return storage?.getItem(key)||null;}catch(_){return null;}}
+  function read(key){try{return storage?.getItem(key)??null;}catch(_){return null;}}
   function write(key,value){try{if(!storage)throw Error();storage.setItem(key,JSON.stringify(value));}catch(_){throw failure('storage','Cet appareil ne peut pas conserver votre accès. Autorise le stockage de ce site avant de continuer.');}}
   function remove(key){try{storage?.removeItem(key);}catch(_){}}
   function parsed(key){const raw=read(key);if(!raw)return null;try{return JSON.parse(raw);}catch(_){throw failure('invalid_access','L’accès enregistré sur cet appareil est illisible.');}}
+  function readJournal(key,decode){
+   const raw=read(key);if(raw===null)return null;
+   try{const value=decode(JSON.parse(raw));if(value)return value;}catch(_){}
+   remove(key);return null;
+  }
   function bytesToBase64(bytes){let text='';for(const byte of bytes)text+=String.fromCharCode(byte);return (environment.btoa||scope.btoa)(text).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
   function randomToken(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return bytesToBase64(bytes);}
   function requestId(){if(crypto.randomUUID)return crypto.randomUUID();const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}
@@ -4294,15 +4301,20 @@ void main(){
   }
   function connectionChanged(){return failure('connection_changed','La connexion a changé. Réessaie.');}
   function markFailure(error){if(error.code==='connection_changed')return;if(error.status===401)authFailed=true;const expected=connection&&['conflict','stale_round','quota_exhausted','not_allowed','invalid_action','invalid_phase','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
+  function storedLogin(){
+   return readJournal(registrationKey,value=>{
+    if(value?.version!==1||value.endpoint!==endpoint||value.op!=='login'||typeof value.token!=='string'||!TOKEN.test(value.token)||typeof value.requestId!=='string'||!REQUEST_ID.test(value.requestId))return null;
+    return value;
+   });
+  }
   function pendingLogin(){
-   const previous=parsed(registrationKey);
-   if(previous&&previous.version===1&&previous.endpoint===endpoint&&previous.op==='login'&&TOKEN.test(previous.token||'')&&UUID.test(previous.requestId||''))return previous;
+   const previous=storedLogin();if(previous)return previous;
    const pending={version:1,endpoint,op:'login',token:randomToken(),requestId:requestId()};write(registrationKey,pending);return pending;
   }
   async function finishLogin(raw,pending){
    const received=raw.connection||{token:pending.token,roomId:raw.roomId,actor:raw.actor};
    const identity=normalizedConnection({...received,token:received.token||pending.token},pending.token);identity.pairingCode=typeof raw.pairingCode==='string'?raw.pairingCode:null;
-   validateSnapshot(raw,identity);write(storageKey,identity);if(snapshot&&(snapshot.roomId!==identity.roomId||snapshot.actor!==identity.actor))snapshot=null;connection=identity;remove(registrationKey);let pendingAction=null;try{pendingAction=parsed(actionKey);}catch(_){}if(pendingAction&&(pendingAction.roomId!==identity.roomId||pendingAction.actor!==identity.actor))remove(actionKey);
+   validateSnapshot(raw,identity);write(storageKey,identity);if(snapshot&&(snapshot.roomId!==identity.roomId||snapshot.actor!==identity.actor))snapshot=null;connection=identity;remove(registrationKey);storedAction();
    const value=acceptSnapshot(raw);prepareNotifications().catch(()=>{});return value;
   }
   function login(username,password){
@@ -4312,22 +4324,28 @@ void main(){
   }
   function cleanAction(action){
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
-   const value={type:action.type};
-   if(typeof action.roundId==='string'&&/^onde-[1-9]\d*$/.test(action.roundId))value.roundId=action.roundId;
-   if(action.type==='JOKER_DRAW'&&Number.isInteger(action.category)&&action.category>=1&&action.category<=4)value.category=action.category;
+   if(typeof action.roundId!=='string'||!ROUND_ID.test(action.roundId))throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
+   const value={type:action.type,roundId:action.roundId};
+   if(action.type==='JOKER_DRAW'){
+    if(!Number.isInteger(action.category)||action.category<1||action.category>4)throw failure('invalid_action','La catégorie n’a pas pu être identifiée.');
+    value.category=action.category;
+   }
    if(action.type==='TOGGLE_TASK_CHECK'){
-    if(typeof action.taskId!=='string'||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
+    if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId)||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
     value.taskId=action.taskId;value.checked=action.checked;
    }else if(action.type==='REFUSE_TASK'){
-    if(typeof action.taskId!=='string'||!/^onde-[1-9]\d*$/.test(action.taskId)||!value.roundId)throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
+    if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId))throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
     value.taskId=action.taskId;
-   }else if(!value.roundId)throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
+   }
    return value;
   }
-  function storedAction(){const value=parsed(actionKey);if(!value)return null;
+  function storedAction(){
    // Preserve the original version when retrying a compatible stored command.
-   if(!SUPPORTED_GAME_VERSIONS.includes(value.gameVersion)){remove(actionKey);return null;}
-   if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
+   return readJournal(actionKey,value=>{
+    if(value?.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!SUPPORTED_GAME_VERSIONS.includes(value.gameVersion)||typeof value.requestId!=='string'||!REQUEST_ID.test(value.requestId))return null;
+    return {...value,action:cleanAction(value.action)};
+   });
+  }
   async function sendAction(pending,publishSnapshot=true){
    requireConnection();
    const identity=connection;
@@ -4363,12 +4381,10 @@ void main(){
    refreshing=Promise.resolve().then(async()=>{try{
     const pending=storedAction();let pendingError=null;
     if(pending)try{await recoverPendingAction(pending,identity);}catch(error){
-     // A terminal conflict has already removed the old command. Fetch the current game.
+     // A terminal rejection has already removed the old command. Fetch the current game.
      // Keep the durable ID for retryable failures while fetching the same snapshot.
-     if(error.status!==409){
-      if(error.code!=='offline'&&error.status!==429&&!(error.status>=500))throw error;
-      pendingError=error;
-     }
+     if(error.code==='offline'||error.status===429||error.status>=500)pendingError=error;
+     else if(error.status<400||error.status===401)throw error;
     }
     if(connection!==identity)throw connectionChanged();
     const value=await fetchState(identity);
@@ -4380,9 +4396,8 @@ void main(){
   function restore(){
    if(restoring)return restoring;
    restoring=Promise.resolve().then(async()=>{requireEnabled();setStatus('connecting');try{
-    const pending=parsed(registrationKey);
+    const pending=storedLogin();
     if(pending){
-     if(pending.version!==1||pending.endpoint!==endpoint||!TOKEN.test(pending.token||'')||pending.op!=='login')throw failure('invalid_access','La connexion en cours ne peut pas être reprise.');
      try{const raw=await request({op:'state'},pending.token,1);return await finishLogin(raw,pending);}catch(error){if(error.status!==401)throw error;}
     }
     const saved=parsed(storageKey);
@@ -4443,7 +4458,7 @@ void main(){
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
@@ -4549,13 +4564,12 @@ void main(){
   portrait:member.querySelector('.oa-member-portrait'),dot:member.querySelector('.oa-unread')
  })):[];
  let portraitScope=null;
- for(const {portrait,initials} of remoteMembers){
-  portrait?.addEventListener?.('load',()=>{if(portraitScope&&portrait.hasAttribute('src')){portrait.hidden=false;initials.hidden=true;}});
-  portrait?.addEventListener?.('error',()=>{
-   portrait.hidden=true;initials.hidden=false;portrait.removeAttribute('src');
-   if(portraitScope)portraitScope.retryAt=Date.now()+60000;
-  });
+ for(const member of remoteMembers){
+  const {portrait}=member;
+  portrait?.addEventListener?.('load',()=>showMemberPortrait(member));
+  portrait?.addEventListener?.('error',()=>{if(portraitScope&&portrait.hasAttribute('src'))discardMemberPortrait(member);});
  }
+ if(remoteMembers.length)window.addEventListener('online',resumeMemberPortraits);
  if(remoteMode)persona.querySelectorAll('[data-action="profile"]').forEach(control=>control.remove());
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
  const welcomeKey='desir-welcome-v1';
@@ -4588,8 +4602,6 @@ void main(){
  let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
  let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='',badgeDetailId=null,badgeGalleryScroll=null,badgeNoticeAnimation=null;
  const viewport=window.visualViewport;let viewportListening=false;
- const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator?.standalone===true;
- root.classList.toggle('oa-installed',installed);
  function updateViewportHeight(){
   if(!viewport||viewport.height<=0||Math.abs((viewport.scale||1)-1)>=.02)return;
   // The shell starts at the layout origin. Keep its dock inside the visible bottom,
@@ -4615,7 +4627,7 @@ void main(){
  const syncDuoVisibility=()=>root.classList.toggle('oa-duo-suspended',document.hidden||presentationHidden);
  syncDuoVisibility();
  if(viewport)startViewport();
- window.addEventListener('pageshow',()=>{presentationHidden=false;syncDuoVisibility();startViewport();updateBadgeNotice();});
+ window.addEventListener('pageshow',()=>{presentationHidden=false;syncDuoVisibility();startViewport();resumeMemberPortraits();updateBadgeNotice();});
  window.addEventListener('pagehide',()=>{presentationHidden=true;syncDuoVisibility();stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();updateBadgeNotice();});
  if(!remoteMode){
   localRoom=G.createRoom({at:new Date().toISOString()});
@@ -4734,28 +4746,64 @@ void main(){
  function serverNow(){return Date.now()+serverOffset;}
  function samePerspective(a,b){return a&&b&&a.roomId===b.roomId&&a.actor===b.actor;}
  function currentPerspective(value){const identity=remote?.connection;return !identity||samePerspective(value,identity);}
+ function showMemberPortrait({portrait,initials}){
+  if(!portraitScope||!portrait?.hasAttribute('src')||!portrait.complete||!portrait.naturalWidth)return;
+  portrait.hidden=false;initials.hidden=true;
+ }
+ function discardMemberPortrait({portrait,initials}){
+  portrait.hidden=true;portrait.removeAttribute('src');initials.hidden=false;
+  scheduleMemberPortraitRetry(portraitScope);
+ }
  function clearMemberPortraits(){
+  if(portraitScope)clearTimeout(portraitScope.timer);
   portraitScope=null;
   for(const {portrait,initials} of remoteMembers)if(portrait){portrait.hidden=true;portrait.removeAttribute('src');initials.hidden=false;}
+ }
+ function missingMemberPortrait(){
+  return remoteMembers.some(({portrait})=>portrait&&!portrait.hasAttribute('src'));
+ }
+ function scheduleMemberPortraitRetry(scope){
+  if(!scope||scope!==portraitScope||scope.timer!==null||document.hidden||presentationHidden)return;
+  scope.timer=setTimeout(()=>{
+   scope.timer=null;
+   requestMemberPortraits(scope);
+  },scope.retryDelay);
+  scope.retryDelay=Math.min(scope.retryDelay*3,30000);
+ }
+ function requestMemberPortraits(scope){
+  if(scope!==portraitScope||scope.pending||!remote.authenticated||!currentPerspective(scope)||
+     document.hidden||presentationHidden||!missingMemberPortrait())return;
+  scope.pending=true;
+  remote.loadPortraits().then(photos=>{
+   if(portraitScope!==scope||!remote.authenticated||!currentPerspective(scope))return;
+   for(const member of remoteMembers){
+    const {portrait}=member,source=photos[member.member.dataset.member];
+    if(portrait&&source&&!portrait.hasAttribute('src'))portrait.src=source;
+    showMemberPortrait(member);
+   }
+  }).catch(()=>{}).finally(()=>{
+   scope.pending=false;
+   if(missingMemberPortrait())scheduleMemberPortraitRetry(scope);
+  });
+ }
+ function resumeMemberPortraits(){
+  const scope=portraitScope;
+  if(!scope||document.hidden||presentationHidden)return;
+  for(const member of remoteMembers){
+   const {portrait}=member;
+   if(portrait?.hasAttribute('src')&&portrait.complete&&!portrait.naturalWidth)discardMemberPortrait(member);
+   else showMemberPortrait(member);
+  }
+  clearTimeout(scope.timer);scope.timer=null;
+  requestMemberPortraits(scope);
  }
  function loadMemberPortraits(value){
   if(!remote?.loadPortraits)return;
   if(!samePerspective(value,portraitScope)){
    clearMemberPortraits();
-   portraitScope={roomId:value.roomId,actor:value.actor,pending:false,retryAt:0};
+   portraitScope={roomId:value.roomId,actor:value.actor,pending:false,timer:null,retryDelay:1500};
   }
-  const scope=portraitScope;
-  if(scope.pending||Date.now()<scope.retryAt)return;
-  scope.pending=true;
-  scope.retryAt=Date.now()+60000;
-  remote.loadPortraits().then(photos=>{
-   if(portraitScope!==scope||!remote.authenticated)return;
-   if(photos.a&&photos.b)scope.retryAt=Infinity;
-   for(const {member,portrait} of remoteMembers){
-    const source=photos[member.dataset.member];
-    if(portrait&&source&&source!==portrait.getAttribute('src'))portrait.src=source;
-   }
-  }).catch(()=>{}).finally(()=>{scope.pending=false;});
+  if(portraitScope.timer===null)requestMemberPortraits(portraitScope);
  }
  function applyRemote(value,renderNow=true){
   if(remoteMode&&!remote?.authenticated||!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
@@ -5971,7 +6019,7 @@ void main(){
   if(remoteMode){if(remoteReady&&needsReading)render();}
   else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='info')render();}
  },30000);
- document.addEventListener('visibilitychange',()=>{syncDuoVisibility();if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden){if(!remoteMode)pullShared();if(!busy&&!operationBusy&&!missionSending&&!pendingChecks.size)render();}updateBadgeNotice();});
+ document.addEventListener('visibilitychange',()=>{syncDuoVisibility();if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden){updateViewportHeight();if(!remoteMode)pullShared();else resumeMemberPortraits();if(!busy&&!operationBusy&&!missionSending&&!pendingChecks.size)render();}updateBadgeNotice();});
  window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{
@@ -6005,32 +6053,60 @@ void main(){
  const swApi=window.navigator&&window.navigator.serviceWorker;
  if(remoteMode&&swApi){
   const shellVersion=document.querySelector('meta[name="onde-version"]')?.content;
+  const scope=new URL('./',location.href),script=new URL('./sw.js',scope),releaseKey='d6-release';
+  let pendingRelease=null,checking=false;
+  const opened=new URL(location.href);
+  if(opened.searchParams.get(releaseKey)===shellVersion){
+   opened.searchParams.delete(releaseKey);
+   history.replaceState(history.state,'',opened.href);
+  }
+  const switchShell=(manual=false)=>{
+   if(!pendingRelease||document.hidden||busy||operationBusy||missionSending||pendingChecks.size||charge||!sheet.hidden)return false;
+   if(!manual&&(authBusy||Array.from(main.querySelectorAll('[data-login-form] input')).some(input=>input.value)))return false;
+   const target=new URL(location.href);
+   if(target.searchParams.get(releaseKey)===pendingRelease){
+    if(!manual)return false;
+    location.reload();
+   }else{
+    target.searchParams.set(releaseKey,pendingRelease);
+    location.replace(target.href);
+   }
+   return true;
+  };
   const showShellUpdate=()=>{
    if(root.querySelector('.oa-update'))return;
    const bar=document.createElement('section');bar.className='oa-update';bar.setAttribute('aria-label','Mise à jour disponible');
    bar.inert=!sheet.hidden;
    const label=document.createElement('span');label.textContent='Une mise à jour de D6 à deux est prête.';
    const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
-   reload.addEventListener('click',()=>{
-    if(busy||operationBusy||missionSending||pendingChecks.size){announce('Attends la fin de l’action en cours.');return;}
-    location.reload();
-   });
+   reload.addEventListener('click',()=>{if(!switchShell(true))announce('Attends la fin de l’action en cours.');});
    bar.append(label,reload);root.querySelector('.oa-shell').append(bar);announce('Une mise à jour de D6 à deux est prête. Recharge pour l’utiliser.');
   };
   swApi.addEventListener('message',event=>{
    const update=event.data;
-   if(update?.type==='desir-shell-active'&&shellVersion&&typeof update.version==='string'&&/^\d+\.\d+\.\d+$/.test(update.version)&&
-     update.version.localeCompare(shellVersion,'en',{numeric:true})>0)showShellUpdate();
+   if(event.source?.scriptURL===script.href&&update?.type==='desir-shell-active'&&shellVersion&&
+     typeof update.version==='string'&&/^\d+\.\d+\.\d+$/.test(update.version)&&
+     update.version.localeCompare(shellVersion,'en',{numeric:true})>0){
+    pendingRelease=update.version;
+    if(!switchShell())showShellUpdate();
+   }
   });
-  const askShellVersion=()=>swApi.controller?.postMessage({type:'desir-shell-version'});
-  const checkShellUpdate=()=>{
-   if(document.hidden)return;
-   askShellVersion();
-   swApi.ready.then(registration=>registration?.update()).catch(()=>{});
+  const askShellVersion=()=>{
+   const controller=swApi.controller;
+   if(controller?.scriptURL===script.href)controller.postMessage({type:'desir-shell-version'});
+  };
+  const checkShellUpdate=async()=>{
+   if(document.hidden||checking||switchShell())return;
+   askShellVersion();checking=true;
+   try{
+    const registration=await swApi.getRegistration(scope.href);
+    if(registration?.scope===scope.href)await registration.update();
+    else await swApi.register(script.href,{scope:scope.pathname,updateViaCache:'none'});
+   }catch(_){}finally{checking=false;}
   };
   swApi.addEventListener('controllerchange',askShellVersion);
   document.addEventListener('visibilitychange',checkShellUpdate);
-  window.addEventListener('pageshow',checkShellUpdate);
+  for(const event of ['pageshow','online','focus'])window.addEventListener(event,checkShellUpdate);
   checkShellUpdate();
  }
  root.dataset.ready='true';

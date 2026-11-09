@@ -4,8 +4,10 @@
  const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
  const GAME_VERSION=8;
  const SUPPORTED_GAME_VERSIONS=[6,7,GAME_VERSION];
- const TOKEN=/^[A-Za-z0-9_-]{43}$/;
+ const TOKEN=/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+ const REQUEST_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ const ROUND_ID=/^onde-[1-9]\d*$/;
  const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
  function failure(code,message,status=0,snapshot=null){const error=new Error(message);error.code=code;error.status=status;error.isDesirRemoteError=true;if(snapshot)error.snapshot=clone(snapshot);return error;}
  function create(config={},environment={}){
@@ -26,10 +28,15 @@
   function emit(){const event={snapshot:clone(snapshot),status:{...status},notificationStatus:{...notificationStatus}};for(const listener of listeners){try{listener(event);}catch(_){}}}
   function setStatus(phase,message='',errorCode=null){status={...status,phase,message,errorCode};emit();}
   function setNotification(patch){notificationStatus={...notificationStatus,...patch};emit();}
-  function read(key){try{return storage?.getItem(key)||null;}catch(_){return null;}}
+  function read(key){try{return storage?.getItem(key)??null;}catch(_){return null;}}
   function write(key,value){try{if(!storage)throw Error();storage.setItem(key,JSON.stringify(value));}catch(_){throw failure('storage','Cet appareil ne peut pas conserver votre accès. Autorise le stockage de ce site avant de continuer.');}}
   function remove(key){try{storage?.removeItem(key);}catch(_){}}
   function parsed(key){const raw=read(key);if(!raw)return null;try{return JSON.parse(raw);}catch(_){throw failure('invalid_access','L’accès enregistré sur cet appareil est illisible.');}}
+  function readJournal(key,decode){
+   const raw=read(key);if(raw===null)return null;
+   try{const value=decode(JSON.parse(raw));if(value)return value;}catch(_){}
+   remove(key);return null;
+  }
   function bytesToBase64(bytes){let text='';for(const byte of bytes)text+=String.fromCharCode(byte);return (environment.btoa||scope.btoa)(text).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
   function randomToken(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return bytesToBase64(bytes);}
   function requestId(){if(crypto.randomUUID)return crypto.randomUUID();const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}
@@ -117,15 +124,20 @@
   }
   function connectionChanged(){return failure('connection_changed','La connexion a changé. Réessaie.');}
   function markFailure(error){if(error.code==='connection_changed')return;if(error.status===401)authFailed=true;const expected=connection&&['conflict','stale_round','quota_exhausted','not_allowed','invalid_action','invalid_phase','pending_action'].includes(error.code);setStatus(expected?'connected':error.code==='offline'?'offline':'error',error.message,error.code);}
+  function storedLogin(){
+   return readJournal(registrationKey,value=>{
+    if(value?.version!==1||value.endpoint!==endpoint||value.op!=='login'||typeof value.token!=='string'||!TOKEN.test(value.token)||typeof value.requestId!=='string'||!REQUEST_ID.test(value.requestId))return null;
+    return value;
+   });
+  }
   function pendingLogin(){
-   const previous=parsed(registrationKey);
-   if(previous&&previous.version===1&&previous.endpoint===endpoint&&previous.op==='login'&&TOKEN.test(previous.token||'')&&UUID.test(previous.requestId||''))return previous;
+   const previous=storedLogin();if(previous)return previous;
    const pending={version:1,endpoint,op:'login',token:randomToken(),requestId:requestId()};write(registrationKey,pending);return pending;
   }
   async function finishLogin(raw,pending){
    const received=raw.connection||{token:pending.token,roomId:raw.roomId,actor:raw.actor};
    const identity=normalizedConnection({...received,token:received.token||pending.token},pending.token);identity.pairingCode=typeof raw.pairingCode==='string'?raw.pairingCode:null;
-   validateSnapshot(raw,identity);write(storageKey,identity);if(snapshot&&(snapshot.roomId!==identity.roomId||snapshot.actor!==identity.actor))snapshot=null;connection=identity;remove(registrationKey);let pendingAction=null;try{pendingAction=parsed(actionKey);}catch(_){}if(pendingAction&&(pendingAction.roomId!==identity.roomId||pendingAction.actor!==identity.actor))remove(actionKey);
+   validateSnapshot(raw,identity);write(storageKey,identity);if(snapshot&&(snapshot.roomId!==identity.roomId||snapshot.actor!==identity.actor))snapshot=null;connection=identity;remove(registrationKey);storedAction();
    const value=acceptSnapshot(raw);prepareNotifications().catch(()=>{});return value;
   }
   function login(username,password){
@@ -135,22 +147,28 @@
   }
   function cleanAction(action){
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
-   const value={type:action.type};
-   if(typeof action.roundId==='string'&&/^onde-[1-9]\d*$/.test(action.roundId))value.roundId=action.roundId;
-   if(action.type==='JOKER_DRAW'&&Number.isInteger(action.category)&&action.category>=1&&action.category<=4)value.category=action.category;
+   if(typeof action.roundId!=='string'||!ROUND_ID.test(action.roundId))throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
+   const value={type:action.type,roundId:action.roundId};
+   if(action.type==='JOKER_DRAW'){
+    if(!Number.isInteger(action.category)||action.category<1||action.category>4)throw failure('invalid_action','La catégorie n’a pas pu être identifiée.');
+    value.category=action.category;
+   }
    if(action.type==='TOGGLE_TASK_CHECK'){
-    if(typeof action.taskId!=='string'||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
+    if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId)||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
     value.taskId=action.taskId;value.checked=action.checked;
    }else if(action.type==='REFUSE_TASK'){
-    if(typeof action.taskId!=='string'||!/^onde-[1-9]\d*$/.test(action.taskId)||!value.roundId)throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
+    if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId))throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
     value.taskId=action.taskId;
-   }else if(!value.roundId)throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
+   }
    return value;
   }
-  function storedAction(){const value=parsed(actionKey);if(!value)return null;
+  function storedAction(){
    // Preserve the original version when retrying a compatible stored command.
-   if(!SUPPORTED_GAME_VERSIONS.includes(value.gameVersion)){remove(actionKey);return null;}
-   if(value.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!UUID.test(value.requestId||''))throw failure('invalid_action','Une ancienne action ne peut pas être reprise sur ce duo.');value.action=cleanAction(value.action);return value;}
+   return readJournal(actionKey,value=>{
+    if(value?.version!==1||value.endpoint!==endpoint||value.roomId!==connection?.roomId||value.actor!==connection?.actor||!SUPPORTED_GAME_VERSIONS.includes(value.gameVersion)||typeof value.requestId!=='string'||!REQUEST_ID.test(value.requestId))return null;
+    return {...value,action:cleanAction(value.action)};
+   });
+  }
   async function sendAction(pending,publishSnapshot=true){
    requireConnection();
    const identity=connection;
@@ -186,12 +204,10 @@
    refreshing=Promise.resolve().then(async()=>{try{
     const pending=storedAction();let pendingError=null;
     if(pending)try{await recoverPendingAction(pending,identity);}catch(error){
-     // A terminal conflict has already removed the old command. Fetch the current game.
+     // A terminal rejection has already removed the old command. Fetch the current game.
      // Keep the durable ID for retryable failures while fetching the same snapshot.
-     if(error.status!==409){
-      if(error.code!=='offline'&&error.status!==429&&!(error.status>=500))throw error;
-      pendingError=error;
-     }
+     if(error.code==='offline'||error.status===429||error.status>=500)pendingError=error;
+     else if(error.status<400||error.status===401)throw error;
     }
     if(connection!==identity)throw connectionChanged();
     const value=await fetchState(identity);
@@ -203,9 +219,8 @@
   function restore(){
    if(restoring)return restoring;
    restoring=Promise.resolve().then(async()=>{requireEnabled();setStatus('connecting');try{
-    const pending=parsed(registrationKey);
+    const pending=storedLogin();
     if(pending){
-     if(pending.version!==1||pending.endpoint!==endpoint||!TOKEN.test(pending.token||'')||pending.op!=='login')throw failure('invalid_access','La connexion en cours ne peut pas être reprise.');
      try{const raw=await request({op:'state'},pending.token,1);return await finishLogin(raw,pending);}catch(error){if(error.status!==401)throw error;}
     }
     const saved=parsed(storageKey);
@@ -266,7 +281,7 @@
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){try{const value=parsed(registrationKey);return value?{op:value.op}:null;}catch(_){return null;}},restore,login,refresh,action,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

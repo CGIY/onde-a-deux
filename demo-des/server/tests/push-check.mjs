@@ -117,8 +117,14 @@ check(()=>assert.equal(writes.length,0,'Install cached a private response'));
 sandbox.fetch=async()=>basic(shell('0.3.0'));
 await assert.rejects(event('install',{}),/shell version is not ready/);checks++;
 check(()=>assert.equal(writes.length,0,'Install activated against stale Pages HTML'));
-sandbox.fetch=async()=>basic(shell(release));
+let shellInstallRequest;
+sandbox.fetch=async request=>{
+ if(new URL(request.url).pathname.endsWith('/index.html'))shellInstallRequest=request;
+ return basic(shell(release));
+};
 await event('install',{});
+check(()=>assert.equal(new URL(shellInstallRequest.url).searchParams.get('d6-release'),release));
+check(()=>assert.equal(shellInstallRequest.cache,'reload'));
 check(()=>assert.equal(writes.length,7,'Public app resources were not cached'));
 const request=new Request('https://cgiy.github.io/desir/demo-des/index.html');
 const fetchPage=async()=>{let result;handlers.fetch({request,respondWith:response=>{result=response;}});return await (await result).text();};

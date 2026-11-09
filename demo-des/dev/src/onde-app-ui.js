@@ -13,13 +13,12 @@
   portrait:member.querySelector('.oa-member-portrait'),dot:member.querySelector('.oa-unread')
  })):[];
  let portraitScope=null;
- for(const {portrait,initials} of remoteMembers){
-  portrait?.addEventListener?.('load',()=>{if(portraitScope&&portrait.hasAttribute('src')){portrait.hidden=false;initials.hidden=true;}});
-  portrait?.addEventListener?.('error',()=>{
-   portrait.hidden=true;initials.hidden=false;portrait.removeAttribute('src');
-   if(portraitScope)portraitScope.retryAt=Date.now()+60000;
-  });
+ for(const member of remoteMembers){
+  const {portrait}=member;
+  portrait?.addEventListener?.('load',()=>showMemberPortrait(member));
+  portrait?.addEventListener?.('error',()=>{if(portraitScope&&portrait.hasAttribute('src'))discardMemberPortrait(member);});
  }
+ if(remoteMembers.length)window.addEventListener('online',resumeMemberPortraits);
  if(remoteMode)persona.querySelectorAll('[data-action="profile"]').forEach(control=>control.remove());
  let remoteReady=false,authBusy=remoteMode,operationBusy=false,loginError='',loginUsername='',remoteSnapshot=null,deferredSnapshot=null,remoteSignature='',serverOffset=0;
  const welcomeKey='desir-welcome-v1';
@@ -52,8 +51,6 @@
  let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
  let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='',badgeDetailId=null,badgeGalleryScroll=null,badgeNoticeAnimation=null;
  const viewport=window.visualViewport;let viewportListening=false;
- const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator?.standalone===true;
- root.classList.toggle('oa-installed',installed);
  function updateViewportHeight(){
   if(!viewport||viewport.height<=0||Math.abs((viewport.scale||1)-1)>=.02)return;
   // The shell starts at the layout origin. Keep its dock inside the visible bottom,
@@ -79,7 +76,7 @@
  const syncDuoVisibility=()=>root.classList.toggle('oa-duo-suspended',document.hidden||presentationHidden);
  syncDuoVisibility();
  if(viewport)startViewport();
- window.addEventListener('pageshow',()=>{presentationHidden=false;syncDuoVisibility();startViewport();updateBadgeNotice();});
+ window.addEventListener('pageshow',()=>{presentationHidden=false;syncDuoVisibility();startViewport();resumeMemberPortraits();updateBadgeNotice();});
  window.addEventListener('pagehide',()=>{presentationHidden=true;syncDuoVisibility();stopViewport();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();updateBadgeNotice();});
  if(!remoteMode){
   localRoom=G.createRoom({at:new Date().toISOString()});
@@ -198,28 +195,64 @@
  function serverNow(){return Date.now()+serverOffset;}
  function samePerspective(a,b){return a&&b&&a.roomId===b.roomId&&a.actor===b.actor;}
  function currentPerspective(value){const identity=remote?.connection;return !identity||samePerspective(value,identity);}
+ function showMemberPortrait({portrait,initials}){
+  if(!portraitScope||!portrait?.hasAttribute('src')||!portrait.complete||!portrait.naturalWidth)return;
+  portrait.hidden=false;initials.hidden=true;
+ }
+ function discardMemberPortrait({portrait,initials}){
+  portrait.hidden=true;portrait.removeAttribute('src');initials.hidden=false;
+  scheduleMemberPortraitRetry(portraitScope);
+ }
  function clearMemberPortraits(){
+  if(portraitScope)clearTimeout(portraitScope.timer);
   portraitScope=null;
   for(const {portrait,initials} of remoteMembers)if(portrait){portrait.hidden=true;portrait.removeAttribute('src');initials.hidden=false;}
+ }
+ function missingMemberPortrait(){
+  return remoteMembers.some(({portrait})=>portrait&&!portrait.hasAttribute('src'));
+ }
+ function scheduleMemberPortraitRetry(scope){
+  if(!scope||scope!==portraitScope||scope.timer!==null||document.hidden||presentationHidden)return;
+  scope.timer=setTimeout(()=>{
+   scope.timer=null;
+   requestMemberPortraits(scope);
+  },scope.retryDelay);
+  scope.retryDelay=Math.min(scope.retryDelay*3,30000);
+ }
+ function requestMemberPortraits(scope){
+  if(scope!==portraitScope||scope.pending||!remote.authenticated||!currentPerspective(scope)||
+     document.hidden||presentationHidden||!missingMemberPortrait())return;
+  scope.pending=true;
+  remote.loadPortraits().then(photos=>{
+   if(portraitScope!==scope||!remote.authenticated||!currentPerspective(scope))return;
+   for(const member of remoteMembers){
+    const {portrait}=member,source=photos[member.member.dataset.member];
+    if(portrait&&source&&!portrait.hasAttribute('src'))portrait.src=source;
+    showMemberPortrait(member);
+   }
+  }).catch(()=>{}).finally(()=>{
+   scope.pending=false;
+   if(missingMemberPortrait())scheduleMemberPortraitRetry(scope);
+  });
+ }
+ function resumeMemberPortraits(){
+  const scope=portraitScope;
+  if(!scope||document.hidden||presentationHidden)return;
+  for(const member of remoteMembers){
+   const {portrait}=member;
+   if(portrait?.hasAttribute('src')&&portrait.complete&&!portrait.naturalWidth)discardMemberPortrait(member);
+   else showMemberPortrait(member);
+  }
+  clearTimeout(scope.timer);scope.timer=null;
+  requestMemberPortraits(scope);
  }
  function loadMemberPortraits(value){
   if(!remote?.loadPortraits)return;
   if(!samePerspective(value,portraitScope)){
    clearMemberPortraits();
-   portraitScope={roomId:value.roomId,actor:value.actor,pending:false,retryAt:0};
+   portraitScope={roomId:value.roomId,actor:value.actor,pending:false,timer:null,retryDelay:1500};
   }
-  const scope=portraitScope;
-  if(scope.pending||Date.now()<scope.retryAt)return;
-  scope.pending=true;
-  scope.retryAt=Date.now()+60000;
-  remote.loadPortraits().then(photos=>{
-   if(portraitScope!==scope||!remote.authenticated)return;
-   if(photos.a&&photos.b)scope.retryAt=Infinity;
-   for(const {member,portrait} of remoteMembers){
-    const source=photos[member.dataset.member];
-    if(portrait&&source&&source!==portrait.getAttribute('src'))portrait.src=source;
-   }
-  }).catch(()=>{}).finally(()=>{scope.pending=false;});
+  if(portraitScope.timer===null)requestMemberPortraits(portraitScope);
  }
  function applyRemote(value,renderNow=true){
   if(remoteMode&&!remote?.authenticated||!value||!value.state||!['a','b'].includes(value.actor)||!currentPerspective(value))return false;
@@ -1435,7 +1468,7 @@
   if(remoteMode){if(remoteReady&&needsReading)render();}
   else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='info')render();}
  },30000);
- document.addEventListener('visibilitychange',()=>{syncDuoVisibility();if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden){if(!remoteMode)pullShared();if(!busy&&!operationBusy&&!missionSending&&!pendingChecks.size)render();}updateBadgeNotice();});
+ document.addEventListener('visibilitychange',()=>{syncDuoVisibility();if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden){updateViewportHeight();if(!remoteMode)pullShared();else resumeMemberPortraits();if(!busy&&!operationBusy&&!missionSending&&!pendingChecks.size)render();}updateBadgeNotice();});
  window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{
@@ -1469,32 +1502,60 @@
  const swApi=window.navigator&&window.navigator.serviceWorker;
  if(remoteMode&&swApi){
   const shellVersion=document.querySelector('meta[name="onde-version"]')?.content;
+  const scope=new URL('./',location.href),script=new URL('./sw.js',scope),releaseKey='d6-release';
+  let pendingRelease=null,checking=false;
+  const opened=new URL(location.href);
+  if(opened.searchParams.get(releaseKey)===shellVersion){
+   opened.searchParams.delete(releaseKey);
+   history.replaceState(history.state,'',opened.href);
+  }
+  const switchShell=(manual=false)=>{
+   if(!pendingRelease||document.hidden||busy||operationBusy||missionSending||pendingChecks.size||charge||!sheet.hidden)return false;
+   if(!manual&&(authBusy||Array.from(main.querySelectorAll('[data-login-form] input')).some(input=>input.value)))return false;
+   const target=new URL(location.href);
+   if(target.searchParams.get(releaseKey)===pendingRelease){
+    if(!manual)return false;
+    location.reload();
+   }else{
+    target.searchParams.set(releaseKey,pendingRelease);
+    location.replace(target.href);
+   }
+   return true;
+  };
   const showShellUpdate=()=>{
    if(root.querySelector('.oa-update'))return;
    const bar=document.createElement('section');bar.className='oa-update';bar.setAttribute('aria-label','Mise à jour disponible');
    bar.inert=!sheet.hidden;
    const label=document.createElement('span');label.textContent='Une mise à jour de D6 à deux est prête.';
    const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
-   reload.addEventListener('click',()=>{
-    if(busy||operationBusy||missionSending||pendingChecks.size){announce('Attends la fin de l’action en cours.');return;}
-    location.reload();
-   });
+   reload.addEventListener('click',()=>{if(!switchShell(true))announce('Attends la fin de l’action en cours.');});
    bar.append(label,reload);root.querySelector('.oa-shell').append(bar);announce('Une mise à jour de D6 à deux est prête. Recharge pour l’utiliser.');
   };
   swApi.addEventListener('message',event=>{
    const update=event.data;
-   if(update?.type==='desir-shell-active'&&shellVersion&&typeof update.version==='string'&&/^\d+\.\d+\.\d+$/.test(update.version)&&
-     update.version.localeCompare(shellVersion,'en',{numeric:true})>0)showShellUpdate();
+   if(event.source?.scriptURL===script.href&&update?.type==='desir-shell-active'&&shellVersion&&
+     typeof update.version==='string'&&/^\d+\.\d+\.\d+$/.test(update.version)&&
+     update.version.localeCompare(shellVersion,'en',{numeric:true})>0){
+    pendingRelease=update.version;
+    if(!switchShell())showShellUpdate();
+   }
   });
-  const askShellVersion=()=>swApi.controller?.postMessage({type:'desir-shell-version'});
-  const checkShellUpdate=()=>{
-   if(document.hidden)return;
-   askShellVersion();
-   swApi.ready.then(registration=>registration?.update()).catch(()=>{});
+  const askShellVersion=()=>{
+   const controller=swApi.controller;
+   if(controller?.scriptURL===script.href)controller.postMessage({type:'desir-shell-version'});
+  };
+  const checkShellUpdate=async()=>{
+   if(document.hidden||checking||switchShell())return;
+   askShellVersion();checking=true;
+   try{
+    const registration=await swApi.getRegistration(scope.href);
+    if(registration?.scope===scope.href)await registration.update();
+    else await swApi.register(script.href,{scope:scope.pathname,updateViaCache:'none'});
+   }catch(_){}finally{checking=false;}
   };
   swApi.addEventListener('controllerchange',askShellVersion);
   document.addEventListener('visibilitychange',checkShellUpdate);
-  window.addEventListener('pageshow',checkShellUpdate);
+  for(const event of ['pageshow','online','focus'])window.addEventListener(event,checkShellUpdate);
   checkShellUpdate();
  }
  root.dataset.ready='true';

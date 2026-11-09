@@ -3,9 +3,10 @@
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const RELEASE_VERSION = '0.4.1';
+const RELEASE_VERSION = '0.4.2';
 const CACHE_NAME = CACHE_PREFIX + 'connected-' + RELEASE_VERSION;
 const INDEX_URL = new URL('./index.html', APP_URL).href;
+const RELEASE_KEY = 'd6-release';
 const SHELL_ACTIVE = {type: 'desir-shell-active', version: RELEASE_VERSION};
 const PUBLIC_FILES = [
   './', './index.html', './manifest.webmanifest',
@@ -23,7 +24,9 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     // Pages can serve the new worker before its matching HTML reaches the CDN.
     // Keep the previous worker and its offline shell until the pair matches.
-    const shell = await fetch(new Request(INDEX_URL, {cache: 'reload'}));
+    const source = new URL(INDEX_URL);
+    source.searchParams.set(RELEASE_KEY, RELEASE_VERSION);
+    const shell = await fetch(new Request(source, {cache: 'reload'}));
     if (!mayCache(shell) || await htmlVersion(shell) !== RELEASE_VERSION) {
       throw Error('D6 à deux shell version is not ready');
     }
@@ -59,7 +62,8 @@ self.addEventListener('fetch', event => {
     const cacheKey = url.origin + url.pathname;
     const isShell = cacheKey === APP_URL || cacheKey === INDEX_URL;
     try {
-      const response = await fetch(new Request(request, {cache: 'no-cache'}));
+      const cacheMode = isShell && url.searchParams.has(RELEASE_KEY) ? 'reload' : 'no-cache';
+      const response = await fetch(new Request(request, {cache: cacheMode}));
       if (isShell && mayCache(response)) {
         const version = await htmlVersion(response);
         if (version === RELEASE_VERSION) await cache.put(cacheKey, response.clone());

@@ -36,10 +36,10 @@ async function preserved(){return await scalar(`select jsonb_build_object(
  'rateLimits',(select jsonb_agg(to_jsonb(r) order by bucket) from public.desir_rate_limits r)
  ) as result`);}
 const resetSql=await fs.readFile(new URL('../reset-game.sql',import.meta.url),'utf8');
-async function reset(target=roomId,revision=55){
+async function reset(target=roomId,revision=55,resetWallets=false){
  await db.exec('begin');
  try{
-  await db.query("select set_config('desir.reset_room',$1,true),set_config('desir.reset_revision',$2,true)",[target,revision===null?'':String(revision)]);
+  await db.query("select set_config('desir.reset_room',$1,true),set_config('desir.reset_revision',$2,true),set_config('desir.reset_wallets',$3,true)",[target,revision===null?'':String(revision),String(resetWallets)]);
   await db.exec(resetSql);
   await db.exec('commit');
  }catch(error){await db.exec('rollback');throw error;}
@@ -72,6 +72,7 @@ try{
  draft();action('SEND','a',{directQueue:true});
  const taskId=before.tasks[0].id;
  draft('b');action('SEND','b'); // outstanding invitation from the archived flow
+ before.cardRerollWallets.a.balance=3;
  before.players=[{id:'a',name:'Alpha'},{id:'b',name:'Bravo'}];
  before.prefs={reducedMotion:true,sound:true,discreet:false,reminder:false};
  before.favorites=[G.cards[0].id];
@@ -158,5 +159,11 @@ try{
  eq((await scalar('select public.desir_hardcore_get($1) as result',[otherId])).revision,1);
  eq((await scalar('select public.desir_hardcore_commit($1,$2,$3,$4,0,$5) as result',[otherId,'a',uuid(300),'a'.repeat(64),json(live)])).kind,'conflict');
  eq(await preserved(),preservedBefore,'second room reset also preserves protected data');
+ await reset(roomId,56,true);
+ const restarted=await scalar('select state as result from public.desir_rooms where id=$1',[roomId]);
+ ok(G.validateRoom(restarted),'full restart is core-valid');
+ for(const actor of ['a','b'])eq(restarted.cardRerollWallets[actor],{balance:1,anchorAt:restarted.lanes.a.round.createdAt,spentAt:null},'full restart restores the first star');
+ for(const actor of ['a','b'])eq(G.badgeView(restarted,actor).items.filter(item=>item.award).length,0,'full restart clears badge progress');
+ eq(await preserved(),preservedBefore,'full restart preserves protected data');
  console.log('Dés·ir atomic reset: '+checks+' real PostgreSQL and core assertions passed (scope, rollback, revisions, stale actions, receipts, quotas, sessions, preferences and notification suppression).');
 }finally{await db.close();}

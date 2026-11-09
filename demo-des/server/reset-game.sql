@@ -1,13 +1,15 @@
 -- Authorized operator-only reset. This is a one-time transaction, not a public RPC.
--- Apply only after deploying protocol 4. Supply both transaction-local settings:
+-- Supply both transaction-local settings:
 --   select set_config('desir.reset_room', '<verified room UUID>', true);
 --   select set_config('desir.reset_revision', '<fresh room revision>', true);
+-- To restart the star reserves too, also set desir.reset_wallets to 'true'.
 -- Run those statements and this block in the same transaction. A stale revision
 -- aborts every change; reread and review the target instead of blindly retrying.
 do $desir_reset$
 declare
   target uuid := nullif(current_setting('desir.reset_room', true), '')::uuid;
   expected_revision bigint := nullif(current_setting('desir.reset_revision', true), '')::bigint;
+  reset_wallets boolean := coalesce(nullif(current_setting('desir.reset_wallets', true), '')::boolean, false);
   room public.desir_rooms%rowtype;
   live public.desir_hardcore_sessions%rowtype;
   reset_at timestamptz := now();
@@ -39,7 +41,9 @@ begin
   next_state := next_state || jsonb_build_object(
     'players', room.state->'players', 'prefs', room.state->'prefs',
     'favorites', room.state->'favorites', 'sequence', sequence_before+2,
-    'cardRerollWallets', coalesce(room.state->'cardRerollWallets', jsonb_build_object('a',initial_wallet,'b',initial_wallet)),
+    'cardRerollWallets', case when reset_wallets or room.state->'cardRerollWallets' is null
+      then jsonb_build_object('a',initial_wallet,'b',initial_wallet)
+      else room.state->'cardRerollWallets' end,
     'dailyReroll', jsonb_build_object('dateKey', to_char(reset_at at time zone 'Europe/Paris','YYYY-MM-DD'), 'used', '[]'::jsonb));
   next_state := jsonb_set(next_state, '{lanes,a,round,id}', to_jsonb('onde-'||(sequence_before+1)::text));
   next_state := jsonb_set(next_state, '{lanes,b,round,id}', to_jsonb('onde-'||(sequence_before+2)::text));

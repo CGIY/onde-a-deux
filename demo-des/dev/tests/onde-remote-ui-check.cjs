@@ -115,7 +115,8 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  const profileButtons=['a','b'].map(player=>node({action:'profile',player}));
  persona.members=Object.fromEntries(['a','b'].map(id=>{
   const member=node({member:id});
-  member.parts=Object.fromEntries(['.oa-member-initials','.oa-person-name','.oa-unread'].map(selector=>[selector,node()]));
+  member.parts=Object.fromEntries(['.oa-member-initials','.oa-person-name','.oa-unread','.oa-member-portrait'].map(selector=>[selector,node()]));
+  Object.assign(member.parts['.oa-member-portrait'],{hidden:true,complete:false,naturalWidth:0});
   member.querySelector=selector=>member.parts[selector]||null;
   return [id,member];
  }));
@@ -163,6 +164,26 @@ async function rollSession(options={}){
  const ui=shell(remote,options);await tick();return {remote,ui};
 }
 (async()=>{
+ // Private photos retry once online and reconcile decoding after a suspended tab resumes.
+ {
+  const remote=mockRemote(snap(initial()));let calls=0,finishPortraits;
+  const photos={a:'data:image/jpeg;base64,/9j/AA==',b:'data:image/jpeg;base64,/9j/2Q=='};
+  remote.loadPortraits=()=>++calls===1?Promise.reject(Error('Offline')):new Promise(resolve=>{finishPortraits=resolve;});
+  const ui=shell(remote);await tick();
+  const images=Object.values(ui.persona.members).map(member=>member.parts['.oa-member-portrait']);
+  const initials=Object.values(ui.persona.members).map(member=>member.parts['.oa-member-initials']);
+  check(()=>{assert.equal(calls,1);assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===1500).length,1);});
+  remote.emit();await tick();check(()=>assert.equal(calls,1));
+  ui.windowEvent('online');check(()=>{assert.equal(calls,2);assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===1500).length,0);});
+  ui.windowEvent('pagehide');finishPortraits(photos);await tick();
+  check(()=>{assert.deepEqual(images.map(image=>image.src),Object.values(photos));assert.ok(images.every(image=>image.hidden));});
+  for(const image of images){image.complete=true;image.naturalWidth=192;}
+  ui.windowEvent('pageshow');check(()=>{assert.ok(images.every(image=>!image.hidden));assert.ok(initials.every(initial=>initial.hidden));assert.equal(calls,2);});
+  images[0].naturalWidth=0;images[0].events.error();check(()=>{assert.equal(images[0].src,undefined);assert.equal(images[0].hidden,true);assert.equal(initials[0].hidden,false);});
+  ui.windowEvent('online');check(()=>assert.equal(calls,3));
+  remote.revoke();finishPortraits(photos);await tick();
+  check(()=>{assert.ok(images.every(image=>image.hidden&&!image.hasAttribute('src')));assertPrivateBanner(ui);});
+ }
  // Runtime accessibility changes work with both MediaQueryList APIs and no getAnimations.
  for(const legacyMotionQuery of [false,true]){
   const ui=shell(mockRemote(),{mode:false,legacyMotionQuery,queryAnimations:false});
@@ -1110,7 +1131,7 @@ async function rollSession(options={}){
   const listeners=new Map(),viewport={height:812,offsetTop:0,scale:1,addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type){listeners.delete(type);},emit(type){listeners.get(type)?.();}};
   const ui=shell(mockRemote(),{viewport,installed:true,layoutHeight:874,mobileScroll:true});await tick();
   const before=ui.writes;
-  check(()=>{assert.equal(ui.root.classList.contains('oa-installed'),true);assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'812px');});
+  check(()=>{assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'812px');});
   viewport.offsetTop=62;viewport.emit('scroll');check(()=>assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'874px'));
   ui.password.focus();viewport.height=500;viewport.offsetTop=36;viewport.emit('resize');
   check(()=>{assert.equal(ui.root.style.getPropertyValue('--oa-viewport-height'),'536px');assert.equal(ui.activeElement,ui.password);assert.equal(ui.writes,before);});

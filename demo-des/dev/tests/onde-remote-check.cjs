@@ -7,7 +7,7 @@ const endpoint='https://example.supabase.co/functions/v1/desir-game';
 const roomId='b98c371d-6355-4d37-a9bc-18f1228fd386';
 const config={endpoint,publishableKey:'sb_publishable_test',pollIntervalMs:10000};
 let checks=0;function check(fn){fn();checks++;}
-function memory(){const values=new Map();return {values,getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};}
+function memory(){const values=new Map();return {values,getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};}
 function eventTarget(){const listeners=new Map();return {addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},removeEventListener(type,fn){listeners.get(type)?.delete(fn);},emit(type,data={}){for(const fn of listeners.get(type)||[])fn(data);}};}
 function env(fetcher,storage=memory(),extra={}){const doc={...eventTarget(),hidden:false},intervals=[];return {game:G,fetch:fetcher,storage,crypto:webcrypto,document:doc,location:{href:'https://cgiy.github.io/desir/demo-des/?v=test'},btoa,atob,AbortController,setTimeout,clearTimeout,setInterval:fn=>{intervals.push(fn);return intervals.length;},clearInterval(){},intervals,...extra};}
 function state(actor='a'){return G.roomView(G.createRoom(),actor);}
@@ -167,13 +167,39 @@ function badgeRoom(actor='a',sent=false){
   storage.setItem('desir-connection-v1-action',JSON.stringify({version:1,gameVersion:2,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'ROLL_CATEGORY',roundId:'onde-1'}}));
   const recovered=create(config,env(fetcher,storage));await recovered.restore();check(()=>{assert.deepEqual(calls.map(p=>[p.op,p.gameVersion]),[['state',8]]);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(recovered.status.phase,'connected');assert.equal(recovered.snapshot.gameVersion,6);});
  }
- // A terminal conflict on a saved request restores the game with the existing token.
- for(const code of ['stale_round','invalid_phase','upgrade_required']){
+ // Invalid pending journals cannot prevent restoration or replace a saved access.
+ {
+  const connectionKey='desir-connection-v1',actionKey=connectionKey+'-action',registrationKey=connectionKey+'-registration';
+  const token='A'.repeat(43),saved=JSON.stringify({version:1,endpoint,token,roomId,actor:'a',pairingCode:null});
+  const action={version:1,gameVersion:7,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'SEND',roundId:'onde-1'}};
+  const registration={version:1,endpoint,op:'login',token:'E'.repeat(43),requestId:webcrypto.randomUUID()};
+  const invalidActions=[{...action,roomId:webcrypto.randomUUID()},{...action,actor:'b'},{...action,version:2},{...action,requestId:'00000000-0000-0000-0000-000000000000'},
+   {...action,action:{type:'PRESS',roundId:'onde-1'}},{...action,action:{type:'SEND'}},{...action,action:{type:'TOGGLE_TASK_CHECK',roundId:'onde-1',taskId:'invalid',checked:true}},
+   {...action,action:{type:'JOKER_DRAW',roundId:'onde-1',category:5}}];
+  const invalidRegistrations=[{...registration,endpoint:'https://old.example/'},{...registration,version:2},{...registration,op:'register'},
+   {...registration,requestId:undefined},{...registration,token:'B'.repeat(43)}];
+  for(const [key,fixtures] of [[actionKey,invalidActions],[registrationKey,invalidRegistrations]]){
+   for(const raw of ['', '{', 'null', ...fixtures.map(value=>JSON.stringify(value))]){
+    const storage=memory(),calls=[];storage.setItem(connectionKey,saved);storage.setItem(key,raw);
+    const r=create(config,env(async(url,options)=>{
+     calls.push([payload(options).op,options.headers.Authorization]);return response(reply('a',2,state(),{gameVersion:8}));
+    },storage));
+    await r.restore();await r.refresh();
+    check(()=>{
+     assert.deepEqual(calls,[['state','Bearer '+token],['state','Bearer '+token]]);
+     assert.equal(r.authenticated,true);assert.equal(r.snapshot.revision,2);
+     assert.equal(storage.getItem(key),null);assert.equal(storage.getItem(connectionKey),saved);
+    });
+   }
+  }
+ }
+ // A terminal rejection on a saved request restores the game with the existing token.
+ for(const [code,status] of [['stale_round',409],['invalid_phase',409],['upgrade_required',409],['invalid_action',400],['not_allowed',403]]){
   const storage=memory(),calls=[];
   const fetcher=async(url,options)=>{
    const p=payload(options);calls.push([p.op,p.gameVersion,options.headers.Authorization]);
    if(p.op==='login')return response(loginReply(options));
-   if(p.op==='action')return response({error:{code}},409);
+   if(p.op==='action')return response({error:{code}},status);
    return response(reply('a',4,state(),{gameVersion:8}));
   };
   const first=create(config,env(fetcher,storage));await first.login('fixture-a','fixture-password');
@@ -280,6 +306,39 @@ function badgeRoom(actor='a',sent=false){
   const r=create(config,env(async(url,options)=>{if(payload(options).op==='state'&&!loginToken)return response({error:{code:'unauthorized'}},401);loginToken=options.headers.Authorization.slice(7);return response(loginReply(options));},storage));
   check(()=>assert.equal(r.connection,null));check(()=>assert.equal(r.pendingRegistration.op,'login'));check(()=>assert.equal(Object.keys(r.pendingRegistration).length,1));
   check(()=>assert.ok(storage.getItem('desir-connection-v1-registration')));assert.equal(await r.restore(),null);await r.login('fixture-user','fixture-password');check(()=>assert.equal(loginToken,prospective));const after=await r.restore();check(()=>assert.equal(after.actor,'a'));
+ }
+ // A replacement login can finish after its response was lost, even if the previous access is revoked.
+ {
+  const storage=memory(),connectionKey='desir-connection-v1',registrationKey=connectionKey+'-registration',actionKey=connectionKey+'-action';
+  const oldToken='A'.repeat(43),newToken='E'.repeat(43),calls=[];
+  const saved=JSON.stringify({version:1,endpoint,token:oldToken,roomId,actor:'a',pairingCode:null});
+  const pending=JSON.stringify({version:1,endpoint,op:'login',token:newToken,requestId:webcrypto.randomUUID()});
+  storage.setItem(connectionKey,saved);storage.setItem(registrationKey,pending);
+  storage.setItem(actionKey,JSON.stringify({version:1,gameVersion:8,endpoint,roomId,actor:'a',requestId:webcrypto.randomUUID(),action:{type:'SEND',roundId:'onde-1'}}));
+  let online=false;
+  const fetcher=async(url,options)=>{
+   const token=options.headers.Authorization.slice(7);calls.push([payload(options).op,token]);
+   if(!online)throw Error('offline');
+   if(token===oldToken)return response({error:{code:'unauthorized'}},401);
+   return response(reply('b'));
+  };
+  const r=create(config,env(fetcher,storage));await assert.rejects(r.restore(),{code:'offline'});
+  check(()=>{assert.equal(storage.getItem(connectionKey),saved);assert.equal(storage.getItem(registrationKey),pending);assert.ok(storage.getItem(actionKey));});
+  online=true;await r.restore();
+  check(()=>{
+   assert.deepEqual(calls,[['state',newToken],['state',newToken]]);
+   assert.equal(r.authenticated,true);assert.equal(r.connection.actor,'b');
+   assert.equal(JSON.parse(storage.getItem(connectionKey)).token,newToken);
+   assert.equal(storage.getItem(registrationKey),null);assert.equal(storage.getItem(actionKey),null);
+  });
+  // If the prospective token is unregistered, the established access still works.
+  storage.setItem(connectionKey,saved);storage.setItem(registrationKey,pending);
+  const fallbackCalls=[],fallback=create(config,env(async(url,options)=>{
+   const token=options.headers.Authorization.slice(7);fallbackCalls.push(token);
+   return token===newToken?response({error:{code:'unauthorized'}},401):response(reply('a'));
+  },storage));
+  await fallback.restore();
+  check(()=>{assert.deepEqual(fallbackCalls,[newToken,oldToken]);assert.equal(fallback.authenticated,true);assert.equal(storage.getItem(registrationKey),pending);assert.equal(storage.getItem(connectionKey),saved);});
  }
  // Native AbortError numeric codes are converted into the same safe offline state.
  {
