@@ -548,11 +548,10 @@
    <p class="oa-info-kicker">Dés·ir · Mon activité</p>
    <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
    <div class="oa-info-activity-metrics">${metricCards}</div>
-   <h3>Mes dernières cartes tirées</h3>
-   ${recent.length?'<ul class="oa-info-recent">'+recent.map(({round,drawn})=>{
+   ${recent.length?'<h3>Mes dernières cartes tirées</h3><ul class="oa-info-recent">'+recent.map(({round,drawn})=>{
     const theme=G.getCategory(round.categoryId,roundVersion(round));
     return '<li style="--category:'+h(theme?.color||'var(--oa-sage)')+'"><span>'+h(drawn.title)+'</span><small>'+h(theme?.label||'')+'</small></li>';
-   }).join('')+'</ul>':'<p>Ta première carte apparaîtra ici.</p>'}
+   }).join('')+'</ul>':''}
   </section>`;
  }
  function infoShared(){
@@ -560,7 +559,20 @@
    <p class="oa-info-kicker">Dés·ir · À deux</p>
    <h2 id="oa-info-shared-title">Vos cartes partagées.</h2>
    <div class="oa-score-grid">${G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+G.categoryScore(state.stats,c.id).toLocaleString('fr-FR')+'</strong></div>').join('')}</div>
-   <p>Les cartes validées par vos deux coches, par thème.</p>
+  </section>`;
+ }
+
+ function infoTickets(){
+  const remaining=remoteSnapshot?.quota?.remaining;
+  const dots=Array.from({length:3},(_,index)=>'<i'+(index<remaining?' class="is-available"':'')+'></i>').join('');
+  const quotaLabel=remaining==null?(remoteMode?'Quota indisponible':'Démo sans quota'):remaining+' tirage'+(remaining===1?' disponible':'s disponibles');
+  return `<section class="oa-info-card oa-info-ticket-card" aria-labelledby="oa-info-tickets">
+   <div class="oa-info-ticket-head">
+    <h2 id="oa-info-tickets">Tirages du jour</h2>
+    ${remoteMode?'':'<small>Démo libre</small>'}
+    <span class="oa-info-ticket-dots" role="img" aria-label="${quotaLabel}" title="${quotaLabel}">${dots}</span>
+   </div>
+   <p>1 relance de thème gratuite par jour · 1 joker par semaine pour le duo.</p>
   </section>`;
  }
 
@@ -573,25 +585,17 @@
  function renderInfo(){
   const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
   const themes=G.categories.map(category=>`<li style="--category:${h(category.color)}"><i aria-hidden="true"></i>${h(category.label)}</li>`).join('');
-  const mosaic=[0,0,2,2,0,2,3,3,1,1,2,3,1,1,1,3].map(index=>`<i style="--tile:${h(G.categories[index].color)}"></i>`).join('');
   return `<article class="oa-info" aria-labelledby="oa-info-title">
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
-   <header class="oa-info-hero">
-    <div>
-     <p class="oa-info-kicker">Le carnet de Dés·ir</p>
-     <h1 class="oa-title" id="oa-info-title">Le jeu,<br><em>à deux.</em></h1>
-     <p class="oa-subtitle">Un dé pour ouvrir une piste. À vous de voir où elle mène.</p>
-    </div>
-    <div class="oa-info-mosaic" aria-hidden="true">${mosaic}</div>
-   </header>
-   <div class="oa-info-shortcuts" role="group" aria-label="Accès rapides">
-    <a href="#oa-info-activity" data-action="info-jump">Tirages</a>
-    <a href="#oa-libido-card-benchmarks" data-action="info-jump">Rythme</a>
-    <a href="#oa-libido-card-places" data-action="info-jump">Lieux</a>
-    <a href="#oa-libido-card-destinations" data-action="info-jump">Où va le sperme ?</a>
-    <a href="#oa-info-settings" data-action="info-jump">Réglages</a>
-   </div>
+   <h1 class="oa-sr" id="oa-info-title">Info</h1>
    <div class="oa-info-cards">
+    <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
+     <p class="oa-info-kicker" id="oa-info-idea">Pour ouvrir la conversation</p>
+     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">
+      <h2>Une idée <em>à deux.</em></h2>
+     </div>
+     ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
+    </section>
     <div data-info-shared>${infoShared()}</div>
     <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
      <p class="oa-info-kicker">Le principe du jeu</p>
@@ -604,7 +608,6 @@
       <p>Deux coches avant l’expiration du défi (<strong>${G.rules.taskLifetimeMs/3600000} h</strong>).</p>
       <strong>+${G.rules.completedCardPoints} point</strong>
      </div>
-     <p>« Refuser · D20 » retire la carte, quelle que soit la face.</p>
     </section>
     <div class="oa-info-ticker">
      <div class="oa-info-ticker-head">
@@ -616,14 +619,6 @@
       <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
      </div></div>
     </div>
-    <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
-     <p class="oa-info-kicker" id="oa-info-idea">Pour ouvrir la conversation</p>
-     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">
-      <h2>Une idée <em>à deux.</em></h2>
-      <p>Une question à piocher, en dehors de la partie.</p>
-     </div>
-     ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
-    </section>
     <div data-info-activity>${infoActivity()}</div>
     <section class="oa-info-card" aria-labelledby="oa-info-dice">
      <p class="oa-info-kicker">01 / Le tirage</p>
@@ -637,21 +632,9 @@
     </section>
     ${libido('places')}
     ${libido('benchmarks')}
-    <section class="oa-info-card oa-info-ticket-card" aria-labelledby="oa-info-tickets">
-     <p class="oa-info-kicker">02 / Les tickets</p>
-     <h2 id="oa-info-tickets">La réserve du jour.</h2>
-     <dl class="oa-info-ticket-book">
-      <div class="oa-info-ticket-daily">
-       <dt><b aria-hidden="true"><span data-info-count>3</span></b><span class="oa-sr">Trois </span>tirages</dt>
-       <dd>Par personne en ligne.<br>Recharge à <strong>5 h</strong> (Paris).</dd>
-      </div>
-      <div><dt>1 relance</dt><dd>De thème, gratuite chaque jour.</dd></div>
-      <div><dt>1 joker</dt><dd>Le duo peut choisir le thème une fois par semaine.</dd></div>
-     </dl>
-    </section>
+    <div data-info-tickets>${infoTickets()}</div>
     ${libido('destinations')}
     ${libido('oral-manual')}
-    ${libido('fantasy')}
     ${libido('women')}
     ${libido('rough')}
     ${libido('personal')}
@@ -712,6 +695,7 @@
   const widgets=[
    ['[data-info-activity]',infoActivity],
    ['[data-info-shared]',infoShared],
+   ['[data-info-tickets]',infoTickets],
    ['[data-info-settings]',infoSettings]
   ].map(([selector,render])=>({node:panel.querySelector(selector),render,markup:render()}));
   const refresh=()=>{
@@ -1054,12 +1038,6 @@
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,catalogueVersion:3,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,3,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
-  if(action==='info-jump'){
-   const target=main.querySelector(el.hash);
-   if(!target)return;
-   target.setAttribute('tabindex','-1');target.focus({preventScroll:true});
-   target.scrollIntoView({block:'start',behavior:systemReduce?'instant':'smooth'});return;
-  }
   if(action==='info-idea'){showInfoIdea(el);return;}
   if(action==='info-pause'){
    const paused=el.closest('.oa-info-ticker').toggleAttribute('data-paused');

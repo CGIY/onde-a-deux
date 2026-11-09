@@ -842,6 +842,19 @@ async function rollSession(options={}){
   const rows=Array.from(ui.html.matchAll(/class="oa-score-label"><i aria-hidden="true"><\/i>([^<]+)<\/span><strong>(\d+)<\/strong>/g),row=>row.slice(1));
   check(()=>assert.deepEqual(rows,[['Complicité','3'],['Plaisirs','7'],['Projets','3'],['Intimité','1']]));
  }
+ // Info displays the personal quota, including exhaustion and renewal, as three dots.
+ {
+  const remote=mockRemote(snap(initial(),1,3)),ui=shell(remote);await tick();await ui.click('tab',{tab:'info'});
+  const dots=()=>ui.html.match(/class="oa-info-ticket-dots"[^>]*>(.*?)<\/span>/)[1];
+  const available=()=>[...dots().matchAll(/class="is-available"/g)].length;
+  check(()=>{assert.equal(available(),3);assert.equal((dots().match(/<i\b/g)||[]).length,3);});
+  remote.emit(snap(initial(),2,1));
+  check(()=>{assert.equal(available(),1);assert.ok(ui.html.includes('aria-label="1 tirage disponible"'));});
+  remote.emit(snap(initial(),3,0));
+  check(()=>{assert.equal(available(),0);assert.ok(ui.html.includes('aria-label="0 tirages disponibles"'));});
+  remote.emit(snap(initial(),4,3));
+  check(()=>assert.equal(available(),3));
+ }
  // Info shows the authenticated actor's own draw history and updates after a proposal.
  {
   const at='2026-11-08T12:00:00.000Z';

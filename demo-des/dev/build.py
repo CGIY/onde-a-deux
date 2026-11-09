@@ -85,29 +85,27 @@ def highlight_rough(body):
     body = body.replace(spitting[0], '', 1).replace(insults[0], '', 1)
     featured = spitting[0].replace(
         'Rapports déclarés consentis; accord sur le geste non isolé.',
-        'L’enquête mesure le consentement au rapport dans son ensemble.'
-    )
+        'Accord mesuré à l’échelle du rapport.'
+    ).replace('≈ 1/4 des répondants · déjà pratiqué', 'Déjà pratiqué')
     return (
         '<div class="rough-highlights">' + featured +
         '<div class="rough-insults"><div><span>Insultes</span>' + insults[1] +
-        '</div><p>Expériences consenties <a href="#source-10">[10]</a></p></div></div>' + body
+        '</div><p>Expériences consenties</p></div></div>' + body
     )
 
 
 def libido_modules():
-    """Adapt the standalone carnet's data cards and link directly to their sources."""
+    """Adapt the standalone carnet's data cards to the app."""
     reference = (demo.parent / 'p/index.html').read_text(encoding='utf-8')
     titles = {
         'places': ('Lieux et expériences', 'Au-delà de la chambre.'),
         'benchmarks': ('Fréquence déclarée', 'Les rythmes du couple.'),
-        'oral-manual': ('Repère d’étude', 'Les pratiques hors pénétration.'),
+        'oral-manual': ('Fréquence déclarée', 'Les pratiques hors pénétration.'),
         'destinations': ('Enquête et préférences', 'Où va le sperme ?'),
-        'rough': ('Expériences et enquêtes', 'Roleplay et jeux rudes.'),
-        'women': ('Fantasmes et visionnage', 'Et du côté des femmes ?'),
-        'fantasy': ('Fréquence déclarée', 'Des fantasmes réguliers.'),
+        'rough': ('Expériences déclarées', 'Roleplay et jeux rudes.'),
+        'women': ('Fantasmes déclarés', 'Et du côté des femmes ?'),
         'personal': ('Préférences personnelles', 'Accents personnels.'),
     }
-    urls = dict(re.findall(r'<li id="(source-\d+)"><a href="(https://[^"]+)"', reference))
     cards = {}
     for classes, body in re.findall(r'<section class="block ([^"]+)">(.*?)</section>', reference, re.S):
         keys = classes.split()
@@ -122,16 +120,34 @@ def libido_modules():
             raise SystemExit(f'Missing libido card heading: {key}.')
         if key == 'personal':
             body = re.sub(r'<h2>[^<]+</h2>|<p class="personal-sub">[^<]+</p>|<div class="pref-track"[^>]*>.*?</div>', '', body)
+        if key == 'places':
+            def place_band(match):
+                value = int(match[2])
+                band = 'high' if value >= 65 else 'mid' if value >= 50 else 'low' if value >= 25 else 'rare'
+                return f'<div class="place-row" data-frequency="{band}">{match[1]}'
+
+            body = re.sub(r'<div class="place-row">(.*?style="--width:(\d+)%")', place_band, body, flags=re.S)
+            body = body.replace('<div><span>Lieux de culte / religieux</span>',
+                                '<div class="place-fantasy-featured"><span>Lieux de culte / religieux</span>')
+            body = body.replace('Couples cohabitants · France 2025 · expériences vécues', 'Expériences de couples cohabitants en France')
+            body = body.replace('Grande-Bretagne · YouGov 2018', 'Grande-Bretagne').replace('<small>Rapport France 2025</small>', '')
         if key == 'rough':
             body = highlight_rough(body)
+            body = body.replace('<p class="base">Repère international · enquête universitaire · 2021</p>', '')
+            body = body.replace('Autre enquête · expériences consenties', 'Autres expériences consenties')
+            body = re.sub(r'<small>≈ [^<]+</small>', '', body)
         if key == 'benchmarks':
-            body = re.sub(r'<p class="context-note">[^<]+</p>',
-                          '<p class="context-note">Des repères pour en parler, à votre rythme.</p>', body, count=1)
+            body = body.replace('Sur les 7 jours étudiés · France · Ipsos 2015', 'Sur sept jours, en France')
+            body = body.replace('<small>Repère international · sondage commercial</small>', '')
+        if key == 'women':
+            body = body.split('<div class="women-porn">', 1)[0]
+            body = body.replace('<p class="women-kicker">Fantasmes déclarés</p>', '')
+            body = body.replace('class="women-source">799 répondantes · Québec · 2014/2015', 'class="base">799 répondantes au Québec')
         if key == 'oral-manual':
             body = re.sub(r'<p class="activity-frequency">.*?</p>',
                           '<p class="activity-frequency">Au moins une des pratiques étudiées chaque semaine.</p>',
                           body, count=1)
-            body = body.replace('Pratiques à deux · étude 2023', '431 hommes de 50 ans et plus · Tchéquie · étude 2023')
+            body = body.replace('Pratiques à deux · étude 2023', '431 hommes de 50 ans et plus, en Tchéquie')
         if key == 'destinations':
             split = re.search(r'<div class="setting-labels">.*?</div>', body, re.S)
             proportions = re.findall(r'data-count="(\d+)"', split[0]) if split else []
@@ -139,9 +155,13 @@ def libido_modules():
                 raise SystemExit('The personal setting split must add up to 100%.')
             inside, outside = proportions
             body = body.replace('<div class="setting-bars"', f'<div class="setting-bars" style="--inside:{inside}fr;--outside:{outside}fr"', 1)
-            body = body.replace('<div class="setting-split"', '<p class="dest-label">Mon cadre idéal</p><div class="setting-split"', 1)
-            body = body.replace('Expériences déclarées · France 2021', 'Expériences déclarées au cours de la vie · France 2021')
+            body = body.replace('Expériences déclarées · France 2021', 'Expériences déclarées au cours de la vie, en France')
             body = body.replace('Sélection hors vagin et tissus</strong>', 'Sélection hors vagin et tissus</strong> · réponses multiples')
+            body = re.sub(r'<div class="dest-choice">.*?</div>', '', body, flags=re.S)
+            body = body.replace('Mon cadre idéal, préférence personnelle', 'Préférence personnelle de lieu')
+        body = re.sub(r'<p class="(?:context-note|dest-ideal-caption|rough-fraction|rough-enjoyment|rough-unmeasured|anal-foot)">.*?</p>',
+                      '', body, flags=re.S)
+        body = re.sub(r'\s*<a\b[^>]*href="#source-\d+"[^>]*>[^<]*</a>', '', body)
         body = body.replace('class="sr-only"', 'class="oa-sr"').replace('data-count=', 'data-info-count=')
         cards[key] = (
             f'<section class="oa-info-card oa-libido {key}" id="oa-libido-card-{key}" '
@@ -151,18 +171,8 @@ def libido_modules():
     if cards.keys() != titles.keys():
         raise SystemExit('Missing libido cards in p/index.html.')
 
-    def direct_source(match):
-        url = urls.get(match[1])
-        if url is None:
-            raise SystemExit(f'Missing libido source link: {match[1]}.')
-        return f'href="{url}" target="_blank" rel="noreferrer"'
-
-    fragments = []
-    for key, markup in cards.items():
-        markup = re.sub(r'href="#(source-\d+)"', direct_source, markup)
-        fragments.append(f'<template id="oa-libido-{key}">{markup}</template>')
-    return '\n'.join(fragments) + '\n'
-
+    return '\n'.join(f'<template id="oa-libido-{key}">{markup}</template>'
+                     for key, markup in cards.items()) + '\n'
 
 
 configuration = public_config() if connected else ''

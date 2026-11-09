@@ -681,13 +681,7 @@
 #onde-app-v1 .oa-info{--info-mono:ui-monospace,SFMono-Regular,Menlo,monospace;--info-rhythm:cubic-bezier(.3,.75,.22,1);padding-bottom:12px}
 #onde-app-v1 .oa-info-progress{position:sticky;z-index:2;top:0;height:2px;margin-bottom:15px;border-radius:4px;background:#ded3b822;overflow:hidden;pointer-events:none}
 #onde-app-v1 .oa-info-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--oa-sage),var(--oa-clay));transform:scaleX(0);transform-origin:left}
-#onde-app-v1 .oa-info-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px;align-items:center;margin:0 2px 14px}
-#onde-app-v1 .oa-info-hero .oa-title{font-size:clamp(37px,11vw,53px);line-height:.97;letter-spacing:-.065em;margin:9px 0 10px;text-wrap:initial}
-#onde-app-v1 .oa-info-hero .oa-subtitle{max-width:26ch;font-size:13px}
 #onde-app-v1 .oa-info-kicker{font:10px/1.4 var(--info-mono);letter-spacing:.105em;text-transform:uppercase;color:var(--oa-muted)}
-#onde-app-v1 .oa-info-mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:clamp(66px,23vw,92px);rotate:-6deg;padding:7px;border:1px solid #f0e4d127;border-radius:13px;background:#17191866;box-shadow:0 6px 18px #17161355}
-#onde-app-v1 .oa-info-mosaic i{aspect-ratio:1;border-radius:3px;background:var(--tile);box-shadow:inset 0 1px #fff3,inset 0 -2px #0003;opacity:.8}
-#onde-app-v1 .oa-info-mosaic i:nth-child(7){animation:oa-info-pulse 2.4s ease-in-out 2}
 #onde-app-v1 .oa-info-ticker{margin-bottom:13px}
 #onde-app-v1 .oa-info-ticker-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px}
 #onde-app-v1 .oa-info-pause{min-height:44px;padding:0 6px;border:0;background:none;font:11px var(--info-mono);color:var(--oa-sage)}
@@ -719,7 +713,6 @@
 #onde-app-v1 .oa-info-install summary:focus-visible{outline:2px solid var(--oa-sage);outline-offset:2px}
 #onde-app-v1 .oa-info-card.is-reading{animation:oa-info-reveal .65s var(--info-rhythm) both}
 @keyframes oa-info-loop{to{transform:translateX(-50%)}}
-@keyframes oa-info-pulse{50%{opacity:1;scale:1.12}}
 @keyframes oa-info-reveal{from{opacity:.45;transform:translateY(9px)}}
 @keyframes oa-info-fill{from{transform:scaleX(0)}}
 @media(prefers-reduced-motion:reduce){

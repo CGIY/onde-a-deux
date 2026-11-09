@@ -95,15 +95,20 @@ class WebBuild(BuildFixture):
         self.assertIn(CONFIG['endpoint'], html)
         self.assert_archive_preserved()
 
-    def test_libido_cards_and_source_links_are_assembled_from_the_reference(self):
+    def test_libido_cards_are_assembled_without_source_mentions(self):
         self.build('--release')
         html = self.release.read_text()
         modules = re.findall(r'<template id="oa-libido-([^"]+)">', html)
         self.assertCountEqual(modules, ['places', 'benchmarks', 'oral-manual',
-                                         'destinations', 'rough', 'women', 'fantasy', 'personal'])
+                                         'destinations', 'rough', 'women', 'personal'])
         self.assertNotIn('href="#source-', html)
         self.assertNotIn('Sources & périmètres', html)
-        self.assertIn('href="https://www.ipsos.com/fr-fr/deux-cest-mieux" target="_blank" rel="noreferrer"', html)
+        self.assertNotIn('www.ipsos.com', html)
+        self.assertNotRegex(html, r'Source \[\d+\]|>\[\d+\]</a>')
+        self.assertNotIn('class="dest-choice"', html)
+        self.assertNotIn('class="women-porn"', html)
+        self.assertIn('class="place-row" data-frequency="high"', html)
+        self.assertIn('class="place-fantasy-featured"', html)
         self.assertIn('class="rough-highlights"', html)
         self.assertIn('class="rough-insults"', html)
         self.assertIn('Au moins une des pratiques étudiées chaque semaine.', html)

@@ -50,7 +50,7 @@ Les notifications signalent un nouveau challenge, un dé disponible ou un challe
 
 ## Direction artistique
 
-La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Le carnet Info rassemble les repères sur la libido de la page de référence, leurs sources, les tirages personnels, les cartes partagées et les réglages. Le score commun et les grades restent les éléments du jeu.
+La carte affiche le détail tiré. Les anciennes manches conservent leurs phrases d’origine. Le carnet Info rassemble les repères sur la libido de la page de référence, les tirages personnels, les cartes partagées et les réglages. Le score commun et les grades restent les éléments du jeu.
 
 La forme de l’application est conservée : rubber, suédine, pigments minéraux et grain statique. Le score commun et les accents passent au corail grisé, avec une texture propre au panneau pour rester visible. Pressions, révélations, jauge et cases en vague respectent la réduction du mouvement du système. Projets utilise le bleu ardoise, distinct du mauve Intimité ; l’ombre des dés reste discrète. Le chiffre du résultat s’éclaire progressivement en blanc ivoire brillant à la fin du lancer, y compris dans le rendu de secours.
 
