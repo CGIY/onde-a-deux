@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#090c16"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.2">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.3">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -703,8 +703,8 @@
 @media(max-width:480px),(max-width:1000px) and (max-height:500px){
  html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#090c16}
  body{padding:0}
- /* Keep the measured keyboard viewport, but cap a stale or oversized reading to the CSS viewport. */
- #onde-app-v1{height:var(--oa-viewport-height,100vh);max-height:100dvh;min-height:0;padding:0;overflow:hidden}
+ /* Fill the native screen at rest and cap oversized visual viewport readings. */
+ #onde-app-v1{height:var(--oa-viewport-height,100vh);height:var(--oa-viewport-height,100dvh);max-height:100dvh;min-height:0;padding:0;overflow:hidden}
  #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 4px max(18px,env(safe-area-inset-left))}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
@@ -4602,10 +4602,17 @@ void main(){
  let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
  let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='',badgeDetailId=null,badgeGalleryScroll=null,badgeNoticeAnimation=null;
  const viewport=window.visualViewport;let viewportListening=false;
+ const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator?.standalone===true;
  function updateViewportHeight(){
   if(!viewport||viewport.height<=0||Math.abs((viewport.scale||1)-1)>=.02)return;
-  // The shell starts at the layout origin. Keep its dock inside the visible bottom,
-  // including when standalone WebKit reports less space than 100vh.
+  if(installed){
+   // Standalone WebKit can report a short visual viewport even with the keyboard closed.
+   const editing=document.activeElement?.matches?.('input,textarea,[contenteditable="true"]');
+   if(!editing||document.documentElement.clientHeight-viewport.height<=150){
+    root.style.removeProperty('--oa-viewport-height');
+    return;
+   }
+  }
   const visibleBottom=viewport.height+Math.max(0,viewport.offsetTop||0);
   root.style.setProperty('--oa-viewport-height',Math.floor(visibleBottom)+'px');
  }

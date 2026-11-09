@@ -51,10 +51,17 @@
  let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
  let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='',badgeDetailId=null,badgeGalleryScroll=null,badgeNoticeAnimation=null;
  const viewport=window.visualViewport;let viewportListening=false;
+ const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator?.standalone===true;
  function updateViewportHeight(){
   if(!viewport||viewport.height<=0||Math.abs((viewport.scale||1)-1)>=.02)return;
-  // The shell starts at the layout origin. Keep its dock inside the visible bottom,
-  // including when standalone WebKit reports less space than 100vh.
+  if(installed){
+   // Standalone WebKit can report a short visual viewport even with the keyboard closed.
+   const editing=document.activeElement?.matches?.('input,textarea,[contenteditable="true"]');
+   if(!editing||document.documentElement.clientHeight-viewport.height<=150){
+    root.style.removeProperty('--oa-viewport-height');
+    return;
+   }
+  }
   const visibleBottom=viewport.height+Math.max(0,viewport.offsetTop||0);
   root.style.setProperty('--oa-viewport-height',Math.floor(visibleBottom)+'px');
  }

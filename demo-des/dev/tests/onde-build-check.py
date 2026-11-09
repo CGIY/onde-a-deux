@@ -96,7 +96,7 @@ class WebBuild(BuildFixture):
         self.assertLess(html.index('scope.OndeRemote=api'), html.index('const remote=window.OndeRemote'))
         self.assertIn('rel="manifest" href="./manifest.webmanifest"', html)
         self.assertIn('apple-mobile-web-app-capable', html)
-        self.assertIn('#onde-app-v1{height:var(--oa-viewport-height,100vh);max-height:100dvh;', html)
+        self.assertIn('height:var(--oa-viewport-height,100dvh);max-height:100dvh;', html)
         self.assertNotIn('#onde-app-v1.oa-installed{height:', html)
         self.assertIn('rel="apple-touch-icon"', html)
         self.assertIn('<title>D6 à deux</title>', html)
