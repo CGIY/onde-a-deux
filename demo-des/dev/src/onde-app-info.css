@@ -2,7 +2,7 @@
 #onde-app-v1 .oa-info-shortcuts{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 7px}
 #onde-app-v1 .oa-info-shortcuts a{display:grid;place-items:center;min-height:35px;padding:4px 9px;border:1px solid var(--oa-line);border-radius:9px;background:#292b27;color:var(--oa-text);font-size:11px;text-decoration:none}
 #onde-app-v1 .oa-info-shortcuts a:last-child{color:var(--oa-sage)}
-#onde-app-v1 .oa-info :is(section,li[id]){scroll-margin-top:12px}
+#onde-app-v1 .oa-info section{scroll-margin-top:12px}
 #onde-app-v1 .oa-info-activity{background:linear-gradient(140deg,#343d42,#292e34);border-color:#94afc65c}
 #onde-app-v1 .oa-info-activity-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:12px 0 15px}
 #onde-app-v1 .oa-info-activity-metrics div{display:grid;gap:4px;padding:8px 6px;background:#1a20258c;border:1px solid #a5b6c633;border-radius:11px}
@@ -20,33 +20,27 @@
 
 /* The sections below keep the chart markup of the reference carnet. */
 #onde-app-v1 .oa-libido{--chart:var(--oa-sage);--chart-soft:#20241f9c;--chart-line:#e2dac52d;--chart-copy:#e8e0d4}
-#onde-app-v1 .oa-libido.rhythm:not(.benchmarks),#onde-app-v1 .oa-libido.personal{--chart:#e7ad94;background:linear-gradient(145deg,#493a34,#342e2b);border-color:#cea08b5a}
+#onde-app-v1 .oa-libido.personal{--chart:#e7ad94;background:linear-gradient(145deg,#493a34,#342e2b);border-color:#cea08b5a}
 #onde-app-v1 .oa-libido.destinations,#onde-app-v1 .oa-libido.fantasy{--chart:#d3afd9;background:linear-gradient(145deg,#433a48,#322d38);border-color:#c3a4cf52}
 #onde-app-v1 .oa-libido.places{--chart:#a9c3db;background:linear-gradient(145deg,#384149,#2c3238);border-color:#adc3d456}
 #onde-app-v1 .oa-libido.women,#onde-app-v1 .oa-libido.rough{--chart:#e6bd9a;background:linear-gradient(145deg,#473e36,#35312c);border-color:#c7a48a52}
 #onde-app-v1 .oa-libido h2{margin-bottom:12px}
 #onde-app-v1 .oa-libido h3{font-size:12px;line-height:1.3;font-weight:550}
-#onde-app-v1 .oa-libido a,#onde-app-v1 .oa-libido-sources a{color:#e4d4b7;text-underline-offset:3px;overflow-wrap:anywhere}
+#onde-app-v1 .oa-libido a{color:#e4d4b7;text-underline-offset:3px;overflow-wrap:anywhere}
 #onde-app-v1 .oa-libido .count-value{font-variant-numeric:tabular-nums;white-space:nowrap}
 #onde-app-v1 .oa-libido :is(.source-link,.base,.women-source,.rough-fraction,.rough-unmeasured){display:block;margin-top:7px;color:#d5cfc4;font-size:11px;line-height:1.45}
 #onde-app-v1 .oa-libido .source-link{display:inline-block;color:#ead9b8;text-decoration:underline}
-#onde-app-v1 .oa-libido .rhythm-line{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:5px 0 8px}
-#onde-app-v1 .oa-libido .rhythm-number{display:flex;align-items:center;justify-content:center;gap:8px}
-#onde-app-v1 .oa-libido .rhythm-number>b{font-size:clamp(42px,13vw,62px);font-weight:450;line-height:1;letter-spacing:-.08em}
-#onde-app-v1 .oa-libido .rhythm-number>span,#onde-app-v1 .oa-libido .rhythm-caption{font:10px/1.45 var(--info-mono);color:var(--chart-copy)}
-#onde-app-v1 .oa-libido .rhythm-number.ideal>b,#onde-app-v1 .oa-libido .rhythm-arrow{color:var(--chart)}
-#onde-app-v1 .oa-libido .rhythm-caption{text-align:center}
 
 #onde-app-v1 .oa-libido :is(.place-chart,.women-fantasies){display:grid;gap:8px;margin-top:11px}
 #onde-app-v1 .oa-libido :is(.place-row,.women-fantasy-row){display:grid;grid-template-columns:minmax(79px,33%) minmax(0,1fr) minmax(44px,auto);align-items:center;gap:7px;font-size:11px;line-height:1.3}
 #onde-app-v1 .oa-libido :is(.place-row,.women-fantasy-row)>b{text-align:right;color:var(--chart);font:500 13px/1.2 var(--info-mono);white-space:nowrap}
-#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.pref-track,.nonpenetrative-track,.setting-bars){height:5px;border-radius:8px;background:#e6dcc62c;overflow:hidden}
-#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.pref-track,.nonpenetrative-track,.setting-bars) i{display:block;width:var(--width,100%);height:100%;border-radius:inherit;background:var(--chart);transform-origin:left}
-#onde-app-v1 .oa-libido.is-reading :is(.place-track,.women-track,.dest-track,.pref-track,.nonpenetrative-track,.setting-bars) i{animation:oa-info-fill 1.35s var(--info-rhythm) both}
+#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.nonpenetrative-track,.setting-bars){height:5px;border-radius:8px;background:#e6dcc62c;overflow:hidden}
+#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.nonpenetrative-track,.setting-bars) i{display:block;width:var(--width,100%);height:100%;border-radius:inherit;background:var(--chart);transform-origin:left}
+#onde-app-v1 .oa-libido.is-reading :is(.place-track,.women-track,.dest-track,.nonpenetrative-track,.setting-bars) i{animation:oa-info-fill 1.35s var(--info-rhythm) both}
 #onde-app-v1 .oa-libido :is(.place-extras,.place-fantasies,.women-porn){border-top:1px solid var(--chart-line);margin-top:12px;padding-top:10px}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid,.personal-rows,.women-relative-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}
+#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid,.women-relative-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}
 #onde-app-v1 .oa-libido .place-extra-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid,.personal-rows,.women-relative-grid)>div{min-width:0;padding:9px;border:1px solid var(--chart-line);border-radius:12px;background:var(--chart-soft);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid,.women-relative-grid)>div{min-width:0;padding:9px;border:1px solid var(--chart-line);border-radius:12px;background:var(--chart-soft);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
 #onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid)>div{display:grid;gap:5px}
 #onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid)>div>b{color:var(--chart);font:500 20px/1 var(--info-mono);white-space:nowrap}
 #onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid)>div>b small{font-size:.65em}
@@ -78,10 +72,10 @@
 #onde-app-v1 .oa-libido .choice-heart{margin-right:2px}
 
 #onde-app-v1 .oa-libido .rough-group-label{margin-top:11px}
-#onde-app-v1 .oa-libido .rough-grid>div,#onde-app-v1 .oa-libido .rough-extra>div{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+#onde-app-v1 .oa-libido .rough-grid>div{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
 #onde-app-v1 .oa-libido .rough-grid b{text-align:right;color:var(--chart);white-space:nowrap}
 #onde-app-v1 .oa-libido .rough-grid small{display:block;font-size:10px}
-#onde-app-v1 .oa-libido :is(.rough-extra,.risk-note){margin-top:8px;padding:8px;border-left:2px solid var(--chart);background:var(--chart-soft)}
+#onde-app-v1 .oa-libido .risk-note{margin-top:8px;padding:8px;border-left:2px solid var(--chart);background:var(--chart-soft)}
 #onde-app-v1 .oa-libido .women-tags{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}
 #onde-app-v1 .oa-libido .women-tags span{padding:4px 7px;border:1px solid var(--chart-line);border-radius:7px;font:11px var(--info-mono)}
 #onde-app-v1 .oa-libido .women-relative>b{display:block;margin:3px 0;color:var(--chart);font:500 21px/1.15 var(--info-mono);white-space:nowrap}
@@ -96,10 +90,38 @@
 #onde-app-v1 .oa-libido .ring-number{color:var(--chart);font-size:25px;font-weight:500;letter-spacing:-.05em}
 #onde-app-v1 .oa-libido .ring-number small{font-size:.56em;margin-left:1px}
 #onde-app-v1 .oa-libido .fantasy-daily,#onde-app-v1 .oa-libido .personal-foot{margin-top:8px}
-#onde-app-v1 .oa-libido .pref-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px}
+#onde-app-v1 .oa-libido .personal-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
+#onde-app-v1 .oa-libido .pref-line{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:4px;padding:5px 0;border-bottom:1px solid var(--chart-line);font-size:11px;line-height:1.3}
+#onde-app-v1 .oa-libido .pref-line>span{overflow-wrap:anywhere}
 #onde-app-v1 .oa-libido .pref-line>b{color:var(--chart);white-space:nowrap}
-#onde-app-v1 .oa-libido .pref-track{grid-column:1/-1;height:4px}
-#onde-app-v1 .oa-libido-sources{padding-inline:4px;margin-top:0}
-#onde-app-v1 .oa-libido-sources ol{list-style:none;margin:0;padding:0}
-#onde-app-v1 .oa-libido-sources li{border-top:1px solid var(--oa-line);padding:9px 0}
-#onde-app-v1 .oa-libido-sources li p{margin-top:5px}
+
+#onde-app-v1 .oa-info-agreement{border-color:#d2a8958a;background:radial-gradient(ellipse at top right,#ba887b32,transparent 75%),linear-gradient(145deg,#4d3c39,#342d2d)}
+#onde-app-v1 .oa-info-agreement .oa-info-kicker,#onde-app-v1 .oa-info-agreement h2 em{color:#f2c4af}
+#onde-app-v1 .oa-info-agreement-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:5px 0 9px}
+#onde-app-v1 .oa-info-agreement-head h2{margin:0;font-size:clamp(26px,7.7vw,36px);line-height:1.06}
+#onde-app-v1 .oa-info-checks{display:flex;gap:5px;flex:none;color:#ffdfcd}
+#onde-app-v1 .oa-info-checks i{display:grid;place-items:center;width:29px;height:29px;border:1px solid #f2c4af6e;border-radius:9px;background:#dfa28d25;font:16px var(--info-mono)}
+#onde-app-v1 .oa-info-agreement p.oa-info-agreement-lead{border-left:2px solid #eda98e;padding-left:9px;color:#fff0e6;font-size:14px;line-height:1.42}
+#onde-app-v1 .oa-info-agreement-score{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:11px 0 8px;padding:7px 8px;background:#231b1a64;border-radius:11px}
+#onde-app-v1 .oa-info-agreement-score>strong{padding:5px 7px;border-radius:7px;background:#efb69f27;color:#f9d2bf;font-size:11px;white-space:nowrap}
+
+#onde-app-v1 .oa-info-ticket-book{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:11px 0 0}
+#onde-app-v1 .oa-info-ticket-book>div{padding:8px 10px;border:1px solid #cbd4ab42;border-radius:11px;background:#1e231e99}
+#onde-app-v1 .oa-info-ticket-book dt{color:#e5ebd0;font-size:13px;font-weight:600}
+#onde-app-v1 .oa-info-ticket-book dd{margin:3px 0 0;color:#deded4;font-size:11px;line-height:1.4}
+#onde-app-v1 .oa-info-ticket-book .oa-info-ticket-daily{display:grid;grid-column:1/-1;grid-template-columns:minmax(80px,36%) minmax(0,1fr);align-items:stretch;gap:11px;padding:0;background:linear-gradient(120deg,#5f6a51,#465342);border-color:#cbd4ab72}
+#onde-app-v1 .oa-info-ticket-daily dt{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:5px;padding:8px 6px;border-right:1px dashed #e5ebd08f;color:#f1f3dc;font:11px/1.2 var(--info-mono)}
+#onde-app-v1 .oa-info-ticket-daily dt b{font:500 29px/1 var(--info-mono);font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-info-ticket-daily dd{align-self:center;margin:0;padding:6px 7px 6px 0;color:#f0efe3}
+
+#onde-app-v1 .oa-libido .rough-highlights{display:grid;gap:7px;margin:0 0 15px}
+#onde-app-v1 .oa-libido .rough-highlights>div{padding:11px 12px;border:1px solid #eeb8a26b;border-radius:14px;background:radial-gradient(ellipse at top right,#ce957544,transparent 90%),linear-gradient(145deg,#60483d,#443530)}
+#onde-app-v1 .oa-libido .rough-highlights>div>div{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+#onde-app-v1 .oa-libido .rough-extra>div>span{font-size:19px;font-weight:550;letter-spacing:-.025em}
+#onde-app-v1 .oa-libido .rough-extra>div>b{color:#ffcab1;font-size:clamp(36px,11vw,48px);font-weight:550;line-height:1;letter-spacing:-.065em;white-space:nowrap}
+#onde-app-v1 .oa-libido .rough-extra>div>b small{font-size:.48em;margin-left:2px}
+#onde-app-v1 .oa-libido .rough-highlights>div>p{margin-top:5px;font-size:11px;line-height:1.48}
+#onde-app-v1 .oa-libido .rough-highlights .rough-insults{padding-block:9px;border-color:#c5a6d26b;background:linear-gradient(145deg,#463949,#38303e)}
+#onde-app-v1 .oa-libido .rough-insults>div>span{font-size:16px;font-weight:550}
+#onde-app-v1 .oa-libido .rough-insults b{color:#ecd0f1;font-size:25px;line-height:1;letter-spacing:-.045em;white-space:nowrap}
+#onde-app-v1 .oa-libido .rough-insults b small{margin-left:4px;font:10px var(--info-mono);letter-spacing:0}

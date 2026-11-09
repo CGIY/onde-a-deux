@@ -99,13 +99,13 @@ class WebBuild(BuildFixture):
         self.build('--release')
         html = self.release.read_text()
         modules = re.findall(r'<template id="oa-libido-([^"]+)">', html)
-        self.assertCountEqual(modules, ['rhythm', 'places', 'benchmarks', 'oral-manual',
-                                         'destinations', 'rough', 'women', 'fantasy',
-                                         'personal', 'sources'])
-        source_links = set(re.findall(r'href="#(oa-libido-source-\d+)" data-action="info-jump"', html))
-        source_ids = set(re.findall(r'<li id="(oa-libido-source-\d+)">', html))
-        self.assertTrue(source_links)
-        self.assertTrue(source_links <= source_ids)
+        self.assertCountEqual(modules, ['places', 'benchmarks', 'oral-manual',
+                                         'destinations', 'rough', 'women', 'fantasy', 'personal'])
+        self.assertNotIn('href="#source-', html)
+        self.assertNotIn('Sources & périmètres', html)
+        self.assertIn('href="https://www.ipsos.com/fr-fr/deux-cest-mieux" target="_blank" rel="noreferrer"', html)
+        self.assertIn('class="rough-highlights"', html)
+        self.assertIn('class="rough-insults"', html)
         self.assertIn('Au moins une des pratiques étudiées chaque semaine.', html)
         self.assertIn('data-info-count="72"', html)
 

@@ -77,11 +77,27 @@ def roleplay_content(core):
     return roleplay
 
 
+def highlight_rough(body):
+    spitting = re.search(r'<div class="rough-extra"><div>.*?</div><p>.*?</p></div>', body, re.S)
+    insults = re.search(r'<div><span>Insultes</span>(<b>.*?</b>)</div>', body, re.S)
+    if not spitting or not insults:
+        raise SystemExit('Missing the highlighted rough-play statistics.')
+    body = body.replace(spitting[0], '', 1).replace(insults[0], '', 1)
+    featured = spitting[0].replace(
+        'Rapports déclarés consentis; accord sur le geste non isolé.',
+        'L’enquête mesure le consentement au rapport dans son ensemble.'
+    )
+    return (
+        '<div class="rough-highlights">' + featured +
+        '<div class="rough-insults"><div><span>Insultes</span>' + insults[1] +
+        '</div><p>Expériences consenties <a href="#source-10">[10]</a></p></div></div>' + body
+    )
+
+
 def libido_modules():
-    """Adapt the standalone carnet's data cards and source notes to the app."""
+    """Adapt the standalone carnet's data cards and link directly to their sources."""
     reference = (demo.parent / 'p/index.html').read_text(encoding='utf-8')
     titles = {
-        'rhythm': ('Préférence personnelle', 'Plus souvent.'),
         'places': ('Lieux et expériences', 'Au-delà de la chambre.'),
         'benchmarks': ('Fréquence déclarée', 'Les rythmes du couple.'),
         'oral-manual': ('Repère d’étude', 'Les pratiques hors pénétration.'),
@@ -89,8 +105,9 @@ def libido_modules():
         'rough': ('Expériences et enquêtes', 'Roleplay et jeux rudes.'),
         'women': ('Fantasmes et visionnage', 'Et du côté des femmes ?'),
         'fantasy': ('Fréquence déclarée', 'Des fantasmes réguliers.'),
-        'personal': ('Préférences personnelles', 'Quelques accents personnels.'),
+        'personal': ('Préférences personnelles', 'Accents personnels.'),
     }
+    urls = dict(re.findall(r'<li id="(source-\d+)"><a href="(https://[^"]+)"', reference))
     cards = {}
     for classes, body in re.findall(r'<section class="block ([^"]+)">(.*?)</section>', reference, re.S):
         keys = classes.split()
@@ -104,7 +121,9 @@ def libido_modules():
         if count != 1:
             raise SystemExit(f'Missing libido card heading: {key}.')
         if key == 'personal':
-            body = body.replace('<h2>Quelques accents personnels.</h2>', '', 1)
+            body = re.sub(r'<h2>[^<]+</h2>|<p class="personal-sub">[^<]+</p>|<div class="pref-track"[^>]*>.*?</div>', '', body)
+        if key == 'rough':
+            body = highlight_rough(body)
         if key == 'benchmarks':
             body = re.sub(r'<p class="context-note">[^<]+</p>',
                           '<p class="context-note">Des repères pour en parler, à votre rythme.</p>', body, count=1)
@@ -129,16 +148,21 @@ def libido_modules():
             f'aria-labelledby="oa-libido-title-{key}">'
             f'<p class="oa-info-kicker">{label}</p><h2 id="oa-libido-title-{key}">{title}</h2>{body}</section>'
         )
-    sources = re.search(r'<details class="sources">(.*?)</details>', reference, re.S)
-    if cards.keys() != titles.keys() or sources is None:
-        raise SystemExit('Missing libido cards or sources in p/index.html.')
-    cards['sources'] = '<details class="oa-info-install oa-libido-sources">' + sources[1] + '</details>'
+    if cards.keys() != titles.keys():
+        raise SystemExit('Missing libido cards in p/index.html.')
+
+    def direct_source(match):
+        url = urls.get(match[1])
+        if url is None:
+            raise SystemExit(f'Missing libido source link: {match[1]}.')
+        return f'href="{url}" target="_blank" rel="noreferrer"'
+
     fragments = []
     for key, markup in cards.items():
-        markup = re.sub(r'href="#(source-\d+)"', r'href="#oa-libido-\1" data-action="info-jump"', markup)
-        markup = re.sub(r'id="(source-\d+)"', r'id="oa-libido-\1"', markup)
+        markup = re.sub(r'href="#(source-\d+)"', direct_source, markup)
         fragments.append(f'<template id="oa-libido-{key}">{markup}</template>')
     return '\n'.join(fragments) + '\n'
+
 
 
 configuration = public_config() if connected else ''

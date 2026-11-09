@@ -711,16 +711,6 @@
 #onde-app-v1 .oa-info-dice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;list-style:none;margin:12px 0 10px;padding:0}
 #onde-app-v1 .oa-info-dice li{display:grid;gap:4px;justify-items:center;text-align:center;padding:8px 3px;border:1px solid #c9cabc38;border-radius:12px;background:#1d221f66;font-size:11px;color:#e2e4d8}
 #onde-app-v1 .oa-info-dice b{font:500 22px/1 var(--info-mono);color:var(--oa-sage);letter-spacing:-.1em}
-#onde-app-v1 .oa-info-reading{display:flex;align-items:center;gap:14px;margin:7px 0 10px}
-#onde-app-v1 .oa-info-number{color:#f4e9da;font-size:clamp(38px,12vw,55px);font-weight:450;line-height:1;letter-spacing:-.07em;white-space:nowrap;font-variant-numeric:tabular-nums}
-#onde-app-v1 .oa-info-number small{margin-left:3px;font-size:.43em;letter-spacing:-.025em}
-#onde-app-v1 .oa-info-tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 0 10px}
-#onde-app-v1 .oa-info-tickets i{height:5px;border-radius:5px;background:linear-gradient(90deg,#859375,var(--oa-sage));transform-origin:left}
-#onde-app-v1 .oa-info-tickets i:nth-child(2){animation-delay:.12s}
-#onde-app-v1 .oa-info-tickets i:nth-child(3){animation-delay:.24s}
-#onde-app-v1 .oa-info-agreement{background:linear-gradient(145deg,#414850,#303639);border-color:#9ab2cb55}
-#onde-app-v1 .oa-info-checks{display:flex;gap:4px;align-items:center;flex:none;color:#d0dfeb}
-#onde-app-v1 .oa-info-checks i{display:grid;place-items:center;width:26px;height:26px;border:1px solid #b0cad86e;border-radius:8px;background:#94b1bd26;font:14px var(--info-mono)}
 #onde-app-v1 .oa-info-install{border-top:1px solid var(--oa-line);margin-top:10px;padding:0 2px 4px;color:var(--oa-muted);font-size:13px;line-height:1.5}
 #onde-app-v1 .oa-info-install summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;list-style:none;color:var(--oa-text)}
 #onde-app-v1 .oa-info-install summary::-webkit-details-marker{display:none}
@@ -728,7 +718,6 @@
 #onde-app-v1 .oa-info-install[open] summary:after{content:"−"}
 #onde-app-v1 .oa-info-install summary:focus-visible{outline:2px solid var(--oa-sage);outline-offset:2px}
 #onde-app-v1 .oa-info-card.is-reading{animation:oa-info-reveal .65s var(--info-rhythm) both}
-#onde-app-v1 .oa-info-card.is-reading .oa-info-tickets i{animation-name:oa-info-fill;animation-duration:1.25s;animation-timing-function:var(--info-rhythm);animation-fill-mode:both}
 @keyframes oa-info-loop{to{transform:translateX(-50%)}}
 @keyframes oa-info-pulse{50%{opacity:1;scale:1.12}}
 @keyframes oa-info-reveal{from{opacity:.45;transform:translateY(9px)}}

@@ -586,22 +586,36 @@
    </header>
    <div class="oa-info-shortcuts" role="group" aria-label="Accès rapides">
     <a href="#oa-info-activity" data-action="info-jump">Tirages</a>
-    <a href="#oa-libido-card-rhythm" data-action="info-jump">Rythme</a>
+    <a href="#oa-libido-card-benchmarks" data-action="info-jump">Rythme</a>
     <a href="#oa-libido-card-places" data-action="info-jump">Lieux</a>
     <a href="#oa-libido-card-destinations" data-action="info-jump">Où va le sperme ?</a>
     <a href="#oa-info-settings" data-action="info-jump">Réglages</a>
    </div>
-   <div class="oa-info-ticker">
-    <div class="oa-info-ticker-head">
-     <p class="oa-info-kicker">Les quatre thèmes</p>
-     <button type="button" class="oa-info-pause cursor-interaction" data-action="info-pause" aria-label="Pause du défilement des thèmes">Pause</button>
-    </div>
-    <div class="oa-info-ribbon"><div class="oa-info-track">
-     <ul class="oa-info-copy" aria-label="Les quatre thèmes">${themes}</ul>
-     <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
-    </div></div>
-   </div>
    <div class="oa-info-cards">
+    <div data-info-shared>${infoShared()}</div>
+    <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
+     <p class="oa-info-kicker">Le principe du jeu</p>
+     <div class="oa-info-agreement-head">
+      <h2 id="oa-info-agreement">Il faut <em>deux oui.</em></h2>
+      <span class="oa-info-checks" aria-hidden="true"><i>✓</i><i>✓</i></span>
+     </div>
+     <p class="oa-info-agreement-lead">Un défi envoyé reste une proposition. Chacun peut dire non.</p>
+     <div class="oa-info-agreement-score">
+      <p>Deux coches avant l’expiration du défi (<strong>${G.rules.taskLifetimeMs/3600000} h</strong>).</p>
+      <strong>+${G.rules.completedCardPoints} point</strong>
+     </div>
+     <p>« Refuser · D20 » retire la carte, quelle que soit la face.</p>
+    </section>
+    <div class="oa-info-ticker">
+     <div class="oa-info-ticker-head">
+      <p class="oa-info-kicker">Les quatre thèmes</p>
+      <button type="button" class="oa-info-pause cursor-interaction" data-action="info-pause" aria-label="Pause du défilement des thèmes">Pause</button>
+     </div>
+     <div class="oa-info-ribbon"><div class="oa-info-track">
+      <ul class="oa-info-copy" aria-label="Les quatre thèmes">${themes}</ul>
+      <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
+     </div></div>
+    </div>
     <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
      <p class="oa-info-kicker" id="oa-info-idea">Pour ouvrir la conversation</p>
      <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">
@@ -610,7 +624,6 @@
      </div>
      ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
     </section>
-    ${libido('rhythm')}
     <div data-info-activity>${infoActivity()}</div>
     <section class="oa-info-card" aria-labelledby="oa-info-dice">
      <p class="oa-info-kicker">01 / Le tirage</p>
@@ -623,34 +636,25 @@
      <p>* Le dernier dé se lance quand la carte a des variantes. Ton tirage reste privé jusqu’à l’envoi.</p>
     </section>
     ${libido('places')}
-    <div data-info-shared>${infoShared()}</div>
     ${libido('benchmarks')}
-    <section class="oa-info-card" aria-labelledby="oa-info-tickets">
+    <section class="oa-info-card oa-info-ticket-card" aria-labelledby="oa-info-tickets">
      <p class="oa-info-kicker">02 / Les tickets</p>
      <h2 id="oa-info-tickets">La réserve du jour.</h2>
-     <div class="oa-info-reading">
-      <span class="oa-info-number" aria-hidden="true"><span data-info-count>3</span></span>
-      <p><span class="oa-sr">Trois </span>tirages par personne en ligne, renouvelés à <strong>5 h</strong> (Paris).</p>
-     </div>
-     <div class="oa-info-tickets" aria-hidden="true"><i></i><i></i><i></i></div>
-     <p>Une relance de thème gratuite par jour. Un joker par semaine pour que l’un de vous choisisse le thème.</p>
+     <dl class="oa-info-ticket-book">
+      <div class="oa-info-ticket-daily">
+       <dt><b aria-hidden="true"><span data-info-count>3</span></b><span class="oa-sr">Trois </span>tirages</dt>
+       <dd>Par personne en ligne.<br>Recharge à <strong>5 h</strong> (Paris).</dd>
+      </div>
+      <div><dt>1 relance</dt><dd>De thème, gratuite chaque jour.</dd></div>
+      <div><dt>1 joker</dt><dd>Le duo peut choisir le thème une fois par semaine.</dd></div>
+     </dl>
     </section>
     ${libido('destinations')}
     ${libido('oral-manual')}
-    <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
-     <p class="oa-info-kicker">03 / À faire</p>
-     <h2 id="oa-info-agreement">Il faut deux oui.</h2>
-     <div class="oa-info-reading">
-      <span class="oa-info-checks" aria-hidden="true"><i>✓</i><i>✓</i></span>
-      <p>Une fois le défi réalisé, deux coches dans les <strong>${G.rules.taskLifetimeMs/3600000} h</strong> valent <strong>+${G.rules.completedCardPoints} point</strong> pour le duo.</p>
-     </div>
-     <p>Un défi envoyé reste une proposition. Chacun peut dire non. « Refuser · D20 » retire la carte, quelle que soit la face.</p>
-    </section>
     ${libido('fantasy')}
     ${libido('women')}
     ${libido('rough')}
     ${libido('personal')}
-    ${libido('sources')}
     <div data-info-settings>${infoSettings()}</div>
    </div>
    <details class="oa-info-install">
@@ -1053,8 +1057,6 @@
   if(action==='info-jump'){
    const target=main.querySelector(el.hash);
    if(!target)return;
-   const disclosure=target.closest('details');
-   if(disclosure)disclosure.open=true;
    target.setAttribute('tabindex','-1');target.focus({preventScroll:true});
    target.scrollIntoView({block:'start',behavior:systemReduce?'instant':'smooth'});return;
   }
