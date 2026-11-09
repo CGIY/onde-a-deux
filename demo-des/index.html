@@ -1,13 +1,13 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090c16"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.3">
+<meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.4">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/desir-192.png">
 <title>D6 à deux</title>
-<style>html{background:#05060d;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 18%,#151d31,#05060d 74%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#090c16}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
+<style>html{--d6-edge-color:#0e1421;background:#05060d;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 18%,#151d31,#05060d 74%);min-height:100vh}.cursor-interaction{cursor:pointer}</style>
 </head><body><div id="onde-app-v1" class="viz-dotted-background" lang="fr">
   <section class="oa-shell" aria-label="D6 à deux, le jeu">
     <div class="oa-sky" aria-hidden="true"></div>
@@ -701,11 +701,16 @@
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-welcome{animation:none}}
 /* Phone app: a bounded screen, one scrolling content area, persistent navigation. */
 @media(max-width:480px),(max-width:1000px) and (max-height:500px){
- html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#090c16}
+ html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:var(--d6-edge-color,#0e1421)}
  body{padding:0}
  /* Fill the native screen at rest and cap oversized visual viewport readings. */
  #onde-app-v1{height:var(--oa-viewport-height,100vh);height:var(--oa-viewport-height,100dvh);max-height:100dvh;min-height:0;padding:0;overflow:hidden}
- #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
+ #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none;background:var(--d6-edge-color,#0e1421)}
+ /* Fade the moving sky and grain into the color that continues into Safari's chrome. */
+ #onde-app-v1 .oa-shell{
+  --oa-edge-fade:linear-gradient(to bottom,transparent,#000 max(64px,env(safe-area-inset-top,0px)),#000 calc(100% - max(84px,env(safe-area-inset-bottom,0px) + 56px)),transparent);
+ }
+ #onde-app-v1 .oa-sky,#onde-app-v1 .oa-shell::before{mask-image:var(--oa-edge-fade)}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 4px max(18px,env(safe-area-inset-left))}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
  #onde-app-v1 .oa-wordmark span{font-size:15px}

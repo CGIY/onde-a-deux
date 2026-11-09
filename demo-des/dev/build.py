@@ -24,6 +24,7 @@ release_match = re.search(r"^const RELEASE_VERSION = '(\d+\.\d+\.\d+)';$", (demo
 if not release_match:
     raise SystemExit('Missing service worker release version.')
 release_version = release_match[1]
+edge_color = json.loads((demo / 'manifest.webmanifest').read_text())['background_color']
 
 
 def public_config():
@@ -257,15 +258,15 @@ for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', '
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090c16"><meta name="color-scheme" content="dark">
+<meta name="theme-color" content="__D6_EDGE_COLOR__"><meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="__D6_RELEASE__">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/desir-192.png">
 <title>D6 à deux</title>
-<style>html{background:#05060d;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 18%,#151d31,#05060d 74%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#090c16}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
-</head><body>'''.replace('__D6_RELEASE__', release_version) + html + '</body></html>\n'
+<style>html{--d6-edge-color:__D6_EDGE_COLOR__;background:#05060d;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 18%,#151d31,#05060d 74%);min-height:100vh}.cursor-interaction{cursor:pointer}</style>
+</head><body>'''.replace('__D6_RELEASE__', release_version).replace('__D6_EDGE_COLOR__', edge_color) + html + '</body></html>\n'
 (root / 'dist').mkdir(exist_ok=True)
 (source / 'onde-badge-art.js').write_text(artwork)
 # Retired outputs are removed on successful builds, including from an older preview.

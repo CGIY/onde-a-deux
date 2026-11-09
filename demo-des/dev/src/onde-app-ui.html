@@ -691,11 +691,16 @@
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-welcome{animation:none}}
 /* Phone app: a bounded screen, one scrolling content area, persistent navigation. */
 @media(max-width:480px),(max-width:1000px) and (max-height:500px){
- html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#090c16}
+ html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:var(--d6-edge-color,#0e1421)}
  body{padding:0}
  /* Fill the native screen at rest and cap oversized visual viewport readings. */
  #onde-app-v1{height:var(--oa-viewport-height,100vh);height:var(--oa-viewport-height,100dvh);max-height:100dvh;min-height:0;padding:0;overflow:hidden}
- #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none}
+ #onde-app-v1 .oa-shell{display:flex;flex-direction:column;width:100%;max-width:none;height:100%;min-height:0;margin:0;border:0;border-radius:0;overflow:hidden;box-shadow:none;background:var(--d6-edge-color,#0e1421)}
+ /* Fade the moving sky and grain into the color that continues into Safari's chrome. */
+ #onde-app-v1 .oa-shell{
+  --oa-edge-fade:linear-gradient(to bottom,transparent,#000 max(64px,env(safe-area-inset-top,0px)),#000 calc(100% - max(84px,env(safe-area-inset-bottom,0px) + 56px)),transparent);
+ }
+ #onde-app-v1 .oa-sky,#onde-app-v1 .oa-shell::before{mask-image:var(--oa-edge-fade)}
  #onde-app-v1 .oa-header{flex:none;padding:calc(4px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 4px max(18px,env(safe-area-inset-left))}
  #onde-app-v1 .oa-wordmark{font-size:21px;gap:8px}
  #onde-app-v1 .oa-wordmark span{font-size:15px}

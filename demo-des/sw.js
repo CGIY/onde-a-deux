@@ -3,7 +3,7 @@
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const RELEASE_VERSION = '0.4.3';
+const RELEASE_VERSION = '0.4.4';
 const CACHE_NAME = CACHE_PREFIX + 'connected-' + RELEASE_VERSION;
 const INDEX_URL = new URL('./index.html', APP_URL).href;
 const RELEASE_KEY = 'd6-release';

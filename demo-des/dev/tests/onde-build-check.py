@@ -105,6 +105,9 @@ class WebBuild(BuildFixture):
         self.assertIn('name="apple-mobile-web-app-title" content="D6 à deux"', html)
         self.assertNotIn(' cartes par main', html)
         manifest = json.loads((self.dev / 'dist/manifest.webmanifest').read_text())
+        self.assertEqual(manifest['background_color'], manifest['theme_color'])
+        self.assertIn(f'name="theme-color" content="{manifest["theme_color"]}"', html)
+        self.assertIn(f'--d6-edge-color:{manifest["background_color"]}', html)
         self.assertEqual((manifest['name'], manifest['short_name']), ('D6 à deux', 'D6 à deux'))
         self.assertEqual((manifest['id'], manifest['start_url'], manifest['scope']), ('./', './', './'))
         for path in ['sw.js', 'manifest.webmanifest', 'icons/desir-180.png', 'icons/desir-192.png', 'icons/desir-512.png']:
