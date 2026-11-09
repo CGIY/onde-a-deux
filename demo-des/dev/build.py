@@ -86,7 +86,7 @@ def highlight_rough(body):
     featured = spitting[0].replace(
         'Rapports déclarés consentis; accord sur le geste non isolé.',
         'Accord mesuré à l’échelle du rapport.'
-    ).replace('≈ 1/4 des répondants · déjà pratiqué', 'Déjà pratiqué')
+    ).replace('≈ 1/4 des répondants · déjà pratiqué<br>', 'Déjà pratiqué. ')
     return (
         '<div class="rough-highlights">' + featured +
         '<div class="rough-insults"><div><span>Insultes</span>' + insults[1] +
@@ -100,11 +100,9 @@ def libido_modules():
     titles = {
         'places': ('Lieux et expériences', 'Au-delà de la chambre.'),
         'benchmarks': ('Fréquence déclarée', 'Les rythmes du couple.'),
-        'oral-manual': ('Fréquence déclarée', 'Les pratiques hors pénétration.'),
         'destinations': ('Enquête et préférences', 'Où va le sperme ?'),
         'rough': ('Expériences déclarées', 'Roleplay et jeux rudes.'),
         'women': ('Fantasmes déclarés', 'Et du côté des femmes ?'),
-        'personal': ('Préférences personnelles', 'Accents personnels.'),
     }
     cards = {}
     for classes, body in re.findall(r'<section class="block ([^"]+)">(.*?)</section>', reference, re.S):
@@ -118,8 +116,6 @@ def libido_modules():
         body, count = re.subn(r'<p class="section-no">[^<]+</p>', '', body, count=1)
         if count != 1:
             raise SystemExit(f'Missing libido card heading: {key}.')
-        if key == 'personal':
-            body = re.sub(r'<h2>[^<]+</h2>|<p class="personal-sub">[^<]+</p>|<div class="pref-track"[^>]*>.*?</div>', '', body)
         if key == 'places':
             def place_band(match):
                 value = int(match[2])
@@ -130,24 +126,34 @@ def libido_modules():
             body = body.replace('<div><span>Lieux de culte / religieux</span>',
                                 '<div class="place-fantasy-featured"><span>Lieux de culte / religieux</span>')
             body = body.replace('Couples cohabitants · France 2025 · expériences vécues', 'Expériences de couples cohabitants en France')
-            body = body.replace('Grande-Bretagne · YouGov 2018', 'Grande-Bretagne').replace('<small>Rapport France 2025</small>', '')
+            body = re.sub(r'<div class="place-extras">.*?(?=<div class="place-fantasies">)', '', body, flags=re.S)
+            body = body.replace('<small>Rapport France 2025</small>', '')
         if key == 'rough':
             body = highlight_rough(body)
             body = body.replace('<p class="base">Repère international · enquête universitaire · 2021</p>', '')
             body = body.replace('Autre enquête · expériences consenties', 'Autres expériences consenties')
             body = re.sub(r'<small>≈ [^<]+</small>', '', body)
+            body = body.replace('des <b>étudiants ayant un partenaire</b> interrogés déclarent des jeux rudes avec lui.',
+                                'des étudiants interrogés ayant un partenaire déclarent des jeux rudes.')
         if key == 'benchmarks':
             body = body.replace('Sur les 7 jours étudiés · France · Ipsos 2015', 'Sur sept jours, en France')
             body = body.replace('<small>Repère international · sondage commercial</small>', '')
+            body = re.sub(r'<span>(≈ [^<]+)<br>\s*<strong>(.*?)</strong>\s*</span>',
+                          r'<strong class="frequency-label">\2</strong><span class="frequency-estimate">\1</span>',
+                          body, flags=re.S)
+            body = body.replace('<br>chez les 18–24 ans interrogés', ' · chez les 18–24 ans interrogés')
         if key == 'women':
             body = body.split('<div class="women-porn">', 1)[0]
             body = body.replace('<p class="women-kicker">Fantasmes déclarés</p>', '')
             body = body.replace('class="women-source">799 répondantes · Québec · 2014/2015', 'class="base">799 répondantes au Québec')
-        if key == 'oral-manual':
-            body = re.sub(r'<p class="activity-frequency">.*?</p>',
-                          '<p class="activity-frequency">Au moins une des pratiques étudiées chaque semaine.</p>',
-                          body, count=1)
-            body = body.replace('Pratiques à deux · étude 2023', '431 hommes de 50 ans et plus, en Tchéquie')
+            match = re.search(r'<div class="women-fantasies">(.*?)</div><p class="base">', body, re.S)
+            if match is None:
+                raise SystemExit('Missing fantasy ranking.')
+            rows = re.findall(r'<div class="women-fantasy-row">.*?</b></div>', match[1], re.S)
+            if not rows:
+                raise SystemExit('Empty fantasy ranking.')
+            rows.sort(key=lambda row: float(re.search(r'data-count="([0-9.]+)"', row)[1]), reverse=True)
+            body = body[:match.start(1)] + ''.join(rows) + body[match.end(1):]
         if key == 'destinations':
             split = re.search(r'<div class="setting-labels">.*?</div>', body, re.S)
             proportions = re.findall(r'data-count="(\d+)"', split[0]) if split else []
@@ -159,6 +165,8 @@ def libido_modules():
             body = body.replace('Sélection hors vagin et tissus</strong>', 'Sélection hors vagin et tissus</strong> · réponses multiples')
             body = re.sub(r'<div class="dest-choice">.*?</div>', '', body, flags=re.S)
             body = body.replace('Mon cadre idéal, préférence personnelle', 'Préférence personnelle de lieu')
+            body = body.replace('<div class="dest-cell"><h3>Dans la bouche</h3>',
+                                '<div class="dest-cell dest-featured"><h3>Dans la bouche</h3>')
         body = re.sub(r'<p class="(?:context-note|dest-ideal-caption|rough-fraction|rough-enjoyment|rough-unmeasured|anal-foot)">.*?</p>',
                       '', body, flags=re.S)
         body = re.sub(r'\s*<a\b[^>]*href="#source-\d+"[^>]*>[^<]*</a>', '', body)

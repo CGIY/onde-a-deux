@@ -855,6 +855,14 @@ async function rollSession(options={}){
   remote.emit(snap(initial(),4,3));
   check(()=>assert.equal(available(),3));
  }
+ // The personal streak survives yesterday, then expires at Paris midnight without a new game revision.
+ {
+  const base=snap(initial()),activity={streak:3,lastDay:'2026-11-08'};
+  const remote=mockRemote({...base,activity,serverTime:'2026-11-09T22:59:00.000Z'}),ui=shell(remote);await tick();await ui.click('tab',{tab:'info'});
+  check(()=>{assert.match(ui.html,/class="oa-info-activity-metrics"><div><strong>—<\/strong><span>Jours actifs<\/span>/);assert.ok(ui.html.includes('Série en cours · 3 jours'));});
+  remote.emit({...base,activity,serverTime:'2026-11-09T23:01:00.000Z'});
+  check(()=>assert.ok(ui.html.includes('Série en cours · 0 jour')));
+ }
  // Info shows the authenticated actor's own draw history and updates after a proposal.
  {
   const at='2026-11-08T12:00:00.000Z';

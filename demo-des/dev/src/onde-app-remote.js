@@ -59,13 +59,19 @@
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    let badges;
    if(raw.badges!==undefined){if(typeof G.validateBadgeView!=='function'||!G.validateBadgeView(raw.badges,identity.actor))throw failure('invalid_response','La collection de badges reçue est invalide.');badges=clone(raw.badges);}
+   let activity;
+   if(raw.activity!==undefined){
+    if(!G.validateActivityCalendar(raw.activity))throw failure('invalid_response','La série reçue est invalide.');
+    activity={streak:raw.activity.streak,lastDay:raw.activity.lastDay};
+   }
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:6,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:6,incoming,pendingOutgoing,...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
    // Optional metadata never erases the same account's last validated collection.
    if(checked.base.badges===undefined&&snapshot?.badges&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor)checked.base.badges=clone(snapshot.badges);
+   if(checked.base.activity===undefined&&snapshot?.activity&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor&&checked.base.revision===snapshot.revision)checked.base.activity=clone(snapshot.activity);
    if(!snapshot||checked.base.revision>=snapshot.revision){
     const changed=!snapshot||JSON.stringify(checked.base)!==JSON.stringify(snapshot),statusChanged=status.phase!=='connected'||!!status.message;
     snapshot=clone(checked.base);

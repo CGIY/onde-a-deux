@@ -692,16 +692,7 @@
 #onde-app-v1 .oa-info-progress{position:sticky;z-index:2;top:0;height:2px;margin-bottom:15px;border-radius:4px;background:#ded3b822;overflow:hidden;pointer-events:none}
 #onde-app-v1 .oa-info-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--oa-sage),var(--oa-clay));transform:scaleX(0);transform-origin:left}
 #onde-app-v1 .oa-info-kicker{font:10px/1.4 var(--info-mono);letter-spacing:.105em;text-transform:uppercase;color:var(--oa-muted)}
-#onde-app-v1 .oa-info-ticker{margin-bottom:13px}
-#onde-app-v1 .oa-info-ticker-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px}
-#onde-app-v1 .oa-info-pause{min-height:44px;padding:0 6px;border:0;background:none;font:11px var(--info-mono);color:var(--oa-sage)}
-#onde-app-v1 .oa-info-ribbon{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 9px,#000 calc(100% - 9px),transparent)}
-#onde-app-v1 .oa-info-track{display:flex;width:max-content;animation:oa-info-loop 30s linear infinite}
-#onde-app-v1 .oa-info-copy{list-style:none;display:flex;gap:7px;margin:0;padding:0 7px 0 0}
-#onde-app-v1 .oa-info-copy li{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid color-mix(in srgb,var(--category) 38%,transparent);border-radius:12px;background:color-mix(in srgb,var(--category) 11%,#282725);color:var(--oa-text);font-size:12px;white-space:nowrap}
-#onde-app-v1 .oa-info-copy i,#onde-app-v1 .oa-info-idea-theme:before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;rotate:45deg;background:var(--category)}
-#onde-app-v1 .oa-info-ticker[data-paused] .oa-info-track{animation-play-state:paused}
-@media(hover:hover){#onde-app-v1 .oa-info-ribbon:hover .oa-info-track{animation-play-state:paused}}
+#onde-app-v1 .oa-info-idea-theme:before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;rotate:45deg;background:var(--category)}
 #onde-app-v1 .oa-info-cards{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 #onde-app-v1 .oa-info-card{position:relative;isolation:isolate;min-width:0;padding:16px;border:1px solid #b1b5a333;border-radius:22px;background:linear-gradient(145deg,#3c4037,#2c302c);box-shadow:inset 0 1px #fff1,inset 0 -3px 7px #0002}
 #onde-app-v1 .oa-info-card:before{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:var(--oa-grain) 0 0/108px;mix-blend-mode:soft-light;pointer-events:none}
@@ -722,18 +713,10 @@
 #onde-app-v1 .oa-info-install[open] summary:after{content:"−"}
 #onde-app-v1 .oa-info-install summary:focus-visible{outline:2px solid var(--oa-sage);outline-offset:2px}
 #onde-app-v1 .oa-info-card.is-reading{animation:oa-info-reveal .65s var(--info-rhythm) both}
-@keyframes oa-info-loop{to{transform:translateX(-50%)}}
 @keyframes oa-info-reveal{from{opacity:.45;transform:translateY(9px)}}
 @keyframes oa-info-fill{from{transform:scaleX(0)}}
-@media(prefers-reduced-motion:reduce){
- #onde-app-v1 .oa-info *{animation:none!important}
- #onde-app-v1 .oa-info .oa-info-pause,#onde-app-v1 .oa-info .oa-info-copy[aria-hidden]{display:none}
- #onde-app-v1 .oa-info .oa-info-ribbon{mask-image:none}
- #onde-app-v1 .oa-info .oa-info-track{width:auto}
- #onde-app-v1 .oa-info .oa-info-copy{flex-wrap:wrap;padding-right:0}
-}
 </style>
-<template id="oa-libido-places"><section class="oa-info-card oa-libido places" id="oa-libido-card-places" aria-labelledby="oa-libido-title-places"><p class="oa-info-kicker">Lieux et expériences</p><h2 id="oa-libido-title-places">Au-delà de la chambre.</h2><p class="place-intro">Les lieux expérimentés par les Français.</p><div class="place-chart"><div class="place-row" data-frequency="high"><span>Douche / baignoire</span><div class="place-track" role="img" aria-label="Douche / baignoire : 72 pour cent"><i style="--width:72%"></i></div><b><span class="count-value" data-info-count="72" aria-hidden="true">72</span><span class="oa-sr">72</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Voiture</span><div class="place-track" role="img" aria-label="Voiture : 63 pour cent"><i style="--width:63%"></i></div><b><span class="count-value" data-info-count="63" aria-hidden="true">63</span><span class="oa-sr">63</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Cuisine</span><div class="place-track" role="img" aria-label="Cuisine : 58 pour cent"><i style="--width:58%"></i></div><b><span class="count-value" data-info-count="58" aria-hidden="true">58</span><span class="oa-sr">58</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Table</span><div class="place-track" role="img" aria-label="Table : 56 pour cent"><i style="--width:56%"></i></div><b><span class="count-value" data-info-count="56" aria-hidden="true">56</span><span class="oa-sr">56</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Campagne</span><div class="place-track" role="img" aria-label="Campagne : 43 pour cent"><i style="--width:43%"></i></div><b><span class="count-value" data-info-count="43" aria-hidden="true">43</span><span class="oa-sr">43</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Bois</span><div class="place-track" role="img" aria-label="Bois : 41 pour cent"><i style="--width:41%"></i></div><b><span class="count-value" data-info-count="41" aria-hidden="true">41</span><span class="oa-sr">41</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Mer</span><div class="place-track" role="img" aria-label="Mer : 26 pour cent"><i style="--width:26%"></i></div><b><span class="count-value" data-info-count="26" aria-hidden="true">26</span><span class="oa-sr">26</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Ascenseur</span><div class="place-track" role="img" aria-label="Ascenseur : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Train</span><div class="place-track" role="img" aria-label="Train : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div></div><p class="base">Expériences de couples cohabitants en France</p><div class="place-extras"><p>Ailleurs · expériences déclarées</p><div class="place-extra-grid"><div><span>Au sol</span><b><span class="count-value" data-info-count="70" aria-hidden="true">70</span><span class="oa-sr">70</span><small>%</small></b></div><div><span>Fauteuil</span><b><span class="count-value" data-info-count="37" aria-hidden="true">37</span><span class="oa-sr">37</span><small>%</small></b></div><div><span>Escaliers</span><b><span class="count-value" data-info-count="24" aria-hidden="true">24</span><span class="oa-sr">24</span><small>%</small></b></div></div><small>Grande-Bretagne</small></div><div class="place-fantasies"><p>Endroits originaux · fantasmes</p><div class="place-fantasy-grid"><div><span>Cinéma</span><b><span class="count-value" data-info-count="44" aria-hidden="true">44</span><span class="oa-sr">44</span><small>%</small></b></div><div><span>Travail</span><b><span class="count-value" data-info-count="42" aria-hidden="true">42</span><span class="oa-sr">42</span><small>%</small></b></div><div><span>Cabine d’essayage</span><b><span class="count-value" data-info-count="39" aria-hidden="true">39</span><span class="oa-sr">39</span><small>%</small></b></div><div class="place-fantasy-featured"><span>Lieux de culte / religieux</span><b><span class="count-value" data-info-count="11" aria-hidden="true">11</span><span class="oa-sr">11</span><small>%</small></b></div></div></div></section></template>
+<template id="oa-libido-places"><section class="oa-info-card oa-libido places" id="oa-libido-card-places" aria-labelledby="oa-libido-title-places"><p class="oa-info-kicker">Lieux et expériences</p><h2 id="oa-libido-title-places">Au-delà de la chambre.</h2><p class="place-intro">Les lieux expérimentés par les Français.</p><div class="place-chart"><div class="place-row" data-frequency="high"><span>Douche / baignoire</span><div class="place-track" role="img" aria-label="Douche / baignoire : 72 pour cent"><i style="--width:72%"></i></div><b><span class="count-value" data-info-count="72" aria-hidden="true">72</span><span class="oa-sr">72</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Voiture</span><div class="place-track" role="img" aria-label="Voiture : 63 pour cent"><i style="--width:63%"></i></div><b><span class="count-value" data-info-count="63" aria-hidden="true">63</span><span class="oa-sr">63</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Cuisine</span><div class="place-track" role="img" aria-label="Cuisine : 58 pour cent"><i style="--width:58%"></i></div><b><span class="count-value" data-info-count="58" aria-hidden="true">58</span><span class="oa-sr">58</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Table</span><div class="place-track" role="img" aria-label="Table : 56 pour cent"><i style="--width:56%"></i></div><b><span class="count-value" data-info-count="56" aria-hidden="true">56</span><span class="oa-sr">56</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Campagne</span><div class="place-track" role="img" aria-label="Campagne : 43 pour cent"><i style="--width:43%"></i></div><b><span class="count-value" data-info-count="43" aria-hidden="true">43</span><span class="oa-sr">43</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Bois</span><div class="place-track" role="img" aria-label="Bois : 41 pour cent"><i style="--width:41%"></i></div><b><span class="count-value" data-info-count="41" aria-hidden="true">41</span><span class="oa-sr">41</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Mer</span><div class="place-track" role="img" aria-label="Mer : 26 pour cent"><i style="--width:26%"></i></div><b><span class="count-value" data-info-count="26" aria-hidden="true">26</span><span class="oa-sr">26</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Ascenseur</span><div class="place-track" role="img" aria-label="Ascenseur : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Train</span><div class="place-track" role="img" aria-label="Train : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div></div><p class="base">Expériences de couples cohabitants en France</p><div class="place-fantasies"><p>Endroits originaux · fantasmes</p><div class="place-fantasy-grid"><div><span>Cinéma</span><b><span class="count-value" data-info-count="44" aria-hidden="true">44</span><span class="oa-sr">44</span><small>%</small></b></div><div><span>Travail</span><b><span class="count-value" data-info-count="42" aria-hidden="true">42</span><span class="oa-sr">42</span><small>%</small></b></div><div><span>Cabine d’essayage</span><b><span class="count-value" data-info-count="39" aria-hidden="true">39</span><span class="oa-sr">39</span><small>%</small></b></div><div class="place-fantasy-featured"><span>Lieux de culte / religieux</span><b><span class="count-value" data-info-count="11" aria-hidden="true">11</span><span class="oa-sr">11</span><small>%</small></b></div></div></div></section></template>
 <template id="oa-libido-benchmarks"><section class="oa-info-card oa-libido benchmarks" id="oa-libido-card-benchmarks" aria-labelledby="oa-libido-title-benchmarks"><p class="oa-info-kicker">Fréquence déclarée</p><h2 id="oa-libido-title-benchmarks">Les rythmes du couple.</h2>
 
 
@@ -741,16 +724,12 @@
 <div>
 <b><span class="count-value" data-info-count="68" aria-hidden="true">68</span><span class="oa-sr">68</span><small>%</small>
 </b>
-<span>≈ 2 couples sur 3<br>
-<strong>au moins 1 rapport<br>par semaine</strong>
-</span>
+<strong class="frequency-label">au moins 1 rapport<br>par semaine</strong><span class="frequency-estimate">≈ 2 couples sur 3</span>
 </div>
 <div>
 <b><span class="count-value" data-info-count="26" aria-hidden="true">26</span><span class="oa-sr">26</span><small>%</small>
 </b>
-<span>≈ 1 couple sur 4<br>
-<strong>3 rapports ou plus<br>par semaine</strong>
-</span>
+<strong class="frequency-label">3 rapports ou plus<br>par semaine</strong><span class="frequency-estimate">≈ 1 couple sur 4</span>
 </div>
 </div>
 <p class="base">Sur sept jours, en France</p><div class="anal-benchmark">
@@ -760,13 +739,12 @@
 <h3>Pénétration anale</h3>
 <p>
 <b>Au moins 1× / semaine</b>
-<br>chez les 18–24 ans interrogés</p>
+ · chez les 18–24 ans interrogés</p>
 
 </div>
 
 </div>
 </section></template>
-<template id="oa-libido-oral-manual"><section class="oa-info-card oa-libido oral-manual" id="oa-libido-card-oral-manual" aria-labelledby="oa-libido-title-oral-manual"><p class="oa-info-kicker">Fréquence déclarée</p><h2 id="oa-libido-title-oral-manual">Les pratiques hors pénétration.</h2><div class="nonpenetrative-reading"><div class="activity-number">≈<span class="count-value" data-info-count="59" aria-hidden="true">59</span><span class="oa-sr">59</span><small>%</small></div><p class="activity-frequency">Au moins une des pratiques étudiées chaque semaine.</p></div><div class="nonpenetrative-track" aria-hidden="true"><i style="width:59%"></i></div><p class="base">431 hommes de 50 ans et plus, en Tchéquie</p></section></template>
 <template id="oa-libido-destinations"><section class="oa-info-card oa-libido destinations" id="oa-libido-card-destinations" aria-labelledby="oa-libido-title-destinations"><p class="oa-info-kicker">Enquête et préférences</p><h2 id="oa-libido-title-destinations">Où va le sperme ?</h2>
 
 <div class="setting-split" role="img" aria-label="Préférence personnelle de lieu : maison ou intérieur 57 pour cent; dehors, ville ou plage 43 pour cent.">
@@ -775,10 +753,10 @@
 </div>
 <p class="dest-base">Expériences déclarées au cours de la vie, en France<br><strong>Sélection hors vagin et tissus</strong> · réponses multiples</p>
 
-<div class="dest-grid"><div class="dest-cell"><h3>Dans la bouche</h3><div class="dest-percent"><span class="count-value" data-info-count="45" aria-hidden="true">45</span><span class="oa-sr">45</span><small>%</small></div><p>≈ 1/2 des participantes</p><div class="dest-track"><i style="width:45%"></i></div></div><div class="dest-cell"><h3>Avalé</h3><div class="dest-percent"><span class="count-value" data-info-count="33" aria-hidden="true">33</span><span class="oa-sr">33</span><small>%</small></div><p>≈ 1/3 des participantes</p><div class="dest-track"><i style="width:33%"></i></div></div><div class="dest-cell"><h3>Sur le visage</h3><div class="dest-percent"><span class="count-value" data-info-count="21" aria-hidden="true">21</span><span class="oa-sr">21</span><small>%</small></div><p>≈ 1/5 des participantes</p><div class="dest-track"><i style="width:21%"></i></div></div><div class="dest-cell"><h3>Dans l’anus</h3><div class="dest-percent"><span class="count-value" data-info-count="29" aria-hidden="true">29</span><span class="oa-sr">29</span><small>%</small></div><p>≈ 1/3 des participantes</p><div class="dest-track"><i style="width:29%"></i></div></div></div></section></template>
-<template id="oa-libido-rough"><section class="oa-info-card oa-libido rough" id="oa-libido-card-rough" aria-labelledby="oa-libido-title-rough"><p class="oa-info-kicker">Expériences déclarées</p><h2 id="oa-libido-title-rough">Roleplay et jeux rudes.</h2><div class="rough-highlights"><div class="rough-extra"><div><span>Crachats</span><b><span class="count-value" data-info-count="24" aria-hidden="true">24</span><span class="oa-sr">24</span><small>%</small></b></div><p>Déjà pratiqué<br>Accord mesuré à l’échelle du rapport.</p></div><div class="rough-insults"><div><span>Insultes</span><b><span class="count-value" data-info-count="18.5" aria-hidden="true">18,5</span><span class="oa-sr">18,5</span> %</b></div><p>Expériences consenties</p></div></div>
+<div class="dest-grid"><div class="dest-cell dest-featured"><h3>Dans la bouche</h3><div class="dest-percent"><span class="count-value" data-info-count="45" aria-hidden="true">45</span><span class="oa-sr">45</span><small>%</small></div><p>≈ 1/2 des participantes</p><div class="dest-track"><i style="width:45%"></i></div></div><div class="dest-cell"><h3>Avalé</h3><div class="dest-percent"><span class="count-value" data-info-count="33" aria-hidden="true">33</span><span class="oa-sr">33</span><small>%</small></div><p>≈ 1/3 des participantes</p><div class="dest-track"><i style="width:33%"></i></div></div><div class="dest-cell"><h3>Sur le visage</h3><div class="dest-percent"><span class="count-value" data-info-count="21" aria-hidden="true">21</span><span class="oa-sr">21</span><small>%</small></div><p>≈ 1/5 des participantes</p><div class="dest-track"><i style="width:21%"></i></div></div><div class="dest-cell"><h3>Dans l’anus</h3><div class="dest-percent"><span class="count-value" data-info-count="29" aria-hidden="true">29</span><span class="oa-sr">29</span><small>%</small></div><p>≈ 1/3 des participantes</p><div class="dest-track"><i style="width:29%"></i></div></div></div></section></template>
+<template id="oa-libido-rough"><section class="oa-info-card oa-libido rough" id="oa-libido-card-rough" aria-labelledby="oa-libido-title-rough"><p class="oa-info-kicker">Expériences déclarées</p><h2 id="oa-libido-title-rough">Roleplay et jeux rudes.</h2><div class="rough-highlights"><div class="rough-extra"><div><span>Crachats</span><b><span class="count-value" data-info-count="24" aria-hidden="true">24</span><span class="oa-sr">24</span><small>%</small></b></div><p>Déjà pratiqué. Accord mesuré à l’échelle du rapport.</p></div><div class="rough-insults"><div><span>Insultes</span><b><span class="count-value" data-info-count="18.5" aria-hidden="true">18,5</span><span class="oa-sr">18,5</span> %</b></div><p>Expériences consenties</p></div></div>
 
-<div class="rough-header"><div class="rough-number">≈<span class="count-value" data-info-count="80" aria-hidden="true">80</span><span class="oa-sr">80</span><small>%</small></div><p>des <b>étudiants ayant un partenaire</b> interrogés déclarent des jeux rudes avec lui.</p></div>
+<div class="rough-header"><div class="rough-number">≈<span class="count-value" data-info-count="80" aria-hidden="true">80</span><span class="oa-sr">80</span><small>%</small></div><p>des étudiants interrogés ayant un partenaire déclarent des jeux rudes.</p></div>
 
 
 <p class="rough-group-label">Autres expériences consenties</p>
@@ -789,24 +767,20 @@
 
 <p class="risk-note">Étranglement : risque grave, même consenti.</p>
 </section></template>
-<template id="oa-libido-women"><section class="oa-info-card oa-libido women" id="oa-libido-card-women" aria-labelledby="oa-libido-title-women"><p class="oa-info-kicker">Fantasmes déclarés</p><h2 id="oa-libido-title-women">Et du côté des femmes ?</h2><div class="women-fantasies"><div class="women-fantasy-row"><span>Être dominée</span><div class="women-track" aria-hidden="true"><i style="width:64.6%"></i></div><b><span class="count-value" data-info-count="64.6" aria-hidden="true">64,6</span><span class="oa-sr">64,6</span><small>%</small></b></div><div class="women-fantasy-row"><span>Être attachée</span><div class="women-track" aria-hidden="true"><i style="width:52.1%"></i></div><b><span class="count-value" data-info-count="52.1" aria-hidden="true">52,1</span><span class="oa-sr">52,1</span><small>%</small></b></div><div class="women-fantasy-row"><span>Fessée / fouet</span><div class="women-track" aria-hidden="true"><i style="width:36.3%"></i></div><b><span class="count-value" data-info-count="36.3" aria-hidden="true">36,3</span><span class="oa-sr">36,3</span><small>%</small></b></div><div class="women-fantasy-row"><span>Dominer</span><div class="women-track" aria-hidden="true"><i style="width:46.7%"></i></div><b><span class="count-value" data-info-count="46.7" aria-hidden="true">46,7</span><span class="oa-sr">46,7</span><small>%</small></b></div><div class="women-fantasy-row"><span>Sexe anal</span><div class="women-track" aria-hidden="true"><i style="width:32.5%"></i></div><b><span class="count-value" data-info-count="32.5" aria-hidden="true">32,5</span><span class="oa-sr">32,5</span><small>%</small></b></div><div class="women-fantasy-row"><span>En public</span><div class="women-track" aria-hidden="true"><i style="width:57.3%"></i></div><b><span class="count-value" data-info-count="57.3" aria-hidden="true">57,3</span><span class="oa-sr">57,3</span><small>%</small></b></div><div class="women-fantasy-row"><span>Avec deux hommes</span><div class="women-track" aria-hidden="true"><i style="width:56.5%"></i></div><b><span class="count-value" data-info-count="56.5" aria-hidden="true">56,5</span><span class="oa-sr">56,5</span><small>%</small></b></div></div><p class="base">799 répondantes au Québec</p></section></template>
-<template id="oa-libido-personal"><section class="oa-info-card oa-libido personal" id="oa-libido-card-personal" aria-labelledby="oa-libido-title-personal"><p class="oa-info-kicker">Préférences personnelles</p><h2 id="oa-libido-title-personal">Accents personnels.</h2>
-
-
-
-<div class="personal-rows"><div class="pref-line"><span>Lieu insolite</span><b data-key="fantasy-place"><span class="count-value" data-info-count="10" aria-hidden="true">10</span><span class="oa-sr">10</span>/10</b></div><div class="pref-line"><span>Dominer</span><b data-key="hardcore-dominate"><span class="count-value" data-info-count="10" aria-hidden="true">10</span><span class="oa-sr">10</span>/10</b></div><div class="pref-line"><span>Fessée</span><b data-key="hardcore-spanking"><span class="count-value" data-info-count="10" aria-hidden="true">10</span><span class="oa-sr">10</span>/10</b></div><div class="pref-line"><span>Sexe anal</span><b data-key="hardcore-anal"><span class="count-value" data-info-count="8" aria-hidden="true">8</span><span class="oa-sr">8</span>/10</b></div><div class="pref-line"><span>Body</span><b data-key="outfit-body"><span class="count-value" data-info-count="8" aria-hidden="true">8</span><span class="oa-sr">8</span>/10</b></div><div class="pref-line"><span>Porte-jarretelles</span><b data-key="outfit-garter"><span class="count-value" data-info-count="7" aria-hidden="true">7</span><span class="oa-sr">7</span>/10</b></div><div class="pref-line"><span>Costumes</span><b data-key="outfit-roleplay"><span class="count-value" data-info-count="7" aria-hidden="true">7</span><span class="oa-sr">7</span>/10</b></div><div class="pref-line"><span>Se filmer</span><b data-key="profile-film"><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span>/10</b></div><div class="pref-line"><span>Exhib en ligne</span><b data-key="profile-online-exhibition"><span class="count-value" data-info-count="7" aria-hidden="true">7</span><span class="oa-sr">7</span>/10</b></div><div class="pref-line"><span>Golden shower</span><b data-key="profile-golden-shower"><span class="count-value" data-info-count="5" aria-hidden="true">5</span><span class="oa-sr">5</span>/10</b></div></div>
-<p class="personal-foot">À plusieurs <b>2/10</b> · Échangisme <b>1/10</b>
-</p>
-</section></template>
+<template id="oa-libido-women"><section class="oa-info-card oa-libido women" id="oa-libido-card-women" aria-labelledby="oa-libido-title-women"><p class="oa-info-kicker">Fantasmes déclarés</p><h2 id="oa-libido-title-women">Et du côté des femmes ?</h2><div class="women-fantasies"><div class="women-fantasy-row"><span>Être dominée</span><div class="women-track" aria-hidden="true"><i style="width:64.6%"></i></div><b><span class="count-value" data-info-count="64.6" aria-hidden="true">64,6</span><span class="oa-sr">64,6</span><small>%</small></b></div><div class="women-fantasy-row"><span>En public</span><div class="women-track" aria-hidden="true"><i style="width:57.3%"></i></div><b><span class="count-value" data-info-count="57.3" aria-hidden="true">57,3</span><span class="oa-sr">57,3</span><small>%</small></b></div><div class="women-fantasy-row"><span>Avec deux hommes</span><div class="women-track" aria-hidden="true"><i style="width:56.5%"></i></div><b><span class="count-value" data-info-count="56.5" aria-hidden="true">56,5</span><span class="oa-sr">56,5</span><small>%</small></b></div><div class="women-fantasy-row"><span>Être attachée</span><div class="women-track" aria-hidden="true"><i style="width:52.1%"></i></div><b><span class="count-value" data-info-count="52.1" aria-hidden="true">52,1</span><span class="oa-sr">52,1</span><small>%</small></b></div><div class="women-fantasy-row"><span>Dominer</span><div class="women-track" aria-hidden="true"><i style="width:46.7%"></i></div><b><span class="count-value" data-info-count="46.7" aria-hidden="true">46,7</span><span class="oa-sr">46,7</span><small>%</small></b></div><div class="women-fantasy-row"><span>Fessée / fouet</span><div class="women-track" aria-hidden="true"><i style="width:36.3%"></i></div><b><span class="count-value" data-info-count="36.3" aria-hidden="true">36,3</span><span class="oa-sr">36,3</span><small>%</small></b></div><div class="women-fantasy-row"><span>Sexe anal</span><div class="women-track" aria-hidden="true"><i style="width:32.5%"></i></div><b><span class="count-value" data-info-count="32.5" aria-hidden="true">32,5</span><span class="oa-sr">32,5</span><small>%</small></b></div></div><p class="base">799 répondantes au Québec</p></section></template>
 
 <style>
 /* Reading cards and live activity in the Info tab. */
 #onde-app-v1 .oa-info section{scroll-margin-top:12px}
 #onde-app-v1 .oa-info-activity{background:linear-gradient(140deg,#343d42,#292e34);border-color:#94afc65c}
-#onde-app-v1 .oa-info-activity-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:12px 0 15px}
+#onde-app-v1 .oa-info-activity-metrics{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(2,minmax(0,1fr));gap:5px;margin:12px 0 15px}
 #onde-app-v1 .oa-info-activity-metrics div{display:grid;gap:4px;padding:8px 6px;background:#1a20258c;border:1px solid #a5b6c633;border-radius:11px}
 #onde-app-v1 .oa-info-activity-metrics strong{font:500 clamp(16px,5vw,25px)/1 var(--info-mono);color:#deeaf2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 #onde-app-v1 .oa-info-activity-metrics span{font-size:10px;line-height:1.3;color:#d6dbe0}
+#onde-app-v1 .oa-info-activity-metrics>div:first-child{border-color:#ddc09069;background:#68523b55}
+#onde-app-v1 .oa-info-activity-metrics>div:first-child strong{color:#f7d5aa}
+#onde-app-v1 .oa-info-activity-metrics>div:first-child span{font-weight:650}
+#onde-app-v1 .oa-info-activity-metrics small{color:#ebcba5;font-size:10px;line-height:1.25}
 #onde-app-v1 .oa-info-activity h3{margin-bottom:6px;font-size:13px;font-weight:550}
 #onde-app-v1 .oa-info-recent{list-style:none;margin:0;padding:0}
 #onde-app-v1 .oa-info-recent li{display:flex;justify-content:space-between;align-items:baseline;gap:9px;padding:6px 0;border-top:1px solid #d4dce226;font-size:12px}
@@ -818,9 +792,8 @@
 #onde-app-v1 .oa-info-settings .oa-note{margin-top:8px}
 
 /* The sections below keep the chart markup of the reference carnet. */
-#onde-app-v1 .oa-libido{--chart:var(--oa-sage);--chart-soft:#20241f9c;--chart-line:#e2dac52d;--chart-copy:#e8e0d4}
-#onde-app-v1 .oa-libido.personal{--chart:#e7ad94;background:linear-gradient(145deg,#493a34,#342e2b);border-color:#cea08b5a}
-#onde-app-v1 .oa-libido.destinations{--chart:#d3afd9;background:linear-gradient(145deg,#433a48,#322d38);border-color:#c3a4cf52}
+#onde-app-v1 .oa-libido{--chart:var(--oa-sage);--chart-soft:#20241f9c;--chart-line:#e2dac52d}
+#onde-app-v1 .oa-libido.destinations{--chart:#d3afd9;--outside-color:#a7c2d6;background:linear-gradient(145deg,#433a48,#322d38);border-color:#c3a4cf52}
 #onde-app-v1 .oa-libido.places{--chart:#a9c3db;background:linear-gradient(145deg,#384149,#2c3238);border-color:#adc3d456}
 #onde-app-v1 .oa-libido.women,#onde-app-v1 .oa-libido.rough{--chart:#e6bd9a;background:linear-gradient(145deg,#473e36,#35312c);border-color:#c7a48a52}
 #onde-app-v1 .oa-libido h2{margin-bottom:12px}
@@ -831,24 +804,25 @@
 #onde-app-v1 .oa-libido :is(.place-chart,.women-fantasies){display:grid;gap:8px;margin-top:11px}
 #onde-app-v1 .oa-libido :is(.place-row,.women-fantasy-row){display:grid;grid-template-columns:minmax(79px,33%) minmax(0,1fr) minmax(44px,auto);align-items:center;gap:7px;font-size:11px;line-height:1.3}
 #onde-app-v1 .oa-libido :is(.place-row,.women-fantasy-row)>b{text-align:right;color:var(--chart);font:500 13px/1.2 var(--info-mono);white-space:nowrap}
-#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.nonpenetrative-track,.setting-bars){height:5px;border-radius:8px;background:#e6dcc62c;overflow:hidden}
-#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.nonpenetrative-track,.setting-bars) i{display:block;width:var(--width,100%);height:100%;border-radius:inherit;background:var(--chart);transform-origin:left}
-#onde-app-v1 .oa-libido.is-reading :is(.place-track,.women-track,.dest-track,.nonpenetrative-track,.setting-bars) i{animation:oa-info-fill 1.35s var(--info-rhythm) both}
-#onde-app-v1 .oa-libido :is(.place-extras,.place-fantasies){border-top:1px solid var(--chart-line);margin-top:12px;padding-top:10px}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}
-#onde-app-v1 .oa-libido .place-extra-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid)>div{min-width:0;padding:9px;border:1px solid var(--chart-line);border-radius:12px;background:var(--chart-soft);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid)>div{display:grid;gap:5px}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid)>div>b{color:var(--chart);font:500 20px/1 var(--info-mono);white-space:nowrap}
-#onde-app-v1 .oa-libido :is(.place-extra-grid,.place-fantasy-grid)>div>b small{font-size:.65em}
-#onde-app-v1 .oa-libido :is(.place-extras,.place-fantasies)>small{display:block;margin-top:6px;color:var(--chart-copy);font-size:10px}
+#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.setting-bars){height:5px;border-radius:8px;background:#e6dcc62c;overflow:hidden}
+#onde-app-v1 .oa-libido :is(.place-track,.women-track,.dest-track,.setting-bars) i{display:block;width:var(--width,100%);height:100%;border-radius:inherit;background:var(--chart);transform-origin:left}
+#onde-app-v1 .oa-libido.is-reading :is(.place-track,.women-track,.dest-track,.setting-bars) i{animation:oa-info-fill 1.35s var(--info-rhythm) both}
+#onde-app-v1 .oa-libido .place-fantasies{border-top:1px solid var(--chart-line);margin-top:12px;padding-top:10px}
+#onde-app-v1 .oa-libido :is(.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}
+#onde-app-v1 .oa-libido :is(.place-fantasy-grid,.frequency-refs,.dest-grid,.rough-grid)>div{min-width:0;padding:9px;border:1px solid var(--chart-line);border-radius:12px;background:var(--chart-soft);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#onde-app-v1 .oa-libido .place-fantasy-grid>div{display:grid;gap:5px}
+#onde-app-v1 .oa-libido .place-fantasy-grid>div>b{color:var(--chart);font:500 20px/1 var(--info-mono);white-space:nowrap}
+#onde-app-v1 .oa-libido .place-fantasy-grid>div>b small{font-size:.65em}
 #onde-app-v1 .oa-libido .frequency-refs>div{display:grid;gap:5px}
+#onde-app-v1 .oa-libido .frequency-label{grid-row:1;color:#eef1da;font-size:14px;line-height:1.25}
+#onde-app-v1 .oa-libido .frequency-estimate{color:#c6c9bb;font-size:10px}
 #onde-app-v1 .oa-libido .frequency-refs b>span{display:inline}
-#onde-app-v1 .oa-libido :is(.frequency-refs>div>b,.anal-value,.activity-number,.rough-number,.dest-percent){font-size:clamp(27px,9vw,40px);line-height:1;font-weight:500;letter-spacing:-.055em;color:var(--chart);white-space:nowrap}
-#onde-app-v1 .oa-libido :is(.frequency-refs,.anal-value,.activity-number,.rough-number,.dest-percent) small{font-size:.55em;margin-left:1px;letter-spacing:0}
-#onde-app-v1 .oa-libido .anal-benchmark{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 10px;margin-top:11px;padding:10px;border:1px solid var(--chart-line);border-radius:11px}
-#onde-app-v1 .oa-libido :is(.nonpenetrative-reading,.rough-header){display:flex;align-items:center;gap:12px}
-#onde-app-v1 .oa-libido .nonpenetrative-track{margin-top:10px}
+#onde-app-v1 .oa-libido :is(.frequency-refs>div>b,.anal-value,.rough-number,.dest-percent){font-size:clamp(27px,9vw,40px);line-height:1;font-weight:500;letter-spacing:-.055em;color:var(--chart);white-space:nowrap}
+#onde-app-v1 .oa-libido :is(.frequency-refs,.anal-value,.rough-number,.dest-percent) small{font-size:.55em;margin-left:1px;letter-spacing:0}
+#onde-app-v1 .oa-libido .anal-benchmark{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px;align-items:center;margin-top:8px;padding:7px 8px;border:1px solid #dfac8b55;border-radius:11px;background:#59433b70;--chart:#efb79d}
+#onde-app-v1 .oa-libido .anal-benchmark .anal-value{font-size:26px}
+#onde-app-v1 .oa-libido .anal-benchmark p{font-size:11px;line-height:1.3}
+#onde-app-v1 .oa-libido .rough-header{display:flex;align-items:center;gap:8px}
 
 #onde-app-v1 .oa-libido .setting-split{padding:8px 10px;border-radius:12px;background:var(--chart-soft);border:1px solid var(--chart-line);margin-bottom:9px}
 #onde-app-v1 .oa-libido .setting-labels{display:flex;justify-content:space-between;gap:12px;font-size:11px}
@@ -856,20 +830,23 @@
 #onde-app-v1 .oa-libido .setting-labels b{display:block;color:var(--chart);font-size:23px;line-height:1.25}
 #onde-app-v1 .oa-libido .setting-labels small{font-size:12px}
 #onde-app-v1 .oa-libido .setting-bars{display:grid;grid-template-columns:var(--inside) var(--outside);gap:3px;margin-top:7px}
-#onde-app-v1 .oa-libido .setting-bars i+i{background:#8ba5bb}
+#onde-app-v1 .oa-libido .setting-bars i+i{background:var(--outside-color)}
+#onde-app-v1 .oa-libido .setting-labels>span:last-child>b{color:var(--outside-color)}
 #onde-app-v1 .oa-libido .dest-percent{margin:5px 0}
 #onde-app-v1 .oa-libido .dest-cell>p{font-size:10px;line-height:1.35}
-#onde-app-v1 .oa-libido .dest-track{margin:6px 0}
+#onde-app-v1 .oa-libido .dest-track{margin:5px 0 0}
+#onde-app-v1 .oa-libido .dest-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#onde-app-v1 .oa-libido .dest-grid>.dest-cell{--chart:#c4b6cb;padding:7px}
+#onde-app-v1 .oa-libido .dest-grid>.dest-cell:not(.dest-featured) .dest-percent{font-size:24px}
+#onde-app-v1 .oa-libido .dest-grid>.dest-featured{--chart:#f6bdab;grid-column:1/-1;padding:9px 10px;border-color:#edb59c6f;background:linear-gradient(135deg,#60463f,#48363b)}
+#onde-app-v1 .oa-libido .dest-featured h3{color:#ffded0;font-size:14px}
+#onde-app-v1 .oa-libido .dest-featured .dest-percent{font-size:clamp(35px,11vw,46px)}
 
-#onde-app-v1 .oa-libido .rough-group-label{margin-top:7px}
-#onde-app-v1 .oa-libido .rough-grid>div{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+#onde-app-v1 .oa-libido .rough-group-label{margin-top:6px;font-size:11px}
+#onde-app-v1 .oa-libido .rough-grid{gap:4px;margin-top:5px}
+#onde-app-v1 .oa-libido .rough-grid>div{display:flex;align-items:baseline;justify-content:space-between;gap:4px;padding:4px 6px;border-radius:7px;font-size:10px}
 #onde-app-v1 .oa-libido .rough-grid b{text-align:right;color:var(--chart);white-space:nowrap}
-#onde-app-v1 .oa-libido .risk-note{margin-top:8px;padding:8px;border-left:2px solid var(--chart);background:var(--chart-soft)}
-#onde-app-v1 .oa-libido .personal-foot{margin-top:8px}
-#onde-app-v1 .oa-libido .personal-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
-#onde-app-v1 .oa-libido .pref-line{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:4px;padding:5px 0;border-bottom:1px solid var(--chart-line);font-size:11px;line-height:1.3}
-#onde-app-v1 .oa-libido .pref-line>span{overflow-wrap:anywhere}
-#onde-app-v1 .oa-libido .pref-line>b{color:var(--chart);white-space:nowrap}
+#onde-app-v1 .oa-libido .risk-note{margin-top:6px;padding:4px 6px;border-left:2px solid var(--chart);background:var(--chart-soft);font-size:10px;line-height:1.3}
 
 #onde-app-v1 .oa-info-agreement{border-color:#d2a8958a;background:radial-gradient(ellipse at top right,#ba887b32,transparent 75%),linear-gradient(145deg,#4d3c39,#342d2d)}
 #onde-app-v1 .oa-info-agreement .oa-info-kicker,#onde-app-v1 .oa-info-agreement h2 em{color:#f2c4af}
@@ -882,13 +859,13 @@
 #onde-app-v1 .oa-info-agreement-score>strong{padding:5px 7px;border-radius:7px;background:#efb69f27;color:#f9d2bf;font-size:11px;white-space:nowrap}
 
 
-#onde-app-v1 .oa-libido .rough-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 0 9px}
-#onde-app-v1 .oa-libido .rough-highlights>div{min-width:0;padding:8px;border:1px solid #eeb8a26b;border-radius:14px;background:radial-gradient(ellipse at top right,#ce957544,transparent 90%),linear-gradient(145deg,#60483d,#443530)}
+#onde-app-v1 .oa-libido .rough-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 7px}
+#onde-app-v1 .oa-libido .rough-highlights>div{min-width:0;padding:6px 7px;border:1px solid #eeb8a26b;border-radius:14px;background:radial-gradient(ellipse at top right,#ce957544,transparent 90%),linear-gradient(145deg,#60483d,#443530)}
 #onde-app-v1 .oa-libido .rough-highlights>div>div{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 6px}
 #onde-app-v1 .oa-libido .rough-extra>div>span{font-size:15px;font-weight:550;letter-spacing:-.025em}
-#onde-app-v1 .oa-libido .rough-extra>div>b{color:#ffcab1;font-size:clamp(22px,7vw,30px);font-weight:550;line-height:1;letter-spacing:-.065em;white-space:nowrap}
+#onde-app-v1 .oa-libido .rough-extra>div>b{color:#ffcab1;font-size:clamp(22px,6.5vw,28px);font-weight:550;line-height:1;letter-spacing:-.065em;white-space:nowrap}
 #onde-app-v1 .oa-libido .rough-extra>div>b small{font-size:.48em;margin-left:2px}
-#onde-app-v1 .oa-libido .rough-highlights>div>p{margin-top:4px;font-size:11px;line-height:1.3}
+#onde-app-v1 .oa-libido .rough-highlights>div>p{margin-top:3px;font-size:10px;line-height:1.3}
 #onde-app-v1 .oa-libido .rough-highlights .rough-insults{border-color:#c5a6d26b;background:linear-gradient(145deg,#463949,#38303e)}
 #onde-app-v1 .oa-libido .rough-insults>div>span{font-size:15px;font-weight:550}
 #onde-app-v1 .oa-libido .rough-insults b{color:#ecd0f1;font-size:21px;line-height:1;letter-spacing:-.045em;white-space:nowrap}
@@ -896,7 +873,6 @@
 #onde-app-v1 .oa-info-ticket-card{padding:12px 14px}
 #onde-app-v1 .oa-info-ticket-head{display:flex;align-items:center;gap:9px;margin-bottom:5px}
 #onde-app-v1 .oa-info-ticket-head h2{margin:0;font-size:17px}
-#onde-app-v1 .oa-info-ticket-head small{color:var(--oa-muted);font-size:10px}
 #onde-app-v1 .oa-info-ticket-dots{display:flex;gap:5px;margin-left:auto}
 #onde-app-v1 .oa-info-ticket-dots i{width:10px;height:10px;border:1px solid #b0bd9f;border-radius:50%;background:#20251f}
 #onde-app-v1 .oa-info-ticket-dots i.is-available{background:var(--oa-sage);box-shadow:0 0 5px #c7d5ae36}
@@ -906,8 +882,13 @@
 #onde-app-v1 .oa-libido .place-row[data-frequency="mid"]{--chart:#e5c18b}
 #onde-app-v1 .oa-libido .place-row[data-frequency="low"]{--chart:#bfd098}
 #onde-app-v1 .oa-libido .place-fantasy-grid .place-fantasy-featured{--chart:#efc5a4;border-color:#e7b4937a;background:#4b3b355e}
-#onde-app-v1 .oa-libido.oral-manual{--chart:#eeaa94}
-#onde-app-v1 .oa-libido.rough{padding:13px}
+#onde-app-v1 .oa-libido.rough{padding:11px 13px}
+#onde-app-v1 .oa-libido.rough h2{margin-bottom:8px}
+#onde-app-v1 .oa-libido .rough-header .rough-number{font-size:25px}
+#onde-app-v1 .oa-libido .rough-header p{font-size:11px;line-height:1.3}
+#onde-app-v1 .oa-libido .women-fantasy-row:nth-child(-n+5){--chart:#f0bf9a;color:#fae8d9}
+#onde-app-v1 .oa-libido .women-fantasy-row:nth-child(-n+5)>span,#onde-app-v1 .oa-libido .women-fantasy-row:nth-child(-n+5)>b{font-weight:700}
+#onde-app-v1 .oa-libido .women-fantasy-row:nth-child(n+6){--chart:#c6ae9a;color:#ddd0c3}
 </style>
 
 <script>window.DesirCardNotes=Object.freeze({"new-complicite-01": "Un selfie garde vos sourires du jour, avec tout le charme des photos imparfaites.", "new-complicite-02": "Un baiser avec la langue laisse toute la place au toucher, au rythme et à l’envie.", "new-complicite-03": "Un câlin, c’est de la chaleur à partager sans avoir besoin de trouver les mots.", "new-complicite-04": "Un petit mot caché prolonge l’attention bien après le moment où il a été écrit.", "new-complicite-05": "Le vernis ajoute une touche de couleur qui reste quand le moment partagé est terminé.", "new-complicite-06": "Sous le plaid, une caresse donne au canapé un petit supplément de douceur à deux.", "new-complicite-07": "Une heure sans téléphone, c’est une heure où les messages passent après ce que vous partagez.", "new-complicite-11": "Une longue pause sans téléphone laisse de la place aux activités qui prennent leur temps.", "new-complicite-08": "Un jeu de société, c’est un terrain commun pour les petites stratégies et les grandes réactions.", "new-complicite-09": "Un film ouvre une histoire commune, avec des scènes à commenter longtemps après le générique.", "new-complicite-10": "Une série donne rendez-vous à vos personnages préférés et aux commentaires qui vont avec.", "new-detente-01": "Un massage de la tête invite à fermer les yeux et à savourer le passage des mains.", "new-detente-02": "Un massage des épaules, c’est le plaisir de recevoir sans avoir quoi que ce soit à faire.", "new-detente-03": "Un massage des pieds fait profiter de mains attentives jusqu’au bout des orteils.", "new-detente-04": "Un massage des cuisses laisse de la place aux gestes larges et au plaisir du contact.", "new-detente-05": "Un massage des oreilles réserve de petites sensations là où l’on pense rarement à s’attarder.", "new-detente-06": "Un massage du visage offre un moment tout près, avec la douceur des mains au premier plan.", "new-detente-07": "Un massage du dos atteint les endroits que nos propres mains ont tant de mal à trouver.", "new-detente-08": "Un massage total prend le temps de varier les sensations, des premières caresses aux derniers gestes.", "new-detente-09": "Un masque visage donne une bonne excuse pour ralentir et assumer ensemble une allure un peu étrange.", "new-detente-10": "Un soin complet du visage transforme les gestes habituels en une attention qui prend son temps.", "new-projets-01": "Même une rue familière garde des façades, des passages et des détails à découvrir ensemble.", "new-projets-02": "Sous les arbres, le chemin se remplit de feuillages, de textures et de sons à remarquer.", "new-projets-03": "Une visite met des œuvres et des histoires sous vos yeux, loin des simples images d’écran.", "new-projets-04": "L’eau fait voyager les pigments sur le papier, et chaque mélange laisse sa propre trace.", "new-projets-05": "Vos mains donnent forme à l’argile : une création qui prend vraiment du volume.", "new-projets-06": "Un même paysage change d’allure selon la lumière, le cadre et le regard derrière l’objectif.", "new-projets-07": "Votre repas quitte la cuisine pour s’installer dans un endroit que vous avez choisi.", "new-projets-08": "Les trottoirs mouillés attrapent les lumières, et votre trajet habituel se remplit de reflets.", "new-projets-09": "Les éclairages et les ombres composent un décor différent, même dans un quartier bien connu.", "new-projets-10": "Des adresses repérées et un trajet choisi donnent déjà une forme à votre prochaine escapade.", "new-projets-11": "Vos envies de voyage deviennent des lieux à relier et un séjour à inventer ensemble.", "new-projets-12": "Les mêmes meubles, déplacés autrement, dessinent un nouveau coin de maison à habiter.", "new-projets-13": "Quelques objets inutiles en moins, et leur place revient enfin à ce qui vous sert.", "new-projets-14": "Un seul objet inutile en moins laisse déjà une petite place nette dans votre quotidien.", "new-projets-15": "Un détail refait suffit à donner une nouvelle finition à ce coin que vous voyez chaque jour.", "new-projets-16": "Un chantier d’envergure ouvre la place aux changements que les petites retouches ne permettent pas.", "new-projets-17": "Vos envies ont enfin leur liste, avec de la place pour les prochaines idées qui débarquent.", "new-projets-18": "Vos préférences prennent place côte à côte, avec de vrais favoris et quelques débats savoureux.", "new-attention-01": "La seconde main réserve des trouvailles déjà existantes, à dénicher avec votre petit budget.", "new-attention-02": "Une pièce longtemps cherchée se trouve parfois dans une autre garde-robe, prête pour une nouvelle histoire.", "new-attention-03": "Une tasse choisie au comptoir, une table pour vous poser : votre pause a trouvé son adresse.", "new-attention-04": "Un roman rejoint votre bibliothèque, avec une histoire à découvrir puis à retrouver quand l’envie revient.", "new-attention-05": "Un nouveau jeu dans votre collection, c’est tout un univers à explorer manette ou clavier en main.", "new-attention-06": "Les cases et les images font avancer l’histoire, dans un livre à feuilleter à votre rythme.", "new-attention-07": "Un nouveau tome trouve sa place sur l’étagère, entre vos personnages familiers et vos prochaines découvertes.", "new-attention-08": "Une boîte de cartes prend peu de place et garde de nouvelles parties sous le coude.", "new-attention-09": "Un plateau à déplier, des pièces à installer : une nouvelle boîte pour vos prochaines soirées de jeu.", "new-attention-10": "Un petit accessoire intime rejoint votre collection, avec une nouvelle sensation à mettre au programme.", "new-attention-11": "Une nouveauté plus ambitieuse agrandit votre terrain de jeu intime et ses possibilités à explorer.", "new-attention-12": "Une nouvelle pièce de lingerie apporte une couleur, une matière ou une coupe à votre tiroir.", "new-attention-13": "Avec ce budget défini, une petite trouvaille rejoint votre quotidien et reste bien après les courses.", "new-attention-14": "Une belle pièce de lingerie se porte sous vos vêtements ou devient la vedette de la tenue.", "new-attention-15": "Une envie plus conséquente trouve sa place dans le panier, du vêtement à l’objet pour la maison.", "new-bouffe-01": "Pain, garniture et sauce se retrouvent dans la même bouchée, avec votre combinaison du moment.", "new-bouffe-02": "La pizza se partage en parts, avec des bords croustillants et une garniture à choisir.", "new-bouffe-03": "Le riz vinaigré et les garnitures composent des bouchées différentes à piocher au fil du plateau.", "new-bouffe-04": "Le kebab réunit pain, garniture et sauce dans un repas qui se mange à la main.", "new-bouffe-05": "Le panier se remplit d’ingrédients pour une recette mexicaine, et le prochain repas change de décor.", "new-bouffe-06": "Une sauce, des épices ou des nouilles donnent une nouvelle direction à votre liste de courses.", "new-bouffe-07": "Un pays européen donne le thème du panier, avec une spécialité à inviter dans votre cuisine.", "new-bouffe-08": "La même pâte accueille les garnitures de chacun, et la pile grandit au fil des poêlées.", "new-bouffe-09": "Une fournée laisse des cookies à partager, avec les pépites et les ajouts que vous aimez.", "new-bouffe-10": "Votre préparation devient un dessert à découper, avec une première part encore à choisir.", "new-bouffe-11": "Les petits plats et les verres quittent la table pour retrouver votre coin de canapé.", "new-bouffe-12": "Le chocolat chaud se déguste à petites gorgées, avec votre place préférée sur le canapé.", "new-intimite-01": "Recevoir l’attention laisse simplement de la place au plaisir d’être le centre du moment.", "new-intimite-02": "Changer de point de vue redistribue les rôles et donne au tête-à-tête un autre relief.", "new-intimite-03": "Les mouvements glissés donnent au toucher une continuité presque dansante, loin du massage bien sage.", "new-intimite-04": "Le rythme se pilote du bout des doigts, et la surprise entre dans la partie.", "new-intimite-05": "L’attention transforme ce tête-à-tête en un jeu de nuances, de rythme et de petites surprises.", "new-intimite-06": "Un final visuel apporte au jeu une touche théâtrale, comme le dernier plan d’une scène.", "new-intimite-07": "Le tête-à-tête se prolonge jusqu’au final, comme une conversation qui garde son fil.", "new-intimite-08": "Une préférence très personnelle donne à ce final sa signature, loin des grands scénarios.", "new-intimite-09": "Le plaisir de rejouer une scène tient aussi aux costumes, aux angles et aux détails.", "new-intimite-10": "Changer de terrain fait redécouvrir le tempo, les pauses et la façon d’être attentifs.", "new-intimite-11": "Même les rituels les plus ordinaires changent d’allure quand ils entrent dans votre jeu.", "new-intimite-12": "Superposer les sensations donne au jeu une autre densité, comme un duo qui change d’accord.", "new-intimite-13": "Un portrait de buste mise sur la lumière et le cadrage pour affirmer son style.", "new-intimite-14": "Une silhouette vue de dos fait jouer les courbes, les lignes et les ombres autrement.", "new-intimite-15": "Un cadrage serré transforme une image intime en une composition de lumière et de textures.", "new-intimite-16": "Face à l’objectif, la posture et la lumière donnent immédiatement le ton de la scène.", "new-intimite-17": "Tourner le dos à la caméra suffit à changer les lignes et l’énergie du cadre.", "new-intimite-18": "En direct, le rythme et les pauses écrivent une scène qui ne ressemble qu’à vous.", "new-intimite-19": "L’image d’un final garde l’instantané, les expressions et le petit côté coulisses de votre jeu.", "new-intimite-20": "Changer de rôle bouscule les habitudes et laisse une autre personne donner le tempo.", "new-intimite-21": "Les pauses font autant partie du jeu que le rythme : toute une histoire de contraste.", "new-intimite-22": "Une lumière inattendue ou un accessoire suffit à inventer une nouvelle version de votre duo."});</script>
@@ -2311,6 +2292,18 @@
     const next=reduceRoomGame(room,action);
     return next===room?room:progressTransition(room,next,action,action.actor);
   }
+  function activityCalendar(state,actor){
+    const activity=(state.progression||initialProgression(state)).individual[actor].activity;
+    return {streak:activity.streak,lastDay:activity.lastDay};
+  }
+  function validateActivityCalendar(activity){
+    return progressObject(activity)&&progressCounter(activity.streak)&&
+      (activity.streak===0?activity.lastDay===null:calendarOrdinal(activity.lastDay)!==null);
+  }
+  function activeStreak(activity,at){
+    const today=calendarOrdinal(parisDateKey(at)),last=calendarOrdinal(activity.lastDay);
+    return today!==null&&last!==null&&(today===last||today===last+1)?activity.streak:0;
+  }
   function badgeView(state,actor){
     if(!roomActors.includes(actor)||!(state?.version===2?validateRoom(state):validateState(state)))return null;
     const progress=state.progression?currentProgression(state.progression):initialProgression(state);
@@ -2335,7 +2328,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,needsVariant,cardsForRound,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,needsVariant,cardsForRound,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -2772,13 +2765,19 @@ void main(){
    if(raw.drawAvailable!==undefined&&typeof raw.drawAvailable!=='boolean')throw failure('invalid_response','La disponibilité du tirage est invalide.');
    let badges;
    if(raw.badges!==undefined){if(typeof G.validateBadgeView!=='function'||!G.validateBadgeView(raw.badges,identity.actor))throw failure('invalid_response','La collection de badges reçue est invalide.');badges=clone(raw.badges);}
+   let activity;
+   if(raw.activity!==undefined){
+    if(!G.validateActivityCalendar(raw.activity))throw failure('invalid_response','La série reçue est invalide.');
+    activity={streak:raw.activity.streak,lastDay:raw.activity.lastDay};
+   }
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:6,incoming,pendingOutgoing,...(badges===undefined?{}:{badges})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:6,incoming,pendingOutgoing,...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
    // Optional metadata never erases the same account's last validated collection.
    if(checked.base.badges===undefined&&snapshot?.badges&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor)checked.base.badges=clone(snapshot.badges);
+   if(checked.base.activity===undefined&&snapshot?.activity&&snapshot.roomId===identity.roomId&&snapshot.actor===identity.actor&&checked.base.revision===snapshot.revision)checked.base.activity=clone(snapshot.activity);
    if(!snapshot||checked.base.revision>=snapshot.revision){
     const changed=!snapshot||JSON.stringify(checked.base)!==JSON.stringify(snapshot),statusChanged=status.phase!=='connected'||!!status.message;
     snapshot=clone(checked.base);
@@ -4206,7 +4205,7 @@ void main(){
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(serverNow()).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
@@ -4559,14 +4558,18 @@ void main(){
   return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+'</section>';
  }
  function infoActivity(){
+  const activity=remoteMode?remoteSnapshot?.activity:G.activityCalendar(localRoom,viewPlayer);
+  const metric=id=>badgeView?.items.find(item=>item.id===id)?.progress.value;
+  const streak=activity?G.activeStreak(activity,new Date(serverNow()).toISOString()):metric('ind-active-streak-3');
+  const streakText=streak===undefined?'':(activity?'Série en cours':'Record')+' · '+streak.toLocaleString('fr-FR')+' jour'+(streak>1?'s':'');
   const metrics=[
+   ['ind-active-days-3','Jours actifs'],
    ['ind-draws-1','Tirages de thème'],
-   ['ind-proposals-1','Propositions envoyées'],
-   ['ind-active-days-3','Jours actifs']
+   ['ind-proposals-1','Propositions envoyées']
   ];
-  const metricCards=metrics.map(([id,label])=>{
-   const value=badgeView?.items.find(item=>item.id===id)?.progress.value;
-   return '<div><strong>'+(value?.toLocaleString('fr-FR')??'—')+'</strong><span>'+label+'</span></div>';
+  const metricCards=metrics.map(([id,label],index)=>{
+   const value=metric(id)?.toLocaleString('fr-FR')??'—';
+   return '<div><strong>'+value+'</strong><span>'+label+'</span>'+(!index&&streakText?'<small>'+streakText+'</small>':'')+'</div>';
   }).join('');
   const own=ownState||state;
   const draws=new Map();
@@ -4588,7 +4591,6 @@ void main(){
  }
  function infoShared(){
   return `<section class="oa-info-card oa-info-shared" aria-labelledby="oa-info-shared-title">
-   <p class="oa-info-kicker">Dés·ir · À deux</p>
    <h2 id="oa-info-shared-title">Vos cartes partagées.</h2>
    <div class="oa-score-grid">${G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+G.categoryScore(state.stats,c.id).toLocaleString('fr-FR')+'</strong></div>').join('')}</div>
   </section>`;
@@ -4601,7 +4603,6 @@ void main(){
   return `<section class="oa-info-card oa-info-ticket-card" aria-labelledby="oa-info-tickets">
    <div class="oa-info-ticket-head">
     <h2 id="oa-info-tickets">Tirages du jour</h2>
-    ${remoteMode?'':'<small>Démo libre</small>'}
     <span class="oa-info-ticket-dots" role="img" aria-label="${quotaLabel}" title="${quotaLabel}">${dots}</span>
    </div>
    <p>1 relance de thème gratuite par jour · 1 joker par semaine pour le duo.</p>
@@ -4616,7 +4617,6 @@ void main(){
  ];
  function renderInfo(){
   const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
-  const themes=G.categories.map(category=>`<li style="--category:${h(category.color)}"><i aria-hidden="true"></i>${h(category.label)}</li>`).join('');
   return `<article class="oa-info" aria-labelledby="oa-info-title">
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
    <h1 class="oa-sr" id="oa-info-title">Info</h1>
@@ -4628,6 +4628,8 @@ void main(){
      </div>
      ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
     </section>
+    <div data-info-activity>${infoActivity()}</div>
+    <div data-info-tickets>${infoTickets()}</div>
     <div data-info-shared>${infoShared()}</div>
     <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
      <p class="oa-info-kicker">Le principe du jeu</p>
@@ -4641,35 +4643,20 @@ void main(){
       <strong>+${G.rules.completedCardPoints} point</strong>
      </div>
     </section>
-    <div class="oa-info-ticker">
-     <div class="oa-info-ticker-head">
-      <p class="oa-info-kicker">Les quatre thèmes</p>
-      <button type="button" class="oa-info-pause cursor-interaction" data-action="info-pause" aria-label="Pause du défilement des thèmes">Pause</button>
-     </div>
-     <div class="oa-info-ribbon"><div class="oa-info-track">
-      <ul class="oa-info-copy" aria-label="Les quatre thèmes">${themes}</ul>
-      <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
-     </div></div>
-    </div>
-    <div data-info-activity>${infoActivity()}</div>
+    ${libido('women')}
     <section class="oa-info-card" aria-labelledby="oa-info-dice">
      <p class="oa-info-kicker">01 / Le tirage</p>
      <h2 id="oa-info-dice">Du thème à la carte.</h2>
      <ol class="oa-info-dice">
       <li><b>D${G.rules.categorySides}</b>Thème</li>
       <li><b>D${G.rules.cardSides}</b>Carte</li>
-      <li><b>D${G.rules.variantSides}</b>Variante*</li>
+      <li><b>D${G.rules.variantSides}</b>Variante</li>
      </ol>
-     <p>* Le dernier dé se lance quand la carte a des variantes. Ton tirage reste privé jusqu’à l’envoi.</p>
     </section>
     ${libido('places')}
     ${libido('benchmarks')}
-    <div data-info-tickets>${infoTickets()}</div>
     ${libido('destinations')}
-    ${libido('oral-manual')}
-    ${libido('women')}
     ${libido('rough')}
-    ${libido('personal')}
     <div data-info-settings>${infoSettings()}</div>
    </div>
    <details class="oa-info-install">
@@ -5071,11 +5058,6 @@ void main(){
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
   if(action==='info-idea'){showInfoIdea(el);return;}
-  if(action==='info-pause'){
-   const paused=el.closest('.oa-info-ticker').toggleAttribute('data-paused');
-   el.textContent=paused?'Reprendre':'Pause';
-   el.setAttribute('aria-label',paused?'Reprendre le défilement des thèmes':'Pause du défilement des thèmes');return;
-  }
   if(action==='profile'){if(remoteMode)return;if(tab==='us')tab='play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
@@ -5120,7 +5102,7 @@ void main(){
   }
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
- setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}}},30000);
+ setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks'||tab==='info')render();}}},30000);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}updateBadgeNotice();});
  window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});

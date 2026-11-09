@@ -99,8 +99,7 @@ class WebBuild(BuildFixture):
         self.build('--release')
         html = self.release.read_text()
         modules = re.findall(r'<template id="oa-libido-([^"]+)">', html)
-        self.assertCountEqual(modules, ['places', 'benchmarks', 'oral-manual',
-                                         'destinations', 'rough', 'women', 'personal'])
+        self.assertCountEqual(modules, ['places', 'benchmarks', 'destinations', 'rough', 'women'])
         self.assertNotIn('href="#source-', html)
         self.assertNotIn('Sources & périmètres', html)
         self.assertNotIn('www.ipsos.com', html)
@@ -111,7 +110,12 @@ class WebBuild(BuildFixture):
         self.assertIn('class="place-fantasy-featured"', html)
         self.assertIn('class="rough-highlights"', html)
         self.assertIn('class="rough-insults"', html)
-        self.assertIn('Au moins une des pratiques étudiées chaque semaine.', html)
+        self.assertIn('class="dest-cell dest-featured"', html)
+        self.assertEqual(html.count('class="frequency-label"'), 2)
+        self.assertNotIn('class="place-extras"', html)
+        women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]
+        self.assertEqual(re.findall(r'data-info-count="([^"]+)"', women),
+                         ['64.6', '57.3', '56.5', '52.1', '46.7', '36.3', '32.5'])
         self.assertIn('data-info-count="72"', html)
 
     def test_missing_or_invalid_config_fails_before_any_release_write(self):

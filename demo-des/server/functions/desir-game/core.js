@@ -1392,6 +1392,18 @@
     const next=reduceRoomGame(room,action);
     return next===room?room:progressTransition(room,next,action,action.actor);
   }
+  function activityCalendar(state,actor){
+    const activity=(state.progression||initialProgression(state)).individual[actor].activity;
+    return {streak:activity.streak,lastDay:activity.lastDay};
+  }
+  function validateActivityCalendar(activity){
+    return progressObject(activity)&&progressCounter(activity.streak)&&
+      (activity.streak===0?activity.lastDay===null:calendarOrdinal(activity.lastDay)!==null);
+  }
+  function activeStreak(activity,at){
+    const today=calendarOrdinal(parisDateKey(at)),last=calendarOrdinal(activity.lastDay);
+    return today!==null&&last!==null&&(today===last||today===last+1)?activity.streak:0;
+  }
   function badgeView(state,actor){
     if(!roomActors.includes(actor)||!(state?.version===2?validateRoom(state):validateState(state)))return null;
     const progress=state.progression?currentProgression(state.progression):initialProgression(state);
@@ -1416,7 +1428,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,needsVariant,cardsForRound,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,cardSides,getVariant,needsVariant,cardsForRound,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

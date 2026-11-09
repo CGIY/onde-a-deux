@@ -74,7 +74,7 @@ export function snapshot(G,context,extra={},gameVersion=2){
     const invitations=full.pendingRounds.map(item=>G.roomView(full,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
     const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,6));
     const pendingOutgoing=invitations.filter(value=>value.round.from===actor).length;
-    return {roomId:context.room.id,state:projectState(G,own,actor,6),badges:G.badgeView(full,actor),incoming,pendingOutgoing,gameVersion:6,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
+    return {roomId:context.room.id,state:projectState(G,own,actor,6),badges:G.badgeView(full,actor),activity:G.activityCalendar(full,actor),incoming,pendingOutgoing,gameVersion:6,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...extra};
   }
   return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges:G.badgeView(full,actor),revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }

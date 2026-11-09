@@ -174,7 +174,7 @@
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
   if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(serverNow()).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   if(renderNow&&changed)render();return changed;
@@ -527,14 +527,18 @@
   return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+'</section>';
  }
  function infoActivity(){
+  const activity=remoteMode?remoteSnapshot?.activity:G.activityCalendar(localRoom,viewPlayer);
+  const metric=id=>badgeView?.items.find(item=>item.id===id)?.progress.value;
+  const streak=activity?G.activeStreak(activity,new Date(serverNow()).toISOString()):metric('ind-active-streak-3');
+  const streakText=streak===undefined?'':(activity?'Série en cours':'Record')+' · '+streak.toLocaleString('fr-FR')+' jour'+(streak>1?'s':'');
   const metrics=[
+   ['ind-active-days-3','Jours actifs'],
    ['ind-draws-1','Tirages de thème'],
-   ['ind-proposals-1','Propositions envoyées'],
-   ['ind-active-days-3','Jours actifs']
+   ['ind-proposals-1','Propositions envoyées']
   ];
-  const metricCards=metrics.map(([id,label])=>{
-   const value=badgeView?.items.find(item=>item.id===id)?.progress.value;
-   return '<div><strong>'+(value?.toLocaleString('fr-FR')??'—')+'</strong><span>'+label+'</span></div>';
+  const metricCards=metrics.map(([id,label],index)=>{
+   const value=metric(id)?.toLocaleString('fr-FR')??'—';
+   return '<div><strong>'+value+'</strong><span>'+label+'</span>'+(!index&&streakText?'<small>'+streakText+'</small>':'')+'</div>';
   }).join('');
   const own=ownState||state;
   const draws=new Map();
@@ -556,7 +560,6 @@
  }
  function infoShared(){
   return `<section class="oa-info-card oa-info-shared" aria-labelledby="oa-info-shared-title">
-   <p class="oa-info-kicker">Dés·ir · À deux</p>
    <h2 id="oa-info-shared-title">Vos cartes partagées.</h2>
    <div class="oa-score-grid">${G.categories.map(c=>'<div class="oa-score-category" style="--category:'+c.color+'"><span class="oa-score-label"><i aria-hidden="true"></i>'+h(c.label)+'</span><strong>'+G.categoryScore(state.stats,c.id).toLocaleString('fr-FR')+'</strong></div>').join('')}</div>
   </section>`;
@@ -569,7 +572,6 @@
   return `<section class="oa-info-card oa-info-ticket-card" aria-labelledby="oa-info-tickets">
    <div class="oa-info-ticket-head">
     <h2 id="oa-info-tickets">Tirages du jour</h2>
-    ${remoteMode?'':'<small>Démo libre</small>'}
     <span class="oa-info-ticket-dots" role="img" aria-label="${quotaLabel}" title="${quotaLabel}">${dots}</span>
    </div>
    <p>1 relance de thème gratuite par jour · 1 joker par semaine pour le duo.</p>
@@ -584,7 +586,6 @@
  ];
  function renderInfo(){
   const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
-  const themes=G.categories.map(category=>`<li style="--category:${h(category.color)}"><i aria-hidden="true"></i>${h(category.label)}</li>`).join('');
   return `<article class="oa-info" aria-labelledby="oa-info-title">
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
    <h1 class="oa-sr" id="oa-info-title">Info</h1>
@@ -596,6 +597,8 @@
      </div>
      ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
     </section>
+    <div data-info-activity>${infoActivity()}</div>
+    <div data-info-tickets>${infoTickets()}</div>
     <div data-info-shared>${infoShared()}</div>
     <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
      <p class="oa-info-kicker">Le principe du jeu</p>
@@ -609,35 +612,20 @@
       <strong>+${G.rules.completedCardPoints} point</strong>
      </div>
     </section>
-    <div class="oa-info-ticker">
-     <div class="oa-info-ticker-head">
-      <p class="oa-info-kicker">Les quatre thèmes</p>
-      <button type="button" class="oa-info-pause cursor-interaction" data-action="info-pause" aria-label="Pause du défilement des thèmes">Pause</button>
-     </div>
-     <div class="oa-info-ribbon"><div class="oa-info-track">
-      <ul class="oa-info-copy" aria-label="Les quatre thèmes">${themes}</ul>
-      <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
-     </div></div>
-    </div>
-    <div data-info-activity>${infoActivity()}</div>
+    ${libido('women')}
     <section class="oa-info-card" aria-labelledby="oa-info-dice">
      <p class="oa-info-kicker">01 / Le tirage</p>
      <h2 id="oa-info-dice">Du thème à la carte.</h2>
      <ol class="oa-info-dice">
       <li><b>D${G.rules.categorySides}</b>Thème</li>
       <li><b>D${G.rules.cardSides}</b>Carte</li>
-      <li><b>D${G.rules.variantSides}</b>Variante*</li>
+      <li><b>D${G.rules.variantSides}</b>Variante</li>
      </ol>
-     <p>* Le dernier dé se lance quand la carte a des variantes. Ton tirage reste privé jusqu’à l’envoi.</p>
     </section>
     ${libido('places')}
     ${libido('benchmarks')}
-    <div data-info-tickets>${infoTickets()}</div>
     ${libido('destinations')}
-    ${libido('oral-manual')}
-    ${libido('women')}
     ${libido('rough')}
-    ${libido('personal')}
     <div data-info-settings>${infoSettings()}</div>
    </div>
    <details class="oa-info-install">
@@ -1039,11 +1027,6 @@
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
   if(action==='info-idea'){showInfoIdea(el);return;}
-  if(action==='info-pause'){
-   const paused=el.closest('.oa-info-ticker').toggleAttribute('data-paused');
-   el.textContent=paused?'Reprendre':'Pause';
-   el.setAttribute('aria-label',paused?'Reprendre le défilement des thèmes':'Pause du défilement des thèmes');return;
-  }
   if(action==='profile'){if(remoteMode)return;if(tab==='us')tab='play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
@@ -1088,7 +1071,7 @@
   }
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
- setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks')render();}}},30000);
+ setInterval(async()=>{if(!document.hidden&&!busy&&!operationBusy&&!pendingChecks.size){if(remoteMode){if(remoteReady&&tab==='tasks')render();}else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||tab==='tasks'||tab==='info')render();}}},30000);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden&&!remoteMode){pullShared();if(!busy&&!operationBusy&&!pendingChecks.size)render();}updateBadgeNotice();});
  window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});

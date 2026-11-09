@@ -54,6 +54,17 @@ for(const version of [1,2]){
   if(actor==='a'){equal(view.state.phase,'category');equal(view.state.round.hand,[]);}
  }
 }
+// A private draw affects only the authenticated player's activity projection.
+{
+ const room=G.createRoom({at}),own=G.roomView(room,'a'),roundId=own.round.id;
+ const drawn=G.reduceRoom(room,{type:'ROLL_CATEGORY',actor:'a',roundId,at,value:1,...G.drawCategory(own,1,3,()=>1)});
+ const view=actor=>snapshot(G,{room:{id:roomId,state:drawn,revision:1},member:{actor},paired:true,quota:{remaining:1}}, {},6);
+ const a=view('a'),b=view('b');
+ equal(a.activity,{streak:1,lastDay:'2026-11-02'});
+ equal(b.activity,{streak:0,lastDay:null});
+ equal(G.activeStreak(a.activity,'2026-11-03T22:59:00.000Z'),1);
+ equal(G.activeStreak(a.activity,'2026-11-03T23:00:00.000Z'),0);
+}
 // Exercise each integer ticket, including both ends of every face interval.
 const categoryDraws=new Map(),categoryCounts={complicite:0,attention:0,projets:0,intimite:0};
 for(let ticket=1;ticket<=42;ticket++){

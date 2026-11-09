@@ -30,6 +30,20 @@ function badgeRoom(actor='a',sent=false){
  assert.ok(G.validateRoom(room));assert.ok(G.validateBadgeView(G.badgeView(room,actor),actor));return room;
 }
 (async()=>{
+ // New activity metadata is optional and only the streak and date are retained.
+ {
+  const activity={streak:2,lastDay:'2026-11-08'},r=create(config,env(async(url,options)=>{
+   if(payload(options).op==='login')return response({...loginReply(options),activity:{...activity,unrelated:'ignored'}});
+   return response(reply());
+  }));
+  await r.login('fixture-a','fixture-secret');await r.refresh();
+  check(()=>assert.deepEqual(r.snapshot.activity,activity));
+  for(const bad of [{streak:-1,lastDay:null},{streak:2,lastDay:'2026-02-30'},{streak:0,lastDay:'2026-11-08'}]){
+   const invalid=create(config,env(async(url,options)=>response({...loginReply(options),activity:bad})));
+   await assert.rejects(invalid.login('fixture-a','fixture-secret'),{code:'invalid_response'});
+   check(()=>assert.equal(invalid.connection,null));
+  }
+ }
  // Additive badge projections are validated for this actor and preserve unknown dates on imported gains.
  {
   const room=badgeRoom(),badges=G.badgeView(room,'a');
