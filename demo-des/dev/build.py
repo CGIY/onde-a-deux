@@ -177,8 +177,10 @@ def libido_modules():
                 raise SystemExit('The personal setting split must add up to 100%.')
             inside, outside = proportions
             body = body.replace('<div class="setting-bars"', f'<div class="setting-bars" style="--inside:{inside}fr;--outside:{outside}fr"', 1)
-            body = body.replace('Expériences déclarées · France 2021', 'Expériences déclarées au cours de la vie, en France')
-            body = body.replace('Sélection hors vagin et tissus</strong>', 'Sélection hors vagin et tissus</strong> · réponses multiples')
+            body = body.replace('Expériences déclarées · France 2021<br><strong>Sélection hors vagin et tissus</strong>',
+                                'Expériences déclarées en France au cours de la vie<br>Réponses multiples, hors vagin et tissus')
+            body = body.replace('Maison / intérieur</span>', 'À l’intérieur</span>').replace('Dehors / ville / plage</span>', 'À l’extérieur</span>')
+            body = re.sub(r'<p>≈ [^<]+ des participantes</p>', '', body)
             body = re.sub(r'<div class="dest-choice">.*?</div>', '', body, flags=re.S)
             body = body.replace('Mon cadre idéal, préférence personnelle', 'Préférence personnelle de lieu')
             body = body.replace('<div class="dest-cell"><h3>Dans la bouche</h3>',

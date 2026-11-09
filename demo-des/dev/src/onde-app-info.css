@@ -9,7 +9,8 @@
 #onde-app-v1 .oa-info-activity-metrics>div:first-child strong{color:#f7d5aa}
 #onde-app-v1 .oa-info-activity-metrics>div:first-child span{font-weight:650}
 #onde-app-v1 .oa-info-streak strong{display:flex;align-items:center;gap:4px}
-#onde-app-v1 .oa-info-streak strong svg{width:14px;height:16px;flex:none;fill:none;stroke:#efc6a2;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+#onde-app-v1 .oa-info-flame{width:22px;height:25px;flex:none;fill:#efa87d}
+#onde-app-v1 .oa-info-flame path+path{fill:#ffe1b6}
 #onde-app-v1 .oa-info-streak strong small{color:#ebcba5;font:10px/1.2 var(--info-mono);align-self:end;padding-bottom:1px}
 #onde-app-v1 .oa-info-activity h3{margin-bottom:6px;font-size:13px;font-weight:550}
 #onde-app-v1 .oa-info-recent{list-style:none;margin:0;padding:0}
@@ -55,23 +56,26 @@
 #onde-app-v1 .oa-libido .anal-benchmark p{font-size:11px;line-height:1.3}
 #onde-app-v1 .oa-libido .rough-header{display:flex;align-items:center;gap:8px}
 
-#onde-app-v1 .oa-libido .setting-split{padding:8px 10px;border-radius:12px;background:var(--chart-soft);border:1px solid var(--chart-line);margin-bottom:9px}
-#onde-app-v1 .oa-libido .setting-labels{display:flex;justify-content:space-between;gap:12px;font-size:11px}
-#onde-app-v1 .oa-libido .setting-labels>span:last-child{text-align:right}
-#onde-app-v1 .oa-libido .setting-labels b{display:block;color:var(--chart);font-size:23px;line-height:1.25}
-#onde-app-v1 .oa-libido .setting-labels small{font-size:12px}
-#onde-app-v1 .oa-libido .setting-bars{display:grid;grid-template-columns:var(--inside) var(--outside);gap:3px;margin-top:7px}
+#onde-app-v1 .oa-libido.destinations{padding:13px}
+#onde-app-v1 .oa-libido.destinations h2{margin-bottom:8px}
+#onde-app-v1 .oa-libido .setting-split{padding:6px 8px;border-radius:10px;background:var(--chart-soft);border:1px solid var(--chart-line);margin-bottom:6px}
+#onde-app-v1 .oa-libido .setting-labels{display:flex;justify-content:space-between;gap:6px;font-size:10px}
+#onde-app-v1 .oa-libido .setting-labels>span{display:flex;align-items:baseline;gap:5px}
+#onde-app-v1 .oa-libido .setting-labels>span:last-child{flex-direction:row-reverse;text-align:right}
+#onde-app-v1 .oa-libido .setting-labels b{color:var(--chart);font-size:17px;line-height:1.15;white-space:nowrap}
+#onde-app-v1 .oa-libido .setting-labels small{font-size:10px}
+#onde-app-v1 .oa-libido .setting-bars{display:grid;grid-template-columns:var(--inside) var(--outside);gap:3px;height:4px;margin-top:4px}
 #onde-app-v1 .oa-libido .setting-bars i+i{background:var(--outside-color)}
 #onde-app-v1 .oa-libido .setting-labels>span:last-child>b{color:var(--outside-color)}
-#onde-app-v1 .oa-libido .dest-percent{margin:5px 0}
-#onde-app-v1 .oa-libido .dest-cell>p{font-size:10px;line-height:1.35}
-#onde-app-v1 .oa-libido .dest-track{margin:5px 0 0}
-#onde-app-v1 .oa-libido .dest-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-#onde-app-v1 .oa-libido .dest-grid>.dest-cell{--chart:#c4b6cb;padding:7px}
-#onde-app-v1 .oa-libido .dest-grid>.dest-cell:not(.dest-featured) .dest-percent{font-size:24px}
-#onde-app-v1 .oa-libido .dest-grid>.dest-featured{--chart:#f6bdab;grid-column:1/-1;padding:9px 10px;border-color:#edb59c6f;background:linear-gradient(135deg,#60463f,#48363b)}
-#onde-app-v1 .oa-libido .dest-featured h3{color:#ffded0;font-size:14px}
-#onde-app-v1 .oa-libido .dest-featured .dest-percent{font-size:clamp(35px,11vw,46px)}
+#onde-app-v1 .oa-libido p.dest-base:not(.oa-info-kicker){font-size:10px;line-height:1.4}
+#onde-app-v1 .oa-libido .dest-grid{gap:5px;margin-top:6px}
+#onde-app-v1 .oa-libido .dest-grid>.dest-cell{--chart:#c4b6cb;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 5px;padding:6px 7px;border-radius:9px}
+#onde-app-v1 .oa-libido .dest-cell h3{font-size:11px}
+#onde-app-v1 .oa-libido .dest-cell .dest-percent{font-size:18px}
+#onde-app-v1 .oa-libido .dest-cell .dest-track{grid-column:1/-1;height:3px}
+#onde-app-v1 .oa-libido .dest-grid>.dest-featured{--chart:#f6bdab;border-color:#edb59c6f;background:linear-gradient(135deg,#60463f,#48363b)}
+#onde-app-v1 .oa-libido .dest-featured h3{color:#ffded0;font-weight:650}
+#onde-app-v1 .oa-libido .dest-featured .dest-percent{font-size:23px}
 
 #onde-app-v1 .oa-libido .rough-group-label{margin-top:6px;font-size:11px}
 #onde-app-v1 .oa-libido .rough-grid{gap:4px;margin-top:5px}
