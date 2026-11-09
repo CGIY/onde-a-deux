@@ -27,6 +27,7 @@
       <button type="button" data-action="tab" data-tab="play" class="cursor-interaction" aria-current="page"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M14.5 8.5h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V13a2 2 0 0 0-2-2h-3"/></svg><span>Jouer<i class="oa-incoming-dot" aria-label="Invitation en attente" hidden></i></span></button>
       <button type="button" data-action="tab" data-tab="tasks" class="cursor-interaction"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8 12 2.5 2.5L16 9"/></svg><span>À faire <b class="oa-task-count" hidden></b></span></button>
       <button type="button" data-action="tab" data-tab="us" class="cursor-interaction"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 9c0 4.8-8.5 10-8.5 10S3.5 13.8 3.5 9A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8.5 2Z"/></svg>Nous</button>
+      <button type="button" data-action="tab" data-tab="info" class="cursor-interaction"><svg class="oa-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="M12 11v5m0-8h.01"/></svg>Info</button>
     </nav>
     <div id="oa-toast" class="oa-toast" role="status" hidden></div>
     <aside id="oa-badge-notice" class="oa-badge-notice" aria-label="Badge débloqué" hidden></aside>
@@ -333,8 +334,8 @@
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(140deg,#93b9be,#759ca8);color:#142b2d;border-color:#b1d0ce;box-shadow:inset 0 1px 1px #fff7,inset 0 -3px 5px #28474b25,0 5px 14px #0003;font-weight:600}
 #onde-app-v1 .oa-text-button{min-height:44px;font-size:13px}
 #onde-app-v1 .oa-button[aria-busy=true]{opacity:.8}
-#onde-app-v1 .oa-nav{justify-content:center;gap:48px;padding:12px 0 18px}
-#onde-app-v1 .oa-nav button{min-width:100px;min-height:52px;font-size:12px}
+#onde-app-v1 .oa-nav{justify-content:space-around;gap:8px;padding:12px 0 18px}
+#onde-app-v1 .oa-nav button{flex:1;min-width:0;min-height:52px;font-size:12px}
 #onde-app-v1 .oa-card-back{min-height:86px;display:flex;align-items:center;justify-content:center;background:linear-gradient(140deg,color-mix(in srgb,var(--oa-accent) 30%,#30332d),#282e29);box-shadow:inset 0 1px #ffffff27,inset 0 -3px 7px #0003,0 4px 10px #0002;overflow:hidden}
 #onde-app-v1 .oa-card-back:after{content:"";position:absolute;inset:0;pointer-events:none;background-image:var(--oa-grain);opacity:.35;background-size:100px}
 #onde-app-v1 .oa-card-back .oa-mini-number{position:absolute;top:8px;left:8px;font-size:10px}
@@ -360,7 +361,7 @@
 #onde-app-v1 .oa-celebration i{position:absolute;display:block;left:50%;top:50%;width:9px;height:13px;border-radius:5px;box-shadow:inset 0 1px #fff5}
 /* Shared six-hour list, with a liquid wave inside each person's box. */
 #onde-app-v1 .oa-nav{justify-content:space-around;gap:8px}
-#onde-app-v1 .oa-nav button{min-width:76px}
+#onde-app-v1 .oa-nav button{min-width:0}
 #onde-app-v1 .oa-task-count{display:inline-grid;place-items:center;min-width:17px;height:17px;border-radius:50%;background:#aebca0;color:#232c22;font-size:10px;font-weight:500;margin-left:2px}
 #onde-app-v1 .oa-task-list{display:grid;gap:14px;margin-top:24px}
 #onde-app-v1 .oa-task{border:1px solid color-mix(in srgb,var(--category) 48%,#525b4d);border-radius:24px;padding:19px;background:linear-gradient(145deg,color-mix(in srgb,var(--category) 22%,#30372e),#282f29);box-shadow:inset 0 1px #ffffff22,inset 0 -3px 8px #0002;position:relative;isolation:isolate;overflow:hidden}
@@ -525,7 +526,7 @@
  #onde-app-v1 .oa-person-name{min-height:28px;padding:4px 10px;font-size:12px;border-radius:16px}
  #onde-app-v1 .oa-switch button{min-height:44px}
  #onde-app-v1 .oa-main{flex:1 1 0;min-height:0;padding:0 max(18px,env(safe-area-inset-right)) 10px max(18px,env(safe-area-inset-left));overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scroll-padding-block:12px;scrollbar-width:thin}
- #onde-app-v1 .oa-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0;padding:6px max(14px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border-top:1px solid #96938a55;background:#282725;z-index:3}
+ #onde-app-v1 .oa-nav{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0;padding:6px max(14px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border-top:1px solid #96938a55;background:#282725;z-index:3}
  #onde-app-v1 .oa-nav button{width:100%;min-width:0;min-height:60px;padding:5px 4px;gap:3px;font-size:12px;line-height:1.3;color:#b8beb4}
  #onde-app-v1 .oa-nav-icon{width:32px;height:32px;stroke-width:1.65;opacity:.85}
  #onde-app-v1 .oa-nav button[aria-current=page]{color:#e0b8a5}
@@ -680,6 +681,82 @@
 #onde-app-v1 .oa-achievement-tile:focus-visible,#onde-app-v1 .oa-achievement-filters button:focus-visible,#onde-app-v1 .oa-achievement-back button:focus-visible,#onde-app-v1 .oa-badge-notice button:focus-visible{outline:2px solid var(--oa-slate);outline-offset:3px}
 @media(max-width:360px){#onde-app-v1 .oa-badge-notice{grid-template-columns:78px minmax(0,1fr);gap:9px;padding-left:8px}#onde-app-v1 .oa-badge-notice>.oa-medallion{width:78px}#onde-app-v1 .oa-badge-notice h2{font-size:16px}#onde-app-v1 .oa-achievement-gallery{column-gap:6px}}
 @media(max-width:340px){#onde-app-v1 .oa-achievement-gallery{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:15px}#onde-app-v1 .oa-medal-title{font-size:12px}}
+
+/* Info: the editorial page reads inside the same app frame. */
+@media (min-width:481px) and (min-height:501px), (min-width:1001px){
+ #onde-app-v1 .oa-shell:has(.oa-info){display:flex;flex-direction:column;height:min(860px,calc(100dvh - 64px))}
+ #onde-app-v1 .oa-shell:has(.oa-info) .oa-main{flex:1;min-height:0;overflow:auto;overscroll-behavior-y:contain;scrollbar-width:thin}
+ #onde-app-v1 .oa-shell:has(.oa-info) .oa-nav{flex:none}
+}
+#onde-app-v1 .oa-info{--info-mono:ui-monospace,SFMono-Regular,Menlo,monospace;--info-rhythm:cubic-bezier(.3,.75,.22,1);padding-bottom:12px}
+#onde-app-v1 .oa-info-progress{position:sticky;z-index:2;top:0;height:2px;margin-bottom:15px;border-radius:4px;background:#ded3b822;overflow:hidden;pointer-events:none}
+#onde-app-v1 .oa-info-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--oa-sage),var(--oa-clay));transform:scaleX(0);transform-origin:left}
+#onde-app-v1 .oa-info-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px;align-items:center;margin:0 2px 14px}
+#onde-app-v1 .oa-info-hero .oa-title{font-size:clamp(37px,11vw,53px);line-height:.97;letter-spacing:-.065em;margin:9px 0 10px;text-wrap:initial}
+#onde-app-v1 .oa-info-hero .oa-subtitle{max-width:26ch;font-size:13px}
+#onde-app-v1 .oa-info-kicker{font:10px/1.4 var(--info-mono);letter-spacing:.105em;text-transform:uppercase;color:var(--oa-muted)}
+#onde-app-v1 .oa-info-mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:clamp(66px,23vw,92px);rotate:-6deg;padding:7px;border:1px solid #f0e4d127;border-radius:13px;background:#17191866;box-shadow:0 6px 18px #17161355}
+#onde-app-v1 .oa-info-mosaic i{aspect-ratio:1;border-radius:3px;background:var(--tile);box-shadow:inset 0 1px #fff3,inset 0 -2px #0003;opacity:.8}
+#onde-app-v1 .oa-info-mosaic i:nth-child(7){animation:oa-info-pulse 2.4s ease-in-out 2}
+#onde-app-v1 .oa-info-ticker{margin-bottom:13px}
+#onde-app-v1 .oa-info-ticker-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px}
+#onde-app-v1 .oa-info-pause{min-height:44px;padding:0 6px;border:0;background:none;font:11px var(--info-mono);color:var(--oa-sage)}
+#onde-app-v1 .oa-info-ribbon{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 9px,#000 calc(100% - 9px),transparent)}
+#onde-app-v1 .oa-info-track{display:flex;width:max-content;animation:oa-info-loop 30s linear infinite}
+#onde-app-v1 .oa-info-copy{list-style:none;display:flex;gap:7px;margin:0;padding:0 7px 0 0}
+#onde-app-v1 .oa-info-copy li{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid color-mix(in srgb,var(--category) 38%,transparent);border-radius:12px;background:color-mix(in srgb,var(--category) 11%,#282725);color:var(--oa-text);font-size:12px;white-space:nowrap}
+#onde-app-v1 .oa-info-copy i,#onde-app-v1 .oa-info-idea-theme:before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;rotate:45deg;background:var(--category)}
+#onde-app-v1 .oa-info-ticker[data-paused] .oa-info-track{animation-play-state:paused}
+@media(hover:hover){#onde-app-v1 .oa-info-ribbon:hover .oa-info-track{animation-play-state:paused}}
+#onde-app-v1 .oa-info-cards{display:grid;gap:10px}
+#onde-app-v1 .oa-info-card{position:relative;isolation:isolate;min-width:0;padding:16px;border:1px solid #b1b5a333;border-radius:22px;background:linear-gradient(145deg,#3c4037,#2c302c);box-shadow:inset 0 1px #fff1,inset 0 -3px 7px #0002}
+#onde-app-v1 .oa-info-card:before{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:var(--oa-grain) 0 0/108px;mix-blend-mode:soft-light;pointer-events:none}
+#onde-app-v1 .oa-info-card h2{margin:5px 0 6px;font-size:22px;font-weight:500;line-height:1.15;letter-spacing:-.03em}
+#onde-app-v1 .oa-info-card h2 em{color:var(--oa-sage);font:italic 1em Georgia,serif}
+#onde-app-v1 .oa-info-card p:not(.oa-info-kicker){color:#d9d8ce;font-size:13px;line-height:1.48}
+#onde-app-v1 .oa-info-lab{background:radial-gradient(ellipse at 100% 0%,#b2816b33,transparent 74%),linear-gradient(140deg,#493a35,#362e2c);border-color:#c99d7b55}
+#onde-app-v1 .oa-info-lab .oa-info-kicker,#onde-app-v1 .oa-info-lab h2 em{color:#ebbcaa}
+#onde-app-v1 .oa-info-lab .oa-button{min-height:44px;margin-top:12px;justify-content:space-between;background:linear-gradient(145deg,#edb7a2,#c78d77);color:#31241f;border-color:#edc1ad;box-shadow:inset 0 1px #fff5,0 3px 9px #1c15133d}
+#onde-app-v1 .oa-info-idea-theme:before{margin-right:7px;vertical-align:1px}
+#onde-app-v1 .oa-info-dice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;list-style:none;margin:12px 0 10px;padding:0}
+#onde-app-v1 .oa-info-dice li{display:grid;gap:4px;justify-items:center;text-align:center;padding:8px 3px;border:1px solid #c9cabc38;border-radius:12px;background:#1d221f66;font-size:11px;color:#e2e4d8}
+#onde-app-v1 .oa-info-dice b{font:500 22px/1 var(--info-mono);color:var(--oa-sage);letter-spacing:-.1em}
+#onde-app-v1 .oa-info-reading{display:flex;align-items:center;gap:14px;margin:7px 0 10px}
+#onde-app-v1 .oa-info-number{color:#f4e9da;font-size:clamp(38px,12vw,55px);font-weight:450;line-height:1;letter-spacing:-.07em;white-space:nowrap;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-info-number small{margin-left:3px;font-size:.43em;letter-spacing:-.025em}
+#onde-app-v1 .oa-info-tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 0 10px}
+#onde-app-v1 .oa-info-tickets i{height:5px;border-radius:5px;background:linear-gradient(90deg,#859375,var(--oa-sage));transform-origin:left}
+#onde-app-v1 .oa-info-tickets i:nth-child(2){animation-delay:.12s}
+#onde-app-v1 .oa-info-tickets i:nth-child(3){animation-delay:.24s}
+#onde-app-v1 .oa-info-weekend{background:linear-gradient(145deg,#403842,#302d36);border-color:#c49bc946}
+#onde-app-v1 .oa-info-ring{position:relative;display:grid;place-items:center;flex:none;width:83px;height:83px}
+#onde-app-v1 .oa-info-ring svg{position:absolute;inset:0;width:100%;height:100%;rotate:-90deg;fill:none;stroke:#dcc3e02e;stroke-width:5}
+#onde-app-v1 .oa-info-ring circle+circle{stroke:#cfa8d4;stroke-linecap:round;stroke-dasharray:60 100}
+#onde-app-v1 .oa-info-ring .oa-info-number{font-size:36px}
+#onde-app-v1 .oa-info-agreement{background:linear-gradient(145deg,#414850,#303639);border-color:#9ab2cb55}
+#onde-app-v1 .oa-info-checks{display:flex;gap:4px;align-items:center;flex:none;color:#d0dfeb}
+#onde-app-v1 .oa-info-checks i{display:grid;place-items:center;width:26px;height:26px;border:1px solid #b0cad86e;border-radius:8px;background:#94b1bd26;font:14px var(--info-mono)}
+#onde-app-v1 .oa-info-install{border-top:1px solid var(--oa-line);margin-top:10px;padding:0 2px 4px;color:var(--oa-muted);font-size:13px;line-height:1.5}
+#onde-app-v1 .oa-info-install summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;list-style:none;color:var(--oa-text)}
+#onde-app-v1 .oa-info-install summary::-webkit-details-marker{display:none}
+#onde-app-v1 .oa-info-install summary:after{content:"+";color:var(--oa-sage);font:18px var(--info-mono)}
+#onde-app-v1 .oa-info-install[open] summary:after{content:"−"}
+#onde-app-v1 .oa-info-install summary:focus-visible{outline:2px solid var(--oa-sage);outline-offset:2px}
+#onde-app-v1 .oa-info-card.is-reading{animation:oa-info-reveal .65s var(--info-rhythm) both}
+#onde-app-v1 .oa-info-card.is-reading .oa-info-tickets i{animation-name:oa-info-fill;animation-duration:1.25s;animation-timing-function:var(--info-rhythm);animation-fill-mode:both}
+#onde-app-v1 .oa-info-card.is-reading .oa-info-ring circle+circle{animation:oa-info-ring 1.5s var(--info-rhythm) both}
+@keyframes oa-info-loop{to{transform:translateX(-50%)}}
+@keyframes oa-info-pulse{50%{opacity:1;scale:1.12}}
+@keyframes oa-info-reveal{from{opacity:.45;transform:translateY(9px)}}
+@keyframes oa-info-fill{from{transform:scaleX(0)}}
+@keyframes oa-info-ring{from{stroke-dasharray:0 100}}
+@media(prefers-reduced-motion:reduce){
+ #onde-app-v1 .oa-info *{animation:none!important}
+ #onde-app-v1 .oa-info .oa-info-pause,#onde-app-v1 .oa-info .oa-info-copy[aria-hidden]{display:none}
+ #onde-app-v1 .oa-info .oa-info-ribbon{mask-image:none}
+ #onde-app-v1 .oa-info .oa-info-track{width:auto}
+ #onde-app-v1 .oa-info .oa-info-copy{flex-wrap:wrap;padding-right:0}
+}
 </style>
 
 <script>window.DesirCardNotes=Object.freeze({"new-complicite-01": "Un selfie garde vos sourires du jour, avec tout le charme des photos imparfaites.", "new-complicite-02": "Un baiser avec la langue laisse toute la place au toucher, au rythme et à l’envie.", "new-complicite-03": "Un câlin, c’est de la chaleur à partager sans avoir besoin de trouver les mots.", "new-complicite-04": "Un petit mot caché prolonge l’attention bien après le moment où il a été écrit.", "new-complicite-05": "Le vernis ajoute une touche de couleur qui reste quand le moment partagé est terminé.", "new-complicite-06": "Sous le plaid, une caresse donne au canapé un petit supplément de douceur à deux.", "new-complicite-07": "Une heure sans téléphone, c’est une heure où les messages passent après ce que vous partagez.", "new-complicite-11": "Une longue pause sans téléphone laisse de la place aux activités qui prennent leur temps.", "new-complicite-08": "Un jeu de société, c’est un terrain commun pour les petites stratégies et les grandes réactions.", "new-complicite-09": "Un film ouvre une histoire commune, avec des scènes à commenter longtemps après le générique.", "new-complicite-10": "Une série donne rendez-vous à vos personnages préférés et aux commentaires qui vont avec.", "new-detente-01": "Un massage de la tête invite à fermer les yeux et à savourer le passage des mains.", "new-detente-02": "Un massage des épaules, c’est le plaisir de recevoir sans avoir quoi que ce soit à faire.", "new-detente-03": "Un massage des pieds fait profiter de mains attentives jusqu’au bout des orteils.", "new-detente-04": "Un massage des cuisses laisse de la place aux gestes larges et au plaisir du contact.", "new-detente-05": "Un massage des oreilles réserve de petites sensations là où l’on pense rarement à s’attarder.", "new-detente-06": "Un massage du visage offre un moment tout près, avec la douceur des mains au premier plan.", "new-detente-07": "Un massage du dos atteint les endroits que nos propres mains ont tant de mal à trouver.", "new-detente-08": "Un massage total prend le temps de varier les sensations, des premières caresses aux derniers gestes.", "new-detente-09": "Un masque visage donne une bonne excuse pour ralentir et assumer ensemble une allure un peu étrange.", "new-detente-10": "Un soin complet du visage transforme les gestes habituels en une attention qui prend son temps.", "new-projets-01": "Même une rue familière garde des façades, des passages et des détails à découvrir ensemble.", "new-projets-02": "Sous les arbres, le chemin se remplit de feuillages, de textures et de sons à remarquer.", "new-projets-03": "Une visite met des œuvres et des histoires sous vos yeux, loin des simples images d’écran.", "new-projets-04": "L’eau fait voyager les pigments sur le papier, et chaque mélange laisse sa propre trace.", "new-projets-05": "Vos mains donnent forme à l’argile : une création qui prend vraiment du volume.", "new-projets-06": "Un même paysage change d’allure selon la lumière, le cadre et le regard derrière l’objectif.", "new-projets-07": "Votre repas quitte la cuisine pour s’installer dans un endroit que vous avez choisi.", "new-projets-08": "Les trottoirs mouillés attrapent les lumières, et votre trajet habituel se remplit de reflets.", "new-projets-09": "Les éclairages et les ombres composent un décor différent, même dans un quartier bien connu.", "new-projets-10": "Des adresses repérées et un trajet choisi donnent déjà une forme à votre prochaine escapade.", "new-projets-11": "Vos envies de voyage deviennent des lieux à relier et un séjour à inventer ensemble.", "new-projets-12": "Les mêmes meubles, déplacés autrement, dessinent un nouveau coin de maison à habiter.", "new-projets-13": "Quelques objets inutiles en moins, et leur place revient enfin à ce qui vous sert.", "new-projets-14": "Un seul objet inutile en moins laisse déjà une petite place nette dans votre quotidien.", "new-projets-15": "Un détail refait suffit à donner une nouvelle finition à ce coin que vous voyez chaque jour.", "new-projets-16": "Un chantier d’envergure ouvre la place aux changements que les petites retouches ne permettent pas.", "new-projets-17": "Vos envies ont enfin leur liste, avec de la place pour les prochaines idées qui débarquent.", "new-projets-18": "Vos préférences prennent place côte à côte, avec de vrais favoris et quelques débats savoureux.", "new-attention-01": "La seconde main réserve des trouvailles déjà existantes, à dénicher avec votre petit budget.", "new-attention-02": "Une pièce longtemps cherchée se trouve parfois dans une autre garde-robe, prête pour une nouvelle histoire.", "new-attention-03": "Une tasse choisie au comptoir, une table pour vous poser : votre pause a trouvé son adresse.", "new-attention-04": "Un roman rejoint votre bibliothèque, avec une histoire à découvrir puis à retrouver quand l’envie revient.", "new-attention-05": "Un nouveau jeu dans votre collection, c’est tout un univers à explorer manette ou clavier en main.", "new-attention-06": "Les cases et les images font avancer l’histoire, dans un livre à feuilleter à votre rythme.", "new-attention-07": "Un nouveau tome trouve sa place sur l’étagère, entre vos personnages familiers et vos prochaines découvertes.", "new-attention-08": "Une boîte de cartes prend peu de place et garde de nouvelles parties sous le coude.", "new-attention-09": "Un plateau à déplier, des pièces à installer : une nouvelle boîte pour vos prochaines soirées de jeu.", "new-attention-10": "Un petit accessoire intime rejoint votre collection, avec une nouvelle sensation à mettre au programme.", "new-attention-11": "Une nouveauté plus ambitieuse agrandit votre terrain de jeu intime et ses possibilités à explorer.", "new-attention-12": "Une nouvelle pièce de lingerie apporte une couleur, une matière ou une coupe à votre tiroir.", "new-attention-13": "Avec ce budget défini, une petite trouvaille rejoint votre quotidien et reste bien après les courses.", "new-attention-14": "Une belle pièce de lingerie se porte sous vos vêtements ou devient la vedette de la tenue.", "new-attention-15": "Une envie plus conséquente trouve sa place dans le panier, du vêtement à l’objet pour la maison.", "new-bouffe-01": "Pain, garniture et sauce se retrouvent dans la même bouchée, avec votre combinaison du moment.", "new-bouffe-02": "La pizza se partage en parts, avec des bords croustillants et une garniture à choisir.", "new-bouffe-03": "Le riz vinaigré et les garnitures composent des bouchées différentes à piocher au fil du plateau.", "new-bouffe-04": "Le kebab réunit pain, garniture et sauce dans un repas qui se mange à la main.", "new-bouffe-05": "Le panier se remplit d’ingrédients pour une recette mexicaine, et le prochain repas change de décor.", "new-bouffe-06": "Une sauce, des épices ou des nouilles donnent une nouvelle direction à votre liste de courses.", "new-bouffe-07": "Un pays européen donne le thème du panier, avec une spécialité à inviter dans votre cuisine.", "new-bouffe-08": "La même pâte accueille les garnitures de chacun, et la pile grandit au fil des poêlées.", "new-bouffe-09": "Une fournée laisse des cookies à partager, avec les pépites et les ajouts que vous aimez.", "new-bouffe-10": "Votre préparation devient un dessert à découper, avec une première part encore à choisir.", "new-bouffe-11": "Les petits plats et les verres quittent la table pour retrouver votre coin de canapé.", "new-bouffe-12": "Le chocolat chaud se déguste à petites gorgées, avec votre place préférée sur le canapé.", "new-intimite-01": "Recevoir l’attention laisse simplement de la place au plaisir d’être le centre du moment.", "new-intimite-02": "Changer de point de vue redistribue les rôles et donne au tête-à-tête un autre relief.", "new-intimite-03": "Les mouvements glissés donnent au toucher une continuité presque dansante, loin du massage bien sage.", "new-intimite-04": "Le rythme se pilote du bout des doigts, et la surprise entre dans la partie.", "new-intimite-05": "L’attention transforme ce tête-à-tête en un jeu de nuances, de rythme et de petites surprises.", "new-intimite-06": "Un final visuel apporte au jeu une touche théâtrale, comme le dernier plan d’une scène.", "new-intimite-07": "Le tête-à-tête se prolonge jusqu’au final, comme une conversation qui garde son fil.", "new-intimite-08": "Une préférence très personnelle donne à ce final sa signature, loin des grands scénarios.", "new-intimite-09": "Le plaisir de rejouer une scène tient aussi aux costumes, aux angles et aux détails.", "new-intimite-10": "Changer de terrain fait redécouvrir le tempo, les pauses et la façon d’être attentifs.", "new-intimite-11": "Même les rituels les plus ordinaires changent d’allure quand ils entrent dans votre jeu.", "new-intimite-12": "Superposer les sensations donne au jeu une autre densité, comme un duo qui change d’accord.", "new-intimite-13": "Un portrait de buste mise sur la lumière et le cadrage pour affirmer son style.", "new-intimite-14": "Une silhouette vue de dos fait jouer les courbes, les lignes et les ombres autrement.", "new-intimite-15": "Un cadrage serré transforme une image intime en une composition de lumière et de textures.", "new-intimite-16": "Face à l’objectif, la posture et la lumière donnent immédiatement le ton de la scène.", "new-intimite-17": "Tourner le dos à la caméra suffit à changer les lignes et l’énergie du cadre.", "new-intimite-18": "En direct, le rythme et les pauses écrivent une scène qui ne ressemble qu’à vous.", "new-intimite-19": "L’image d’un final garde l’instantané, les expressions et le petit côté coulisses de votre jeu.", "new-intimite-20": "Changer de rôle bouscule les habitudes et laisse une autre personne donner le tempo.", "new-intimite-21": "Les pauses font autant partie du jeu que le rythme : toute une histoire de contraste.", "new-intimite-22": "Une lumière inattendue ou un accessoire suffit à inventer une nouvelle version de votre duo."});</script>
@@ -3826,7 +3903,7 @@ void main(){
  let autoNewRoundTimer=null,autoNewRoundId=null;
  let charge=null,suppressedClick=null,controlsBusyState=null;
  let persisted=false, canPersist=true, recovery=false, lastError='';
- let renderKey='',renderedMarkup='';
+ let renderKey='',renderedMarkup='',infoReading=null;
  const contentTransitions=new Set();
  const gaugeFrames=new Map();
  const pendingChecks=new Set();
@@ -4327,6 +4404,156 @@ void main(){
  function renderUs(){if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);return sharedScore()+badgesSection()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>');}
 
 
+ const infoIdeas=[
+  'Quel petit rituel vous ferait plaisir cette semaine ?',
+  'Qu’aimeriez-vous goûter ensemble pour la première fois ?',
+  'Si vous aviez deux heures devant vous, où iriez-vous ?',
+  'De quel genre de proximité avez-vous envie aujourd’hui ?'
+ ];
+ function renderInfo(){
+  const themes=G.categories.map(category=>`<li style="--category:${h(category.color)}"><i aria-hidden="true"></i>${h(category.label)}</li>`).join('');
+  const mosaic=[0,0,2,2,0,2,3,3,1,1,2,3,1,1,1,3].map(index=>`<i style="--tile:${h(G.categories[index].color)}"></i>`).join('');
+  return `<article class="oa-info" aria-labelledby="oa-info-title">
+   <div class="oa-info-progress" aria-hidden="true"><i></i></div>
+   <header class="oa-info-hero">
+    <div>
+     <p class="oa-info-kicker">Le carnet de Dés·ir</p>
+     <h1 class="oa-title" id="oa-info-title">Le jeu,<br><em>à deux.</em></h1>
+     <p class="oa-subtitle">Un dé pour ouvrir une piste. À vous de voir où elle mène.</p>
+    </div>
+    <div class="oa-info-mosaic" aria-hidden="true">${mosaic}</div>
+   </header>
+   <div class="oa-info-ticker">
+    <div class="oa-info-ticker-head">
+     <p class="oa-info-kicker">Les quatre thèmes</p>
+     <button type="button" class="oa-info-pause cursor-interaction" data-action="info-pause" aria-label="Pause du défilement des thèmes">Pause</button>
+    </div>
+    <div class="oa-info-ribbon"><div class="oa-info-track">
+     <ul class="oa-info-copy" aria-label="Les quatre thèmes">${themes}</ul>
+     <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
+    </div></div>
+   </div>
+   <div class="oa-info-cards">
+    <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
+     <p class="oa-info-kicker" id="oa-info-idea">Pour ouvrir la conversation</p>
+     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">
+      <h2>Une idée <em>à deux.</em></h2>
+      <p>Une question à piocher, en dehors de la partie.</p>
+     </div>
+     ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
+    </section>
+    <section class="oa-info-card" aria-labelledby="oa-info-dice">
+     <p class="oa-info-kicker">01 / Le tirage</p>
+     <h2 id="oa-info-dice">Du thème à la carte.</h2>
+     <ol class="oa-info-dice">
+      <li><b>D${G.rules.categorySides}</b>Thème</li>
+      <li><b>D${G.rules.cardSides}</b>Carte</li>
+      <li><b>D${G.rules.variantSides}</b>Variante*</li>
+     </ol>
+     <p>* Le dernier dé se lance quand la carte a des variantes. Ton tirage reste privé jusqu’à l’envoi.</p>
+    </section>
+    <section class="oa-info-card" aria-labelledby="oa-info-tickets">
+     <p class="oa-info-kicker">02 / Les tickets</p>
+     <h2 id="oa-info-tickets">La réserve du jour.</h2>
+     <div class="oa-info-reading">
+      <span class="oa-info-number" aria-hidden="true"><span data-info-count>3</span></span>
+      <p><span class="oa-sr">Trois </span>tirages par personne en ligne, renouvelés à <strong>5 h</strong> (Paris).</p>
+     </div>
+     <div class="oa-info-tickets" aria-hidden="true"><i></i><i></i><i></i></div>
+     <p>Une relance de thème gratuite par jour. Un joker par semaine pour que l’un de vous choisisse le thème.</p>
+    </section>
+    <section class="oa-info-card oa-info-weekend" aria-labelledby="oa-info-weekend">
+     <p class="oa-info-kicker">03 / Le week-end</p>
+     <h2 id="oa-info-weekend">Une autre cadence.</h2>
+     <div class="oa-info-reading">
+      <div class="oa-info-ring" aria-hidden="true">
+       <svg viewBox="0 0 86 86"><circle cx="43" cy="43" r="38"/><circle cx="43" cy="43" r="38" pathLength="100"/></svg>
+       <span class="oa-info-number"><span data-info-count>60</span><small>%</small></span>
+      </div>
+      <p><span class="oa-sr">60 % </span>de chances de tirer <strong>Intimité</strong> au D4 le samedi et le dimanche, heure de Paris.</p>
+     </div>
+    </section>
+    <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
+     <p class="oa-info-kicker">04 / À faire</p>
+     <h2 id="oa-info-agreement">Il faut deux oui.</h2>
+     <div class="oa-info-reading">
+      <span class="oa-info-checks" aria-hidden="true"><i>✓</i><i>✓</i></span>
+      <p>Une fois le défi réalisé, deux coches dans les <strong>${G.rules.taskLifetimeMs/3600000} h</strong> valent <strong>+${G.rules.completedCardPoints} point</strong> pour le duo.</p>
+     </div>
+     <p>Un défi envoyé reste une proposition. Chacun peut dire non. « Refuser · D20 » retire la carte, quelle que soit la face.</p>
+    </section>
+   </div>
+   <details class="oa-info-install">
+    <summary>Retrouver Dés·ir sur l’écran d’accueil</summary>
+    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis Nous.</p>
+   </details>
+  </article>`;
+ }
+ function mountInfo(){
+  const panel=main.querySelector('.oa-info');
+  if(!panel)return;
+  const progress=panel.querySelector('.oa-info-progress i');
+  const updateProgress=()=>{
+   const distance=main.scrollHeight-main.clientHeight;
+   const ratio=distance>0?Math.max(0,Math.min(1,main.scrollTop/distance)):1;
+   progress.style.transform='scaleX('+ratio+')';
+  };
+  const frames=new Map();
+  const observer=window.IntersectionObserver&&new IntersectionObserver(entries=>{
+   entries.forEach(({target,isIntersecting})=>{
+    if(!isIntersecting||systemReduce)return;
+    observer.unobserve(target);
+    target.classList.add('is-reading');
+    const count=target.querySelector('[data-info-count]');
+    if(!count)return;
+    const final=Number(count.textContent),duration=final===3?1050:1500;
+    const started=chargeNow();
+    const step=now=>{
+     const ratio=Math.min(1,(now-started)/duration);
+     count.textContent=String(Math.round(final*(1-Math.pow(1-ratio,2))));
+     if(ratio<1)frames.get(count).id=requestAnimationFrame(step);
+     else frames.delete(count);
+    };
+    count.textContent='0';
+    frames.set(count,{id:requestAnimationFrame(step),final});
+   });
+  },{root:main,threshold:.18});
+  const stopCounts=()=>{
+   frames.forEach(({id,final},node)=>{cancelAnimationFrame(id);node.textContent=String(final);});
+   frames.clear();
+  };
+  const updateMotion=()=>{
+   observer?.disconnect();
+   if(systemReduce)stopCounts();
+   else panel.querySelectorAll('.oa-info-card:not(.is-reading)').forEach(card=>observer?.observe(card));
+  };
+  const resize=window.ResizeObserver&&new ResizeObserver(updateProgress);
+  resize?.observe(panel);
+  resize?.observe(main);
+  main.addEventListener('scroll',updateProgress,{passive:true});
+  window.addEventListener('resize',updateProgress);
+  panel.addEventListener('toggle',updateProgress,true);
+  updateProgress();
+  updateMotion();
+  return {updateMotion,dispose(){
+   observer?.disconnect();resize?.disconnect();stopCounts();
+   main.removeEventListener('scroll',updateProgress);
+   window.removeEventListener('resize',updateProgress);
+   panel.removeEventListener('toggle',updateProgress,true);
+  }};
+ }
+ function showInfoIdea(el){
+  const output=main.querySelector('.oa-info-idea-output');
+  const previous=Number(el.dataset.idea??-1);
+  const choice=Math.floor(Math.random()*(infoIdeas.length-(previous<0?0:1)));
+  const index=previous>=0&&choice>=previous?choice+1:choice;
+  const theme=G.categories[index];
+  el.dataset.idea=String(index);
+  output.innerHTML=`<h2 class="oa-info-idea-theme" style="--category:${h(theme.color)}">${h(theme.label)}</h2><p>${h(infoIdeas[index])}</p>`;
+  el.firstChild.textContent='Une autre question ';
+  if(!systemReduce)playContentTransition(output,[{opacity:.45,transform:'translateY(4px)'},{opacity:1,transform:'none'}],320);
+ }
+
  function scheduleExpiry(){
   clearTimeout(taskExpiryTimer);if(!state.tasks.length||remoteMode&&!remoteReady)return;
   const until=Math.min(...state.tasks.map(task=>Date.parse(task.expiresAt)))-serverNow();
@@ -4337,6 +4564,7 @@ void main(){
   if(!welcomeDismissed)return 'welcome';if(remoteMode&&!remoteReady)return 'login';
   if(cardReveal)return cardReveal.viewKey;
   if(refusal)return 'tasks|refusal|'+refusal.taskId+'|'+viewPlayer;
+  if(tab==='info')return 'info';
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
@@ -4393,10 +4621,10 @@ void main(){
   const previousKey=renderKey;
   renderPersona();
   const key=visibleViewKey();
-  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
+  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():tab==='info'?renderInfo():renderUs();
   const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
-  if(replaceMain){cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
+  if(replaceMain){infoReading?.dispose();infoReading=null;cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
   root.classList.toggle('oa-entering',animate&&!systemReduce&&!document.hidden&&!presentationHidden);
   root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
@@ -4424,6 +4652,7 @@ void main(){
   }
   else if(previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   main.scrollTop=previousKey===key?scrollTop:0;main.scrollLeft=previousKey===key?scrollLeft:0;
+  if(tab==='info')infoReading=mountInfo();
   if(transition)animateDiceHandoff(transition);
   scheduleAutoNewRound();
   updateBadgeNotice();
@@ -4618,8 +4847,14 @@ void main(){
   if(action==='reroll'){await roll(true);return;}
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,catalogueVersion:3,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,3,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
-  if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
-  if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
+  if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
+  if(action==='info-idea'){showInfoIdea(el);return;}
+  if(action==='info-pause'){
+   const paused=el.closest('.oa-info-ticker').toggleAttribute('data-paused');
+   el.textContent=paused?'Reprendre':'Pause';
+   el.setAttribute('aria-label',paused?'Reprendre le défilement des thèmes':'Pause du défilement des thèmes');return;
+  }
+  if(action==='profile'){if(remoteMode)return;if(tab==='us')tab='play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){const taskId=state.round.id,changed=await dispatch({type:'SEND'},false);const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);if(queued)tab='tasks';render();if(changed&&queued)announce('Proposition ajoutée à À faire.');return;}
@@ -4642,7 +4877,7 @@ void main(){
  window.addEventListener('blur',()=>clearCharge());
  window.addEventListener('scroll',()=>clearCharge(),{capture:true,passive:true});
  window.addEventListener('keyup',event=>{if(event.code==='Space'||event.key===' '){if(charge?.source==='keyboard')clearCharge();if(suppressedClick?.source==='keyboard')suppressedClick.until=chargeNow()+600;}});
- function updateReducedMotion(event){systemReduce=event.matches;die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();if(systemReduce)stopBadgeNoticeAnimation();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
+ function updateReducedMotion(event){systemReduce=event.matches;infoReading?.updateMotion();die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();if(systemReduce)stopBadgeNoticeAnimation();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
  if(motionQuery?.addEventListener)motionQuery.addEventListener('change',updateReducedMotion);
  else motionQuery?.addListener?.(updateReducedMotion);
  root.addEventListener('change',async event=>{

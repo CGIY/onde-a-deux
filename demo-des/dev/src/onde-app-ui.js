@@ -22,7 +22,7 @@
  let autoNewRoundTimer=null,autoNewRoundId=null;
  let charge=null,suppressedClick=null,controlsBusyState=null;
  let persisted=false, canPersist=true, recovery=false, lastError='';
- let renderKey='',renderedMarkup='';
+ let renderKey='',renderedMarkup='',infoReading=null;
  const contentTransitions=new Set();
  const gaugeFrames=new Map();
  const pendingChecks=new Set();
@@ -523,6 +523,156 @@
  function renderUs(){if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);return sharedScore()+badgesSection()+'<div class="oa-section-head"><h2>Le confort du jeu</h2></div>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>');}
 
 
+ const infoIdeas=[
+  'Quel petit rituel vous ferait plaisir cette semaine ?',
+  'Qu’aimeriez-vous goûter ensemble pour la première fois ?',
+  'Si vous aviez deux heures devant vous, où iriez-vous ?',
+  'De quel genre de proximité avez-vous envie aujourd’hui ?'
+ ];
+ function renderInfo(){
+  const themes=G.categories.map(category=>`<li style="--category:${h(category.color)}"><i aria-hidden="true"></i>${h(category.label)}</li>`).join('');
+  const mosaic=[0,0,2,2,0,2,3,3,1,1,2,3,1,1,1,3].map(index=>`<i style="--tile:${h(G.categories[index].color)}"></i>`).join('');
+  return `<article class="oa-info" aria-labelledby="oa-info-title">
+   <div class="oa-info-progress" aria-hidden="true"><i></i></div>
+   <header class="oa-info-hero">
+    <div>
+     <p class="oa-info-kicker">Le carnet de Dés·ir</p>
+     <h1 class="oa-title" id="oa-info-title">Le jeu,<br><em>à deux.</em></h1>
+     <p class="oa-subtitle">Un dé pour ouvrir une piste. À vous de voir où elle mène.</p>
+    </div>
+    <div class="oa-info-mosaic" aria-hidden="true">${mosaic}</div>
+   </header>
+   <div class="oa-info-ticker">
+    <div class="oa-info-ticker-head">
+     <p class="oa-info-kicker">Les quatre thèmes</p>
+     <button type="button" class="oa-info-pause cursor-interaction" data-action="info-pause" aria-label="Pause du défilement des thèmes">Pause</button>
+    </div>
+    <div class="oa-info-ribbon"><div class="oa-info-track">
+     <ul class="oa-info-copy" aria-label="Les quatre thèmes">${themes}</ul>
+     <ul class="oa-info-copy" aria-hidden="true">${themes}</ul>
+    </div></div>
+   </div>
+   <div class="oa-info-cards">
+    <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
+     <p class="oa-info-kicker" id="oa-info-idea">Pour ouvrir la conversation</p>
+     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">
+      <h2>Une idée <em>à deux.</em></h2>
+      <p>Une question à piocher, en dehors de la partie.</p>
+     </div>
+     ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
+    </section>
+    <section class="oa-info-card" aria-labelledby="oa-info-dice">
+     <p class="oa-info-kicker">01 / Le tirage</p>
+     <h2 id="oa-info-dice">Du thème à la carte.</h2>
+     <ol class="oa-info-dice">
+      <li><b>D${G.rules.categorySides}</b>Thème</li>
+      <li><b>D${G.rules.cardSides}</b>Carte</li>
+      <li><b>D${G.rules.variantSides}</b>Variante*</li>
+     </ol>
+     <p>* Le dernier dé se lance quand la carte a des variantes. Ton tirage reste privé jusqu’à l’envoi.</p>
+    </section>
+    <section class="oa-info-card" aria-labelledby="oa-info-tickets">
+     <p class="oa-info-kicker">02 / Les tickets</p>
+     <h2 id="oa-info-tickets">La réserve du jour.</h2>
+     <div class="oa-info-reading">
+      <span class="oa-info-number" aria-hidden="true"><span data-info-count>3</span></span>
+      <p><span class="oa-sr">Trois </span>tirages par personne en ligne, renouvelés à <strong>5 h</strong> (Paris).</p>
+     </div>
+     <div class="oa-info-tickets" aria-hidden="true"><i></i><i></i><i></i></div>
+     <p>Une relance de thème gratuite par jour. Un joker par semaine pour que l’un de vous choisisse le thème.</p>
+    </section>
+    <section class="oa-info-card oa-info-weekend" aria-labelledby="oa-info-weekend">
+     <p class="oa-info-kicker">03 / Le week-end</p>
+     <h2 id="oa-info-weekend">Une autre cadence.</h2>
+     <div class="oa-info-reading">
+      <div class="oa-info-ring" aria-hidden="true">
+       <svg viewBox="0 0 86 86"><circle cx="43" cy="43" r="38"/><circle cx="43" cy="43" r="38" pathLength="100"/></svg>
+       <span class="oa-info-number"><span data-info-count>60</span><small>%</small></span>
+      </div>
+      <p><span class="oa-sr">60 % </span>de chances de tirer <strong>Intimité</strong> au D4 le samedi et le dimanche, heure de Paris.</p>
+     </div>
+    </section>
+    <section class="oa-info-card oa-info-agreement" aria-labelledby="oa-info-agreement">
+     <p class="oa-info-kicker">04 / À faire</p>
+     <h2 id="oa-info-agreement">Il faut deux oui.</h2>
+     <div class="oa-info-reading">
+      <span class="oa-info-checks" aria-hidden="true"><i>✓</i><i>✓</i></span>
+      <p>Une fois le défi réalisé, deux coches dans les <strong>${G.rules.taskLifetimeMs/3600000} h</strong> valent <strong>+${G.rules.completedCardPoints} point</strong> pour le duo.</p>
+     </div>
+     <p>Un défi envoyé reste une proposition. Chacun peut dire non. « Refuser · D20 » retire la carte, quelle que soit la face.</p>
+    </section>
+   </div>
+   <details class="oa-info-install">
+    <summary>Retrouver Dés·ir sur l’écran d’accueil</summary>
+    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis Nous.</p>
+   </details>
+  </article>`;
+ }
+ function mountInfo(){
+  const panel=main.querySelector('.oa-info');
+  if(!panel)return;
+  const progress=panel.querySelector('.oa-info-progress i');
+  const updateProgress=()=>{
+   const distance=main.scrollHeight-main.clientHeight;
+   const ratio=distance>0?Math.max(0,Math.min(1,main.scrollTop/distance)):1;
+   progress.style.transform='scaleX('+ratio+')';
+  };
+  const frames=new Map();
+  const observer=window.IntersectionObserver&&new IntersectionObserver(entries=>{
+   entries.forEach(({target,isIntersecting})=>{
+    if(!isIntersecting||systemReduce)return;
+    observer.unobserve(target);
+    target.classList.add('is-reading');
+    const count=target.querySelector('[data-info-count]');
+    if(!count)return;
+    const final=Number(count.textContent),duration=final===3?1050:1500;
+    const started=chargeNow();
+    const step=now=>{
+     const ratio=Math.min(1,(now-started)/duration);
+     count.textContent=String(Math.round(final*(1-Math.pow(1-ratio,2))));
+     if(ratio<1)frames.get(count).id=requestAnimationFrame(step);
+     else frames.delete(count);
+    };
+    count.textContent='0';
+    frames.set(count,{id:requestAnimationFrame(step),final});
+   });
+  },{root:main,threshold:.18});
+  const stopCounts=()=>{
+   frames.forEach(({id,final},node)=>{cancelAnimationFrame(id);node.textContent=String(final);});
+   frames.clear();
+  };
+  const updateMotion=()=>{
+   observer?.disconnect();
+   if(systemReduce)stopCounts();
+   else panel.querySelectorAll('.oa-info-card:not(.is-reading)').forEach(card=>observer?.observe(card));
+  };
+  const resize=window.ResizeObserver&&new ResizeObserver(updateProgress);
+  resize?.observe(panel);
+  resize?.observe(main);
+  main.addEventListener('scroll',updateProgress,{passive:true});
+  window.addEventListener('resize',updateProgress);
+  panel.addEventListener('toggle',updateProgress,true);
+  updateProgress();
+  updateMotion();
+  return {updateMotion,dispose(){
+   observer?.disconnect();resize?.disconnect();stopCounts();
+   main.removeEventListener('scroll',updateProgress);
+   window.removeEventListener('resize',updateProgress);
+   panel.removeEventListener('toggle',updateProgress,true);
+  }};
+ }
+ function showInfoIdea(el){
+  const output=main.querySelector('.oa-info-idea-output');
+  const previous=Number(el.dataset.idea??-1);
+  const choice=Math.floor(Math.random()*(infoIdeas.length-(previous<0?0:1)));
+  const index=previous>=0&&choice>=previous?choice+1:choice;
+  const theme=G.categories[index];
+  el.dataset.idea=String(index);
+  output.innerHTML=`<h2 class="oa-info-idea-theme" style="--category:${h(theme.color)}">${h(theme.label)}</h2><p>${h(infoIdeas[index])}</p>`;
+  el.firstChild.textContent='Une autre question ';
+  if(!systemReduce)playContentTransition(output,[{opacity:.45,transform:'translateY(4px)'},{opacity:1,transform:'none'}],320);
+ }
+
  function scheduleExpiry(){
   clearTimeout(taskExpiryTimer);if(!state.tasks.length||remoteMode&&!remoteReady)return;
   const until=Math.min(...state.tasks.map(task=>Date.parse(task.expiresAt)))-serverNow();
@@ -533,6 +683,7 @@
   if(!welcomeDismissed)return 'welcome';if(remoteMode&&!remoteReady)return 'login';
   if(cardReveal)return cardReveal.viewKey;
   if(refusal)return 'tasks|refusal|'+refusal.taskId+'|'+viewPlayer;
+  if(tab==='info')return 'info';
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
@@ -589,10 +740,10 @@
   const previousKey=renderKey;
   renderPersona();
   const key=visibleViewKey();
-  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():renderUs();
+  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():tab==='info'?renderInfo():renderUs();
   const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
-  if(replaceMain){cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
+  if(replaceMain){infoReading?.dispose();infoReading=null;cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
   root.classList.toggle('oa-entering',animate&&!systemReduce&&!document.hidden&&!presentationHidden);
   root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
@@ -620,6 +771,7 @@
   }
   else if(previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   main.scrollTop=previousKey===key?scrollTop:0;main.scrollLeft=previousKey===key?scrollLeft:0;
+  if(tab==='info')infoReading=mountInfo();
   if(transition)animateDiceHandoff(transition);
   scheduleAutoNewRound();
   updateBadgeNotice();
@@ -814,8 +966,14 @@
   if(action==='reroll'){await roll(true);return;}
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,catalogueVersion:3,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,3,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
-  if(action==='tab'){tab=['us','tasks'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
-  if(action==='profile'){if(remoteMode)return;tab=tab==='tasks'?'tasks':'play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
+  if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
+  if(action==='info-idea'){showInfoIdea(el);return;}
+  if(action==='info-pause'){
+   const paused=el.closest('.oa-info-ticker').toggleAttribute('data-paused');
+   el.textContent=paused?'Reprendre':'Pause';
+   el.setAttribute('aria-label',paused?'Reprendre le défilement des thèmes':'Pause du défilement des thèmes');return;
+  }
+  if(action==='profile'){if(remoteMode)return;if(tab==='us')tab='play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){const taskId=state.round.id,changed=await dispatch({type:'SEND'},false);const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);if(queued)tab='tasks';render();if(changed&&queued)announce('Proposition ajoutée à À faire.');return;}
@@ -838,7 +996,7 @@
  window.addEventListener('blur',()=>clearCharge());
  window.addEventListener('scroll',()=>clearCharge(),{capture:true,passive:true});
  window.addEventListener('keyup',event=>{if(event.code==='Space'||event.key===' '){if(charge?.source==='keyboard')clearCharge();if(suppressedClick?.source==='keyboard')suppressedClick.until=chargeNow()+600;}});
- function updateReducedMotion(event){systemReduce=event.matches;die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();if(systemReduce)stopBadgeNoticeAnimation();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
+ function updateReducedMotion(event){systemReduce=event.matches;infoReading?.updateMotion();die.setReducedMotion(systemReduce);root.classList.remove('oa-entering');cancelContentTransitions();if(systemReduce)stopBadgeNoticeAnimation();(root.getAnimations?.({subtree:true})||[]).forEach(a=>a.cancel());}
  if(motionQuery?.addEventListener)motionQuery.addEventListener('change',updateReducedMotion);
  else motionQuery?.addListener?.(updateReducedMotion);
  root.addEventListener('change',async event=>{
