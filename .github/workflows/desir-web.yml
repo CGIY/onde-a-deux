@@ -39,7 +39,7 @@ jobs:
         run: |
           python3 demo-des/dev/tests/onde-build-check.py
           python3 demo-des/dev/build.py --release
-          git diff --exit-code -- demo-des/index.html demo-des/server/functions/desir-game/core.js demo-des/badges
+          git diff --exit-code -- demo-des/index.html demo-des/server/functions/desir-game/core.js demo-des/dev/src/onde-badge-art.js demo-des/badges
           test -z "$(git ls-files --others --exclude-standard -- demo-des/badges)"
 
       - name: PostgreSQL quota, session and reset regressions

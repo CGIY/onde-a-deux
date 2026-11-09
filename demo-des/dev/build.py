@@ -9,7 +9,7 @@ import shutil
 import json
 import re
 from urllib.parse import urlparse
-from badges import badge_bundle, write_badge_assets
+from badges import badge_source, badge_bundle, write_badge_assets
 
 root = Path(__file__).resolve().parent
 args = argparse.ArgumentParser(description=__doc__)
@@ -105,9 +105,10 @@ except ValueError:
     canonical_hardcore = None
 if canonical_hardcore != hardcore:
     raise SystemExit('The unified Hardcore catalogue must exactly match its existing card data.')
-badges = badge_bundle(source)
+artwork = badge_source(source)
+badges = badge_bundle(source, artwork)
 for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-badge-art.js', 'onde-app-ui.js']:
-    html += '\n<script>\n' + (source / filename).read_text() + '\n</script>\n'
+    html += '\n<script>\n' + (artwork if filename == 'onde-badge-art.js' else (source / filename).read_text()) + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -121,6 +122,7 @@ html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
 </head><body>''' + html + '</body></html>\n'
 (root / 'dist').mkdir(exist_ok=True)
+(source / 'onde-badge-art.js').write_text(artwork)
 # Retired outputs are removed on successful builds, including from an older preview.
 retired_statistics = ['card-evidence.json', 'statistiques.json', 'statistiques.html']
 for target in [root / 'dist'] + ([demo] if options.release else []):

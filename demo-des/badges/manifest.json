@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "count": 90,
   "assets": [
     {
@@ -8,7 +8,7 @@
       "scope": "individual",
       "description": "Effectuer un premier tirage de catégorie.",
       "file": "ind-draws-1.svg",
-      "sha256": "12218ddf50f269f7f794b0ebdd310e6e3560658d383837fb24de0f2a65f487ef"
+      "sha256": "c708411820c6adf372eb5a8521bcf7652d59d1a52b3e636ed5b8eec17df538e5"
     },
     {
       "id": "ind-draws-5",
@@ -16,7 +16,7 @@
       "scope": "individual",
       "description": "Effectuer 5 tirages de catégorie.",
       "file": "ind-draws-5.svg",
-      "sha256": "2bf478dc204e59399766f1b3e4ff104c375ca58eb927cd57cdd9c8bad1372bb7"
+      "sha256": "abc968e35452844da52cc5fc27bcee484f71a79290ad97b54689391bfdf76a8e"
     },
     {
       "id": "ind-draws-15",
@@ -24,7 +24,7 @@
       "scope": "individual",
       "description": "Effectuer 15 tirages de catégorie.",
       "file": "ind-draws-15.svg",
-      "sha256": "18640061efab80205dc3baf5a4419e13ee3b649fbbb42f16e70844b1481a5878"
+      "sha256": "dfedd1d01e00ae78ebb6ae19b08cd31d4acdf73a5c4b493220b7c4d8d80d2834"
     },
     {
       "id": "ind-draws-30",
@@ -32,7 +32,7 @@
       "scope": "individual",
       "description": "Effectuer 30 tirages de catégorie.",
       "file": "ind-draws-30.svg",
-      "sha256": "67bafbe1ce712eb8d968c533a3501ee4fa7dfa2e3db59c8d78329d9c496c18d5"
+      "sha256": "67b93a0852544e5434cae712fffc60286f6855c15da0f69b1216164827d8ea9c"
     },
     {
       "id": "ind-draws-75",
@@ -40,7 +40,7 @@
       "scope": "individual",
       "description": "Effectuer 75 tirages de catégorie.",
       "file": "ind-draws-75.svg",
-      "sha256": "b3f1209032b349626c8b7d3007cbebc62b210cc1e58c4541e007be05db65b4f2"
+      "sha256": "c838849975ff12ea86c2b36a99ee94151b75f41107ec4195d8c0273165af54a2"
     },
     {
       "id": "ind-proposals-1",
@@ -48,7 +48,7 @@
       "scope": "individual",
       "description": "Partager une première proposition.",
       "file": "ind-proposals-1.svg",
-      "sha256": "a172bd529a79274e9322aa43acdbd09b2d28e2fe9cfc2aafe88884079c0c09cd"
+      "sha256": "a259aebd25a8fad6ca60306277a51b8d85161b30c31cd4654db2f180bb97a8f7"
     },
     {
       "id": "ind-proposals-5",
@@ -56,7 +56,7 @@
       "scope": "individual",
       "description": "Partager 5 propositions.",
       "file": "ind-proposals-5.svg",
-      "sha256": "c26de186ff0b5be60a3a3b5cda532688420d21f6b18239cc6c884310038c5993"
+      "sha256": "b788fcbc19f87a3e0589163c5d34f900c39c99cd3d2eb5484ae00492b9e9dd8f"
     },
     {
       "id": "ind-proposals-15",
@@ -64,7 +64,7 @@
       "scope": "individual",
       "description": "Partager 15 propositions.",
       "file": "ind-proposals-15.svg",
-      "sha256": "393652e7ecf7a962054fc6b0172e06ad1d60420481ae1544a978278dd6ff59df"
+      "sha256": "0213fdfb9a429bc4c0af41248fadf2bf6d0bff4dbe8241f70d26babf4c90c4b9"
     },
     {
       "id": "ind-proposals-30",
@@ -72,7 +72,7 @@
       "scope": "individual",
       "description": "Partager 30 propositions.",
       "file": "ind-proposals-30.svg",
-      "sha256": "9260f41cb8286e2037bc9c14ffcb587ee34bcf0f62cfd72fb3dd48c8121169d1"
+      "sha256": "d36bd8226b3e245e57129616bb704ec71ed8796031e5ab78146abd4ded0016dd"
     },
     {
       "id": "ind-proposals-75",
@@ -80,7 +80,7 @@
       "scope": "individual",
       "description": "Partager 75 propositions.",
       "file": "ind-proposals-75.svg",
-      "sha256": "0d18bb166aa6288abebaca19e871e25cf33a4a1e278430dc4735ea3810537558"
+      "sha256": "7473f8b3471e2766c3f3af34fba46865a36f09d4c5ea8ad4e5712c63c820229e"
     },
     {
       "id": "ind-participations-1",
@@ -88,7 +88,7 @@
       "scope": "individual",
       "description": "Participer à un premier défi validé par vos deux coches.",
       "file": "ind-participations-1.svg",
-      "sha256": "95251e8b836d41efa280f93e51212b7eff9a3a0e7b3c3dd069e64fb843bbf3d3"
+      "sha256": "65473a22d26fe8bd20be21122c960e084b5577d8c680316f1a299592d820d1e6"
     },
     {
       "id": "ind-participations-5",
@@ -96,7 +96,7 @@
       "scope": "individual",
       "description": "Participer à 5 défis validés à deux.",
       "file": "ind-participations-5.svg",
-      "sha256": "27bfa845b29fd935194da1f58df0908a2868c0efe38dc40f13942a0da87793b5"
+      "sha256": "a42769510ade8889f708657e8a70d67ad81b31047608e37af14c0b61d0773c53"
     },
     {
       "id": "ind-participations-15",
@@ -104,7 +104,7 @@
       "scope": "individual",
       "description": "Participer à 15 défis validés à deux.",
       "file": "ind-participations-15.svg",
-      "sha256": "fc73218afe4d152cc3997605f3478cd36027712672ba11d038c45df927a526f2"
+      "sha256": "df352f172ebc1ec3515131e69a034574fb69981ae09697948f1f27623c05c5d0"
     },
     {
       "id": "ind-participations-30",
@@ -112,7 +112,7 @@
       "scope": "individual",
       "description": "Participer à 30 défis validés à deux.",
       "file": "ind-participations-30.svg",
-      "sha256": "e2e4894c91d2809faebfdaeef0d1000c10809491f7dbe96d48c91138d72ffa5b"
+      "sha256": "3d897a41b78788e7db9835321ca1c415ed7d6bf6e91e980158ffbbb6db1d460e"
     },
     {
       "id": "ind-completed-sent-5",
@@ -120,7 +120,7 @@
       "scope": "individual",
       "description": "Voir 5 de vos propres propositions aboutir à une validation à deux.",
       "file": "ind-completed-sent-5.svg",
-      "sha256": "4b884fc6351a7637d89ece6e4e17e527647183404257748eb60e2f7dd8c4dfc8"
+      "sha256": "5213a614945901792fd5b774c74ab6e155edfed611619ecd30d88a0fc8da9bc9"
     },
     {
       "id": "ind-completed-sent-15",
@@ -128,7 +128,7 @@
       "scope": "individual",
       "description": "Voir 15 de vos propres propositions aboutir à une validation à deux.",
       "file": "ind-completed-sent-15.svg",
-      "sha256": "d57fc39d1cb77e8f099617a1c61083baab4306be615da7e32f1de4e918acb355"
+      "sha256": "30a87db378ba8116f378d5300067ef1a640f59b8d91a456d413641dc15491c77"
     },
     {
       "id": "ind-completed-received-5",
@@ -136,7 +136,7 @@
       "scope": "individual",
       "description": "Valider à deux 5 propositions qui vous ont été adressées.",
       "file": "ind-completed-received-5.svg",
-      "sha256": "8577bbe8bba7bc055f722b22cb25e3c32c988f796418f87d75980fafd5d0cbb4"
+      "sha256": "c6a9953cc680101fa0120075ec900b763f268389543f3a2812a9ced18d1d6731"
     },
     {
       "id": "ind-completed-received-15",
@@ -144,7 +144,7 @@
       "scope": "individual",
       "description": "Valider à deux 15 propositions qui vous ont été adressées.",
       "file": "ind-completed-received-15.svg",
-      "sha256": "724e5ac381d2e528ae1929921a9d4d2dae7b95eec331ace64cd399fed86991d7"
+      "sha256": "e0ce374acf8957d541cd5bcde3bd22fcec7042781f51c1794701a03a2a3882d5"
     },
     {
       "id": "ind-complicite-3",
@@ -152,7 +152,7 @@
       "scope": "individual",
       "description": "Participer à 3 défis Complicité validés à deux.",
       "file": "ind-complicite-3.svg",
-      "sha256": "69b78c7d68d4b3873c6893e0c7c7fc27bca3b83d4a1f72364094f35644a6acb6"
+      "sha256": "fe398a547436d112af763d23194d6eb1e8ba63c87e684154be7b60d446d3c2da"
     },
     {
       "id": "ind-complicite-10",
@@ -160,7 +160,7 @@
       "scope": "individual",
       "description": "Participer à 10 défis Complicité validés à deux.",
       "file": "ind-complicite-10.svg",
-      "sha256": "320ebd9f7b1274b1210466559f8983d41d4126d53cc6442a14241b97b246ce2f"
+      "sha256": "3bb1274e6717a579ba5b6ee14d844ab673bbdb48937a348a7524869846667e8a"
     },
     {
       "id": "ind-attention-3",
@@ -168,7 +168,7 @@
       "scope": "individual",
       "description": "Participer à 3 défis Plaisirs validés à deux.",
       "file": "ind-attention-3.svg",
-      "sha256": "23161c8fe9271e727c03e303b87d0abff8e0944de86a1392aff4b4ba86913532"
+      "sha256": "2d7085cf438b6402e3b96a925d5e5f9a0d3390a7d5723b05ce8e19d5c14429f8"
     },
     {
       "id": "ind-attention-10",
@@ -176,7 +176,7 @@
       "scope": "individual",
       "description": "Participer à 10 défis Plaisirs validés à deux.",
       "file": "ind-attention-10.svg",
-      "sha256": "01750718f83920e6d335c75f1b1158aead14eefe5da11c2b925df16dee9022e9"
+      "sha256": "fceef8c106cf8890027adac9c25ea617c5563066c4fea81127bc95f6f2cd7105"
     },
     {
       "id": "ind-projets-3",
@@ -184,7 +184,7 @@
       "scope": "individual",
       "description": "Participer à 3 défis Projets validés à deux.",
       "file": "ind-projets-3.svg",
-      "sha256": "0a656b20c4767b7b868358954f6e7a6b7cd448444844549177fbcd2d12bf5143"
+      "sha256": "e726f059f109eb13b3ce78454a8d135f7e038ea0b74bebc81274eeb140fb4f3a"
     },
     {
       "id": "ind-projets-10",
@@ -192,7 +192,7 @@
       "scope": "individual",
       "description": "Participer à 10 défis Projets validés à deux.",
       "file": "ind-projets-10.svg",
-      "sha256": "093b45150edde05ece19a1dc8ab96a5724c4b494b5c4ecf35d9111eda13f129d"
+      "sha256": "da4f7daf3709bdaa230a4cb0bb38395ea3350055e7e1eec6b92ab987363b1369"
     },
     {
       "id": "ind-intimite-3",
@@ -200,7 +200,7 @@
       "scope": "individual",
       "description": "Participer à 3 défis Intimité validés à deux.",
       "file": "ind-intimite-3.svg",
-      "sha256": "db177ba2217aa0dfcee24230a1ac446f260f17656ccbcfe1c65586f6a9d142ea"
+      "sha256": "c921a78cab6064e4164dc991db98a3beaa1f64ef7130534180ed3bd61dfdf8a2"
     },
     {
       "id": "ind-intimite-10",
@@ -208,7 +208,7 @@
       "scope": "individual",
       "description": "Participer à 10 défis Intimité validés à deux.",
       "file": "ind-intimite-10.svg",
-      "sha256": "c1bed7cc4e5e568a51d6bd831139a600eaf1754a26a5949d8bb2b00e8c937260"
+      "sha256": "ad00e3cec0275ce76502ead670f6d46a60c02887c6b1e978bf15a835cb7cc766"
     },
     {
       "id": "ind-active-days-3",
@@ -216,7 +216,7 @@
       "scope": "individual",
       "description": "Commencer un tirage, proposer ou cocher un défi, sur 3 jours différents.",
       "file": "ind-active-days-3.svg",
-      "sha256": "4f521dd861593d44d71097fba678ad8e874e347f62a3a4d9d0b2fdcaa4c11228"
+      "sha256": "6f2427bac38c0802cae83c376640e04596cb5cbee5e8ef8704bafde7acc13a33"
     },
     {
       "id": "ind-active-days-10",
@@ -224,7 +224,7 @@
       "scope": "individual",
       "description": "Commencer un tirage, proposer ou cocher un défi, sur 10 jours différents.",
       "file": "ind-active-days-10.svg",
-      "sha256": "a601e8c49acc7f22eedfb3bc78a8496bab9c06167c98935b25d6e6159577b81b"
+      "sha256": "d6cc432c33969c35a80d76a9651d5e5fd4b79f63a9554871b1449f3b41fcfe28"
     },
     {
       "id": "ind-active-streak-3",
@@ -232,7 +232,7 @@
       "scope": "individual",
       "description": "Commencer un tirage, proposer ou cocher un défi, trois jours de suite.",
       "file": "ind-active-streak-3.svg",
-      "sha256": "ee916a065987d1dda03b80cf06b05b4e0b12364b88b24d9eeaef1f29d52c6bf0"
+      "sha256": "2fb8f257c5401d890d7a417c9fafd830762326d2ea7928281da55dd00718965d"
     },
     {
       "id": "ind-distinct-variants-6",
@@ -240,7 +240,7 @@
       "scope": "individual",
       "description": "Participer à 6 variantes différentes, chacune validée à deux.",
       "file": "ind-distinct-variants-6.svg",
-      "sha256": "dae58410102fee30f441416635f8834219f30900f947d3cfc77b1f676d62ef6f"
+      "sha256": "7e9efea370fcb8a139c91ec6ccce8f226a8487f2db371317fa63193e1b21b9b0"
     },
     {
       "id": "duo-completed-1",
@@ -248,7 +248,7 @@
       "scope": "shared",
       "description": "Valider ensemble un premier défi.",
       "file": "duo-completed-1.svg",
-      "sha256": "09143f3f70cf9f757afd3a861888ac600661689d7eef5ba9e757a1623ff6f66d"
+      "sha256": "893fe6af4f29c26f81cc4850be955e9f0ce53a0a459d6a81a6b7d28ff44374de"
     },
     {
       "id": "duo-completed-5",
@@ -256,7 +256,7 @@
       "scope": "shared",
       "description": "Valider ensemble 5 défis.",
       "file": "duo-completed-5.svg",
-      "sha256": "cd12060396605a1436d0f90f1ae9240d70bab6369b3a3162dc852aea9383fc1f"
+      "sha256": "ae1d2f6a4ff1ef6e99bd05549bd40fa62ff6f6adaf777cebff75c3f397cc0cd8"
     },
     {
       "id": "duo-completed-10",
@@ -264,7 +264,7 @@
       "scope": "shared",
       "description": "Valider ensemble 10 défis.",
       "file": "duo-completed-10.svg",
-      "sha256": "5334a2423ae527e2ff38453359a027cd0a0b82a4ac9e425cdf0c58884d9d8f04"
+      "sha256": "aa7dde4c3ac610f6550e90996de567836fbf695c4e320473a5305669e207df6a"
     },
     {
       "id": "duo-completed-25",
@@ -272,7 +272,7 @@
       "scope": "shared",
       "description": "Valider ensemble 25 défis.",
       "file": "duo-completed-25.svg",
-      "sha256": "1e1859d297f3f30faeba6918e3f7cebd0ff1552eaf070e82b5e99b6edd983faa"
+      "sha256": "f1659c6526f41d8c440f6bb173fc006af2ef2a9c7a9e42a76dc82867aa4c497c"
     },
     {
       "id": "duo-completed-50",
@@ -280,7 +280,7 @@
       "scope": "shared",
       "description": "Valider ensemble 50 défis.",
       "file": "duo-completed-50.svg",
-      "sha256": "7f7d0d2eda433e1218262a94b65daae89d7b03e17b44aca37a101a13a6414183"
+      "sha256": "fd06173f1d1a88d8970cb8710cc4db5adc8405fb7a9b66b87f6df5c9cb22c189"
     },
     {
       "id": "duo-completed-100",
@@ -288,7 +288,7 @@
       "scope": "shared",
       "description": "Valider ensemble 100 défis.",
       "file": "duo-completed-100.svg",
-      "sha256": "2edc3f166ac724d958a2b468406c086ba6c995f1c98565919a8457fc8def0fac"
+      "sha256": "8d8661d42f09c832f215687338619b2f6ca60645fc31b7019be2b801f209eacc"
     },
     {
       "id": "duo-completed-250",
@@ -296,7 +296,7 @@
       "scope": "shared",
       "description": "Valider ensemble 250 défis.",
       "file": "duo-completed-250.svg",
-      "sha256": "e0d0c3c7b999dfaaafda89cf5392173608173585dab913c55bf6e8617b397201"
+      "sha256": "16c22b730bb6a0d0c469fe561e5f8918963dcb6c785c56943f115c704c591809"
     },
     {
       "id": "duo-completed-500",
@@ -304,7 +304,7 @@
       "scope": "shared",
       "description": "Valider ensemble 500 défis.",
       "file": "duo-completed-500.svg",
-      "sha256": "6f21b1f2c325278d7ac31b8abf012d5c3c2c2a50d44147eb549aaeed326a2b8a"
+      "sha256": "e49d6966b104ae1ef67995d27626c4b515c69ae721b33458203d93cf39571e4e"
     },
     {
       "id": "duo-distinct-categories-2",
@@ -312,7 +312,7 @@
       "scope": "shared",
       "description": "Valider ensemble au moins un défi dans 2 catégories différentes.",
       "file": "duo-distinct-categories-2.svg",
-      "sha256": "7a136dd6b84c9929f705a959ba9eb6487d66e441664108d08ba5bc775c3467e7"
+      "sha256": "8ed6c4fefded7993cc60da6b8d41419825d064ff8c32bdd27761e4a1e119d0b9"
     },
     {
       "id": "duo-distinct-categories-4",
@@ -320,7 +320,7 @@
       "scope": "shared",
       "description": "Valider ensemble au moins un défi dans chacune des 4 catégories.",
       "file": "duo-distinct-categories-4.svg",
-      "sha256": "ab7b27163698b4aa1e3d3b1088274fe677d99b6430a182925019abfcc5db42b2"
+      "sha256": "56db60f1489e34d3089a2cefd4d38100c7c7aa062b1a136e77ef66bda043a421"
     },
     {
       "id": "duo-distinct-cards-6",
@@ -328,7 +328,7 @@
       "scope": "shared",
       "description": "Valider ensemble 6 cartes différentes.",
       "file": "duo-distinct-cards-6.svg",
-      "sha256": "47c3aa4f37789e7563faff7bf6c3417976234f6d5257b85a26909bf6687a7d60"
+      "sha256": "ca10ed14f7285fe4a1a4197b78d21f8605f608febc10d6c94c1a36ca9d7db045"
     },
     {
       "id": "duo-distinct-cards-12",
@@ -336,7 +336,7 @@
       "scope": "shared",
       "description": "Valider ensemble 12 cartes différentes.",
       "file": "duo-distinct-cards-12.svg",
-      "sha256": "bc20fb528fdc522b8ff50786a6c9fab11cc66e3d75db3fdcf387207b8c444a45"
+      "sha256": "8e52f7de0226c97b34533c283bfa0cd759ea2e7bddbf18828f4f7e75ec1b5863"
     },
     {
       "id": "duo-distinct-cards-24",
@@ -344,7 +344,7 @@
       "scope": "shared",
       "description": "Valider ensemble 24 cartes différentes.",
       "file": "duo-distinct-cards-24.svg",
-      "sha256": "f262245979259124a38966e6daed364e3c8f437775ffc9ede185709b6ee29ba7"
+      "sha256": "1b7551d8aa3ea28a447907cf37b7685ad872b57acf3b93ed700f9812e2ea8a6e"
     },
     {
       "id": "duo-distinct-variants-12",
@@ -352,7 +352,7 @@
       "scope": "shared",
       "description": "Valider ensemble 12 variantes différentes.",
       "file": "duo-distinct-variants-12.svg",
-      "sha256": "22c4553fe1caaca2bb3b408d325039ebe9d80dfc59a14698c16006376823d6f1"
+      "sha256": "e8b485f1d716d6e44527a13172520aaaa1c3f8f40bdb5973df20a60ca918043f"
     },
     {
       "id": "duo-distinct-variants-36",
@@ -360,7 +360,7 @@
       "scope": "shared",
       "description": "Valider ensemble 36 variantes différentes.",
       "file": "duo-distinct-variants-36.svg",
-      "sha256": "32e03e2baf58767980b857d82bb76c6337a582aba7b4bf2be83bcde57e150676"
+      "sha256": "474c6367e79f12904c0f0ad9cb48dac5dde34357a51e897b7cb2da36bd947172"
     },
     {
       "id": "duo-distinct-variants-72",
@@ -368,7 +368,7 @@
       "scope": "shared",
       "description": "Valider ensemble 72 variantes différentes.",
       "file": "duo-distinct-variants-72.svg",
-      "sha256": "053d646b5394d230e73569e906b5c98d572707b5f9a97dbec9cfe90a9cb6c354"
+      "sha256": "ed364f0a14d127edfb7edbc8f52f6ee7dd8deda02ae2274035549d1653f67c41"
     },
     {
       "id": "duo-completion-days-3",
@@ -376,7 +376,7 @@
       "scope": "shared",
       "description": "Terminer au moins un défi ensemble lors de 3 dates différentes.",
       "file": "duo-completion-days-3.svg",
-      "sha256": "a1c6bb1b6895b2c696f664ddef968983e33645db63443601714633047fac4c5c"
+      "sha256": "e3f5a5c94ad903ff8062cfadc4ffc26bc20769bfb8153506e1d7365bd28b76a7"
     },
     {
       "id": "duo-completion-days-10",
@@ -384,7 +384,7 @@
       "scope": "shared",
       "description": "Terminer au moins un défi ensemble lors de 10 dates différentes.",
       "file": "duo-completion-days-10.svg",
-      "sha256": "f692a3f79efe298746b24522657771056a0667af1ff9e01f837b0ab02bcb4987"
+      "sha256": "fa55d7ec79f69fde1782b8a2622d3bb0cb79230c9e3d2f73b97214bb7e31921b"
     },
     {
       "id": "duo-completion-days-30",
@@ -392,7 +392,7 @@
       "scope": "shared",
       "description": "Terminer au moins un défi ensemble lors de 30 dates différentes.",
       "file": "duo-completion-days-30.svg",
-      "sha256": "4c3d07ff04931d8d844ee5f4a3eeddc36f6412bfe57cf886be9402325d84591b"
+      "sha256": "f4ae23f2028adb8149242f07f47c602bae076261e330765ec3c7dbdab14fe8c0"
     },
     {
       "id": "duo-completion-streak-3",
@@ -400,7 +400,7 @@
       "scope": "shared",
       "description": "Terminer au moins un défi ensemble pendant 3 jours consécutifs.",
       "file": "duo-completion-streak-3.svg",
-      "sha256": "39dadb18db4b8fc15d650a31f37605ee4e106f2c7ddfe7bc8ebc434e99806c64"
+      "sha256": "cc932d5af055b9fef570a2b68b9fa9f0c689c2c4231c79edc591d10894780d24"
     },
     {
       "id": "duo-completion-streak-7",
@@ -408,7 +408,7 @@
       "scope": "shared",
       "description": "Terminer au moins un défi ensemble pendant 7 jours consécutifs.",
       "file": "duo-completion-streak-7.svg",
-      "sha256": "6a81e1db43e93a9d458e5d1170d2d808127a2f85e0c388bccd8131c9cea9ec9e"
+      "sha256": "e892be9b6aa4b0adfd85107df7187f7a9f1c1ebbbac625984416c8254c642451"
     },
     {
       "id": "duo-weekend-completed-5",
@@ -416,7 +416,7 @@
       "scope": "shared",
       "description": "Valider ensemble 5 défis un samedi ou un dimanche.",
       "file": "duo-weekend-completed-5.svg",
-      "sha256": "7739b00a8fcf61e63f0a2848eff8cf7c3c24950f25ae9dd45e59e89c4bbccaf2"
+      "sha256": "f3407aa7ce25d5db916fefc7bb46d2a5c72130bd0c8e98c53255bbbdad2762a0"
     },
     {
       "id": "duo-weekend-completed-20",
@@ -424,7 +424,7 @@
       "scope": "shared",
       "description": "Valider ensemble 20 défis un samedi ou un dimanche.",
       "file": "duo-weekend-completed-20.svg",
-      "sha256": "dc7c5672e84f15521b7e6754aaeabb7dc67c3bebd0fac39de635ef2a10686b98"
+      "sha256": "175d4075e0ebf1a50dfec4fa1c093c69c7bec60fcc5ce7fa679e96d5af84966b"
     },
     {
       "id": "duo-every-category-5",
@@ -432,7 +432,7 @@
       "scope": "shared",
       "description": "Valider ensemble au moins 5 défis dans chacune des 4 catégories.",
       "file": "duo-every-category-5.svg",
-      "sha256": "4308465a08ea96929e9c1ec1530e9f5be8da638579e6fb557d7cc74d04e003b4"
+      "sha256": "812f08a7aa6c22535230f85bff65749396481bd281b50552aedc0625ee4832f8"
     },
     {
       "id": "duo-thigh-massage-3",
@@ -440,7 +440,7 @@
       "scope": "shared",
       "description": "Réaliser 3 massages des cuisses, chacun validé par vos deux coches.",
       "file": "duo-thigh-massage-3.svg",
-      "sha256": "f1cd034c58df007734667898522139524ffd360e64fdabc44b85d18e24951e98"
+      "sha256": "3364b13bfd21d69bd4071521dd4a36795ed433986612f7e1ce67eb4d4c1f1be5"
     },
     {
       "id": "duo-covered-face-3",
@@ -448,7 +448,7 @@
       "scope": "shared",
       "description": "3 faciales, validées par vos deux coches.",
       "file": "duo-covered-face-3.svg",
-      "sha256": "b75465648e56a10c946cfe5a8b9ff3745a2a7b74d5ed35a792ebe74fa3a89427"
+      "sha256": "9aa5893ee4234ddb529c9e8deb3b7a5334004b5bf6caa55088d849860e1a11f4"
     },
     {
       "id": "duo-kind-note-3",
@@ -456,7 +456,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 petits mots doux cachés.",
       "file": "duo-kind-note-3.svg",
-      "sha256": "62bdc73679156f9a9416fa11de7997f2d626e98f2b202b02afd0916b5795c5b6"
+      "sha256": "83be0ff2a228a9538f0d751b57d666f5b4febe66010a4078b9db07f082806d43"
     },
     {
       "id": "duo-crepes-3",
@@ -464,7 +464,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 réalisations de la variante Crêpes.",
       "file": "duo-crepes-3.svg",
-      "sha256": "09c51face96c0c400c34efd444483f2517d1f2236a05e6dd3a82ebadc3ec49d6"
+      "sha256": "c59e1721602c04c17ceaeaf406cfde230c62b1ab19af756d1a6de0ed9b6268d1"
     },
     {
       "id": "duo-forest-walk-3",
@@ -472,7 +472,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 balades en forêt.",
       "file": "duo-forest-walk-3.svg",
-      "sha256": "dee88edcaba855765ca60e9ccb92170566f31437919dd79c135235d3768aaf29"
+      "sha256": "88b2d8b47cd3d5a748856b01b3f6c4281d4bda697950e9582fb6e2f304097a8a"
     },
     {
       "id": "duo-phone-drawer-3",
@@ -480,7 +480,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 parenthèses d’une heure avec le téléphone dans un tiroir.",
       "file": "duo-phone-drawer-3.svg",
-      "sha256": "9f31216f656d585a587ff99d45b477a1c78cc407f95cbf4d3b31324c7cf0fffb"
+      "sha256": "3ae54eaf528a24bad81427e35d450fb669467d4f512b5ae587ac9c81ab090929"
     },
     {
       "id": "duo-kiss-language-3",
@@ -488,7 +488,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Un baiser · Avec la langue », avec vos deux coches.",
       "file": "duo-kiss-language-3.svg",
-      "sha256": "5db27dad9eea2e31442cc12aa407d41a89103574dbed1e225a7ca051f74d76ac"
+      "sha256": "d994f4ec6671250e120f35225dcc8bd795797093c5ffb80764e126e95bcfa475"
     },
     {
       "id": "duo-kiss-neck-3",
@@ -496,7 +496,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Un baiser · Dans le cou », avec vos deux coches.",
       "file": "duo-kiss-neck-3.svg",
-      "sha256": "cebb85d0b49f6e3a841f073481458789951e0fadd28d6e178c026292381577f9"
+      "sha256": "24900c25873d653f1876f7c0f8d9d950645fbfe19e93e7b2cf4f796f20aee95a"
     },
     {
       "id": "duo-oral-car-3",
@@ -504,7 +504,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Fellation · En voiture », avec vos deux coches.",
       "file": "duo-oral-car-3.svg",
-      "sha256": "f18f7ed7cc85caeff12d4f7ae52353f3e99ce0626b235ecd51483b2526cd9c86"
+      "sha256": "493415e8b57d27d8c503faa89208f0bbe79baa5266c08cc3afacf2a21dd54883"
     },
     {
       "id": "duo-oral-shower-3",
@@ -512,7 +512,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Fellation · Douche », avec vos deux coches.",
       "file": "duo-oral-shower-3.svg",
-      "sha256": "e48a318f0e2ffb46ed0384037d825508cfc4495173bb144d02c666685c1bf99d"
+      "sha256": "97664219ceece8f40a540ea59948d5de096a35766ee87defba66bc57e85f3f0a"
     },
     {
       "id": "duo-oral-desk-3",
@@ -520,7 +520,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Fellation · Sous le bureau », avec vos deux coches.",
       "file": "duo-oral-desk-3.svg",
-      "sha256": "4d91b17fcb61033652e6de8e83e9b001a2c2d4d194c19281093860ea9253383b"
+      "sha256": "f992793d827acf8bf58e57eae73bafb641aa090ff73823c97e0d8843e0decfd3"
     },
     {
       "id": "duo-sit-face-3",
@@ -528,7 +528,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Cunnilingus · Sit-Face », avec vos deux coches.",
       "file": "duo-sit-face-3.svg",
-      "sha256": "ff850c3bb15bfbeb67efc749210dc3907c12d4f86d0262f5af5032bb0f7bb0e2"
+      "sha256": "6784f587da3ec4eb81394e2d8278045c2a3889c4cfa11b02bf803442834b5975"
     },
     {
       "id": "duo-veranda-3",
@@ -536,7 +536,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Cunnilingus · Véranda », avec vos deux coches.",
       "file": "duo-veranda-3.svg",
-      "sha256": "f008aca8a0509b08a76c494a0cd04d5948a60ba8cc45f5794dde0f113ed90d75"
+      "sha256": "33f5398156ea2d7a027069fb24018bbcf63cd87b78f2c1bad3a0e5e048b37af7"
     },
     {
       "id": "duo-andromaque-reverse-3",
@@ -544,7 +544,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Pénétration · Andromaque inversée », avec vos deux coches.",
       "file": "duo-andromaque-reverse-3.svg",
-      "sha256": "baa5f3fba208f29bfad94da48376797746f91c53c6df04753de139b895e3712c"
+      "sha256": "96a46b1161a6b9d160d2205d5135648b31532a79948a964245c9dbae9a135aa0"
     },
     {
       "id": "duo-spoon-3",
@@ -552,7 +552,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Pénétration · Cuillère », avec vos deux coches.",
       "file": "duo-spoon-3.svg",
-      "sha256": "272b1d36307cde05005ffd16ac1560875621431ab9e6375800244d5a580d513f"
+      "sha256": "60317ca5e3616451509ffe2c9ca68de2d1e43c82ccc59e4cbd9ca5c0cda7def9"
     },
     {
       "id": "duo-free-position-3",
@@ -560,7 +560,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Pénétration · Position au choix », avec vos deux coches.",
       "file": "duo-free-position-3.svg",
-      "sha256": "69ab2cd85b72c095ce395311c177e06124ebf7279a3507686916c4849c29fa02"
+      "sha256": "35aad8c8e7ae5ffcf1a4f02d4adeedc1b5c901d9dde8762775a56f6fbb7a9e91"
     },
     {
       "id": "duo-lovense-quarter-3",
@@ -568,7 +568,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Lovense · 15 minutes dedans », avec vos deux coches.",
       "file": "duo-lovense-quarter-3.svg",
-      "sha256": "fb7a701ed22da89f3d86d0fd13a78a0254b9e9823af1ea9a4dd3728b97f3ab26"
+      "sha256": "d0b71b7e5d92f146514280678133e0236be02524608eb4ed5860731756f39ff5"
     },
     {
       "id": "duo-lovense-evening-3",
@@ -576,7 +576,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Lovense · Une soirée », avec vos deux coches.",
       "file": "duo-lovense-evening-3.svg",
-      "sha256": "0c0456d56d54110957d3ec72783eaf179c94bf8e3f2736949b3b004b764903b2"
+      "sha256": "1626cb6298dfdc1afa76e3a585c19e54a906b7da24256c77309ee9bec90d9907"
     },
     {
       "id": "duo-photo-monochrome-3",
@@ -584,7 +584,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Photoshoot original · Noir et blanc », avec vos deux coches.",
       "file": "duo-photo-monochrome-3.svg",
-      "sha256": "a27fe3f17ed8866f1de8b646f0ae63462621d68c64ed94f44006059f46b332d7"
+      "sha256": "87f8211f11c74d3e0075eadba71677c6de8f4949f40a024d6613dbb502941b78"
     },
     {
       "id": "duo-photo-shadows-3",
@@ -592,7 +592,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Photoshoot original · Ombres », avec vos deux coches.",
       "file": "duo-photo-shadows-3.svg",
-      "sha256": "d29a16e05a1fea61ec91113a1242c21940ac74890b83a4b3abee64c90eaf5511"
+      "sha256": "e6127da347e5252c2a656234731798068cd3432c4a9683df45c2d44d5b3554aa"
     },
     {
       "id": "duo-photo-shower-3",
@@ -600,7 +600,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Photoshoot original · Sous la douche », avec vos deux coches.",
       "file": "duo-photo-shower-3.svg",
-      "sha256": "6378bd4893b918ab24a34990cfb557c85cd71cbbc3f103b5f2f5e8944ef850cc"
+      "sha256": "e377cabad03ecb3abb8db216a43526272911e1a6bee8ff5517b769098617679c"
     },
     {
       "id": "duo-hc-golden-3",
@@ -608,7 +608,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Golden Shower », avec vos deux coches.",
       "file": "duo-hc-golden-3.svg",
-      "sha256": "3654243981f97ea84985f8aa266b50e5e53510559288cf05c5593e89bbff982c"
+      "sha256": "44f641d500cba84f549ce3f025d2315b8b2eebfd3062052a956694d70a6a983a"
     },
     {
       "id": "duo-hc-chapel-3",
@@ -616,7 +616,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Faciale à l'église », avec vos deux coches.",
       "file": "duo-hc-chapel-3.svg",
-      "sha256": "2ef63438fb2b7daf306c730358c8cf7282121f19a3ae80eb1d58e1f5c6b9a49d"
+      "sha256": "e0363cc08cdb39b515b4e2aed519b302a17e74a77c3eeb21535e41c1f494ce12"
     },
     {
       "id": "duo-hc-manual-camera-3",
@@ -624,7 +624,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Webcam — masturbation », avec vos deux coches.",
       "file": "duo-hc-manual-camera-3.svg",
-      "sha256": "2e5e0c30e40a8d6183a0580c47ba28a04e4e8c7b51aaa04d079ca87e18a6e7a2"
+      "sha256": "cced7603affa4ef4c747675287d1ddc6d074d509d2cf0b341c39106d89ff06de"
     },
     {
       "id": "duo-hc-video-finale-3",
@@ -632,7 +632,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Webcam — faciale », avec vos deux coches.",
       "file": "duo-hc-video-finale-3.svg",
-      "sha256": "132bbe8e61cc186ac4f195cc45e2f544d50c0b0be51fbfc070c363bf856baa6e"
+      "sha256": "96ed77dad8732950ad4bb25dd6a974692f49ec0c735f92f7324ccee16633c2d3"
     },
     {
       "id": "duo-hc-upper-frame-3",
@@ -640,7 +640,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Webcam — nudité du haut », avec vos deux coches.",
       "file": "duo-hc-upper-frame-3.svg",
-      "sha256": "621b837b4c0ed86f5464b570ea1557057ddf1f72cdef6477da403376f4e04a72"
+      "sha256": "d4968bb1d3145d34763ce4a8fa82709d5bc4b07556f6ae099cb867058c7b5012"
     },
     {
       "id": "duo-hc-lower-frame-3",
@@ -648,7 +648,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Webcam — nudité du bas », avec vos deux coches.",
       "file": "duo-hc-lower-frame-3.svg",
-      "sha256": "ba06a42743b916974fa64ebfb4e3d116f3971aaeeeb8007a2baa021b55bf326d"
+      "sha256": "a3af9a5fceab44c6188d55394f42977e31e95c95ecc63c619cfe30c6e624c52e"
     },
     {
       "id": "duo-hc-rear-camera-3",
@@ -656,7 +656,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Webcam — fesses », avec vos deux coches.",
       "file": "duo-hc-rear-camera-3.svg",
-      "sha256": "cb8e08df3af8fae86e5c7b344dc45c059a8492c8785a6e00e121717595c24039"
+      "sha256": "55a39cbe1933f26598fdfa2c4ca59a6d445a88891020d321b6df46ceee714923"
     },
     {
       "id": "duo-hc-artists-entry-3",
@@ -664,7 +664,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Pénétration anale », avec vos deux coches.",
       "file": "duo-hc-artists-entry-3.svg",
-      "sha256": "ddbece4cc799cc37afa9cf69114979784c1b7f2baf857217c11520c5431d9ce7"
+      "sha256": "773abdf4b8e99f1d814915449d0e07036c5842f785c198816af7b19bb0fcb2cd"
     },
     {
       "id": "duo-hc-double-booking-3",
@@ -672,7 +672,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Double pénétration », avec vos deux coches.",
       "file": "duo-hc-double-booking-3.svg",
-      "sha256": "8931d57745be970b46cb11645cecbea120a252f3472429a6f58a7d1bdbb625bb"
+      "sha256": "fd8852731795ca862b5dc0f544b0ebd48751a9af576999cc329864ec693fae7e"
     },
     {
       "id": "duo-hc-hour-contract-3",
@@ -680,7 +680,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Une heure de soumission », avec vos deux coches.",
       "file": "duo-hc-hour-contract-3.svg",
-      "sha256": "2118b15c7a18e0b0782aceb26a4c8a74f6a5f546ae24893b07b3d44c4dc89266"
+      "sha256": "a5c8d956d080999e3d5b3d9e95dbfc3ceb3b1e6badc2c9bbe896607ffa7f59ad"
     },
     {
       "id": "duo-hc-applause-3",
@@ -688,7 +688,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Session fessée », avec vos deux coches.",
       "file": "duo-hc-applause-3.svg",
-      "sha256": "1a733fa949ddc8db6f0140be5ba0f7ec94fd9ced9c5a6e443a5796d903ee436e"
+      "sha256": "ca9fcf193b1b3ff7c780985bb8c337d0a166ef8bfdc201c0212f15fc6da9ed57"
     },
     {
       "id": "duo-hc-private-cinema-3",
@@ -696,7 +696,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « On tourne un porno privé ! », avec vos deux coches.",
       "file": "duo-hc-private-cinema-3.svg",
-      "sha256": "0a5d53d78fa2e185d79ca4638b94ebba429df921b880bb8c2575afe366c80332"
+      "sha256": "029909305ea23bbcd274d0951e75bc0df39056182b139fdc237847737d56cb25"
     },
     {
       "id": "duo-hc-studio-3",
@@ -704,7 +704,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Séance photo BDSM », avec vos deux coches.",
       "file": "duo-hc-studio-3.svg",
-      "sha256": "063467029be9fff91d6808d1ba97497b661259ae20448d11f40353e4a48b5c39"
+      "sha256": "dbba4badf20fa34675c6c609a23e33dba57c2a294b4dfc2d655b96084f2f97dc"
     },
     {
       "id": "duo-hc-glide-3",
@@ -712,7 +712,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Massage Nuru », avec vos deux coches.",
       "file": "duo-hc-glide-3.svg",
-      "sha256": "8eced309acaf9d8d22bcb7d21ff03df56e8c60350edff1de3290e7a35e278487"
+      "sha256": "4cae16d0c6075003fd1cd520d55c516ec72c83820805b63b8a3364fa9b761244"
     },
     {
       "id": "duo-hc-remake-3",
@@ -720,7 +720,7 @@
       "scope": "shared",
       "description": "Valider ensemble 3 fois « Reproduction d’un film porno », avec vos deux coches.",
       "file": "duo-hc-remake-3.svg",
-      "sha256": "6b44fec5affeb2130373794f7b70b32593a2301a1939aa773f2f4c04dbec3a8c"
+      "sha256": "26cf930894fac4b1a53cf2cdbe3ca2f0a7f5e120c39e716cc74649e894e592ba"
     }
   ]
 }
