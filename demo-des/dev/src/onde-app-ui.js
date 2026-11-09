@@ -476,7 +476,8 @@
   if(theirs)return name(partner)+' a coché · à toi de jouer.';
   return 'Une fois vécu, chacun coche sa case.';
  }
- function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'><span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span>'+h(name(player))+'</span></label>';}
+ const checkBox='<span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>';
+ function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'>'+checkBox+'<span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
   const tasks=state.tasks||[];
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'Le dé roule…':'Confirmation du refus…')+'</p>';
@@ -530,16 +531,13 @@
   const activity=remoteMode?remoteSnapshot?.activity:G.activityCalendar(localRoom,viewPlayer);
   const metric=id=>badgeView?.items.find(item=>item.id===id)?.progress.value;
   const streak=activity?G.activeStreak(activity,new Date(serverNow()).toISOString()):metric('ind-active-streak-3');
-  const streakText=streak===undefined?'':(activity?'Série en cours':'Record')+' · '+streak.toLocaleString('fr-FR')+' jour'+(streak>1?'s':'');
   const metrics=[
-   ['ind-active-days-3','Jours actifs'],
    ['ind-draws-1','Tirages de thème'],
    ['ind-proposals-1','Propositions envoyées']
   ];
-  const metricCards=metrics.map(([id,label],index)=>{
-   const value=metric(id)?.toLocaleString('fr-FR')??'—';
-   return '<div><strong>'+value+'</strong><span>'+label+'</span>'+(!index&&streakText?'<small>'+streakText+'</small>':'')+'</div>';
-  }).join('');
+  const metricCards=metrics.map(([id,label])=>'<div><strong>'+(metric(id)?.toLocaleString('fr-FR')??'—')+'</strong><span>'+label+'</span></div>').join('');
+  const streakLabel=activity||streak===undefined?'Série en cours':'Record';
+  const flame='<svg viewBox="0 0 20 22" aria-hidden="true"><path d="M11 1.8c.8 4-3.8 5.8-3 9.1.9-.2 1.7-.9 2.2-2 2.6 1.2 4.2 3.1 4.2 5.6a4.4 4.4 0 0 1-8.8.4c-1.1 1.1-1.1 2.2-.7 3.3a7.6 7.6 0 0 1-2-5.1c0-4.9 6.2-7.1 8.1-11.3Z"/></svg>';
   const own=ownState||state;
   const draws=new Map();
   for(const round of [own.round,...own.tasks,...own.history]){
@@ -551,7 +549,10 @@
   return `<section class="oa-info-card oa-info-activity" id="oa-info-activity" aria-labelledby="oa-info-activity-title">
    <p class="oa-info-kicker">Dés·ir · Mon activité</p>
    <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
-   <div class="oa-info-activity-metrics">${metricCards}</div>
+   <div class="oa-info-activity-metrics">
+    <div class="oa-info-streak"><strong>${flame}<b class="oa-info-streak-count">${streak?.toLocaleString('fr-FR')??'—'}</b>${streak===undefined?'':'<small>jour'+(streak>1?'s':'')+'</small>'}</strong><span>${streakLabel}</span></div>
+    ${metricCards}
+   </div>
    ${recent.length?'<h3>Mes dernières cartes tirées</h3><ul class="oa-info-recent">'+recent.map(({round,drawn})=>{
     const theme=G.getCategory(round.categoryId,roundVersion(round));
     return '<li style="--category:'+h(theme?.color||'var(--oa-sage)')+'"><span>'+h(drawn.title)+'</span><small>'+h(theme?.label||'')+'</small></li>';
@@ -574,16 +575,15 @@
     <h2 id="oa-info-tickets">Tirages du jour</h2>
     <span class="oa-info-ticket-dots" role="img" aria-label="${quotaLabel}" title="${quotaLabel}">${dots}</span>
    </div>
-   <p>1 relance de thème gratuite par jour · 1 joker par semaine pour le duo.</p>
+   <p>1 relance de thème gratuite par jour.</p>
   </section>`;
  }
 
- const infoIdeas=[
-  'Quel petit rituel vous ferait plaisir cette semaine ?',
-  'Qu’aimeriez-vous goûter ensemble pour la première fois ?',
-  'Si vous aviez deux heures devant vous, où iriez-vous ?',
-  'De quel genre de proximité avez-vous envie aujourd’hui ?'
- ];
+ const infoIdeas=G.categories.flatMap(({id,label,color})=>(window.DesirInfoQuestions?.[id]||[]).map(text=>({label,color,text})));
+ let infoDeck=[],infoIdea=null;
+ function infoIdeaMarkup(){
+  return infoIdea?`<span class="oa-info-idea-theme" style="--category:${h(infoIdea.color)}">${h(infoIdea.label)}</span><p>${h(infoIdea.text)}</p>`:'';
+ }
  function renderInfo(){
   const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
   return `<article class="oa-info" aria-labelledby="oa-info-title">
@@ -591,11 +591,11 @@
    <h1 class="oa-sr" id="oa-info-title">Info</h1>
    <div class="oa-info-cards">
     <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
-     <p class="oa-info-kicker" id="oa-info-idea">Pour ouvrir la conversation</p>
-     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">
-      <h2>Une idée <em>à deux.</em></h2>
+     <div class="oa-info-idea-head">
+      <h2 id="oa-info-idea">Une idée <em>à deux.</em></h2>
+      ${btn('Piocher <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea','','aria-label="Piocher une question"')}
      </div>
-     ${btn('Piocher une question <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea')}
+     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">${infoIdeaMarkup()}</div>
     </section>
     <div data-info-activity>${infoActivity()}</div>
     <div data-info-tickets>${infoTickets()}</div>
@@ -604,7 +604,7 @@
      <p class="oa-info-kicker">Le principe du jeu</p>
      <div class="oa-info-agreement-head">
       <h2 id="oa-info-agreement">Il faut <em>deux oui.</em></h2>
-      <span class="oa-info-checks" aria-hidden="true"><i>✓</i><i>✓</i></span>
+      <span class="oa-info-checks" aria-hidden="true">${checkBox}${checkBox}</span>
      </div>
      <p class="oa-info-agreement-lead">Un défi envoyé reste une proposition. Chacun peut dire non.</p>
      <div class="oa-info-agreement-score">
@@ -613,15 +613,6 @@
      </div>
     </section>
     ${libido('women')}
-    <section class="oa-info-card" aria-labelledby="oa-info-dice">
-     <p class="oa-info-kicker">01 / Le tirage</p>
-     <h2 id="oa-info-dice">Du thème à la carte.</h2>
-     <ol class="oa-info-dice">
-      <li><b>D${G.rules.categorySides}</b>Thème</li>
-      <li><b>D${G.rules.cardSides}</b>Carte</li>
-      <li><b>D${G.rules.variantSides}</b>Variante</li>
-     </ol>
-    </section>
     ${libido('places')}
     ${libido('benchmarks')}
     ${libido('destinations')}
@@ -720,15 +711,15 @@
    panel.removeEventListener('toggle',updateProgress,true);
   }};
  }
- function showInfoIdea(el){
-  const output=main.querySelector('.oa-info-idea-output');
-  const previous=Number(el.dataset.idea??-1);
-  const choice=Math.floor(Math.random()*(infoIdeas.length-(previous<0?0:1)));
+ function showInfoIdea(){
+  if(!infoIdeas.length)return;
+  if(!infoDeck.length)infoDeck=infoIdeas.slice();
+  const previous=infoDeck.indexOf(infoIdea);
+  const choice=Math.floor(Math.random()*(infoDeck.length-(previous<0?0:1)));
   const index=previous>=0&&choice>=previous?choice+1:choice;
-  const theme=G.categories[index];
-  el.dataset.idea=String(index);
-  output.innerHTML=`<h2 class="oa-info-idea-theme" style="--category:${h(theme.color)}">${h(theme.label)}</h2><p>${h(infoIdeas[index])}</p>`;
-  el.firstChild.textContent='Une autre question ';
+  [infoIdea]=infoDeck.splice(index,1);
+  const output=main.querySelector('.oa-info-idea-output');
+  output.innerHTML=infoIdeaMarkup();
   if(!systemReduce)playContentTransition(output,[{opacity:.45,transform:'translateY(4px)'},{opacity:1,transform:'none'}],320);
  }
 
@@ -1026,7 +1017,7 @@
   if(action==='joker'){const category=Number(el.dataset.category);if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const act={type:'JOKER_DRAW',category,catalogueVersion:3,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,3,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
   if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
-  if(action==='info-idea'){showInfoIdea(el);return;}
+  if(action==='info-idea'){showInfoIdea();return;}
   if(action==='profile'){if(remoteMode)return;if(tab==='us')tab='play';changeView(el.dataset.player);announce('Profil : '+name(viewPlayer));return;}
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}

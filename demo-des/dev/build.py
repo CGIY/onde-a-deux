@@ -77,6 +77,21 @@ def roleplay_content(core):
     return roleplay
 
 
+def info_questions():
+    questions = json.loads((root / 'data/info-questions.json').read_text(encoding='utf-8'))
+    categories = {'complicite', 'attention', 'projets', 'intimite'}
+    if not isinstance(questions, dict) or questions.keys() != categories or any(
+        not isinstance(items, list) or len(items) != 25 for items in questions.values()
+    ):
+        raise SystemExit('The Info deck requires 25 questions per theme.')
+    flat = [question for items in questions.values() for question in items]
+    if any(not isinstance(question, str) or len(question) > 160 or not question.endswith('?') for question in flat):
+        raise SystemExit('Info prompts must be short questions.')
+    if len({re.sub(r'\W+', '', question.casefold()) for question in flat}) != len(flat):
+        raise SystemExit('Info questions must be unique.')
+    return questions
+
+
 def highlight_rough(body):
     spitting = re.search(r'<div class="rough-extra"><div>.*?</div><p>.*?</p></div>', body, re.S)
     insults = re.search(r'<div><span>Insultes</span>(<b>.*?</b>)</div>', body, re.S)
@@ -154,6 +169,7 @@ def libido_modules():
                 raise SystemExit('Empty fantasy ranking.')
             rows.sort(key=lambda row: float(re.search(r'data-count="([0-9.]+)"', row)[1]), reverse=True)
             body = body[:match.start(1)] + ''.join(rows) + body[match.end(1):]
+            body += '<p class="women-invitation">Cap d’en choisir un qui nous tente tous les deux ?</p>'
         if key == 'destinations':
             split = re.search(r'<div class="setting-labels">.*?</div>', body, re.S)
             proportions = re.findall(r'data-count="(\d+)"', split[0]) if split else []
@@ -196,6 +212,7 @@ if (not isinstance(notes, dict) or set(notes) != card_ids or
 roleplay = roleplay_content(core)
 html = (source / 'onde-app-ui.html').read_text()
 html += libido_modules()
+html += '\n<script>window.DesirInfoQuestions=' + json.dumps(info_questions(), ensure_ascii=False).replace('<', '\\u003c') + ';</script>\n'
 html += '\n<style>\n' + (source / 'onde-app-info.css').read_text() + '</style>\n'
 html += '\n<script>window.DesirCardNotes=Object.freeze(' + json.dumps(notes, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'
 html += '\n<script>window.DesirRoleplay=Object.freeze(' + json.dumps(roleplay, ensure_ascii=False).replace('<', '\\u003c') + ');</script>\n'

@@ -859,9 +859,9 @@ async function rollSession(options={}){
  {
   const base=snap(initial()),activity={streak:3,lastDay:'2026-11-08'};
   const remote=mockRemote({...base,activity,serverTime:'2026-11-09T22:59:00.000Z'}),ui=shell(remote);await tick();await ui.click('tab',{tab:'info'});
-  check(()=>{assert.match(ui.html,/class="oa-info-activity-metrics"><div><strong>—<\/strong><span>Jours actifs<\/span>/);assert.ok(ui.html.includes('Série en cours · 3 jours'));});
+  check(()=>{assert.match(ui.html,/class="oa-info-streak-count">3<\/b><small>jours<\/small><\/strong><span>Série en cours<\/span>/);assert.ok(!ui.html.includes('>Jours actifs<'));});
   remote.emit({...base,activity,serverTime:'2026-11-09T23:01:00.000Z'});
-  check(()=>assert.ok(ui.html.includes('Série en cours · 0 jour')));
+  check(()=>assert.match(ui.html,/class="oa-info-streak-count">0<\/b><small>jour<\/small><\/strong><span>Série en cours<\/span>/));
  }
  // Info shows the authenticated actor's own draw history and updates after a proposal.
  {

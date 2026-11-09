@@ -95,6 +95,18 @@ class WebBuild(BuildFixture):
         self.assertIn(CONFIG['endpoint'], html)
         self.assert_archive_preserved()
 
+    def test_info_questions_are_embedded_and_duplicates_stop_the_build(self):
+        self.build('--connected')
+        html = (self.dev / 'dist/index.html').read_text()
+        deck = json.loads(re.search(r'window.DesirInfoQuestions=(.*?);</script>', html)[1])
+        self.assertEqual({theme: len(items) for theme, items in deck.items()},
+                         {'complicite': 25, 'attention': 25, 'projets': 25, 'intimite': 25})
+        deck['attention'][0] = deck['complicite'][0].upper()
+        (self.dev / 'data/info-questions.json').write_text(json.dumps(deck))
+        result = self.build('--release', ok=False)
+        self.assertIn('Info questions must be unique', result.stderr)
+        self.assertEqual(self.release.read_text(), 'existing-release')
+
     def test_libido_cards_are_assembled_without_source_mentions(self):
         self.build('--release')
         html = self.release.read_text()
