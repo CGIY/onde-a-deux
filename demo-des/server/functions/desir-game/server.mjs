@@ -63,7 +63,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
       if(![1,2,3,4,5,6].includes(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
-      if(gameVersion!==6)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
+      if(gameVersion!==6)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
       // The former live combat is retired. Keep this response before all RPCs,
       // so an old tab cannot recreate a session after loading the unified game.
       if(body.op==='hardcore')throw new HttpError(410,'mode_removed','Les cartes Hardcore se trouvent maintenant dans Intimité.');

@@ -1,9 +1,9 @@
-/* Dés·ir — public app shell only. Private game responses never enter this cache. */
+/* D6 à deux — public app shell only. Private game responses never enter this cache. */
 'use strict';
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const CACHE_NAME = CACHE_PREFIX + 'connected-v36';
+const CACHE_NAME = CACHE_PREFIX + 'connected-v37';
 const PUBLIC_FILES = [
   './', './index.html', './manifest.webmanifest',
   './icons/desir-180.png', './icons/desir-192.png', './icons/desir-512.png', './icons/desir-badge.png'
@@ -81,7 +81,7 @@ function safeNotification(raw) {
   }
   const eventId = typeof data.eventId === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(data.eventId) ? data.eventId : kind;
   return {
-    title: 'Dés·ir',
+    title: 'D6 à deux',
     options: {
       body,
       icon: new URL('./icons/desir-192.png', APP_URL).href,

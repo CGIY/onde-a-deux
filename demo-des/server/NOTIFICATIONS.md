@@ -1,4 +1,4 @@
-# Notifications Dés·ir
+# Notifications D6 à deux
 
 L’application web se partage entre deux comptes. Les notifications sont facultatives et s’activent depuis un bouton, après connexion. Sur iPhone/iPad, installer le site sur l’écran d’accueil et ouvrir cette application installée ; Web Push demande iOS/iPadOS 16.4 ou ultérieur.
 

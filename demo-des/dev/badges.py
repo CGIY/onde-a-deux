@@ -84,7 +84,7 @@ def gallery(rows):
                      html.escape(row['description']) + '</p></li>')
     return '''<!doctype html><html lang="fr"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
-<meta name="color-scheme" content="dark"><title>Dés·ir — Les emblèmes</title>
+<meta name="color-scheme" content="dark"><title>D6 à deux — Les emblèmes</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#22221F;color:#F0EEE7;font:15px/1.5 system-ui,-apple-system,sans-serif}
 main{max-width:1120px;margin:auto;padding:44px 24px 70px}header{max-width:660px;margin-bottom:30px}.eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:#9CAEBB}
 h1{font-size:clamp(30px,5vw,54px);letter-spacing:-.055em;line-height:1.08;margin:14px 0}header>p{color:#b9b8ad}a{color:#E0A08A;text-underline-offset:4px}
@@ -96,11 +96,11 @@ h2{font-size:14px;line-height:1.3;font-weight:560;letter-spacing:-.02em;margin:0
 footer{border-top:1px solid #3c3c34;padding-top:20px;margin-top:40px;color:#a9a7a1;font-size:12px}
 @media(max-width:760px){ol{grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 14px}main{padding:28px 18px 44px}.condition{font-size:10px}h2{font-size:12px}}
 @media(max-width:360px){main{padding-inline:12px}ol{gap:25px 9px}h2{font-size:11px}.condition{font-size:9.5px}}</style>
-<main><header><p class="eyebrow">Dés·ir / Collection</p><h1>''' + str(len(rows)) + ''' emblèmes.<br>Autant de petits trophées.</h1>
-<p>Le trait complice, en lignes bleues et souples. Une scène originale par médaille, dans la palette minérale de Dés·ir. Retrouvez les conditions de déblocage sous chaque dessin.</p></header>
+<main><header><p class="eyebrow">D6 à deux / Collection</p><h1>''' + str(len(rows)) + ''' emblèmes.<br>Autant de petits trophées.</h1>
+<p>Le trait complice, en lignes bleues et souples. Une scène originale par médaille, dans la palette minérale de D6 à deux. Retrouvez les conditions de déblocage sous chaque dessin.</p></header>
 <nav aria-label="Filtrer les emblèmes"><button type="button" data-filter="all" aria-pressed="true">Tous</button><button type="button" data-filter="individual" aria-pressed="false">Individuels</button><button type="button" data-filter="shared" aria-pressed="false">À deux</button><a href="./desir-badges.zip">Télécharger les SVG</a></nav>
 <ol aria-label="Les emblèmes de la collection">''' + ''.join(cards) + '''</ol>
-<footer>Cette galerie présente tous les dessins ; votre progression personnelle se trouve dans <a href="../">Dés·ir</a>.</footer></main>
+<footer>Cette galerie présente tous les dessins ; votre progression personnelle se trouve dans <a href="../">D6 à deux</a>.</footer></main>
 <script>document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{const filter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));document.querySelectorAll('li[data-scope]').forEach(item=>{item.hidden=filter!=='all'&&item.dataset.scope!==filter;});}));</script></html>'''
 
 
@@ -114,7 +114,7 @@ def preview(rows):
     width, height = 920, 1020
     parts = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">',
              '<rect width="920" height="1020" fill="#22221F"/>',
-             '<text x="44" y="51" fill="#9CAEBB" font-family="sans-serif" font-size="13" letter-spacing="4">DÉS·IR / LE TRAIT COMPLICE</text>',
+             '<text x="44" y="51" fill="#9CAEBB" font-family="sans-serif" font-size="13" letter-spacing="4">D6 À DEUX / LE TRAIT COMPLICE</text>',
              '<text x="44" y="101" fill="#F0EEE7" font-family="sans-serif" font-size="36" font-weight="bold">90 scènes à collectionner.</text>']
     for index, row in enumerate(selected):
         x, y = 38 + index % 4 * 224, 140 + index // 4 * 282

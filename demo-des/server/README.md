@@ -1,4 +1,4 @@
-# Dés·ir — service de jeu
+# D6 à deux — service de jeu
 
 Le service utilise le moteur canonique `demo-des/dev/src/onde-app-core.js`, copié dans `functions/desir-game/core.js` avant déploiement. Les tirages, les dates et les deux coches sont traités côté serveur. Le navigateur reçoit uniquement la projection autorisée pour son compte.
 
@@ -142,6 +142,6 @@ Documentation consultée : [authentification Edge](https://supabase.com/docs/gui
 
 ## Déploiement et sauvegarde continus
 
-Le workflow GitHub « Dés·ir — web checks » relance les tests, reconstruit la sortie connectée puis déploie `functions/desir-game` à chaque push sur `main`, dès que la variable de dépôt `DESIR_DEPLOY` vaut `true` et que le secret `SUPABASE_ACCESS_TOKEN` (jeton d'accès Supabase) existe. La vérification `git diff --exit-code` garantit que le moteur publié correspond aux sources ; le déploiement manuel reste possible avec les mêmes commandes.
+Le workflow GitHub « D6 à deux — web checks » relance les tests, reconstruit la sortie connectée puis déploie `functions/desir-game` à chaque push sur `main`, dès que la variable de dépôt `DESIR_DEPLOY` vaut `true` et que le secret `SUPABASE_ACCESS_TOKEN` (jeton d'accès Supabase) existe. La vérification `git diff --exit-code` garantit que le moteur publié correspond aux sources ; le déploiement manuel reste possible avec les mêmes commandes.
 
-Le workflow « Dés·ir — weekly encrypted backup » (lundi 03:17 UTC) exporte le schéma public via le pooler Supabase, chiffre le dump en AES-256 et le conserve 120 jours en artefact. Il requiert la variable `DESIR_BACKUP` à `true` et les secrets `SUPABASE_DB_PASSWORD` (mot de passe postgres du projet) et `DESIR_BACKUP_PASSPHRASE`. Aucun secret n'entre dans le dépôt ; l'artefact chiffré n'est lisible qu'avec la phrase secrète.
+Le workflow « D6 à deux — weekly encrypted backup » (lundi 03:17 UTC) exporte le schéma public via le pooler Supabase, chiffre le dump en AES-256 et le conserve 120 jours en artefact. Il requiert la variable `DESIR_BACKUP` à `true` et les secrets `SUPABASE_DB_PASSWORD` (mot de passe postgres du projet) et `DESIR_BACKUP_PASSPHRASE`. Aucun secret n'entre dans le dépôt ; l'artefact chiffré n'est lisible qu'avec la phrase secrète.

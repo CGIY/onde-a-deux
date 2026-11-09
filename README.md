@@ -3,6 +3,7 @@
 [Ouvrir l’accueil commun](https://cgiy.github.io/desir/) : choisir ONDE, [Le Donjon](https://cgiy.github.io/mes_apps/) ou [Les Cartes](https://cgiy.github.io/desir/cartes/).
 
 - **ONDE** aide le duo à choisir ses envies, séparément puis ensemble.
+- **[D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)** est le jeu de défis et de dés à partager en duo.
 - **Le Donjon** transforme la soirée en aventure partagée.
 - **Les Cartes** propose un booster quotidien de trois cartes, une collection privée de challenges à activer ou échanger, des cartes Énergie pour offrir un bisou et des Jokers capables d’annuler un challenge actif. Le catalogue compte 80 cartes : 43 communes, 12 full art, 16 foils et 9 full art + foil. Les cartes « Mise à nue » ont un poids de tirage réduit de 20 % à finition égale.
 

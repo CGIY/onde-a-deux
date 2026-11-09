@@ -35,13 +35,13 @@ function parseKnownAction(input,types){
 }
 export function assertClientCompatibility(G,full,actor,gameVersion){
   if(full?.version===2){
-    if(gameVersion!==6)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
+    if(gameVersion!==6)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
     return;
   }
   if(gameVersion!==1)return;
   const visibleRound=[2,3].includes(full.round.catalogueVersion)&&G.canSeeRound(full,actor);
   if(visibleRound||full.tasks.some(task=>task.variantRoll!=null||task.catalogueVersion===3)){
-    throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser le nouveau parcours.');
+    throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser le nouveau parcours.');
   }
 }
 export function projectState(G,full,actor,gameVersion=2,roundId){
@@ -79,7 +79,7 @@ export function snapshot(G,context,extra={},gameVersion=2){
   return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges:G.badgeView(full,actor),revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }
 export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
-  if(gameVersion===3||gameVersion===4||gameVersion===5)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser la nouvelle version.');
+  if(gameVersion===3||gameVersion===4||gameVersion===5)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(gameVersion!==6)return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
   const action=parseAction(input);
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
@@ -149,7 +149,7 @@ function applyLegacyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt
   }
   else if(action.type==='ROLL_CARD'){const sides=G.cardSides(state),value=randomInt(sides);action.value=value;roll={kind:sides,value};}
   else if(action.type==='ROLL_VARIANT'){
-    if(gameVersion!==2)throw new HttpError(409,'upgrade_required','Rouvre Dés·ir pour utiliser le nouveau parcours.');
+    if(gameVersion!==2)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser le nouveau parcours.');
     if(state.phase!=='variant'||state.round.from!==actor)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const sides=G.rules.variantSides,value=randomInt(sides);action.value=value;roll={kind:sides,value};
   }

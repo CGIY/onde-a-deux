@@ -1,4 +1,4 @@
-"""Build Dés·ir from its editable sources.
+"""Build D6 à deux from its editable sources.
 
 Default: isolated local demo preview. --connected: authenticated web preview.
 --release: publishable authenticated web files; the archived Xcode build is kept.
@@ -58,7 +58,7 @@ def roleplay_content(core):
     expected = {card['id'] + ':v' + str(index + 1)
                 for card in catalogue for index in range(len(card['variants']))}
     if (not isinstance(roleplay, dict) or set(roleplay) != {'mode', 'universe', 'cards'} or
-            roleplay['mode'] != 'roleplay' or roleplay['universe'] != 'Dés·ir' or
+            roleplay['mode'] != 'roleplay' or roleplay['universe'] != 'D6 à deux' or
             not isinstance(roleplay['cards'], dict) or set(roleplay['cards']) != expected):
         raise SystemExit('Roleplay must identify its fictional universe and cover every final card exactly.')
     texts = set()
@@ -241,11 +241,11 @@ html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#282725"><meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.3.0">
-<meta name="application-name" content="Dés·ir"><meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Dés·ir">
+<meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/desir-192.png">
-<title>Dés·ir — À deux</title>
+<title>D6 à deux</title>
 <style>html{background:#101613;color-scheme:dark}body{margin:0;padding:16px 0 24px;min-width:300px;background:radial-gradient(ellipse at 50% 30%,#283027 0,#141b17 65%);min-height:100vh}.cursor-interaction{cursor:pointer}@media(max-width:480px){body{padding:0;background:#181d1c}#onde-app-v1{padding:0}#onde-app-v1 .oa-shell{border-radius:0;border-left:0;border-right:0;max-width:none;box-shadow:none}}</style>
 </head><body>''' + html + '</body></html>\n'
 (root / 'dist').mkdir(exist_ok=True)
