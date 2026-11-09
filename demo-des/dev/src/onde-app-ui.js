@@ -275,7 +275,15 @@
  function badgesSection(){
   if(!badgeView)return '';
   const earned=recentBadges();
-  return '<section class="oa-achievements" aria-labelledby="oa-badges-title"><div class="oa-section-head"><h2 id="oa-badges-title">Badges</h2><span aria-label="'+earned.length+' badges débloqués sur '+badgeCatalog.length+'">'+earned.length+' / '+badgeCatalog.length+'</span></div>'+(earned.length?'<p class="oa-note">Les derniers débloqués</p><ol class="oa-achievement-gallery is-recent">'+earned.slice(0,5).map(badge=>badgeTile(badge,'recent')).join('')+'</ol>':'<p class="oa-note">Votre premier badge vous attend.</p>')+'<div class="oa-achievement-more">'+textBtn('Tout afficher','badges-all','aria-label="Afficher les '+badgeCatalog.length+' badges"')+'</div></section>';
+  const featured=earned.length?earned.slice(0,5):badgeRows().filter(badge=>['ind-draws-1','ind-proposals-1','duo-completed-1'].includes(badge.id));
+  return `<section class="oa-achievements" aria-labelledby="oa-badges-title">
+   <div class="oa-section-head">
+    <div><h2 id="oa-badges-title">Badges</h2><span aria-label="${earned.length} badges débloqués sur ${badgeCatalog.length}">${earned.length} / ${badgeCatalog.length}</span></div>
+    ${btn('Tout afficher <i aria-hidden="true">↗</i>','badges-all','oa-secondary oa-achievements-open','aria-haspopup="dialog" aria-label="Afficher les '+badgeCatalog.length+' badges"')}
+   </div>
+   <p class="oa-note">${earned.length?'Les derniers débloqués':'Vos premiers badges à débloquer'}</p>
+   <ol class="oa-achievement-gallery is-recent${earned.length?'':' is-preview'}">${featured.map(badge=>badgeTile(badge,'recent')).join('')}</ol>
+  </section>`;
  }
  function badgeDetailMarkup(badge){
   const earned=!!badge.award,value=Math.min(badge.progress?.value||0,badge.target),caption=earned?'Objectif atteint':value+' / '+badge.target;
@@ -514,8 +522,14 @@
   announce('Nouveau grade : '+gradeAt(state.stats.totalCompleted)[1]+'.');
  }
  function sharedScore(){
-  const stats=state.stats,total=stats.totalCompleted;
-  return '<section class="oa-shared-score" aria-label="Score commun"><h1 class="oa-eyebrow">VOTRE SCORE À DEUX</h1><div class="oa-score-number"><strong>'+total.toLocaleString('fr-FR')+'</strong><span>point'+(total>1?'s':'')+'</span></div><p class="oa-score-caption">'+(total?'Des moments vécus, à votre rythme.':'Votre première carte partagée ouvre le score.')+'</p><div class="oa-score-rule"><span aria-hidden="true">✓</span> 1 carte partagée = 1 point</div></section>'+sharedGrade(total);
+  const total=state.stats.totalCompleted;
+  return `<section class="oa-shared-score" aria-label="Score commun">
+   <div class="oa-score-head">
+    <h1 class="oa-eyebrow">VOTRE SCORE À DEUX</h1>
+    <div class="oa-score-number"><strong>${total.toLocaleString('fr-FR')}</strong><span>point${total>1?'s':''}</span></div>
+   </div>
+   ${sharedGrade(total)}
+  </section>`;
  }
  function notificationSetting(){
   const n=remote.notificationStatus;
