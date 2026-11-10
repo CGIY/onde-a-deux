@@ -121,6 +121,7 @@
 #onde-app-v1 .oa-info-checks .oa-check-water svg{fill:#cc9f96}
 #onde-app-v1 .oa-info-checks .oa-check-water path+path{fill:#ab8291}
 #onde-app-v1 .oa-info-checks .oa-check-mark{inset:2px;width:12px;height:12px;stroke:#2a202e;opacity:1;transform:none}
+#onde-app-v1.oa-ambient-paused .oa-info-agreement.is-reading :is(.oa-check-water,.oa-check-water svg,.oa-check-mark){animation:none}
 @media(prefers-reduced-motion:no-preference){
 #onde-app-v1 .oa-info:not(.is-motion-paused) .oa-libido.benchmarks.is-in-view::before{animation:oa-info-rhythm-light 6.8s ease-in-out infinite}
 #onde-app-v1 .oa-info:not(.is-motion-paused) .dest-featured.is-in-view::after{animation:oa-info-dest-sweep 5.8s ease-in-out infinite}
@@ -170,3 +171,53 @@
 #onde-app-v1 .oa-libido.women p.women-invitation{margin-top:8px;padding-top:7px;border-top:1px solid var(--chart-line);color:#efc7aa;font-size:12px;font-weight:550;text-align:center}
 #onde-app-v1 .women-invitation-ink{white-space:pre-wrap}
 #onde-app-v1 .women-invitation-ink>span+span{visibility:hidden}
+
+/* Four focal facts share a warmer, layered inset without obscuring their text. */
+#onde-app-v1 .oa-libido :is(.dest-featured,.anal-benchmark,.rough-extra,.place-fantasy-featured){
+ position:relative;isolation:isolate;overflow:hidden;
+ border-color:#f2c2a78a;
+ box-shadow:inset 0 1px #ffe9d34a,inset 0 -1px #140e1a66,0 5px 15px #08091442;
+}
+#onde-app-v1 .oa-libido .dest-grid>.dest-featured{
+ border-color:#f2c2a78a;
+ background:radial-gradient(ellipse at 80% 0%,#eca98748,transparent 72%),linear-gradient(145deg,#9064597a,#4a3d596b),var(--oa-panel-inset);
+}
+#onde-app-v1 .oa-libido .dest-featured h3{color:#fff0e5}
+#onde-app-v1 .oa-libido .dest-featured .dest-percent{font-size:20px;color:#ffcfb6}
+#onde-app-v1 .oa-libido .anal-benchmark{
+ gap:9px;margin-top:7px;padding:8px 10px;border-radius:11px;
+ background:radial-gradient(ellipse at 12% 0%,#f5b58e45,transparent 68%),linear-gradient(135deg,#80564f70,#40334478),var(--oa-panel-inset);
+}
+#onde-app-v1 .oa-libido .anal-benchmark .anal-value{font-size:25px;color:#ffd1b7}
+#onde-app-v1 .oa-libido .anal-benchmark h3{color:#fff0e7;font-size:12px;font-weight:650}
+#onde-app-v1 .oa-libido .anal-benchmark p{color:#eee1db;font-size:11px;line-height:1.35}
+#onde-app-v1 .oa-libido .rough-highlights>.rough-extra{
+ border-color:#f2c2a78a;
+ background:radial-gradient(ellipse at top right,#efa57865,transparent 77%),linear-gradient(140deg,#85564d8a,#3a2d4888),var(--oa-panel-inset);
+}
+#onde-app-v1 .oa-libido .rough-extra>div>b{color:#ffd9c2;text-shadow:0 1px 10px #edaa8950}
+#onde-app-v1 .oa-libido .place-fantasy-grid .place-fantasy-featured{
+ --chart:#ffd3b4;padding:7px 8px;color:#fff0e7;border-color:#f2c2a78a;
+ background:radial-gradient(ellipse at 85% 0%,#eeb28d4a,transparent 75%),linear-gradient(135deg,#75514e80,#3432468a),var(--oa-panel-inset);
+}
+#onde-app-v1 .oa-libido .place-fantasy-featured>span{font-size:11px;font-weight:600;line-height:1.25}
+#onde-app-v1 .oa-libido .place-fantasy-grid>.place-fantasy-featured>b{font-size:15px;color:#ffd3b4}
+#onde-app-v1 .oa-libido :is(.anal-benchmark,.rough-extra,.place-fantasy-featured)::after{
+ content:"";position:absolute;z-index:-1;inset:0 auto 0 0;width:55%;opacity:0;pointer-events:none;
+ background:linear-gradient(90deg,transparent,#ffe5d2ba,transparent) top/100% 1px no-repeat,
+  linear-gradient(90deg,transparent,#f6bb9c3a 34%,#ffe0c35c 50%,#c69ac638 66%,transparent);
+ transform:translateX(-115%) skewX(-19deg);
+}
+@media(prefers-reduced-motion:no-preference){
+ #onde-app-v1 .oa-info:not(.is-motion-paused) :is(.anal-benchmark,.rough-extra,.place-fantasy-featured).is-in-view::after{
+  animation:oa-info-inset-sweep 7.2s ease-in-out infinite;
+ }
+ #onde-app-v1 .oa-info:not(.is-motion-paused) .rough-extra.is-in-view::after{animation-delay:-2.4s}
+ #onde-app-v1 .oa-info:not(.is-motion-paused) .place-fantasy-featured.is-in-view::after{animation-delay:-4.8s}
+ #onde-app-v1:has(.oa-sheet-backdrop:not([hidden])) .oa-info :is(.dest-featured,.anal-benchmark,.rough-extra,.place-fantasy-featured)::after{animation-play-state:paused}
+}
+@keyframes oa-info-inset-sweep{
+ 0%,17%{opacity:0;transform:translateX(-115%) skewX(-19deg)}
+ 28%,42%{opacity:.8}
+ 56%,100%{opacity:0;transform:translateX(205%) skewX(-19deg)}
+}

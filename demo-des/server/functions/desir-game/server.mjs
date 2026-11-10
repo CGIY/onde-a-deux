@@ -60,7 +60,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const job=push.flushPushOutbox(store).catch(()=>{});if(waitUntil)waitUntil(job);else await job;
         return respond({queued:true},202);
       }
-      if(!['login','state','action','portraits','push_config','subscribe','hardcore'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
+      if(!['login','state','action','portraits','push_config','subscribe','hardcore','revoke_sessions'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
       if(![1,2,3,4,5].includes(gameVersion)&&!supportsParallelGame(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
@@ -83,12 +83,18 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const current=await context(tokenHash,gameVersion);flush(current.room.id);
         return respond(snapshot(G,current,{connection:{token,roomId:current.room.id,actor:current.member.actor}},gameVersion));
       }
-      if(Object.keys(body).some(key=>!['op','requestId','action','subscription','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
+      if(Object.keys(body).some(key=>!['op','requestId','action','subscription','gameVersion'].includes(key)&&!(body.op==='revoke_sessions'&&key==='scope')))throw new HttpError(400,'invalid_request','Requête invalide.');
       // Both independent limits must pass before any session or game access.
       await Promise.all([
         rate('authenticated-ip:'+ipBucket,600,60),
         rate('device:'+tokenHash,240,60)
       ]);
+      if(body.op==='revoke_sessions'){
+        if(Object.keys(body).some(key=>!['op','gameVersion','scope'].includes(key))||!['current','others'].includes(body.scope))throw new HttpError(400,'invalid_request','Requête invalide.');
+        const revoked=await store.rpc('desir_revoke_sessions',{p_token_hash:tokenHash,p_scope:body.scope});
+        if(!revoked)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
+        return respond({revoked:true});
+      }
       if(body.op==='portraits'){
         if(Object.keys(body).some(key=>!['op','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
         const current=await store.rpc('desir_get_session',{p_token_hash:tokenHash});

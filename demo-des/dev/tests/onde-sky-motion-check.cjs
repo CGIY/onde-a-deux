@@ -1,0 +1,26 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../src/onde-app-sky.js'),'utf8');
+const classes=()=>{const values=new Set();return {contains:value=>values.has(value),toggle(value,on){if(on)values.add(value);else values.delete(value);}};};
+const handlers={},documentHandlers={},timers=new Map();let nextTimer=0,observer=null,motionChange=null,removed=0,created=0;
+const sheet={hidden:true},root={classList:classes(),querySelector:()=>sheet};
+const sky={classList:classes(),clientWidth:320,closest:()=>root,append(){created++;}};
+const motion={matches:false,addEventListener(_event,fn){motionChange=fn;}};
+const window={matchMedia:()=>motion,addEventListener:(event,fn)=>{handlers[event]=fn;}};
+const document={hidden:false,querySelector:()=>sky,addEventListener:(event,fn)=>{documentHandlers[event]=fn;},createElement:()=>({style:{setProperty(){}},addEventListener(){},remove(){removed++;}})};
+class MutationObserver{constructor(fn){observer=fn;}observe(target,options){assert.equal(target,sheet);assert.deepEqual(Array.from(options.attributeFilter),['hidden']);}}
+const sandbox={window,document,MutationObserver,Math,setTimeout(fn){const id=++nextTimer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}};
+vm.runInNewContext(source,sandbox);
+assert.equal(timers.size,1);assert.equal(sky.classList.contains('is-suspended'),false);
+const fire=()=>{const [id,fn]=timers.entries().next().value;timers.delete(id);fn();};
+fire();assert.equal(created,1);assert.equal(timers.size,1);
+root.classList.toggle('oa-ambient-paused',true);handlers['d6-ambient-motion-change']();
+assert.equal(timers.size,0);assert.equal(removed,1);assert.equal(sky.classList.contains('is-suspended'),true);
+root.classList.toggle('oa-ambient-paused',false);handlers['d6-ambient-motion-change']();assert.equal(timers.size,1);
+sheet.hidden=false;observer();assert.equal(timers.size,0);assert.equal(sky.classList.contains('is-suspended'),true);
+sheet.hidden=true;observer();assert.equal(timers.size,1);
+motion.matches=true;motionChange();assert.equal(timers.size,0);assert.equal(sky.classList.contains('is-drifting'),false);
+motion.matches=false;motionChange();assert.equal(timers.size,1);
+document.hidden=true;documentHandlers.visibilitychange();assert.equal(timers.size,0);
+document.hidden=false;documentHandlers.visibilitychange();assert.equal(timers.size,1);
+handlers.pagehide();assert.equal(timers.size,0);handlers.pageshow();assert.equal(timers.size,1);
+console.log('Sky ambient motion: pause, modal, reduced motion and visibility checks passed.');

@@ -24,6 +24,14 @@
  const welcomeKey='desir-welcome-v1';
  let welcomeDismissed=false;try{welcomeDismissed=localStorage.getItem(welcomeKey)==='1';}catch(_){}
  let localPrefs={sound:false};try{const saved=JSON.parse(localStorage.getItem('desir-preferences-v1')||'{}');if(typeof saved.sound==='boolean')localPrefs.sound=saved.sound;}catch(_){}
+ const ambientMotionKey='d6-ambient-motion-v1';
+ let ambientMotion=true;try{ambientMotion=localStorage.getItem(ambientMotionKey)!=='0';}catch(_){}
+ function setAmbientMotion(enabled,persist=true){
+  ambientMotion=!!enabled;root.classList.toggle('oa-ambient-paused',!ambientMotion);
+  if(persist)try{localStorage.setItem(ambientMotionKey,ambientMotion?'1':'0');}catch(_){}
+  if(typeof window.CustomEvent==='function')window.dispatchEvent?.(new window.CustomEvent('d6-ambient-motion-change'));
+ }
+ setAmbientMotion(ambientMotion,false);
 
  const motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
  let systemReduce=!!(motionQuery&&motionQuery.matches);
@@ -45,8 +53,9 @@
  const badgeDefinitions=new Map(badgeCatalog.map(badge=>[badge.id,badge]));
  const badgeArtCache=new Map();
  const badgeNotice=root.querySelector('#oa-badge-notice'),badgeAnnouncement=root.querySelector('#oa-badge-announcement');
- const badgeAnchor=persona.querySelector(remoteMode?'.oa-switch':'.oa-switch:has(.oa-player-avatar)');
- if(badgeAnchor&&badgeNotice)badgeAnchor.append(badgeNotice);
+ // Connected profiles replace the header; keep notices in the layout, below them.
+ if(remoteMode&&badgeNotice)root.querySelector('.oa-shell')?.insertBefore?.(badgeNotice,main);
+ else{const badgeAnchor=persona.querySelector('.oa-switch:has(.oa-player-avatar)');if(badgeAnchor&&badgeNotice)badgeAnchor.append(badgeNotice);}
  const badgeMemory=new Map();
  let badgeView=null,badgeRegistryKey=null,badgeRegistry=null,badgeMissingBaseline=null,badgeActive=null,badgeTimer=null,badgeTimerStarted=0;
  let badgeHover=false,badgeFocus=false,badgeReturnFocus=null,badgeSheetOpen=false,badgeFilter='all',badgeHighlight=null,badgeSheetMarkup='',badgeDetailId=null,badgeGalleryScroll=null,badgeNoticeAnimation=null;
@@ -296,7 +305,8 @@
   if(error&&error.snapshot)flushRemote(error.snapshot,false);
   const message=error&&error.isDesirRemoteError?error.message:'La connexion au duo est momentanément indisponible.';
   if(remote&&remote.connection&&!remote.authenticated){remoteReady=false;loginError=message;}
-  toast(message);return false;
+  const sheetError=!sheet.hidden&&sheet.querySelector('[data-sheet-error]');
+  if(sheetError){sheetError.textContent=message;sheetError.hidden=false;}else toast(message);return false;
  }
  async function dispatch(action,doRender=true){
   if(remoteMode){
@@ -505,11 +515,11 @@
   if(systemReduce||document.hidden||presentationHidden)return;
   const medal=badgeNotice.querySelector('[data-badge-medallion]');if(!medal?.animate)return;
   const animation=medal.animate([
-   {opacity:.68,transform:'scale(.88)'},
-   {opacity:1,transform:'scale(1.07)',filter:'brightness(1.65) drop-shadow(0 0 4px #a8d7ff)',offset:.22},
-   {opacity:.78,transform:'scale(.99)',offset:.46},
-   {opacity:1,transform:'scale(1.04)',filter:'brightness(1.45) drop-shadow(0 0 3px #c4adef)',offset:.65},
-   {opacity:1,transform:'scale(1)',filter:'none'}
+   {opacity:.68,transform:'scale(.82) rotate(-9deg)'},
+   {opacity:1,transform:'scale(1.12) rotate(4deg)',filter:'brightness(1.65) drop-shadow(0 0 4px #a8d7ff)',offset:.22},
+   {opacity:.86,transform:'scale(.98) rotate(-2deg)',offset:.46},
+   {opacity:1,transform:'scale(1.05) rotate(1deg)',filter:'brightness(1.45) drop-shadow(0 0 3px #c4adef)',offset:.65},
+   {opacity:1,transform:'scale(1) rotate(0deg)',filter:'none'}
   ],{duration:1000,easing:'ease-in-out'});
   badgeNoticeAnimation=animation;animation.onfinish=animation.oncancel=()=>{if(badgeNoticeAnimation===animation)badgeNoticeAnimation=null;};
  }
@@ -558,7 +568,7 @@
    const pending=new Set(badgeRegistry.pending),seen=new Set(badgeRegistry.seen);
    const next=recentBadges().reverse().find(badge=>pending.has(badge.award.id)&&!seen.has(badge.award.id)&&badge.award.source!=='imported');
    if(!next){badgeNotice.hidden=true;return;}
-   badgeActive={id:next.id,awardId:next.award.id,remaining:2600};badgeHover=false;badgeFocus=false;
+   badgeActive={id:next.id,awardId:next.award.id,remaining:4500};badgeHover=false;badgeFocus=false;
    badgeRegistry.seen.push(next.award.id);badgeRegistry.pending=badgeRegistry.pending.filter(id=>id!==next.award.id);saveBadgeRegistry();
    badgeNotice.innerHTML='<button type="button" class="oa-badge-notice-open cursor-interaction" data-action="badge-view" data-badge="'+h(next.id)+'" aria-haspopup="dialog" aria-label="Voir le badge '+h(next.title)+'">'+badgeMedallion(next,'notice')+'<span class="oa-badge-notice-copy"><small>Badge débloqué</small><strong>'+h(next.title)+'</strong></span></button><button type="button" class="oa-badge-notice-close cursor-interaction" data-action="badge-dismiss" aria-label="Fermer la notification du badge">×</button>';
    badgeNotice.dataset.award=next.award.id;
@@ -650,7 +660,7 @@
   if(stars&&missionError===round.id)return '<div class="oa-actions">'+btn('Réessayer','send')+'</div>';
   if(stars&&!canReroll)return '<p class="oa-mission-transfer" role="status">Ajout aux Missions…</p>';
   return '<div class="oa-actions">'+btn(stars?'Garder la carte':'Ajouter aux Missions','send')+
-   (canReroll?textBtn(stars?'Relancer · 1 étoile':'Relancer la carte','reroll'):'')+'</div>';
+   (canReroll?textBtn(stars?'Relancer <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>':'Relancer la carte','reroll',stars?'aria-label="Relancer la carte, coûte une étoile"':''):'')+'</div>';
  }
 
  function privateHome(incoming=false){
@@ -677,7 +687,7 @@
   if(state.phase==='card'){
    const sides=G.cardSides(state);
    return rollScreen(cardHeading(r),stage(sides,'02 / LA CARTE',1,'card','Lancer le D'+sides),
-    rollReadout,(sides===8?'':handGrid())+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème · 1×/jour','reroll-category')+'</div>':''));
+    rollReadout,(sides===8?'':handGrid())+(canRerollCategoryNow()?'<div class="oa-actions">'+textBtn('Relancer le thème <span class="oa-reroll-frequency">1×/jour</span>','reroll-category')+'</div>':''));
   }
   if(state.phase==='variant')return rollScreen(heading(h(c.title),null,null),
    stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant','Tirer la variante'),rollReadout);
@@ -707,11 +717,11 @@
   return '<h1 class="oa-title oa-missions-title">Les choses <em>à faire.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
    const c=G.getCard(task.cardId,roundVersion(task)),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;
    const remaining=timeLeft(task),status=taskStatus(task);
-   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+rollFormula(task,c)+'<h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';
+   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+rollFormula(task,c)+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';
   }).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+
    (state.phase==='accepted'?'<div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+'</div>':'');
  }
- function setting(key,label,desc){return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(state.prefs[key]?'checked':'')+' aria-label="'+h(label)+'"></label>';}
+ function setting(key,label,desc){const enabled=key==='ambient'?ambientMotion:state.prefs[key];return '<label class="oa-setting"><span>'+label+'<small>'+desc+'</small></span><input type="checkbox" class="cursor-interaction" data-pref="'+key+'" '+(enabled?'checked':'')+' aria-label="'+h(label)+'"></label>';}
  const gradeLevels=G.gradeLevels;
  let gradeScope=null,lastGrade=null,pendingGrade=null,notificationSignature='';
  function gradeAt(total){return gradeLevels.filter(grade=>grade[0]<=total).at(-1)||null;}
@@ -755,7 +765,7 @@
 
  function infoSettings(){
   if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);
-  return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+(remoteMode?notificationSetting():'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+'</section>';
+  return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('ambient','Animations d’ambiance','Ciel, lignes lumineuses et effets du Carnet.')+(remoteMode?notificationSetting()+'<section class="oa-notification-setting"><div class="oa-section-head"><h2>Mes appareils</h2></div><p class="oa-note">Protège ton compte en retirant l’accès à un appareil.</p><div class="oa-actions">'+textBtn('Déconnecter cet appareil','logout-confirm')+textBtn('Déconnecter mes autres appareils','revoke-others-confirm')+'</div></section>':'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+'</section>';
  }
  function infoActivity(){
   const activity=remoteMode?remoteSnapshot?.activity:G.activityCalendar(localRoom,viewPlayer);
@@ -839,9 +849,9 @@
   const invitation=panel.querySelector('.women-invitation');
   const [ink,rest]=invitation?.querySelector('.women-invitation-ink')?.children||[];
   const letters=Array.from(ink?.textContent||'');
-  const looping=new Set([agreement,rhythm,highlight,invitation].filter(Boolean));
+  const looping=new Set([agreement,rhythm,highlight,invitation,...panel.querySelectorAll('.anal-benchmark,.rough-extra,.place-fantasy-featured')].filter(Boolean));
   let typingTimer=0,typed=letters.length;
-  const canType=()=>letters.length&&!systemReduce&&!document.hidden&&invitation.classList.contains('is-in-view');
+  const canType=()=>letters.length&&!systemReduce&&ambientMotion&&!document.hidden&&invitation.classList.contains('is-in-view');
   function drawTyping(count){
    if(!ink||!rest||typed===count)return;
    typed=count;
@@ -855,7 +865,7 @@
    typingTimer=setTimeout(typeNext,typed===letters.length?3400:46);
   }
   function syncTyping(){
-   panel.classList.toggle('is-motion-paused',document.hidden);
+   panel.classList.toggle('is-motion-paused',document.hidden||!ambientMotion);
    if(!canType()){
     clearTimeout(typingTimer);typingTimer=0;drawTyping(letters.length);
    }else if(!typingTimer){
@@ -870,51 +880,23 @@
    progress.style.transform='scaleX('+ratio+')';
   };
   const scheduleProgress=()=>{if(!progressFrame)progressFrame=requestAnimationFrame(updateProgress);};
-  const frames=new Map();
   const observer=window.IntersectionObserver&&new IntersectionObserver(entries=>{
    entries.forEach(({target,isIntersecting,intersectionRatio})=>{
     const visible=isIntersecting&&intersectionRatio>=.18;
-    if(looping.has(target))target.classList.toggle('is-in-view',visible&&!systemReduce);
+    if(looping.has(target))target.classList.toggle('is-in-view',visible&&!systemReduce&&ambientMotion);
     if(target===invitation){syncTyping();return;}
     if(target===highlight)return;
     if(!visible||systemReduce||target.hasAttribute('data-info-visited'))return;
     if(!looping.has(target))observer.unobserve(target);
     target.classList.add('is-reading');target.dataset.infoVisited='';
-    const counts=Array.from(target.querySelectorAll('[data-info-count]'),node=>{
-     const final=node.textContent, value=node.dataset.infoCount||final;
-     const digits=value.split('.')[1]?.length||0;
-     const format=new Intl.NumberFormat('fr-FR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
-     return {node,final,value:Number(value),format};
-    });
-    if(!counts.length)return;
-    const started=chargeNow(),duration=880;
-    const step=now=>{
-     const ratio=Math.max(0,Math.min(1,(now-started)/duration));
-     const eased=1-Math.pow(1-ratio,2);
-     counts.forEach(({node,final,value,format})=>{
-      const display=ratio===1?final:format.format(value*eased);
-      if(node.textContent!==display)node.textContent=display;
-     });
-     if(ratio<1)frames.get(target).id=requestAnimationFrame(step);
-     else frames.delete(target);
-    };
-    counts.forEach(({node,format})=>node.textContent=format.format(0));
-    frames.set(target,{id:requestAnimationFrame(step),counts});
    });
   },{root:main,threshold:.18});
-  const stopCounts=()=>{
-   frames.forEach(({id,counts})=>{
-    cancelAnimationFrame(id);
-    counts.forEach(({node,final})=>node.textContent=final);
-   });
-   frames.clear();
-  };
   const updateMotion=()=>{
    observer?.disconnect();
-   if(systemReduce){stopCounts();looping.forEach(target=>target.classList.remove('is-in-view'));}
+   if(systemReduce){looping.forEach(target=>target.classList.remove('is-in-view'));}
    else{
     panel.querySelectorAll('.oa-info-card:not([data-info-visited])').forEach(card=>observer?.observe(card));
-    looping.forEach(target=>observer?.observe(target));
+    if(ambientMotion)looping.forEach(target=>observer?.observe(target));else looping.forEach(target=>target.classList.remove('is-in-view'));
    }
    syncTyping();
   };
@@ -939,10 +921,12 @@
      else if(!systemReduce)observer?.observe(card);
     }
     if(focused){
-     const control=focused.dataset.pref&&widget.node.querySelector('[data-pref="sound"]');
-     const replacement=control||widget.node.querySelector('h2')||panel.querySelector('#oa-info-activity-title');
-     if(replacement.matches('h2'))replacement.setAttribute('tabindex','-1');
-     replacement.focus({preventScroll:true});
+     const controls=Array.from(widget.node.querySelectorAll('[data-action], [data-pref]'));
+     const replacement=controls.find(control=>!control.disabled&&(
+      focused.dataset.action&&control.dataset.action===focused.dataset.action||
+      focused.dataset.pref&&control.dataset.pref===focused.dataset.pref
+     ))||(focused.dataset.action==='enable-notifications'&&widget.node.querySelector('.oa-notification-setting h2'))||widget.node.querySelector('h2')||panel.querySelector('#oa-info-activity-title');
+     if(replacement){if(replacement.matches('h2'))replacement.setAttribute('tabindex','-1');replacement.focus({preventScroll:true});}
     }
    }
   };
@@ -956,7 +940,7 @@
   updateProgress();
   updateMotion();
   return {refresh,updateMotion,dispose(){
-   observer?.disconnect();resize?.disconnect();stopCounts();
+   observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);
    main.removeEventListener('scroll',scheduleProgress);
@@ -1065,12 +1049,13 @@
   impact.shell.append(ring);
   playContentTransition(ring,[{transform:'scale(.35)',opacity:.8},{transform:'scale(2.4)',opacity:0}],340,()=>ring.remove());
  }
- function frostTransition(element,duration,blur,finish){
+ function frostTransition(element,duration,_blur,finish){
   if(systemReduce||document.hidden||presentationHidden||!element?.animate)return false;
+  // Move composited layers instead of filtering a whole scrolling, frosted page.
   playContentTransition(element,[
-   {opacity:.68,filter:'blur('+blur+'px)'},
-   {opacity:.96,filter:'blur(1px)',offset:.45},
-   {opacity:1,filter:'none'}
+   {opacity:.72,transform:'translate3d(0,10px,0) scale(.992)'},
+   {opacity:1,transform:'translate3d(0,-1px,0) scale(1.001)',offset:.76},
+   {opacity:1,transform:'none'}
   ],duration,finish);
   return true;
  }
@@ -1135,10 +1120,10 @@
   else die.pauseMotion?.();
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
-  const frost=pageChanged&&!transition&&frostTransition(main,300,4,completed=>{if(completed&&holder&&canvas.parentElement===holder&&!busy&&!operationBusy)die.breathe?.();});
+  const frost=pageChanged&&!transition&&frostTransition(main,360,4,completed=>{if(completed&&holder&&canvas.parentElement===holder&&!busy&&!operationBusy)die.breathe?.();});
   if(holder&&animate&&!frost&&!transition&&!document.hidden&&!presentationHidden)die.breathe?.();
   if(animate&&!frost&&!systemReduce&&!document.hidden&&!presentationHidden&&main.animate&&!transition){
-   frostTransition(main.querySelector(':scope > .oa-card-stage'),300,5);
+   frostTransition(main.querySelector(':scope > .oa-card-stage'),360,5);
    const blocks=main.querySelectorAll(':scope > .oa-title,:scope > .oa-actions,:scope > .oa-status-strip,:scope > .oa-notification,:scope > .oa-shared-score,:scope > .oa-achievements,:scope > .oa-task-empty');
    blocks.forEach((el,i)=>{
     const pinned=window.getComputedStyle?.(el)?.position==='sticky';
@@ -1174,9 +1159,15 @@
   if(systemReduce||!main.animate)return;
   const badge=main.querySelector('.oa-summary-glyph');
   if(badge)badge.animate([{transform:'scale(.7) rotate(-12deg)'},{transform:'scale(1.15) rotate(7deg)',offset:.55},{transform:'scale(1) rotate(0)'}],{duration:650,easing:'cubic-bezier(.2,.8,.2,1)'});
-  const layer=document.createElement('div');layer.className='oa-celebration';layer.setAttribute('aria-hidden','true');root.querySelector('.oa-shell').append(layer);
-  for(let i=0;i<12;i++){const dot=document.createElement('i');dot.style.background=G.categories[i%G.categories.length].color;layer.append(dot);const angle=(i/12)*Math.PI*2;dot.animate([{transform:'translate(0,0) scale(.2)',opacity:0},{opacity:1,offset:.12},{transform:'translate('+Math.cos(angle)*(65+i*4)+'px,'+(Math.sin(angle)*75-30)+'px) rotate('+(i*51)+'deg) scale(.85)',opacity:0}],{duration:900+i*20,easing:'cubic-bezier(.1,.6,.2,1)',fill:'forwards'});}
-  setTimeout(()=>layer.remove(),1300);
+  const layer=document.createElement('div');layer.className='oa-celebration';layer.setAttribute('aria-hidden','true');layer.style.animation='none';root.querySelector('.oa-shell').append(layer);
+  // A brief mineral burst: small, compositor-friendly sparks, without obscuring the content.
+  const colors=['#f3e8d9','#b8d7ed','#d0b5e4','#e7b8c8'];
+  for(let i=0;i<16;i++){
+   const spark=document.createElement('i'),angle=(i/16)*Math.PI*2,distance=68+(i%4)*22,dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance-18;
+   spark.style.background=colors[i%colors.length];spark.style.width=(i%3===0?6:4)+'px';spark.style.height=(i%3===0?10:4)+'px';spark.style.borderRadius='50%';layer.append(spark);
+   spark.animate([{transform:'translate3d(0,0,0) scale(.15)',opacity:0},{transform:'translate3d('+(dx*.45)+'px,'+(dy*.45-7)+'px,0) scale(1.3)',opacity:1,offset:.34},{transform:'translate3d('+dx+'px,'+dy+'px,0) scale(.55)',opacity:0}],{duration:850+(i%4)*55,easing:'cubic-bezier(.12,.65,.2,1)',fill:'forwards'});
+  }
+  playContentTransition(layer,[{opacity:0,transform:'scale(.94)'},{opacity:.9,transform:'scale(1.02)',offset:.24},{opacity:0,transform:'scale(1.08)'}],1100,()=>layer.remove());
  }
  let audioContext;
  function softSound(){if(!state.prefs.sound)return;try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();audioContext.resume();[0,.44,.83].forEach((delay,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),t=audioContext.currentTime+delay;osc.type='sine';osc.frequency.setValueAtTime(155-i*18,t);osc.frequency.exponentialRampToValueAtTime(48,t+.1);gain.gain.setValueAtTime(.055/(i+1),t);gain.gain.exponentialRampToValueAtTime(.001,t+.13);osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+.14);});}catch(_){}}
@@ -1254,11 +1245,17 @@
   context.viewKey=renderKey;
   const button=main.querySelector('[data-action="roll"]');if(button){renderedMarkup='';button.setAttribute('aria-busy','true');}
   const readout=main.querySelector('[data-roll-readout]');
-  let waitingStartedAt=null;
+  const waitingTarget=readout||main.querySelector('[data-roll-status]')||(reroll?main.querySelector('[data-action="reroll"]'):null);
+  const waitingText=waitingTarget?.textContent||'';
+  const clearWaitingText=()=>{if(waitingTarget&&['Relance…','Connexion lente…'].includes(waitingTarget.textContent))waitingTarget.textContent=waitingText;};
+  let waitingStartedAt=null,slowConnectionTimer=null;
   try{
    if(remoteMode){
     if(!starFlight&&die.startWaiting?.())waitingStartedAt=performance.now();
+    if(reroll&&waitingTarget){waitingTarget.textContent='Relance…';announce('Relance en cours.');}
+    if(waitingTarget)slowConnectionTimer=setTimeout(()=>{if(serial===animationSerial&&busy){waitingTarget.textContent='Connexion lente…';announce('Connexion lente, le tirage est en cours.');}},2000);
     const value=await remote.action({...action,roundId});
+    clearTimeout(slowConnectionTimer);slowConnectionTimer=null;clearWaitingText();
     if(!value.roll||value.roll.kind!==sides){
      const restored=action.type==='ROLL_CATEGORY'&&value.roll?.kind===G.categorySides(1)?G.normalizeState(value.state):null;
      const oldCategory=G.legacyCategories.find(category=>category.number===value.roll?.value);
@@ -1317,13 +1314,14 @@
       await waitForReveal(callout?calloutReadingMs:450);
      }else if(action.type==='ROLL_VARIANT'){
       if(readout){readout.textContent=resultLabel;readout.classList.add('is-result');}
-      if(showRollCallout(resultLabel,die.getResultAnchor?.(),G.getCategory(context.categoryId,context.catalogueVersion)?.color))await waitForReveal(calloutReadingMs);
+      const callout=showRollCallout(resultLabel,die.getResultAnchor?.(),G.getCategory(context.categoryId,context.catalogueVersion)?.color);
+      await waitForReveal(callout?calloutReadingMs:900);
      }
     }
     if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte.');
    }
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
-  finally{if(serial===animationSerial){die.stopWaiting?.();const targetPhase=action.type==='ROLL_CATEGORY'?'card':['ROLL_CARD','REROLL_CARD'].includes(action.type)&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=null;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
+  finally{clearTimeout(slowConnectionTimer);clearWaitingText();if(serial===animationSerial){await die.stopWaiting?.();if(serial!==animationSerial)return;const targetPhase=action.type==='ROLL_CATEGORY'?'card':['ROLL_CARD','REROLL_CARD'].includes(action.type)&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=null;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
  }
  async function refuseTask(taskId){
   const task=state.tasks.find(item=>item.id===taskId);
@@ -1355,7 +1353,7 @@
   if(extraClass!=='oa-achievement-sheet'){badgeSheetOpen=false;badgeSheetMarkup='';badgeDetailId=null;badgeGalleryScroll=null;}
   lastFocus=document.activeElement;
   if(sheet.hidden)sheetContext={bodyOverflow:document.body.style.overflow,mainOverflow:main.style.overflow,top:main.scrollTop,left:main.scrollLeft,key:renderKey};
-  sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div>'+body+'</section>';
+  sheet.innerHTML='<section class="oa-sheet '+h(extraClass)+'" role="dialog" aria-modal="true" aria-labelledby="oa-sheet-title"><div class="oa-sheet-head"><h2 id="oa-sheet-title">'+h(title)+'</h2><button type="button" class="oa-close cursor-interaction" data-action="close" aria-label="Fermer">×</button></div><p class="oa-sheet-error" data-sheet-error role="alert" hidden></p>'+body+'</section>';
   sheet.classList.toggle('oa-collection-open',extraClass==='oa-achievement-sheet');sheet.hidden=false;sheet.scrollTop=0;document.body.style.overflow='hidden';main.style.overflow='hidden';
   const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});
   const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;updateBadgeNotice();sheet.querySelector('button')?.focus({preventScroll:true});
@@ -1439,6 +1437,24 @@
   if(action==='send'){await sendCurrentCard();return;}
   if(action==='refuse-task'){await refuseTask(el.dataset.task);return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
+  if(action==='logout-confirm'){
+   openSheet('Déconnecter cet appareil ?', '<p>Cet appareil perdra l’accès à ton compte. Tu pourras te reconnecter avec ton identifiant et ton mot de passe.</p><div class="oa-actions">'+btn('Déconnecter','logout','oa-secondary')+textBtn('Annuler','close')+'</div>');return;
+  }
+  if(action==='revoke-others-confirm'){
+   openSheet('Déconnecter tes autres appareils ?', '<p>Les autres appareils connectés à ton compte devront se reconnecter. Celui-ci et le compte de ton partenaire restent connectés.</p><div class="oa-actions">'+btn('Déconnecter les autres appareils','revoke-others','oa-secondary')+textBtn('Annuler','close')+'</div>');return;
+  }
+  if(action==='logout'||action==='revoke-others'){
+   if(!remoteMode||!remote?.authenticated)return;
+   operationBusy=true;el.disabled=true;
+   try{
+    if(action==='logout'){
+     await remote.logout();
+     presentationEpoch++;clearMemberPortraits();clearBadgeContext();remoteReady=false;remoteSnapshot=null;deferredSnapshot=null;remoteSignature='';authBusy=false;loginError='';tab='play';closeSheet();render();
+    }else{await remote.revokeOtherDevices();closeSheet();toast('Tes autres appareils ont été déconnectés.');}
+   }catch(error){remoteError(error);}
+   finally{operationBusy=false;if(el.isConnected)el.disabled=false;render();}
+   return;
+  }
   if(action==='enable-notifications'){operationBusy=true;el.disabled=true;try{await remote.enableNotifications();}catch(error){remoteError(error);}finally{operationBusy=false;flushRemote(null,false);render();}return;}
   if(action==='rules'){rules();return;}
   if(action==='close'){closeSheet();return;}
@@ -1469,12 +1485,18 @@
    const changed=await dispatch({type:'TOGGLE_TASK_CHECK',taskId:id,checked:desired},false);
    if(!changed){pendingChecks.delete(id);flushRemote(null,false);render();return;}
    const completed=state.stats.totalCompleted>before;
+   const celebrationContext={epoch:presentationEpoch,actor:viewPlayer,roomId:remote?.connection?.roomId};
    if(!completed&&!state.tasks.some(item=>item.id===id)){pendingChecks.delete(id);flushRemote(null,false);render();return;}
    el.checked=desired;const label=el.closest('label');label.classList.add('is-waving');const article=el.closest('.oa-task');
    if(completed&&!systemReduce&&article.animate)article.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-7px)'}],{duration:180,delay:1020,fill:'forwards',easing:'ease-out'});
-   setTimeout(()=>{pendingChecks.delete(id);if(remoteMode)flushRemote(null,false);render();if(completed){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}},systemReduce?0:1200);
+   setTimeout(()=>{
+    pendingChecks.delete(id);if(remoteMode)flushRemote(null,false);render();
+    const sameContext=celebrationContext.epoch===presentationEpoch&&celebrationContext.actor===viewPlayer&&(!remoteMode||remoteReady&&remote?.authenticated&&celebrationContext.roomId===remote.connection?.roomId);
+    if(completed&&sameContext&&tab==='tasks'&&sheet.hidden&&!document.hidden&&!presentationHidden){announce('Action partagée. Un point ajouté au duo.');toast('+1 point pour votre duo.');celebrate();}
+   },systemReduce?0:1200);
    return;
   }
+  if(el.dataset.pref==='ambient'){setAmbientMotion(el.checked);infoReading?.updateMotion();infoReading?.refresh();return;}
   if(el.dataset.pref){await dispatch({type:'SET_PREFS',patch:{[el.dataset.pref]:el.checked}});die.setReducedMotion(!!systemReduce);if(el.dataset.pref==='sound'&&el.checked)softSound();}
  });
  setInterval(async()=>{
@@ -1485,7 +1507,7 @@
   else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='info')render();}
  },30000);
  document.addEventListener('visibilitychange',()=>{syncDuoVisibility();if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden){updateViewportHeight();if(!remoteMode)pullShared();else resumeMemberPortraits();if(!busy&&!operationBusy&&!missionSending&&!pendingChecks.size)render();}updateBadgeNotice();});
- window.addEventListener('storage',event=>{if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
+ window.addEventListener('storage',event=>{if(event.key===ambientMotionKey){setAmbientMotion(event.newValue!=='0',false);infoReading?.updateMotion();infoReading?.refresh();}if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
  sheet.addEventListener('click',event=>{if(event.target===sheet)closeSheet();});
  root.addEventListener('keydown',event=>{
   const button=rollButton(event.target);
@@ -1541,11 +1563,10 @@
   const showShellUpdate=()=>{
    if(root.querySelector('.oa-update'))return;
    const bar=document.createElement('section');bar.className='oa-update';bar.setAttribute('aria-label','Mise à jour disponible');
-   bar.inert=!sheet.hidden;
    const label=document.createElement('span');label.textContent='Une mise à jour de D6 à deux est prête.';
    const reload=document.createElement('button');reload.type='button';reload.textContent='Recharger';
    reload.addEventListener('click',()=>{if(!switchShell(true))announce('Attends la fin de l’action en cours.');});
-   bar.append(label,reload);root.querySelector('.oa-shell').append(bar);announce('Une mise à jour de D6 à deux est prête. Recharge pour l’utiliser.');
+   bar.append(label,reload);root.querySelector('.oa-messages').append(bar);announce('Une mise à jour de D6 à deux est prête. Recharge pour l’utiliser.');
   };
   swApi.addEventListener('message',event=>{
    const update=event.data;

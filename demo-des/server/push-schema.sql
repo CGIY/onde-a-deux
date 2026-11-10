@@ -48,7 +48,7 @@ declare
   owner_hash text;
   old_owner public.desir_devices;
 begin
-  select * into device from public.desir_devices where token_hash=p_token_hash and revoked_at is null and expires_at>now();
+  select * into device from public.desir_devices where token_hash=p_token_hash and revoked_at is null and expires_at>now() for update;
   if not found then raise exception 'Unknown device'; end if;
   if endpoint_value is null or length(endpoint_value)>4096 or jsonb_typeof(p_subscription)<>'object' then raise exception 'Invalid subscription'; end if;
   endpoint_key:=encode(sha256(convert_to(endpoint_value,'UTF8')),'hex');

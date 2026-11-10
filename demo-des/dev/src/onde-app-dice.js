@@ -71,15 +71,23 @@ void main(){
     mark*=faceFade*(1.-chip*(darkSlate?.18*edgeWear:.08+.28*edgeWear));
     grad*=faceFade*(1.-chip*(darkSlate?.22:.32));
    }
-   vec3 ridge=(uRotation*tn*grad.x+uRotation*bn*grad.y)/uScale;
-   n=normalize(n-ridge*(darkSlate?.038:(hasIcons?.052:.032)));
-   float g=grain(lp);n=normalize(n+vec3(g,grain(lp.yzx),grain(lp.zxy))*.004);
+   // Keep both walls strictly within the antialiased mark; central difference
+   // samples otherwise extend half an edge beyond the cut.
+   float inside=smoothstep(0.,.35,mark);
+   vec3 ridge=(uRotation*tn*grad.x+uRotation*bn*grad.y)/uScale*inside;
+   // For h = -depth * mark, the surface normal is n - grad(h), hence +grad(mark).
+   // Reuse the atlas edge samples without adding texture reads.
+   n=normalize(n+ridge*(darkSlate?.21:(hasIcons?.25:.21)));
+   float g=grain(lp),micro=grain(lp*1.67),fine=grain(lp.zxy*2.8);
+   n=normalize(n+vec3(g,grain(lp.yzx),grain(lp.zxy))*.004);
+   // Rough, uneven stone at the bottom of the cut is fixed in die coordinates.
+   n=normalize(n+(uRotation*(tn*micro+bn*fine))*(mark*.055));
    // Pictograms are recessed pigment under the same light and grain as the face.
    float stampContrast=.58;
    vec3 stampTone=vec3(.86,.85,.78);
    if(hasIcons){
     stampTone=vec3(.77,.79,.82);
-    float patina=darkSlate?g*.07:g*.14+grain(lp*1.67)*.13;
+    float patina=darkSlate?g*.07:g*.14+micro*.13;
     stampContrast=mix(darkSlate?.39:.34,(darkSlate?.20:.18)+(darkSlate?.48:.42)*resultFace,uResultLight)*(1.+patina);
    }
    vec3 base=pow(uColor,vec3(2.2));vec3 stampColor=pow(mix(uColor,stampTone,stampContrast),vec3(2.2));base=mix(base,stampColor,mark*.86);
@@ -101,9 +109,6 @@ void main(){
     color*=1.-.57*flank*(.35+.65*band)*(1.-mark*.42);
    }
    if(hasIcons){
-    float litEdge=-dot(ridge,light);
-    color*=1.-min(.32,max(-litEdge,0.)*(darkSlate?.39:.54));
-    color+=vec3(.67,.71,.77)*(darkSlate?.055:.046)*max(litEdge,0.);
     // One reflection crosses the selected glyph during the existing settling phase.
     float sweep=mix(.21,.80,uResultLight);
     float band=1.-smoothstep(.008,.052,abs(tex.x+.26*(tex.y-.5)-sweep));
@@ -113,8 +118,15 @@ void main(){
     // A muted, worn ivory preserves the legibility of the numeric result.
     float inkSpec=pow(max(dot(n,halfV),0.),24.)*.035;
     vec3 resultInk=pow(vec3(.95,.93,.88),vec3(2.2))*(.88+.12*diffuse)+vec3(1.,.97,.92)*inkSpec;
-    color=mix(color,resultInk,mark*resultFace*uResultLight*(.84+g*.045+grain(lp*1.7)*.045));
+    color=mix(color,resultInk,mark*resultFace*uResultLight*(.84+g*.045+micro*.045));
    }
+   // Lit and shaded walls plus irregular recessed pigment make the marks read
+   // as carved material rather than smooth ink laid over the surface.
+   float wall=dot(ridge,light),cavity=smoothstep(.06,.65,mark);
+   color*=1.-cavity*(.27+.18*(.5+.5*micro));
+   color*=1.-min(.42,max(-wall,0.)*.72);
+   color+=vec3(.67,.71,.77)*.13*max(wall,0.);
+   color*=1.+cavity*(micro*.30+fine*.22);
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
    color=(color*coverage+shadowColor*shadowAlpha*(1.-coverage))/max(outputAlpha,.0001);
   }
@@ -924,8 +936,8 @@ void main(){
     let type=validKind(options.kind??6),result=validValue(options.value??1,type),rotation=initialRotation(type,result),pigment=parsePigment(options.color);
     let faceLabels=validLabels(options.labels,type),faceIcons=faceLabels&&validIcons(options.icons,type);
     let alive=true,raf=0,busy=false,pressed=false,pressAt=0,pressScale=1,rollAt=0,startQ=rotation,goalQ=rotation,pointerId=null,charge=0;
-    let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,settleBias=0,startBias=0,pressPoint=null;
-    let breathing=false,breatheAt=0,waiting=false,waitAt=0,visible=true,throwDirection=null;
+    let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,settleBias=0,startBias=0,startLift=0,startX=0,startZ=0,pressPoint=null;
+    let breathing=false,breatheAt=0,waiting=false,waitAt=0,waitStart=null,returning=false,returnStart=null,returnAt=0,resolveReturn=null,visible=true,throwDirection=null;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
     let resultLight=1,hasSettledResult=false;
@@ -934,7 +946,7 @@ void main(){
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0,spreadBias:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
     const query=global.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;breathing=false;waiting=false;};
+    const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;breathing=false;waiting=false;returning=false;const resolve=resolveReturn;resolveReturn=null;if(resolve)resolve();};
     const isThemeDie=()=>type===4&&!!faceIcons;
     const isEngravedCardDie=()=>(type===6||type===8)&&!!faceIcons;
     const dieColor=()=>isThemeDie()?DARK_SLATE:pigment||(isEngravedCardDie()?DARK_MAUVE:COLORS[type]);
@@ -1023,6 +1035,46 @@ void main(){
     function drawFallback(m,scale,position,lift) {
       if(!fallbackCanvas){fallbackCanvas=document.createElement('canvas');fallbackCanvas.width=480;fallbackCanvas.height=480;fallbackCtx=fallbackCanvas.getContext('2d');}
       const c=fallbackCtx;if(!c)return;
+      // One repeatable mineral texture per renderer, anchored in each face's
+      // coordinates so the pits turn with the die instead of shimmering.
+      if(!Object.prototype.hasOwnProperty.call(fallbackCanvas,'engravingGrain')){
+        const tile=document.createElement('canvas');tile.width=64;tile.height=64;
+        const dust=tile.getContext('2d');let seed=271828;
+        const next=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+        if(dust){
+          for(let i=0;i<1100;i++){
+            const x=next()*64,y=next()*64,size=.45+next()*1.15;
+            dust.fillStyle=next()<.72?'rgba(9,12,20,.72)':'rgba(235,232,224,.42)';
+            dust.fillRect(x,y,size,size);
+          }
+        }
+        fallbackCanvas.engravingGrain=dust?c.createPattern(tile,'repeat'):null;
+      }
+      const engravingGrain=fallbackCanvas.engravingGrain;
+      if(!fallbackCanvas.engravingEdges)fallbackCanvas.engravingEdges=new Map();
+      // Create the light and shadow only INSIDE the exact glyph mask. The
+      // resulting small bitmap is cached, so no compositing is done per frame.
+      const insetEdges=(key,value)=>{
+        if(!engravingGrain)return null;
+        const cache=fallbackCanvas.engravingEdges,id=key?'icon:'+key:'number:'+value;
+        if(cache.has(id))return cache.get(id);
+        const canvas=()=>{const surface=document.createElement('canvas');surface.width=128;surface.height=128;return surface;};
+        const mask=canvas(),layer=canvas(),result=canvas();
+        const mc=mask.getContext('2d'),lc=layer.getContext('2d'),rc=result.getContext('2d');
+        if(!mc||!lc||!rc)return null;
+        if(key)drawIcon(mc,key,64,64,'#fff');
+        else{mc.fillStyle='#fff';mc.textAlign='center';mc.textBaseline='middle';mc.font='500 64px Arial,sans-serif';mc.fillText(String(value),64,67);}
+        const edge=(dx,dy,color)=>{
+          lc.globalCompositeOperation='source-over';lc.clearRect(0,0,128,128);lc.drawImage(mask,0,0);
+          lc.globalCompositeOperation='destination-out';lc.drawImage(mask,dx,dy);
+          lc.globalCompositeOperation='source-in';lc.fillStyle=color;lc.fillRect(0,0,128,128);
+          rc.drawImage(layer,0,0);
+        };
+        edge(2.2,2.2,'rgba(5,8,17,.8)');
+        edge(-1.6,-1.6,'rgba(235,237,241,.42)');
+        cache.set(id,result);if(cache.size>32)cache.delete(cache.keys().next().value);
+        return result;
+      };
       c.clearRect(0,0,480,480);
       const world=p=>add(transform(m,p).map((v,i)=>v*scale[i]),position);
       const projectWorld=p=>cameraOffset(p).map(value=>240+480*value);
@@ -1077,7 +1129,11 @@ void main(){
               ink.addColorStop(at,`rgba(188,196,207,${opacity*wear})`);
             }
           }
-          drawIcon(c,key,0,0,ink,(slate?.32:.40)*(selected?1:1-.68*resultLight));
+          const fade=selected?1:1-.68*resultLight;
+          drawIcon(c,key,0,0,ink);
+          const edges=insetEdges(key,face.value);
+          if(edges){c.save();c.globalAlpha=fade;c.drawImage(edges,-64,-64);c.restore();}
+          if(engravingGrain){c.save();c.globalAlpha=.8*fade;drawIcon(c,key,0,0,engravingGrain);c.restore();}
         }else{
           c.fillStyle=rgb(shade,.75);
           if(selected){
@@ -1087,7 +1143,11 @@ void main(){
           }
           c.textAlign='center';c.textBaseline='middle';
           c.font='500 64px Arial,sans-serif';
+          const fade=selected?1:1-.68*resultLight;
           c.fillText(String(face.value),0,3);
+          const edges=insetEdges(null,face.value);
+          if(edges){c.save();c.globalAlpha=fade;c.drawImage(edges,-64,-64);c.restore();}
+          if(engravingGrain){c.save();c.globalAlpha=.8*fade;c.fillStyle=engravingGrain;c.fillText(String(face.value),0,3);c.restore();}
         }
         if(key&&selected&&resultLight<1){
           const at=.12+.76*resultLight,shine=c.createLinearGradient(-29,8,29,-8);
@@ -1113,7 +1173,7 @@ void main(){
     }
     // Fractions from the canvas's top-left corner, independent of device pixel ratio.
     function getResultAnchor() {
-      if(!alive||!hasSettledResult||busy||pressed||charge||pressScale!==1||!faceIcons||canvas.isConnected===false)return null;
+      if(!alive||!hasSettledResult||busy||waiting||returning||pressed||charge||pressScale!==1||!faceIcons||canvas.isConnected===false)return null;
       if(type!==4&&type!==6&&type!==8)return null;
       const width=canvas.width,height=canvas.height,webgl=mode==='webgl';
       if(!width||!height||(!webgl&&!fallbackCtx))return null;
@@ -1142,7 +1202,7 @@ void main(){
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z,lastFrame.spreadBias);
     }
     function resolvePending() { const resolve=resolveRoll;resolveRoll=null;pending=null;if(resolve)resolve(result); }
-    function pauseMotion(){if(!alive||busy)return;cancelFrame();if(!pressed&&!charge){pressScale=1;draw();}}
+    function pauseMotion(){if(!alive||busy)return;cancelFrame();if(!pressed&&!charge){pressScale=1;resultLight=1;draw();}}
     function animateBreath(now){
       raf=0;if(!alive||!breathing||busy||pressed||charge||reduced||document.hidden||!visible){pauseMotion();return;}
       const t=Math.min(1,(now-breatheAt)/2200),envelope=Math.pow(Math.sin(Math.PI*t),2);
@@ -1151,21 +1211,41 @@ void main(){
       draw(qmul(axisQ([.2,0,1],wave*.012),rotation),1-wave*.014,0,0,0,wave*.008);raf=requestAnimationFrame(animateBreath);
     }
     // A single seated breath invites the next touch; polling never restarts it.
-    function breathe(){if(!alive||busy||pressed||charge||breathing||reduced||document.hidden||!visible||canvas.isConnected===false)return false;cancelFrame();breathing=true;breatheAt=performance.now();raf=requestAnimationFrame(animateBreath);return true;}
-    // Start immediately while the server chooses the authoritative result.
+    function breathe(){if(!alive||busy||waiting||returning||pressed||charge||breathing||reduced||document.hidden||!visible||canvas.isConnected===false)return false;cancelFrame();breathing=true;breatheAt=performance.now();raf=requestAnimationFrame(animateBreath);return true;}
+    // The waiting motion continues from the exact pose released by the player.
     function animateWaiting(now){
       raf=0;if(!alive||!waiting||busy||pressed||reduced||document.hidden||!visible){pauseMotion();return;}
-      const t=(now-waitAt)/1000,wave=Math.sin(t*5);
-      draw(qmul(axisQ([.8,.2,-.65],t*3.2),rotation),1-.025*(1+wave),.06*(1+wave));
+      const elapsed=Math.max(0,now-waitAt),t=elapsed/1000,wave=Math.sin(t*5),blend=smooth(Math.min(1,elapsed/220));
+      const sy=waitStart.sy+(1-.025*(1+wave)-waitStart.sy)*blend;
+      const lift=waitStart.lift+(.06*(1+wave)-waitStart.lift)*blend;
+      draw(qmul(axisQ([.8,.2,-.65],t*3.2),waitStart.q),sy,lift,waitStart.x*(1-blend),waitStart.z*(1-blend),waitStart.spreadBias*(1-blend));
       raf=requestAnimationFrame(animateWaiting);
     }
-    function startWaiting(){if(!alive||busy||pressed||charge||reduced||document.hidden||!visible||canvas.isConnected===false)return false;cancelFrame();waiting=true;waitAt=performance.now();raf=requestAnimationFrame(animateWaiting);return true;}
-    function stopWaiting(){if(!waiting)return;cancelFrame();pressScale=1;draw();}
+    function startWaiting(){
+      if(!alive||busy||pressed||charge||reduced||document.hidden||!visible||canvas.isConnected===false)return false;
+      cancelFrame();waitStart={...lastFrame};waiting=true;waitAt=performance.now();resultLight=0;
+      draw(waitStart.q,waitStart.sy,waitStart.lift,waitStart.x,waitStart.z,waitStart.spreadBias);raf=requestAnimationFrame(animateWaiting);return true;
+    }
+    function animateWaitingReturn(now){
+      raf=0;if(!alive||!returning)return;
+      const t=Math.min(1,Math.max(0,(now-returnAt)/270)),blend=smooth(t);
+      resultLight=blend;pressScale=returnStart.sy+(1-returnStart.sy)*blend;
+      draw(slerp(returnStart.q,rotation,blend),pressScale,returnStart.lift*(1-blend),returnStart.x*(1-blend),returnStart.z*(1-blend),returnStart.spreadBias*(1-blend));
+      if(t<1)raf=requestAnimationFrame(animateWaitingReturn);
+      else{pressScale=1;resultLight=1;draw();cancelFrame();}
+    }
+    function stopWaiting(){
+      if(!waiting)return Promise.resolve();
+      returnStart={...lastFrame};cancelFrame();
+      if(!alive||reduced||document.hidden||!visible||canvas.isConnected===false){pressScale=1;resultLight=1;draw();return Promise.resolve();}
+      returning=true;returnAt=performance.now();
+      const promise=new Promise(resolve=>{resolveReturn=resolve;});raf=requestAnimationFrame(animateWaitingReturn);return promise;
+    }
     function finish() { cancelFrame();busy=false;pressed=false;pointerId=null;charge=0;rotation=goalQ||rotation;pressScale=1;resultLight=1;hasSettledResult=true;draw();updateLabel();resolvePending();if(options.idleMotion)breathe(); }
     function animate(now) {
       raf=0;if(!alive||!busy)return;
       const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0,spreadBias=0;
-      if(ms<160){const t=ms/160;sy=pressScale-(pressScale-.82)*smooth(t);spreadBias=startBias*(1-smooth(t));}
+      if(ms<160){const t=ms/160,e=smooth(t);sy=pressScale-(pressScale-.82)*e;lift=startLift*(1-e);x=startX*(1-e);z=startZ*(1-e);spreadBias=startBias*(1-e);}
       else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*2*spinTurns*(1-e)),slerp(startQ,goalQ,e));lift=(.45+.12*activePower)*4*t*(1-t);if(throwDirection){const amplitude=(.30+.08*activePower)*wave;x=throwDirection[0]*amplitude;z=throwDirection[1]*amplitude;}else{x=(.21+.06*activePower)*wave;z=-(.15+.05*activePower)*wave;}sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;spreadBias=.025*Math.sin(2*Math.PI*t)*wave;}
       else if(ms<1600){const t=(ms-1160)/440,wave=Math.pow(Math.sin(Math.PI*t),2);if(t<.36){sy=1-(.185+.035*activePower)*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,bounce=Math.pow(Math.sin(Math.PI*b),2);lift=(.115+.035*activePower)*bounce;sy=1+(.032*Math.sin(2*Math.PI*b)+.008*Math.sin(4*Math.PI*b))*bounce;}q=qmul(axisQ([.5,0,.8],(.12+.025*activePower)*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);spreadBias=.03*Math.sin(3*Math.PI*t)*wave*Math.exp(-t*3);}
       else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.028*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.028*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);spreadBias=.012*Math.sin(2*Math.PI*t)*wave*Math.exp(-t*3);}
@@ -1209,11 +1289,11 @@ void main(){
       else if(pressScale!==1){settleAt=performance.now();settleScale=pressScale;settleBias=lastFrame.spreadBias;raf=requestAnimationFrame(animateRelease);}
       else draw();
     }
-    function applyReducedMotion(){if(!reduced)return;if(busy)finish();else{cancelFrame();pressScale=1;draw();}}
+    function applyReducedMotion(){if(!reduced)return;if(busy)finish();else{cancelFrame();pressScale=1;resultLight=1;draw();}}
     function setReducedMotion(value){reduced=!!value;manualReduced=true;applyReducedMotion();}
     function motionChanged(event){if(!manualReduced){reduced=event.matches;applyReducedMotion();}}
     function visibilityChanged(){if(document.hidden&&busy)finish();else if(document.hidden){cancelPress();pauseMotion();}}
-    function contextLost(event){event.preventDefault();mode='fallback';renderError='WebGL context lost.';rendererStatus();if(busy)finish();else{cancelPress();draw();}}
+    function contextLost(event){event.preventDefault();mode='fallback';renderError='WebGL context lost.';rendererStatus();if(busy)finish();else{cancelPress();pauseMotion();}}
     initialize();
     canvas.addEventListener('pointerdown',press);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',cancelPress);canvas.addEventListener('lostpointercapture',cancelPress);canvas.addEventListener('webglcontextlost',contextLost);
     document.addEventListener('visibilitychange',visibilityChanged);if(query?.addEventListener)query.addEventListener('change',motionChanged);else query?.addListener?.(motionChanged);
@@ -1246,7 +1326,7 @@ void main(){
       },
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
+        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;startLift=lastFrame.lift;startX=lastFrame.x;startZ=lastFrame.z;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },

@@ -1,4 +1,4 @@
-# D6 à deux — version web 0.4.5
+# D6 à deux — version web 0.4.6
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 
@@ -9,6 +9,8 @@ Au premier lancement sur cet appareil, un accueil résume le principe en trois p
 Le tirage reste privé jusqu’à l’envoi du challenge. Il rejoint alors directement « À faire », sans invitation à accepter. L’état, les tirages, les dates et le score sont partagés par le service. Une coupure du réseau conserve l’accès enregistré et propose « Réessayer » au lancement, ou signale l’indisponibilité dans la partie. Une action encore en attente garde son identifiant et n’empêche plus la lecture de l’état confirmé. Le retour du réseau ou de l’app relance l’actualisation ; un accès réellement révoqué demande une nouvelle connexion.
 
 ## Jouer
+
+Dans Info → Réglages, chaque personne peut déconnecter cet appareil ou retirer l’accès de ses autres appareils. Le compte et les appareils du partenaire ne sont pas concernés. Une action encore en attente doit d’abord être confirmée.
 
 Pour lancer le dé, touche-le ou fais-le glisser dans la direction de ton choix. Un appui maintenu donne plus d’élan. Le résultat reste choisi par le serveur.
 

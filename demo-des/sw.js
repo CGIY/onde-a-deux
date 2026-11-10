@@ -3,7 +3,7 @@
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const RELEASE_VERSION = '0.4.5';
+const RELEASE_VERSION = '0.4.6';
 const CACHE_NAME = CACHE_PREFIX + 'connected-' + RELEASE_VERSION;
 const INDEX_URL = new URL('./index.html', APP_URL).href;
 const RELEASE_KEY = 'd6-release';
@@ -64,6 +64,11 @@ self.addEventListener('fetch', event => {
     try {
       const cacheMode = isShell && url.searchParams.has(RELEASE_KEY) ? 'reload' : 'no-cache';
       const response = await fetch(new Request(request, {cache: cacheMode}));
+      // A temporary server failure should not prevent the installed shell from opening.
+      // Keep permanent client errors visible and leave non-shell resources unchanged.
+      if (isShell && response.status >= 500 && response.status <= 599) {
+        return await cache.match(cacheKey) || await cache.match(INDEX_URL) || response;
+      }
       if (isShell && mayCache(response)) {
         const version = await htmlVersion(response);
         if (version === RELEASE_VERSION) await cache.put(cacheKey, response.clone());
@@ -126,9 +131,9 @@ function isAppWindow(client) {
 async function appWindows() {
   return (await self.clients.matchAll({type: 'window', includeUncontrolled: true})).filter(isAppWindow);
 }
-async function refreshClients() {
+async function refreshClients(type = 'desir-state-refresh') {
   const own = await appWindows();
-  for (const client of own) client.postMessage({type: 'desir-state-refresh'});
+  for (const client of own) client.postMessage({type});
   return own;
 }
 self.addEventListener('push', event => {
@@ -154,4 +159,7 @@ self.addEventListener('notificationclick', event => {
   })());
 });
 
-self.addEventListener('pushsubscriptionchange', event => {event.waitUntil(refreshClients());});
+self.addEventListener('pushsubscriptionchange', event => {
+  // Only a logged-in client can safely register a renewed subscription with the server.
+  event.waitUntil(refreshClients('desir-subscription-changed'));
+});

@@ -21,7 +21,7 @@
   const storageKey=config.storageKey||'desir-connection-v1',registrationKey=storageKey+'-registration',actionKey=storageKey+'-action';
   let endpoint='';try{const url=new URL(config.endpoint);if(url.protocol==='https:'||(url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))endpoint=url.href;}catch(_){}
   const enabled=!!(endpoint&&G&&fetcher&&crypto?.getRandomValues);
-  let connection=null,snapshot=null,refreshing=null,restoring=null,queue=Promise.resolve(),started=false,pollTimer=null,registration=null,preparing=null,vapidKey=null,authFailed=false;
+  let connection=null,snapshot=null,refreshing=null,recovering=null,restoring=null,queue=Promise.resolve(),sessionOperation=false,started=false,pollTimer=null,registration=null,preparing=null,preparingIdentity=null,notificationReconcile=false,vapidKey=null,authFailed=false;
   let status={phase:enabled?'disconnected':'unconfigured',message:'',lastUpdated:null,errorCode:null};
   let notificationStatus={supported:false,permission:'unsupported',subscribed:false,reason:null,message:''};
   const listeners=new Set();
@@ -107,7 +107,7 @@
    if(token)headers.Authorization='Bearer '+token;
    let last;
    for(let attempt=0;attempt<attempts;attempt++){
-    const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||20000):null;
+    const abort=controller?new controller():null,timer=abort&&later?later(()=>abort.abort(),Number(config.requestTimeoutMs)||6000):null;
     try{
      const response=await fetcher(endpoint,{method:'POST',headers,body:JSON.stringify({gameVersion:GAME_VERSION,...payload}),mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',...(abort?{signal:abort.signal}:{})});
      const text=await response.text();if(text.length>2000000)throw failure('invalid_response','La réponse reçue est trop volumineuse.');
@@ -180,6 +180,9 @@
   }
   async function fetchState(identity=connection){requireConnection();try{const raw=await request({op:'state'},identity.token);if(connection!==identity||authFailed)throw connectionChanged();return acceptSnapshot(raw,identity);}catch(error){if(connection!==identity||authFailed)throw connectionChanged();throw error;}}
   function action(value){
+   if(sessionOperation)return Promise.reject(failure('pending_action','La gestion des appareils est en cours.'));
+   // A queued recovery must not turn a second tap into a fresh command after it clears the journal.
+   if(recovering&&storedAction())return Promise.reject(failure('pending_action','Une action attend encore la confirmation du serveur.'));
    return serial(async()=>{requireConnection();try{
     const cleaned=cleanAction(value),pending=storedAction();
     if(pending&&JSON.stringify(pending.action)!==JSON.stringify(cleaned))throw failure('pending_action','Une action attend encore la connexion. Réessaie dans un instant.');
@@ -196,6 +199,17 @@
     return sendAction(current,false);
    });
   }
+  function recoveryFor(pending,identity){
+   if(recovering)return recovering;
+   const recovery={followup:false,promise:null};
+   recovery.promise=recoverPendingAction(pending,identity).then(()=>({error:null}),error=>({error})).finally(()=>{if(recovering===recovery)recovering=null;});
+   recovering=recovery;return recovery;
+  }
+  function recoveryError(error,identity){
+   if(!error||connection!==identity||error.code==='connection_changed')return;
+   if(error.status===401){markFailure(error);return;}
+   if(!authFailed&&storedAction())setStatus('connected','Une action attend encore la confirmation du serveur.','pending_action');
+  }
   function refresh(){
    if(!connection)return Promise.resolve(null);
    if(authFailed)return Promise.reject(failure('not_connected','Connecte-toi pour continuer.'));
@@ -203,15 +217,26 @@
    const identity=connection;
    refreshing=Promise.resolve().then(async()=>{try{
     const pending=storedAction();let pendingError=null;
-    if(pending)try{await recoverPendingAction(pending,identity);}catch(error){
-     // A terminal rejection has already removed the old command. Fetch the current game.
-     // Keep the durable ID for retryable failures while fetching the same snapshot.
-     if(error.code==='offline'||error.status===429||error.status>=500)pendingError=error;
-     else if(error.status<400||error.status===401)throw error;
+    if(pending){
+     const recovery=recoveryFor(pending,identity);let timer;
+     // Let quick retries finish first; after a short wait, read independently.
+     const result=await Promise.race([recovery.promise,new Promise(resolve=>{timer=later(()=>resolve(null),350);})]);
+     if(timer)cancel(timer);
+     if(result){
+      if(result.error){const error=result.error;if(error.code==='offline'||error.status===429||error.status>=500)pendingError=error;else if(error.status<400||error.status===401)throw error;}
+     }else if(!recovery.followup){
+      recovery.followup=true;
+      recovery.promise.then(async result=>{
+       if(connection!==identity||authFailed)return;
+       if(result.error){recoveryError(result.error,identity);if(result.error.status===401)return;}
+       try{await fetchState(identity);if(storedAction())setStatus('connected','Une action attend encore la confirmation du serveur.','pending_action');}
+       catch(error){if(connection===identity)markFailure(error);}
+      }).catch(()=>{});
+     }
     }
-    if(connection!==identity)throw connectionChanged();
+    if(connection!==identity||authFailed)throw connectionChanged();
     const value=await fetchState(identity);
-    if(pendingError)setStatus('connected','Une action attend encore la confirmation du serveur. Ta partie a été actualisée.','pending_action');
+    if(pendingError||storedAction())setStatus('connected','Une action attend encore la confirmation du serveur. Ta partie a été actualisée.','pending_action');
     return value;
    }catch(error){markFailure(error);throw error;}finally{refreshing=null;}});
    return refreshing;
@@ -228,6 +253,32 @@
     setStatus('disconnected');return null;
    }catch(error){markFailure(error);throw error;}finally{restoring=null;}});return restoring;
   }
+  function changeSessions(target){
+   if(sessionOperation)return Promise.reject(failure('pending_action','La gestion des appareils est déjà en cours.'));
+   sessionOperation=true;
+   return serial(async()=>{try{
+    requireConnection();const identity=connection;
+    if(storedAction())throw failure('pending_action','Une action attend encore sa confirmation. Réessaie après sa synchronisation.');
+    let confirmed=false;
+    try{
+     const result=await request({op:'revoke_sessions',scope:target},identity.token);
+     if(connection!==identity)throw connectionChanged();
+     if(result?.revoked!==true)throw failure('invalid_response','La révocation n’a pas pu être confirmée.');
+     confirmed=true;
+    }catch(error){
+     if(connection!==identity)throw connectionChanged();
+     // If the first response was lost, a second request can prove this token is already unusable.
+     if(target==='current'&&error.status===401)confirmed=true;else throw error;
+    }
+    if(confirmed&&target==='current'){
+     connection=null;snapshot=null;authFailed=false;remove(storageKey);remove(registrationKey);remove(actionKey);
+     setNotification({subscribed:false});setStatus('disconnected');
+    }
+    return {revoked:true};
+   }catch(error){markFailure(error);throw error;}}).finally(()=>{sessionOperation=false;});
+  }
+  const logout=()=>changeSessions('current');
+  const revokeOtherDevices=()=>changeSessions('others');
   async function loadPortraits(){
    requireConnection();
    const identity=connection;
@@ -244,7 +295,7 @@
   function inspectNotifications(){
    const install=iosInstallRequired(),supported=!!(Notification&&nav.serviceWorker&&(environment.PushManager||scope.PushManager));
    const permission=Notification?.permission||'unsupported';
-   setNotification({supported:supported&&!install,permission,reason:install?'install_required':!supported?'unsupported':permission==='denied'?'denied':null,message:install?'Ajoute D6 à deux à l’écran d’accueil pour activer les notifications.':!supported?'Ce navigateur ne prend pas en charge les notifications.':permission==='denied'?'Les notifications sont désactivées dans les réglages du navigateur.':''});
+   setNotification({supported:supported&&!install,permission,...(permission!=='granted'||!supported||install?{subscribed:false}:{}),reason:install?'install_required':!supported?'unsupported':permission==='denied'?'denied':null,message:install?'Ajoute D6 à deux à l’écran d’accueil pour activer les notifications.':!supported?'Ce navigateur ne prend pas en charge les notifications.':permission==='denied'?'Les notifications sont désactivées dans les réglages du navigateur.':''});
    return notificationStatus;
   }
   async function serviceWorker(){
@@ -259,29 +310,63 @@
   }
   function decodePublicKey(value){if(typeof value!=='string'||!/^[-_A-Za-z0-9]+$/.test(value))throw failure('notifications_unavailable','La configuration des notifications est indisponible.');const raw=(environment.atob||scope.atob)(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4));const bytes=Uint8Array.from(raw,x=>x.charCodeAt(0));if(bytes.length!==65||bytes[0]!==4)throw failure('notifications_unavailable','La configuration des notifications est invalide.');return bytes;}
   function prepareNotifications(){
-   if(preparing)return preparing;
+   if(preparing){
+    if(preparingIdentity===connection)return preparing;
+    return preparing.catch(()=>{}).then(()=>connection&&!authFailed?prepareNotifications():null);
+   }
    const support=inspectNotifications();if(!connection||!support.supported)return Promise.resolve(null);
-   preparing=(async()=>{try{const [reg,configResponse]=await Promise.all([serviceWorker(),request({op:'push_config'},connection.token)]);vapidKey=decodePublicKey(configResponse.vapidPublicKey||configResponse.publicKey);const existing=await reg.pushManager.getSubscription();if(existing&&Notification.permission==='granted'){await request({op:'subscribe',subscription:existing.toJSON()},connection.token);setNotification({subscribed:true,permission:'granted',message:''});}return reg;}finally{preparing=null;}})();return preparing;
+   const identity=connection;preparingIdentity=identity;
+   preparing=(async()=>{try{
+    const reg=await serviceWorker();
+    const existing=await reg.pushManager.getSubscription();
+    if(connection!==identity||authFailed)throw connectionChanged();
+    if(!existing&&Notification.permission==='granted')setNotification({subscribed:false,permission:'granted',reason:'subscription_missing',message:'Les notifications doivent être réactivées sur cet appareil.'});
+    else if(Notification.permission!=='granted')setNotification({subscribed:false});
+    if(existing&&Notification.permission==='granted')setNotification({subscribed:false,reason:'subscription_sync',message:'Synchronisation des notifications en cours…'});
+    let configResponse;
+    try{configResponse=await request({op:'push_config'},identity.token);}
+    catch(error){if(connection===identity&&!authFailed&&existing&&Notification.permission==='granted')setNotification({subscribed:false,reason:'subscription_sync',message:'Notifications en attente de synchronisation. Réessaie quand la connexion est revenue.'});throw error;}
+    if(connection!==identity||authFailed)throw connectionChanged();
+    vapidKey=decodePublicKey(configResponse.vapidPublicKey||configResponse.publicKey);
+    if(existing&&Notification.permission==='granted'){
+     try{await request({op:'subscribe',subscription:existing.toJSON()},identity.token);}
+     catch(error){if(connection===identity&&!authFailed)setNotification({subscribed:false,reason:'subscription_sync',message:'Notifications en attente de synchronisation. Réessaie quand la connexion est revenue.'});throw error;}
+     if(connection!==identity||authFailed)throw connectionChanged();
+     if(!notificationReconcile)setNotification({subscribed:true,permission:'granted',reason:null,message:''});
+    }
+    return reg;
+   }finally{preparing=null;preparingIdentity=null;}})();return preparing;
   }
   async function enableNotifications(){
-   requireConnection();const support=inspectNotifications();if(!support.supported)throw failure(support.reason||'notifications_unsupported',support.message);
+   requireConnection();const identity=connection,support=inspectNotifications();if(!support.supported)throw failure(support.reason||'notifications_unsupported',support.message);
    if(Notification.permission==='denied')throw failure('notifications_denied',support.message);
    // Request synchronously on the original click, before any network or SW await.
    try{
     const permissionRequest=Notification.permission==='granted'?Promise.resolve('granted'):Notification.requestPermission();
-    const permission=await permissionRequest;setNotification({permission});if(permission!=='granted')throw failure('notifications_denied','Les notifications restent désactivées.');
-    const reg=await prepareNotifications();if(!reg||!vapidKey)throw failure('notifications_unavailable','Les notifications ne sont pas encore disponibles. Réessaie.');
-    const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidKey});
-    await request({op:'subscribe',subscription:sub.toJSON()},connection.token);setNotification({permission:'granted',subscribed:true,reason:null,message:''});return {...notificationStatus};
-   }catch(error){const known=error?.isDesirRemoteError?error:failure('notifications_unavailable','Les notifications n’ont pas pu être activées sur cet appareil.');setNotification({subscribed:false,message:known.message,reason:known.code});throw known;}
+    const permission=await permissionRequest;if(connection!==identity||authFailed)throw connectionChanged();setNotification({permission});if(permission!=='granted')throw failure('notifications_denied','Les notifications restent désactivées.');
+    const reg=await prepareNotifications();if(connection!==identity||authFailed)throw connectionChanged();if(!reg||!vapidKey)throw failure('notifications_unavailable','Les notifications ne sont pas encore disponibles. Réessaie.');
+    let sub=await reg.pushManager.getSubscription();if(connection!==identity||authFailed)throw connectionChanged();
+    if(!sub){sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidKey});if(connection!==identity||authFailed)throw connectionChanged();}
+    await request({op:'subscribe',subscription:sub.toJSON()},identity.token);if(connection!==identity||authFailed)throw connectionChanged();
+    const latest=await reg.pushManager.getSubscription();if(connection!==identity||authFailed)throw connectionChanged();
+    if(!latest||latest.toJSON()?.endpoint!==sub.toJSON()?.endpoint)throw failure('notifications_unavailable','Les notifications ont changé. Réessaie de les activer.');
+    setNotification({permission:'granted',subscribed:true,reason:null,message:''});return {...notificationStatus};
+   }catch(error){const known=error?.isDesirRemoteError?error:failure('notifications_unavailable','Les notifications n’ont pas pu être activées sur cet appareil.');if(connection===identity&&!authFailed)setNotification({subscribed:false,message:known.message,reason:known.code});throw known;}
   }
   function refreshQuietly(){if(connection&&!authFailed&&(!doc||!doc.hidden))refresh().catch(()=>{});}
-  function visible(){if(!doc?.hidden)refreshQuietly();}
-  function pushMessage(event){if(event.data?.type==='desir-state-refresh')refreshQuietly();}
-  function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||10000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',refreshQuietly);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
-  function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',refreshQuietly);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
+  function reconcileNotifications(){
+   if(!connection||authFailed)return;
+   if(preparing){
+    if(!notificationReconcile){setNotification({subscribed:false,reason:'subscription_sync',message:'Vérification des notifications en cours…'});notificationReconcile=true;preparing.finally(()=>{notificationReconcile=false;if(connection&&!authFailed)prepareNotifications().catch(()=>{});}).catch(()=>{});}
+   }else prepareNotifications().catch(()=>{});
+  }
+  function visible(){if(!doc?.hidden){refreshQuietly();reconcileNotifications();}}
+  function online(){refreshQuietly();reconcileNotifications();}
+  function pushMessage(event){if(event.data?.type==='desir-state-refresh')refreshQuietly();else if(event.data?.type==='desir-subscription-changed')reconcileNotifications();}
+  function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||5000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',online);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
+  function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',online);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

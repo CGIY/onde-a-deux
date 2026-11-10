@@ -471,6 +471,115 @@ function badgeRoom(actor='a',sent=false){
  {
   let prompts=0;const Notification={permission:'default',requestPermission(){prompts++;return Promise.resolve('granted');}};const r=create(config,env(async(url,options)=>response(loginReply(options)),memory(),{Notification,PushManager:function(){},navigator:{userAgent:'iPhone',standalone:false,serviceWorker:{register(){throw Error('must not register');}}}}));await r.login('fixture-user','fixture-password');await assert.rejects(r.enableNotifications(),{code:'install_required'});check(()=>assert.equal(prompts,0));check(()=>assert.equal(r.notificationStatus.supported,false));
  }
+ // A suspended retry does not hide the current state or send a second command.
+ {
+  const storage=memory(),sent=[];let fail=true,releaseRecovery,committed=false;
+  const fetcher=async(url,options)=>{const p=payload(options);sent.push(p);if(p.op==='login')return response(loginReply(options));
+   if(p.op==='action'){if(fail)return response({error:{code:'server_error'}},503);return new Promise(resolve=>{releaseRecovery=()=>{committed=true;resolve(response(reply('a',2,drawn())));};});}
+   return response(reply('a',committed?2:1,committed?drawn():state()));};
+  const r=create(config,env(fetcher,storage));await r.login('fixture-user','fixture-password');
+  await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{status:503});fail=false;
+  const saved=JSON.parse(storage.getItem('desir-connection-v1-action')),fresh=await r.refresh();
+  check(()=>{assert.equal(fresh.revision,1);assert.equal(typeof releaseRecovery,'function');assert.equal(r.status.errorCode,'pending_action');});
+  await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{code:'pending_action'});
+  releaseRecovery();await tick();await tick();
+  check(()=>{assert.equal(r.snapshot.revision,2);assert.equal(storage.getItem('desir-connection-v1-action'),null);assert.equal(new Set(sent.filter(p=>p.op==='action').map(p=>p.requestId)).size,1);assert.equal(saved.requestId,sent.find(p=>p.op==='action').requestId);});
+ }
+ // Each stalled attempt is bounded and retains the same recoverable request ID.
+ {
+  const storage=memory(),ids=[];const r=create({...config,requestTimeoutMs:20},env(async(url,options)=>{
+   const p=payload(options);if(p.op==='login')return response(loginReply(options));ids.push(p.requestId);
+   return new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
+  },storage));await r.login('fixture-user','fixture-password');
+  await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{code:'offline'});
+  check(()=>{assert.equal(ids.length,2);assert.equal(ids[0],ids[1]);assert.equal(JSON.parse(storage.getItem('desir-connection-v1-action')).requestId,ids[0]);});
+ }
+ // A lost logout response followed by unauthorized proves the current session is gone.
+ {
+  const storage=memory();let attempts=0;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));
+   assert.equal(p.op,'revoke_sessions');assert.equal(p.scope,'current');if(++attempts===1)throw Error('response lost');return response({error:{code:'unauthorized'}},401);
+  },storage));await r.login('fixture-user','fixture-password');await r.logout();
+  check(()=>{assert.equal(attempts,2);assert.equal(r.authenticated,false);assert.equal(r.connection,null);assert.equal(r.snapshot,null);assert.equal(storage.getItem('desir-connection-v1'),null);});
+  const offline=memory(),disconnected=create(config,env(async(url,options)=>payload(options).op==='login'?response(loginReply(options)):Promise.reject(Error('offline')),offline));
+  await disconnected.login('fixture-user','fixture-password');await assert.rejects(disconnected.logout(),{code:'offline'});
+  check(()=>{assert.equal(disconnected.authenticated,true);assert.ok(offline.getItem('desir-connection-v1'));});
+ }
+ // A late state read cannot restore a locally revoked session; other-device revocation keeps it.
+ {
+  const storage=memory();let releaseRead,scope;
+  const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));
+   if(p.op==='state')return new Promise(resolve=>{releaseRead=()=>resolve(response(reply('a',2,drawn())));});
+   if(p.op==='revoke_sessions'){scope=p.scope;return response({revoked:true});}throw Error('unexpected operation');},storage));
+  await r.login('fixture-user','fixture-password');await r.revokeOtherDevices();check(()=>{assert.equal(scope,'others');assert.equal(r.authenticated,true);assert.ok(storage.getItem('desir-connection-v1'));});
+  const read=r.refresh();await tick();await r.logout();check(()=>{assert.equal(scope,'current');assert.equal(r.authenticated,false);assert.equal(r.snapshot,null);});
+  releaseRead();await assert.rejects(read,{code:'connection_changed'});check(()=>{assert.equal(r.snapshot,null);assert.equal(r.connection,null);assert.equal(storage.getItem('desir-connection-v1'),null);});
+ }
+ // Revocation cannot discard a previously unconfirmed command.
+ {
+  const storage=memory();let revocations=0;const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='revoke_sessions'){revocations++;return response({revoked:true});}return response({error:{code:'server_error'}},503);},storage));
+  await r.login('fixture-user','fixture-password');await assert.rejects(r.action({type:'ROLL_CATEGORY',roundId:'onde-1'}),{status:503});const journal=storage.getItem('desir-connection-v1-action');
+  await assert.rejects(r.logout(),{code:'pending_action'});await assert.rejects(r.revokeOtherDevices(),{code:'pending_action'});
+  check(()=>{assert.equal(revocations,0);assert.equal(storage.getItem('desir-connection-v1-action'),journal);assert.equal(r.authenticated,true);});
+ }
+ // A lost push subscription is shown immediately and a renewed subscription is re-registered.
+ {
+  let subscription={toJSON:()=>({endpoint:'https://web.push.apple.com/test',keys:{p256dh:'fixture',auth:'fixture'}})},sent=0,browserSubscribe=0;
+  const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64)]).toString('base64url'),Notification={permission:'granted'};
+  const serviceWorker={...eventTarget(),async register(){return {active:{},pushManager:{async getSubscription(){return subscription;},async subscribe(){browserSubscribe++;return subscription;}}};}};
+  const environment=env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='push_config')return response({vapidPublicKey:key});if(p.op==='subscribe'){sent++;return response({ok:true});}return response(reply());},memory(),{Notification,PushManager:function(){},navigator:{serviceWorker,userAgent:'Test Browser'}});
+  const r=create(config,environment);await r.login('fixture-user','fixture-password');await r.prepareNotifications();r.start();
+  check(()=>assert.equal(r.notificationStatus.subscribed,true));subscription=null;serviceWorker.emit('message',{data:{type:'desir-subscription-changed'}});await tick();await tick();
+  check(()=>{assert.equal(r.notificationStatus.subscribed,false);assert.equal(r.notificationStatus.reason,'subscription_missing');assert.match(r.notificationStatus.message,/réactivées/);assert.equal(browserSubscribe,0);});
+  subscription={toJSON:()=>({endpoint:'https://web.push.apple.com/test',keys:{p256dh:'new',auth:'fixture'}})};const before=sent;serviceWorker.emit('message',{data:{type:'desir-subscription-changed'}});await tick();await tick();
+  check(()=>{assert.equal(r.notificationStatus.subscribed,true);assert.equal(sent,before+1);assert.equal(browserSubscribe,0);});
+  Notification.permission='denied';environment.document.emit('visibilitychange');await tick();
+  check(()=>{assert.equal(r.notificationStatus.subscribed,false);assert.equal(r.notificationStatus.permission,'denied');});r.stop();
+ }
+ // Subscription changes during a pending registration are checked again after it settles.
+ {
+  let current={toJSON:()=>({endpoint:'https://web.push.apple.com/test',keys:{p256dh:'fixture',auth:'fixture'}})},releaseSubscribe,subscribeCount=0;
+  const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64)]).toString('base64url'),Notification={permission:'granted'};
+  const serviceWorker={...eventTarget(),async register(){return {active:{},pushManager:{async getSubscription(){return current;}}};}};
+  const environment=env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='push_config')return response({vapidPublicKey:key});if(p.op==='subscribe'&&++subscribeCount===1)return new Promise(resolve=>{releaseSubscribe=()=>resolve(response({ok:true}));});return response(reply());},memory(),{Notification,PushManager:function(){},navigator:{serviceWorker,userAgent:'Test Browser'}});
+  const r=create(config,environment);await r.login('fixture-user','fixture-password');r.start();await tick();check(()=>assert.equal(typeof releaseSubscribe,'function'));
+  current=null;serviceWorker.emit('message',{data:{type:'desir-subscription-changed'}});releaseSubscribe();await tick();await tick();
+  check(()=>{assert.equal(r.notificationStatus.subscribed,false);assert.equal(r.notificationStatus.reason,'subscription_missing');});r.stop();
+ }
+ // A delayed subscription response cannot change the next account's notification status.
+ {
+  let current=null,releaseOld,subscribeCount=0,loginCount=0;const seenTokens=[];
+  const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64)]).toString('base64url'),Notification={permission:'granted'};
+  const serviceWorker={...eventTarget(),async register(){return {active:{},pushManager:{async getSubscription(){return current;},async subscribe(){current={toJSON:()=>({endpoint:'https://web.push.apple.com/test',keys:{p256dh:'fixture',auth:'fixture'}})};return current;}}};}};
+  const environment=env(async(url,options)=>{const p=payload(options);if(p.op==='login'){loginCount++;return response(loginReply(options,loginCount===1?'a':'b',1,state(loginCount===1?'a':'b')));}if(p.op==='push_config')return response({vapidPublicKey:key});if(p.op==='revoke_sessions')return response({revoked:true});if(p.op==='subscribe'){seenTokens.push(options.headers.Authorization);if(++subscribeCount===1)return new Promise(resolve=>{releaseOld=()=>resolve(response({ok:true}));});return response({ok:true});}return response(reply());},memory(),{Notification,PushManager:function(){},navigator:{serviceWorker,userAgent:'Test Browser'}});
+  const r=create(config,environment);await r.login('fixture-a','fixture-password');await r.prepareNotifications();
+  const old=r.enableNotifications();await tick();check(()=>assert.equal(typeof releaseOld,'function'));
+  await r.logout();await r.login('fixture-b','fixture-password');await r.prepareNotifications();const nextStatus=r.notificationStatus;
+  releaseOld();await assert.rejects(old,{code:'connection_changed'});
+  check(()=>{assert.equal(r.connection.actor,'b');assert.deepEqual(r.notificationStatus,nextStatus);assert.equal(r.notificationStatus.subscribed,true);assert.notEqual(seenTokens[0],seenTokens[1]);});
+ }
+ // Failed registration of a renewed push endpoint is not reported as active, and is retried.
+ {
+  let fail='',current={toJSON:()=>({endpoint:'https://web.push.apple.com/first',keys:{p256dh:'fixture',auth:'fixture'}})};
+  const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64)]).toString('base64url'),Notification={permission:'granted'};
+  const serviceWorker={...eventTarget(),async register(){return {active:{},pushManager:{async getSubscription(){return current;}}};}};
+  const environment=env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));if(p.op==='push_config')return fail==='config'?response({error:{code:'server_error'}},503):response({vapidPublicKey:key});if(p.op==='subscribe')return fail==='subscribe'?response({error:{code:'server_error'}},503):response({ok:true});return response(reply());},memory(),{Notification,PushManager:function(){},navigator:{serviceWorker,userAgent:'Test Browser'}});
+  const r=create(config,environment);await r.login('fixture-user','fixture-password');await r.prepareNotifications();r.start();check(()=>assert.equal(r.notificationStatus.subscribed,true));
+  current={toJSON:()=>({endpoint:'https://web.push.apple.com/renewed',keys:{p256dh:'fixture',auth:'fixture'}})};fail='config';serviceWorker.emit('message',{data:{type:'desir-subscription-changed'}});await tick();await tick();
+  check(()=>{assert.equal(r.notificationStatus.subscribed,false);assert.equal(r.notificationStatus.reason,'subscription_sync');assert.match(r.notificationStatus.message,/attente de synchronisation/);});
+  fail='subscribe';environment.document.emit('visibilitychange');await tick();await tick();check(()=>{assert.equal(r.notificationStatus.subscribed,false);assert.equal(r.notificationStatus.reason,'subscription_sync');});
+  fail='';environment.document.emit('visibilitychange');await tick();await tick();check(()=>{assert.equal(r.notificationStatus.subscribed,true);assert.equal(r.notificationStatus.reason,null);});r.stop();
+ }
+ // A new account rechecks notifications after an older account's preparation finishes.
+ {
+  let releaseOld,loginCount=0,configCount=0;const tokens=[];
+  const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64)]).toString('base64url'),Notification={permission:'granted'},subscription={toJSON:()=>({endpoint:'https://web.push.apple.com/test',keys:{p256dh:'fixture',auth:'fixture'}})};
+  const serviceWorker={...eventTarget(),async register(){return {active:{},pushManager:{async getSubscription(){return subscription;}}};}};
+  const environment=env(async(url,options)=>{const p=payload(options);if(p.op==='login'){loginCount++;return response(loginReply(options,loginCount===1?'a':'b',1,state(loginCount===1?'a':'b')));}if(p.op==='push_config'){tokens.push(options.headers.Authorization);if(++configCount===1)return new Promise(resolve=>{releaseOld=()=>resolve(response({vapidPublicKey:key}));});return response({vapidPublicKey:key});}if(p.op==='revoke_sessions')return response({revoked:true});if(p.op==='subscribe')return response({ok:true});return response(reply());},memory(),{Notification,PushManager:function(){},navigator:{serviceWorker,userAgent:'Test Browser'}});
+  const r=create(config,environment);await r.login('fixture-a','fixture-password');await tick();check(()=>assert.equal(typeof releaseOld,'function'));
+  await r.logout();await r.login('fixture-b','fixture-password');releaseOld();await tick();await tick();await tick();
+  check(()=>{assert.equal(r.connection.actor,'b');assert.equal(r.notificationStatus.subscribed,true);assert.equal(tokens.length,2);assert.notEqual(tokens[0],tokens[1]);});
+ }
  // Background tabs do not poll; returning to the tab performs a refresh.
  {
   let states=0;const environment=env(async(url,options)=>{if(payload(options).op==='login')return response(loginReply(options));states++;return response(reply());});const r=create(config,environment);await r.login('fixture-user','fixture-password');r.start();environment.document.hidden=true;environment.intervals[0]();await tick();check(()=>assert.equal(states,0));environment.document.hidden=false;environment.document.emit('visibilitychange');await tick();check(()=>assert.equal(states,1));r.stop();

@@ -37,17 +37,28 @@ for(const kind of [4,6,8,20])for(let value=1;value<=kind;value++){
 function advance(t){now=t;const callbacks=[...queue.values()];queue.clear();for(const callback of callbacks)callback(t);return {m:uniforms.uRotation.slice(),p:uniforms.uPosition.slice(),s:uniforms.uScale.slice(),ink:uniforms.uResultLight};}
 let worstJoin=0,joins=0,inkJoins=0;
 (async()=>{
- // Waiting for the server animates immediately without inventing a result,
- // and can be interrupted by an error or by the authoritative roll.
+ // The pressed, waiting, confirmed and failed poses join without a visual jump.
  {
   now=0;queue.clear();const die=window.OndeDice.create(makeCanvas(),{kind:6,value:1});
-  const initial=uniforms.uRotation.slice();assert.equal(die.startWaiting(),true);advance(300);
-  assert(maxdiff(initial,uniforms.uRotation)>.01,'pending request moves the die');
-  assert.equal(uniforms.uValue,1,'pending animation does not choose a result');
-  die.stopWaiting();assert.equal(queue.size,0,'a failed request cancels pending motion');
-  assert.equal(die.startWaiting(),true);advance(600);const done=die.roll(5,{durationMs:900});
-  advance(1501);assert.equal(await done,5,'server result remains authoritative');
-  die.setReducedMotion(true);assert.equal(die.startWaiting(),false,'reduced motion skips pending animation');
+  die.setCharge(1);die.setCharge(0);
+  const released={m:uniforms.uRotation.slice(),p:uniforms.uPosition.slice(),s:uniforms.uScale.slice()};
+  assert.equal(die.startWaiting(),true);assert.equal(uniforms.uResultLight,0,'the previous face is not lit while awaiting a result');
+  const first=advance(.001);
+  assert(Math.max(maxdiff(first.m,released.m),maxdiff(first.p,released.p),maxdiff(first.s,released.s))<.0001,'waiting begins at the released pose');
+  const waiting=advance(300);assert(maxdiff(released.m,waiting.m)>.01,'pending request moves the die');
+  assert.equal(uniforms.uValue,1,'pending animation does not choose a result');assert.equal(uniforms.uResultLight,0);
+  const done=die.roll(5,{durationMs:900});const confirmed=advance(300.001);
+  assert(Math.max(maxdiff(waiting.m,confirmed.m),maxdiff(waiting.p,confirmed.p),maxdiff(waiting.s,confirmed.s))<.0001,'confirmed animation starts from the whole waiting pose');
+  advance(1201);assert.equal(await done,5,'server result remains authoritative');
+  assert.equal(die.startWaiting(),true);const beforeFailure=advance(1501);const returned=die.stopWaiting();
+  const firstReturn=advance(1501.001);
+  assert(Math.max(maxdiff(beforeFailure.m,firstReturn.m),maxdiff(beforeFailure.p,firstReturn.p),maxdiff(beforeFailure.s,firstReturn.s))<.0001,'failure does not snap to the resting pose');
+  assert(firstReturn.ink<.0001,'the previous result lights up progressively on return');
+  advance(1772);await returned;assert.equal(queue.size,0);assert.equal(uniforms.uResultLight,1,'failed request restores the prior result');
+  assert.equal(die.startWaiting(),true);advance(1900);const interrupted=die.stopWaiting();
+  sandbox.document.hidden=true;for(const listener of documentHandlers.get('visibilitychange'))listener();await interrupted;
+  assert.equal(queue.size,0,'hiding the page resolves an interrupted return');assert.equal(uniforms.uResultLight,1);
+  sandbox.document.hidden=false;die.setReducedMotion(true);assert.equal(die.startWaiting(),false,'reduced motion skips pending animation');
   die.destroy();now=0;queue.clear();
  }
  for(const kind of [4,6,8,20]){

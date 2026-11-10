@@ -2,11 +2,12 @@
  'use strict';
  const sky=document.querySelector('#onde-app-v1 .oa-sky');
  if(!sky)return;
+ const root=sky.closest('#onde-app-v1'),sheet=root?.querySelector('#oa-sheet');
  const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
  const colors=['177 207 237','201 181 220','211 199 187'];
  const random=(min,max)=>min+Math.random()*(max-min);
  let timer=null,aster=null,away=false;
- const isVisible=()=>!away&&!document.hidden;
+ const isVisible=()=>!away&&!document.hidden&&!root?.classList.contains('oa-ambient-paused')&&(!sheet||sheet.hidden);
 
  function schedule(first=false){
   timer=setTimeout(pass,first?random(16000,30000):random(46000,105000));
@@ -45,7 +46,10 @@
   aster=null;
  }
 
+ const sheetObserver=sheet&&typeof MutationObserver==='function'?new MutationObserver(sync):null;
+ sheetObserver?.observe(sheet,{attributes:true,attributeFilter:['hidden']});
  document.addEventListener('visibilitychange',sync);
+ window.addEventListener('d6-ambient-motion-change',sync);
  window.addEventListener('pagehide',()=>{away=true;sync();});
  window.addEventListener('pageshow',()=>{away=false;sync();});
  if(motion.addEventListener)motion.addEventListener('change',sync);

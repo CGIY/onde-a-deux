@@ -132,6 +132,11 @@ class MemoryStore{
    const exists=this.members.get(args.p_token_hash);if(exists&&exists.actor!==actor)return {error:'session_conflict'};
    this.members.set(args.p_token_hash,{token_hash:args.p_token_hash,room_id:roomId,actor});return {roomId,actor};
   }
+  if(name==='desir_revoke_sessions'){
+   const caller=this.members.get(args.p_token_hash);if(!caller||!['current','others'].includes(args.p_scope))return false;
+   for(const [token,member] of this.members)if(member.room_id===caller.room_id&&member.actor===caller.actor&&(args.p_scope==='current'?token===args.p_token_hash:token!==args.p_token_hash))this.members.delete(token);
+   return true;
+  }
   if(name==='desir_get_session'){
    const member=this.members.get(args.p_token_hash);if(!member)return null;
    return {room:{id:roomId,state:clone(this.state),revision:this.revision},member:clone(member),paired:true,quota:this.quota(member.actor)};
@@ -171,6 +176,26 @@ function client(handler){
 }
 const intent=(type,id,roundId='onde-1',extra={})=>({op:'action',requestId:uuid(id),action:{type,roundId,...extra}});
 const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
+
+// Revocation is strictly scoped to the authenticated actor and never accepts caller-selected identities.
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ const other=Buffer.alloc(32,3).toString('base64url'),otherHash=await sha256('device:'+other);
+ saved.members.set(otherHash,{token_hash:otherHash,room_id:roomId,actor:'a'});
+ const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-sessions'}));
+ equal((await deliver({op:'revoke_sessions',scope:'other'})).status,400);
+ equal((await deliver({op:'revoke_sessions',scope:'others',actor:'b'})).status,400);
+ equal((await deliver({op:'revoke_sessions',scope:'others'},'X'.repeat(43))).status,401);
+ const response=await deliver({op:'revoke_sessions',scope:'others'});
+ equal(response.status,200);equal(response.body,{revoked:true});
+ equal((await deliver({op:'state'},other)).status,401,'other session revoked');
+ equal((await deliver({op:'state'},tokenA)).status,200,'current session remains');
+ equal((await deliver({op:'state'},tokenB)).status,200,'partner session remains');
+ equal((await deliver({op:'revoke_sessions',scope:'current'},tokenA)).body,{revoked:true});
+ equal((await deliver({op:'state'},tokenA)).status,401,'current session revoked');
+ equal((await deliver({op:'revoke_sessions',scope:'current'},tokenA)).status,401,'revoked session cannot authenticate');
+ equal((await deliver({op:'state'},tokenB)).status,200,'partner still remains');
+}
 
 // Portraits use only the device's verified room and never change the game.
 {
