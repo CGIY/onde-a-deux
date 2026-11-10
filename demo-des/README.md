@@ -1,4 +1,4 @@
-# D6 à deux — version web 0.4.4
+# D6 à deux — version web 0.4.5
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 
@@ -9,6 +9,8 @@ Au premier lancement sur cet appareil, un accueil résume le principe en trois p
 Le tirage reste privé jusqu’à l’envoi du challenge. Il rejoint alors directement « À faire », sans invitation à accepter. L’état, les tirages, les dates et le score sont partagés par le service. Une coupure du réseau conserve l’accès enregistré et propose « Réessayer » au lancement, ou signale l’indisponibilité dans la partie. Une action encore en attente garde son identifiant et n’empêche plus la lecture de l’état confirmé. Le retour du réseau ou de l’app relance l’actualisation ; un accès réellement révoqué demande une nouvelle connexion.
 
 ## Jouer
+
+Pour lancer le dé, touche-le ou fais-le glisser dans la direction de ton choix. Un appui maintenu donne plus d’élan. Le résultat reste choisi par le serveur.
 
 - **D4 catégorie → D6 challenge → variante D6 si la carte en possède une.** Complicité réunit les moments à deux et la détente ; Plaisirs, les attentions et la cuisine. Avec Projets et Intimité, le catalogue classique conserve ses 24 challenges et 144 variantes. Les 20 cartes Hardcore existantes rejoignent Intimité, soit 164 résultats au total. Les mains comportent toujours six cartes et le D6 reste uniforme. Les anciennes manches conservent leur carte et leur parcours.
 - Chaque personne dispose de **trois tirages par jour** (heure de Paris), renouvelés à 5 h. Seul le dé de catégorie réussi consomme un tirage. La prochaine disponibilité apparaît à sa place lorsque la cagnotte est vide. **Une relance du thème (D4) gratuite est en plus disponible une fois par jour et par personne**, utilisable avant le tirage de la carte ; elle ne consomme aucun ticket. Une fois par **semaine** (heure de Paris), un **joker** permet en plus de choisir sa catégorie au lieu du D4 : les quatre thèmes deviennent cliquables pendant un tour. Après une carte résolue ou passée, le tour suivant se relance automatiquement au bout de quelques secondes.

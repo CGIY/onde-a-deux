@@ -847,6 +847,17 @@ async function rollSession(options={}){
   const before=ui.writes,work=ui.click('roll');await tick();check(()=>assert.equal(ui.rngCalls,0));check(()=>assert.deepEqual(ui.die.calls,[2]));check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.interrupted,0));ui.finishDie();await work;check(()=>assert.ok(ui.html.includes('Offrandes')));check(()=>assert.ok(ui.html.includes('Lancer le D6')));check(()=>assert.equal(ui.interrupted,0));
  }
  // The category D4 hands off only after its confirmed face settles; the six slots never translate or stagger.
+ // A slow or failed server request starts and cleans up the waiting animation.
+ {
+  for(const fails of [false,true]){
+   const remote=mockRemote(snap(initial())),ui=shell(remote);await tick();let waiting=0,stopped=0,complete;
+   ui.die.startWaiting=()=>{waiting++;return true;};ui.die.stopWaiting=()=>{stopped++;};
+   remote.actionImpl=()=>new Promise((resolve,reject)=>{complete=()=>fails?reject(Object.assign(new Error('Connexion interrompue.'),{isDesirRemoteError:true,code:'offline'})):resolve({...snap(drawCurrent(),2,0),roll:{kind:4,value:2}});});
+   const work=ui.click('roll');await tick();check(()=>{assert.equal(waiting,1);assert.deepEqual(ui.die.calls,[]);});
+   ui.advance(800);complete();await work;
+   check(()=>{assert.equal(stopped,1);if(fails)assert.deepEqual(ui.die.calls,[]);else{assert.deepEqual(ui.die.calls,[2]);assert.equal(ui.die.options[0].durationMs,900);}});
+  }
+ }
  {
   const {remote,ui}=await rollSession({delayedDie:true,motionAPI:true,mobileScroll:true});ui.main.scrollTop=170;
   const work=ui.click('roll');await tick();check(()=>{assert.equal(ui.motionAnimations.length,0);assert.ok(!ui.html.includes('oa-card-grid'));});
@@ -902,6 +913,15 @@ async function rollSession(options={}){
   const enter=await rollSession();await enter.ui.key('keydown','Enter');await enter.ui.click('roll');check(()=>assert.equal(enter.ui.die.options[0].power,0));
   const space=await rollSession();await space.ui.key('keydown');space.ui.advance(300);await space.ui.key('keydown',' ',{repeat:true});space.ui.advance(300);await space.ui.key('keyup');await space.ui.click('roll');check(()=>assert.equal(space.remote.calls.filter(c=>c.method==='action').length,1));check(()=>assert.equal(space.ui.die.options[0].power,.5));
   check(()=>{assert.equal(tap.ui.diceInteractive,false);assert.match(tap.ui.html,/data-roll-role="card"><button type="button" class="oa-die-hit/);});
+ }
+ // Swiping the die launches once in any direction; the direction is visual only.
+ {
+  for(const [dx,dy] of [[80,0],[-80,0],[0,80],[0,-80]]){
+   const {remote,ui}=await rollSession();ui.button().classList.add('oa-die-hit');
+   await ui.pointer('pointerdown');ui.advance(100);await ui.pointer('pointermove','roll',{clientX:50+dx,clientY:25+dy});
+   await ui.pointer('pointerup','roll',{clientX:50+dx,clientY:25+dy});await ui.click('roll',{},1);
+   check(()=>{assert.equal(remote.calls.filter(c=>c.method==='action').length,1);assert.deepEqual(copy(ui.die.options[0].direction),{x:dx/80,y:dy/80});assert.equal(ui.rngCalls,0);});
+  }
  }
  // Cancellation remains effective even if the finger stays down for seconds after the cancelled gesture.
  {

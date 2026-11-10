@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const filename=require('node:path').join(__dirname,'../src/onde-app-dice.js');
-const src=fs.readFileSync(filename,'utf8').replace(/global\.OndeDice=Object\.freeze\(\{[^}]*\}\);/,'$&global.__qa={CUBE_FACES,POLYS,ICON_PATHS,targetRotation,initialRotation,matrix,transform,support,clampPower,rollDuration,FRAGMENT,VERTEX};');
+const src=fs.readFileSync(filename,'utf8').replace(/global\.OndeDice=Object\.freeze\(\{[^}]*\}\);/,'$&global.__qa={CUBE_FACES,POLYS,ICON_PATHS,targetRotation,initialRotation,matrix,transform,support,clampPower,rollDuration,cameraOffset,FRAGMENT,VERTEX};');
 let now=0,nextRaf=0,queue=new Map(),uniforms={},labels=[],atlas=[],numerals=[],pictograms=[],documentHandlers=new Map(),glyphCenter=null;
 const gradient=()=>({stops:[],addColorStop(at,color){this.stops.push([at,color]);}});
 const selectedEngraving=mark=>mark.ink?.stops?.some(([,color])=>color==='rgba(188,196,207,0.66)');
@@ -37,6 +37,19 @@ for(const kind of [4,6,8,20])for(let value=1;value<=kind;value++){
 function advance(t){now=t;const callbacks=[...queue.values()];queue.clear();for(const callback of callbacks)callback(t);return {m:uniforms.uRotation.slice(),p:uniforms.uPosition.slice(),s:uniforms.uScale.slice(),ink:uniforms.uResultLight};}
 let worstJoin=0,joins=0,inkJoins=0;
 (async()=>{
+ // Waiting for the server animates immediately without inventing a result,
+ // and can be interrupted by an error or by the authoritative roll.
+ {
+  now=0;queue.clear();const die=window.OndeDice.create(makeCanvas(),{kind:6,value:1});
+  const initial=uniforms.uRotation.slice();assert.equal(die.startWaiting(),true);advance(300);
+  assert(maxdiff(initial,uniforms.uRotation)>.01,'pending request moves the die');
+  assert.equal(uniforms.uValue,1,'pending animation does not choose a result');
+  die.stopWaiting();assert.equal(queue.size,0,'a failed request cancels pending motion');
+  assert.equal(die.startWaiting(),true);advance(600);const done=die.roll(5,{durationMs:900});
+  advance(1501);assert.equal(await done,5,'server result remains authoritative');
+  die.setReducedMotion(true);assert.equal(die.startWaiting(),false,'reduced motion skips pending animation');
+  die.destroy();now=0;queue.clear();
+ }
  for(const kind of [4,6,8,20]){
   now=0;queue.clear();const canvas=makeCanvas(),die=window.OndeDice.create(canvas,{kind,value:1,duration:2250,maxPixelRatio:2});
   assert.equal(die.mode,'webgl');assert.equal(uniforms.uCount,kind);assert.equal(canvas.width,904);assert.equal(canvas.height,476);
@@ -77,6 +90,15 @@ let worstJoin=0,joins=0,inkJoins=0;
  }
  assert(trajectories[1].distance>trajectories[0].distance+Math.PI*4,'strong throw makes genuinely more turns');
  assert(maxdiff(trajectories[0].final,trajectories[1].final)<1e-12,'same result ends in the same pose regardless of force');
+ // Swipes move the die in the requested screen direction without changing its result.
+ for(const direction of [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}]){
+  now=0;queue.clear();const die=window.OndeDice.create(makeCanvas(),{kind:6,value:1});
+  const done=die.roll(5,{direction,durationMs:1650});
+  const middle=advance(1650*(160+500)/2250),screen=q.cameraOffset(middle.p),center=q.cameraOffset([0,middle.p[1],0]);
+  const dx=screen[0]-center[0],dy=screen[1]-center[1];
+  assert(dx*direction.x+dy*direction.y>0,'movement follows the swipe on screen');
+  advance(1651);assert.equal(await done,5,'swipe direction never changes the result');die.destroy();
+ }
  // Every motion/ink transition stays continuous with the extra revolutions.
  for(const kind of [4,6,8,20])for(const power of [0,.5,1]){
   now=0;queue.clear();const die=window.OndeDice.create(makeCanvas(),{kind,value:1}),duration=1650+850*power,done=die.roll(kind,{power});

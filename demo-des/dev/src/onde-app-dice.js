@@ -121,7 +121,8 @@ void main(){
  }
  color=pow(max(color,vec3(0.)),vec3(1./2.2));
  float dith=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/255.;
- gl_FragColor=vec4(color+dith,outputAlpha);
+ // Premultiply RGB explicitly, including fully transparent pixels, for reliable mobile compositing.
+ gl_FragColor=vec4((color+dith)*outputAlpha,outputAlpha);
 }`;
   const add = (a,b) => a.map((x,i) => x+b[i]);
   const sub = (a,b) => a.map((x,i) => x-b[i]);
@@ -924,7 +925,7 @@ void main(){
     let faceLabels=validLabels(options.labels,type),faceIcons=faceLabels&&validIcons(options.icons,type);
     let alive=true,raf=0,busy=false,pressed=false,pressAt=0,pressScale=1,rollAt=0,startQ=rotation,goalQ=rotation,pointerId=null,charge=0;
     let duration=rollDuration(options.duration,0),activeDuration=duration,activePower=0,spinTurns=2,settleAt=0,settleScale=1,settleBias=0,startBias=0,pressPoint=null;
-    let breathing=false,breatheAt=0,visible=true;
+    let breathing=false,breatheAt=0,waiting=false,waitAt=0,visible=true,throwDirection=null;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
     let resultLight=1,hasSettledResult=false;
@@ -933,7 +934,7 @@ void main(){
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0,spreadBias:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
     const query=global.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;breathing=false;};
+    const cancelFrame=()=>{if(raf)cancelAnimationFrame(raf);raf=0;breathing=false;waiting=false;};
     const isThemeDie=()=>type===4&&!!faceIcons;
     const isEngravedCardDie=()=>(type===6||type===8)&&!!faceIcons;
     const dieColor=()=>isThemeDie()?DARK_SLATE:pigment||(isEngravedCardDie()?DARK_MAUVE:COLORS[type]);
@@ -993,7 +994,7 @@ void main(){
     }
     function initialize() {
       try {
-        gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:false});
+        gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:false});
         if(!gl){renderError='WebGL context unavailable'+(contextMessage?': '+contextMessage:'.');fallbackTargetCtx=canvas.getContext('2d');rendererStatus();if(typeof options.onError==='function')options.onError(new Error(renderError));return;}
         program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,VERTEX));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,FRAGMENT));gl.linkProgram(program);
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Shader link: '+String(gl.getProgramInfoLog(program)||'Link failed without driver log.'));
@@ -1151,12 +1152,21 @@ void main(){
     }
     // A single seated breath invites the next touch; polling never restarts it.
     function breathe(){if(!alive||busy||pressed||charge||breathing||reduced||document.hidden||!visible||canvas.isConnected===false)return false;cancelFrame();breathing=true;breatheAt=performance.now();raf=requestAnimationFrame(animateBreath);return true;}
+    // Start immediately while the server chooses the authoritative result.
+    function animateWaiting(now){
+      raf=0;if(!alive||!waiting||busy||pressed||reduced||document.hidden||!visible){pauseMotion();return;}
+      const t=(now-waitAt)/1000,wave=Math.sin(t*5);
+      draw(qmul(axisQ([.8,.2,-.65],t*3.2),rotation),1-.025*(1+wave),.06*(1+wave));
+      raf=requestAnimationFrame(animateWaiting);
+    }
+    function startWaiting(){if(!alive||busy||pressed||charge||reduced||document.hidden||!visible||canvas.isConnected===false)return false;cancelFrame();waiting=true;waitAt=performance.now();raf=requestAnimationFrame(animateWaiting);return true;}
+    function stopWaiting(){if(!waiting)return;cancelFrame();pressScale=1;draw();}
     function finish() { cancelFrame();busy=false;pressed=false;pointerId=null;charge=0;rotation=goalQ||rotation;pressScale=1;resultLight=1;hasSettledResult=true;draw();updateLabel();resolvePending();if(options.idleMotion)breathe(); }
     function animate(now) {
       raf=0;if(!alive||!busy)return;
       const ms=(now-rollAt)*2250/activeDuration;let sy=1,lift=0,q=startQ,x=0,z=0,spreadBias=0;
       if(ms<160){const t=ms/160;sy=pressScale-(pressScale-.82)*smooth(t);spreadBias=startBias*(1-smooth(t));}
-      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*2*spinTurns*(1-e)),slerp(startQ,goalQ,e));lift=(.45+.12*activePower)*4*t*(1-t);x=(.21+.06*activePower)*wave;z=-(.15+.05*activePower)*wave;sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;spreadBias=.025*Math.sin(2*Math.PI*t)*wave;}
+      else if(ms<1160){const t=(ms-160)/1000,e=smooth(t),wave=Math.pow(Math.sin(Math.PI*t),2);q=qmul(axisQ([.8,.2,-.65],Math.PI*2*spinTurns*(1-e)),slerp(startQ,goalQ,e));lift=(.45+.12*activePower)*4*t*(1-t);if(throwDirection){const amplitude=(.30+.08*activePower)*wave;x=throwDirection[0]*amplitude;z=throwDirection[1]*amplitude;}else{x=(.21+.06*activePower)*wave;z=-(.15+.05*activePower)*wave;}sy=1-.18*(1-smooth(Math.min(1,t/.16)))+.055*wave;spreadBias=.025*Math.sin(2*Math.PI*t)*wave;}
       else if(ms<1600){const t=(ms-1160)/440,wave=Math.pow(Math.sin(Math.PI*t),2);if(t<.36){sy=1-(.185+.035*activePower)*Math.pow(Math.sin(Math.PI*t/.36),2);}else{const b=(t-.36)/.64,bounce=Math.pow(Math.sin(Math.PI*b),2);lift=(.115+.035*activePower)*bounce;sy=1+(.032*Math.sin(2*Math.PI*b)+.008*Math.sin(4*Math.PI*b))*bounce;}q=qmul(axisQ([.5,0,.8],(.12+.025*activePower)*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);spreadBias=.03*Math.sin(3*Math.PI*t)*wave*Math.exp(-t*3);}
       else if(ms<2250){const t=(ms-1600)/650,wave=Math.pow(Math.sin(Math.PI*t),2);sy=1-.028*Math.sin(t*4*Math.PI)*wave*Math.exp(-t*3);q=qmul(axisQ([.3,0,1],.028*Math.sin(t*3*Math.PI)*wave*Math.exp(-t*3)),goalQ);spreadBias=.012*Math.sin(2*Math.PI*t)*wave*Math.exp(-t*3);}
       else{finish();return;}
@@ -1236,11 +1246,11 @@ void main(){
       },
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
+        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
-      getResultAnchor,setReducedMotion,setCharge,breathe,pauseMotion,
+      getResultAnchor,setReducedMotion,setCharge,breathe,pauseMotion,startWaiting,stopWaiting,
       destroy(){if(!alive)return;cancelFrame();alive=false;busy=false;pressed=false;resolvePending();observer?.disconnect();visibilityObserver?.disconnect();if(!observer)global.removeEventListener('resize',resize);if(query?.removeEventListener)query.removeEventListener('change',motionChanged);else query?.removeListener?.(motionChanged);document.removeEventListener('visibilitychange',visibilityChanged);canvas.removeEventListener('pointerdown',press);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',release);canvas.removeEventListener('pointercancel',cancelPress);canvas.removeEventListener('lostpointercapture',cancelPress);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextcreationerror',contextCreationError);try{if(gl){for(const texture of textures.values())gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const shader of shaders)gl.deleteShader(shader);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}textures.clear();canvas.style.backgroundImage=previousBackground;canvas.style.backgroundSize=previousSize;canvas.style.backgroundPosition=previousPosition;canvas.style.backgroundRepeat=previousRepeat;}
     };
   }
