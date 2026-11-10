@@ -95,6 +95,24 @@ export function snapshot(G,context,extra={},gameVersion=2){
   }
   return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }
+
+// A one-day, server-owned allowance set by an administrator. The client never
+// receives it or supplies it. Each confirmed theme roll consumes one allowance.
+function activeCategoryBoost(G,room,at){
+  const boost=room.categoryBoost;
+  return boost&&['a','b'].includes(boost.actor)&&boost.date===G.parisDateKey(at)&&
+    Number.isInteger(boost.remaining)&&boost.remaining>=1&&boost.remaining<=2?boost:null;
+}
+function rollBoostedCategory(G,version,randomInt,at){
+  return G.rollCategory(version,total=>{
+    // Braises is the final contiguous interval in both canonical pools.
+    const braises=total===42?11:total===155?93:0;
+    if(!braises)throw new Error('Unsupported category weight pool');
+    const ticket=randomInt(total+2*braises);
+    if(!Number.isInteger(ticket)||ticket<1||ticket>total+2*braises)throw new Error('Invalid authoritative random outcome');
+    return ticket<=total?ticket:total-braises+1+(ticket-total-1)%braises;
+  },at);
+}
 export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
   if(gameVersion===3||gameVersion===4||gameVersion===5)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(!supportsParallelGame(gameVersion))return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
@@ -107,6 +125,8 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   if(!target)throw new HttpError(409,'stale_round','Le tour a changé.');
   const owns=target.round.from===actor;
   const catalogueVersion=catalogueForGame.get(gameVersion);
+  const boost=activeCategoryBoost(G,room,at);
+  const boosted=!!boost&&boost.actor===actor&&['ROLL_CATEGORY','REROLL_CATEGORY'].includes(action.type);
   let roll;
   if(action.type==='SEND')action.directQueue=true;
   if(action.type==='REFUSE_TASK'){
@@ -118,7 +138,7 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
     action.value=value;action.token='request:'+requestId;roll={kind:20,value};
   }else if(action.type==='ROLL_CATEGORY'){
     if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const sides=G.categorySides(catalogueVersion),value=G.rollCategory(catalogueVersion,randomInt,at);
+    const sides=G.categorySides(catalogueVersion),value=boosted?rollBoostedCategory(G,catalogueVersion,randomInt,at):G.rollCategory(catalogueVersion,randomInt,at);
     Object.assign(action,{value},G.drawCategory(target,value,catalogueVersion,randomInt));roll={kind:sides,value};
   }else if(action.type==='ROLL_CARD'){
     if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
@@ -134,7 +154,7 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   }
   else if(action.type==='REROLL_CATEGORY'){
     if(!owns||target.phase!=='card')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
-    const sides=G.categorySides(catalogueVersion),value=G.rollCategory(catalogueVersion,randomInt,at);
+    const sides=G.categorySides(catalogueVersion),value=boosted?rollBoostedCategory(G,catalogueVersion,randomInt,at):G.rollCategory(catalogueVersion,randomInt,at);
     Object.assign(action,{value},G.drawCategory(target,value,catalogueVersion,randomInt));
     roll={kind:sides,value};
   }
@@ -146,6 +166,9 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   }
   const next=G.reduceRoom(room,{...action,actor,at});
   if(next===room)throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
+  // This metadata is deliberately not part of the client-visible game model.
+  // Carry it across all room actions and debit only successful theme rolls.
+  if(boost&&(!boosted||boost.remaining>1))next.categoryBoost={...boost,remaining:boost.remaining-(boosted?1:0)};
   if(!G.validateRoom(next))throw new Error('Core returned an invalid room');
   const queued=action.type==='SEND'?next.tasks.find(task=>task.id===target.round.id):null;
   const notification=queued?{actor:queued.to,kind:'invitation',roundId:queued.id}:null;

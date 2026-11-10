@@ -177,6 +177,38 @@ function client(handler){
 const intent=(type,id,roundId='onde-1',extra={})=>({op:'action',requestId:uuid(id),action:{type,roundId,...extra}});
 const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 
+// The temporary category allowance is consumed only by a committed roll. A
+// revision race, duplicate request, or unrelated expiry must never spend it.
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ saved.state.categoryBoost={actor:'b',date:'2026-11-02',remaining:2};
+ const rng=[],deliver=client(createHandler({G:{...G,randomInt:n=>{rng.push(n);return 1;}},store:saved,rateSecret:'fixture-boost',clock:()=>new Date(at)}));
+ const id=view(saved,'b').round.id,request={...intent('ROLL_CATEGORY',4001,id),gameVersion:8};
+ saved.forceRace=true;
+ const drawn=await deliver(request,tokenB);
+ equal(drawn.status,200);equal(rng.filter(n=>n===64).length,2,'conflicting roll is retried');
+ equal(saved.state.categoryBoost.remaining,1,'only the committed roll spends an allowance');
+ const revision=saved.revision,randomCalls=rng.length;
+ const replay=await deliver(request,tokenB);
+ equal(replay.status,200);equal(replay.body,drawn.body);equal(saved.revision,revision);
+ equal(rng.length,randomCalls,'receipt replay performs no new roll');equal(saved.state.categoryBoost.remaining,1);
+ ok(!JSON.stringify(drawn.body).includes('categoryBoost'),'the allowance is never projected');
+}
+{
+ const yesterday='2026-11-01T10:00:00.000Z';
+ let room=G.createRoom({at:yesterday});
+ for(const [i,type] of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'].entries()){
+  room=applyAction(G,room,'a',{type,roundId:room.lanes.a.round.id},uuid(4100+i),yesterday,()=>1,8).state;
+ }
+ equal(room.tasks.length,1);
+ room.categoryBoost={actor:'b',date:'2026-11-02',remaining:2};
+ const saved=new MemoryStore();saved.state=room;await authorize(saved);
+ const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-boost-expiry',clock:()=>new Date(at)}));
+ equal((await deliver({op:'state',gameVersion:8},tokenB)).status,200);
+ equal(saved.state.tasks.length,0,'expiry was committed');
+ equal(saved.state.categoryBoost,{actor:'b',date:'2026-11-02',remaining:2},'expiry preserves allowance');
+}
+
 // Revocation is strictly scoped to the authenticated actor and never accepts caller-selected identities.
 {
  const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);

@@ -29,6 +29,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       const actorState=parallel?normalized:{...normalized,activePlayer:current.member.actor};
       const next=parallel?G.reduceRoom(normalized,{type:'EXPIRE_TASKS',at:iso()}):G.reduce(actorState,{type:'EXPIRE_TASKS',at:iso()});
       if(normalized===current.room.state&&next===actorState)return current;
+      if(parallel&&normalized.categoryBoost)next.categoryBoost=normalized.categoryBoost;
       await store.rpc('desir_expire_room',{p_room_id:current.room.id,p_expected_revision:current.room.revision,p_next_state:next});
     }
     throw new HttpError(503,'temporarily_unavailable','La partie se met à jour. Réessaie.');
