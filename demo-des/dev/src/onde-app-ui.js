@@ -98,7 +98,7 @@
  }
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
- const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,maxPixels:400000,reducedMotion:!!systemReduce,idleMotion:true,interactive:false});
+ const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,maxPixels:200000,reducedMotion:!!systemReduce,idleMotion:true,interactive:false});
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
@@ -142,7 +142,7 @@
  }
  function startCharge(button,source,event){
   if(!canCharge(button)||charge)return false;
-  suppressedClick=null;charge={button,source,started:chargeNow(),power:0,frame:null,pointerId:source==='pointer'?event.pointerId:undefined,x:event.clientX,y:event.clientY,phase:state.phase,roundId:state.round.id,cardId:state.round.cardId,actor:viewPlayer};
+  suppressedClick=null;charge={button,source,started:chargeNow(),power:0,frame:null,pointerId:source==='pointer'?event.pointerId:undefined,x:event.clientX,y:event.clientY,swipe:source==='pointer'&&button.classList.contains('oa-die-hit'),phase:state.phase,roundId:state.round.id,cardId:state.round.cardId,actor:viewPlayer};
   button.classList.add('is-charging');drawCharge();updateBadgeNotice();
   try{if(source==='pointer')button.setPointerCapture?.(event.pointerId);}catch(_){}
   return true;
@@ -150,13 +150,15 @@
  async function releaseCharge(event){
   const active=charge;if(!active)return;
   if(active.source==='pointer'&&event.pointerId!==active.pointerId)return;
-  const power=Math.max(0,Math.min(1,(chargeNow()-active.started)/chargeLimit));let inside=active.button.isConnected&&canCharge(active.button);
-  if(active.source==='pointer'){const rect=active.button.getBoundingClientRect();inside=inside&&event.clientX>=rect.left&&event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;}
+  const dx=active.swipe?event.clientX-active.x:0,dy=active.swipe?event.clientY-active.y:0,distance=Math.hypot(dx,dy);
+  const direction=distance>=32?{x:dx/distance,y:dy/distance}:null;
+  const power=Math.max(0,Math.min(1,Math.max((chargeNow()-active.started)/chargeLimit,direction?distance/180:0)));let inside=active.button.isConnected&&canCharge(active.button);
+  if(active.source==='pointer'){const rect=active.button.getBoundingClientRect();inside=inside&&(!!direction||event.clientX>=rect.left&&event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom);}
   else inside=inside&&document.activeElement===active.button;
   clearCharge(true,false);suppressedClick.until=chargeNow()+600;
   if(remoteMode)flushRemote(null,false);
   inside=inside&&active.phase===state.phase&&active.roundId===state.round.id&&active.cardId===state.round.cardId&&active.actor===viewPlayer&&canCharge(active.button);
-  if(inside)await roll(active.button.dataset.action==='reroll',power);else render();
+  if(inside)await roll(active.button.dataset.action==='reroll',power,direction);else render();
  }
  function ignoreChargedClick(button,event){
   if(!suppressedClick||suppressedClick.button!==button||chargeNow()>suppressedClick.until)return false;
@@ -1230,7 +1232,7 @@
   try{const changed=await dispatch(action);if(changed){announce('Catégorie relancée.');toast('Thème relancé · 1× aujourd’hui.');}}
   finally{busy=false;setControlsBusy(false);render();}
  }
- async function roll(reroll=false,power=0){
+ async function roll(reroll=false,power=0,direction=null){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
@@ -1252,8 +1254,10 @@
   context.viewKey=renderKey;
   const button=main.querySelector('[data-action="roll"]');if(button){renderedMarkup='';button.setAttribute('aria-busy','true');}
   const readout=main.querySelector('[data-roll-readout]');
+  let waitingStartedAt=null;
   try{
    if(remoteMode){
+    if(!starFlight&&die.startWaiting?.())waitingStartedAt=performance.now();
     const value=await remote.action({...action,roundId});
     if(!value.roll||value.roll.kind!==sides){
      const restored=action.type==='ROLL_CATEGORY'&&value.roll?.kind===G.categorySides(1)?G.normalizeState(value.state):null;
@@ -1287,7 +1291,11 @@
    }
    resultLabel=action.type==='ROLL_CATEGORY'?'Catégorie '+(G.getCategory(next.round.categoryId,next.round.catalogueVersion??1)?.label||G.categories.find(c=>c.number===faceValue)?.label||'tirée') : ['ROLL_CARD','REROLL_CARD'].includes(action.type)?(G.getCard(next.round.cardId,roundVersion(next.round))?.title||'Carte tirée.'):action.type==='ROLL_VARIANT'?(G.getVariant(next.round)||'Variante choisie.'):'Lancer terminé.';
    const visualPower=Number.isFinite(power)?Math.max(0,Math.min(1,power)):0;
-   if(!document.hidden&&!presentationHidden){activeRollFace={kind:sides,value:faceValue};softSound();await die.roll(faceValue,{duration:systemReduce?0:1650,power:visualPower});activeRollFace=null;}else die.setKind(sides,faceValue);
+   if(!document.hidden&&!presentationHidden){
+    activeRollFace={kind:sides,value:faceValue};softSound();
+    const timing=waitingStartedAt===null?{duration:systemReduce?0:1650}:{durationMs:Math.max(900,1650+850*visualPower-Math.min(750,Math.max(0,performance.now()-waitingStartedAt)))};
+    await die.roll(faceValue,{...timing,power:visualPower,...(direction?{direction}:{})});activeRollFace=null;
+   }else die.setKind(sides,faceValue);
    settled=true;
    if(serial===animationSerial&&presentationValid(context)){
     if(['ROLL_CARD','REROLL_CARD'].includes(action.type)){
@@ -1315,7 +1323,7 @@
     if(reroll&&!document.hidden&&!presentationHidden&&presentationValid(context))toast('Nouvelle carte.');
    }
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
-  finally{if(serial===animationSerial){const targetPhase=action.type==='ROLL_CATEGORY'?'card':['ROLL_CARD','REROLL_CARD'].includes(action.type)&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=null;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
+  finally{if(serial===animationSerial){die.stopWaiting?.();const targetPhase=action.type==='ROLL_CATEGORY'?'card':['ROLL_CARD','REROLL_CARD'].includes(action.type)&&context.hasVariant?'variant':null;const fromStage=settled&&targetPhase&&presentationValid(context)&&!document.hidden&&!presentationHidden?main.querySelector('[data-stage]')?.getBoundingClientRect():null;activeRollFace=null;cardReveal=null;finishRevealWait();busy=false;rerolling=null;setControlsBusy(false);if(remoteMode&&!remote?.authenticated){deferredSnapshot=null;const wasReady=remoteReady;remoteReady=false;if(wasReady)render();}else{if(remoteMode)flushRemote(null,false);render(fromStage&&state.phase===targetPhase&&state.round.id===roundId&&state.round.from===actor?fromStage:null);}}}
  }
  async function refuseTask(taskId){
   const task=state.tasks.find(item=>item.id===taskId);
@@ -1369,6 +1377,7 @@
   const rerollRule=stars?'Une relance de carte coûte une étoile. Chacun en gagne une toutes les 12 h, avec une réserve de trois et une dépense par jour.':'Une fois par tour, la carte peut être relancée avant d’être gardée.';
   const missionRule=stars?'La carte gardée rejoint les Missions. Elle y passe automatiquement quand la relance est épuisée.':'La carte gardée rejoint les Missions.';
   openSheet('Les règles.',
+   '<div class="oa-rule"><b>↗</b><div><h3>Lancer le dé.</h3><p>Appuie sur le dé ou fais-le glisser dans la direction de ton choix. Maintiens avant de relâcher pour lui donner plus d’élan.</p></div></div>'+
    '<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div>'+
    '<div class="oa-rule"><b>'+(version>=4?'D8':'D6')+'</b><div><h3>La carte.</h3><p>'+cardRule+'</p></div></div>'+
    '<div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>'+rerollRule+'</p></div></div>'+
@@ -1437,7 +1446,7 @@
   if(action==='reset'){if(remoteMode)return;closeSheet();tab='play';missionError=null;gaugeFrames.clear();await dispatch({type:'RESET'});syncLocalView();toast('La démonstration repart de zéro.');return;}
  });
  root.addEventListener('pointerdown',event=>{if(event.button!==0||event.isPrimary===false)return;startCharge(rollButton(event.target),'pointer',event);});
- root.addEventListener('pointermove',event=>{if(charge?.source==='pointer'&&event.pointerId===charge.pointerId&&Math.hypot(event.clientX-charge.x,event.clientY-charge.y)>10)clearCharge();});
+ root.addEventListener('pointermove',event=>{if(charge?.source==='pointer'&&event.pointerId===charge.pointerId&&!charge.swipe&&Math.hypot(event.clientX-charge.x,event.clientY-charge.y)>10)clearCharge();});
  root.addEventListener('pointerup',async event=>{if(charge?.source==='pointer')await releaseCharge(event);else if(suppressedClick?.source==='pointer'&&event.pointerId===suppressedClick.pointerId)suppressedClick.until=chargeNow()+600;});
  root.addEventListener('pointercancel',event=>{if(charge?.source==='pointer'&&event.pointerId===charge.pointerId)clearCharge();});
  root.addEventListener('lostpointercapture',event=>{if(charge?.source==='pointer'&&event.pointerId===charge.pointerId)clearCharge();});
