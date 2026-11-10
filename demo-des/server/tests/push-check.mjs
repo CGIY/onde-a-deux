@@ -32,6 +32,11 @@ check(()=>assert.equal(pushTTL(reminder,Date.parse('2026-11-02T19:59:59.500Z')),
 check(()=>assert.equal(pushTTL({expires_at:'bad'}),0));
 check(()=>assert.equal(pushTTL({}),86400));
 check(()=>assert.throws(()=>pushPayload({...reminder,expires_at:'bad'})));
+const oldReminder={...reminder,task_id:'onde-1',target_actor:'a'};
+const prolongedTask={id:'onde-1',checks:{a:false,b:false},expiresAt:'2026-11-03T20:00:00.000Z'};
+const reminderRoom={tasks:[prolongedTask]};
+check(()=>assert.equal(pushEventRelevant(reminderRoom,oldReminder,Date.parse('2026-11-02T18:30:00Z')),false));
+check(()=>assert.equal(pushEventRelevant(reminderRoom,{...oldReminder,expires_at:'2026-11-03T20:00:00+00:00'},Date.parse('2026-11-03T18:30:00Z')),true));
 
 // Invitations survive parallel draws and stay tied to their original round,
 // even after the other lane changes or the recipient responds.

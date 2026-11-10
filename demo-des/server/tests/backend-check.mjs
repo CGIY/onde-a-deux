@@ -675,6 +675,25 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
  equal(saved.state.cardRerollWallets,walletAfter);equal(saved.revision,revision);equal(rolls,draws);
  equal((await deliver(modern('ROLL_VARIANT'))).status,200);
  equal((await deliver(modern('SEND'))).status,200);
+ const task=clone(saved.state.tasks[0]);
+ const extension=(actor,gameVersion=8)=>({...modern('EXTEND_TASK',view(saved,actor).round.id),gameVersion,
+  action:{type:'EXTEND_TASK',roundId:view(saved,actor).round.id,taskId:task.id}});
+ equal((await deliver(extension('a'))).status,409,'reroll and extension share the Paris-day spending limit');
+ const beforeExtension=clone(saved.state.cardRerollWallets);
+ const extend=extension('b');
+ const forged=await deliver({...extend,action:{...extend.action,expiresAt:time}},tokenB);
+ equal(forged.status,400);equal(saved.state.cardRerollWallets,beforeExtension);
+ const extensionRevision=saved.revision;
+ const extended=await Promise.all([deliver(extend,tokenB),deliver(extend,tokenB)]);
+ equal(extended.map(result=>result.status),[200,200]);
+ equal(extended[0].body,extended[1].body);
+ equal(saved.revision,extensionRevision+1);
+ equal(saved.state.tasks[0],{...task,expiresAt:new Date(Date.parse(task.expiresAt)+G.rules.taskLifetimeMs).toISOString()});
+ equal(saved.state.cardRerollWallets.a,beforeExtension.a);
+ equal(G.cardRerollStars(saved.state,'b',time),{balance:1,nextAt:'2026-11-10T10:00:00.000Z',usedToday:true});
+ equal((await deliver({op:'state',gameVersion:8})).body.state.tasks,extended[0].body.state.tasks);
+ equal((await deliver(extension('b',7),tokenB)).body.error.code,'upgrade_required');
+ equal(saved.revision,extensionRevision+1);
 
  // The in-memory store models one ticket per slot; advance its slot so the
  // same actor can open a new round while it is still the same Paris day.
@@ -686,10 +705,11 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
  equal(denied.status,409);equal(denied.body.error.code,'invalid_phase');
  equal(rolls,deniedRolls);equal(saved.state.cardRerollWallets,deniedWallet);
  time='2026-11-09T23:00:00.000Z';
+ equal((await deliver(extension('a'))).status,409,'a new Paris day cannot extend a mission twice');
  const nextDay=await deliver(modern('REROLL_CARD'));
  equal(nextDay.status,200);
  equal(G.cardRerollStars(nextDay.body.state,'a',nextDay.body.serverTime),{balance:0,nextAt:'2026-11-10T10:00:00.000Z',usedToday:true});
- equal(saved.state.cardRerollWallets.b,originalPartner);
+ equal(G.cardRerollStars(saved.state,'b',time).balance,1);
  const refreshed=await deliver({op:'state',gameVersion:8});
  equal(refreshed.body.state.cardRerollWallets,saved.state.cardRerollWallets);
  ok(G.validateRoom(saved.state));

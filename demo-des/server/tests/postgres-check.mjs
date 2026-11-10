@@ -13,6 +13,10 @@ try{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
  await db.exec(await fs.readFile(new URL('../schema.sql',import.meta.url),'utf8'));
  await db.exec(await fs.readFile(new URL('../portraits-schema.sql',import.meta.url),'utf8'));
+ const originalScheduler=await fs.readFile(new URL('../migrations/20261102155223_desir_push_scheduler.sql',import.meta.url),'utf8');
+ // Use the scheduler SQL without the cron and networking extensions.
+ await db.exec(originalScheduler.slice(originalScheduler.indexOf('create schema'),originalScheduler.indexOf('-- This sole privileged routine')));
+ await db.exec(await fs.readFile(new URL('../migrations/20261106101558_desir_task_reminder_three_hours.sql',import.meta.url),'utf8'));
  const scheduler=await fs.readFile(new URL('../push-scheduler.sql',import.meta.url),'utf8');
  const readyStart=scheduler.indexOf('create or replace function public.desir_draw_ready_for_state');
  const readyEnd=scheduler.indexOf('create or replace function public.desir_due_task_reminders',readyStart);
@@ -31,6 +35,23 @@ try{
  await db.query('insert into public.desir_rooms(id,state) values($1,$2)',[room,JSON.stringify(G.createState())]);
  await db.query("insert into public.desir_room_portraits values($1,'a','/9j/2Q==')",[room]);
  await db.query("insert into public.desir_accounts(actor,room_id,login_normalized,display_name,password_hash) values('a',$1,'alpha','Alpha',extensions.crypt('test-only-password',extensions.gen_salt('bf',12))),('b',$1,'bravo','Bravo',extensions.crypt('test-only-password',extensions.gen_salt('bf',12)))",[room]);
+ const reminderAt='2030-01-01T12:00:00Z';
+ async function enqueueReminder(expiresAt,at,expected){
+  const task={id:'onde-1',expiresAt,checks:{a:true,b:false}};
+  await db.query("update public.desir_rooms set state=jsonb_set(state,'{tasks}',$2::jsonb) where id=$1",[room,JSON.stringify([task])]);
+  const {rows:[{result}]}=await db.query('select public.desir_enqueue_scheduled_push($1) as result',[at]);
+  if(result.taskReminders!==expected)throw Error('Wrong number of reminders for '+expiresAt);
+  return result;
+ }
+ const originalDeadline='2030-01-01T14:00:00Z',extendedDeadline='2030-01-02T14:00:00Z';
+ await enqueueReminder(originalDeadline,reminderAt,1);
+ await db.exec(await fs.readFile(new URL('../migrations/20261110215418_desir_task_reminder_deadline.sql',import.meta.url),'utf8'));
+ await enqueueReminder(originalDeadline,reminderAt,0);
+ await enqueueReminder(extendedDeadline,reminderAt,0);
+ await enqueueReminder(extendedDeadline,'2030-01-02T12:00:00Z',1);
+ const repeated=await enqueueReminder(extendedDeadline,'2030-01-02T12:01:00Z',0);
+ if(repeated.drawAvailable!==0)throw Error('Duplicate scheduled draw after reminder migration');
+ await db.query('update public.desir_rooms set state=$2 where id=$1',[room,JSON.stringify(G.createState())]);
  await db.exec('set role service_role');
  const bad=await db.query('select public.desir_login($1,$2,$3) as result',['alpha','wrong-fixture-password','a'.repeat(64)]);if(bad.rows[0].result!==null)throw Error('Bad password accepted');
  const good=await db.query('select public.desir_login($1,$2,$3) as result',['alpha','test-only-password','a'.repeat(64)]);if(good.rows[0].result.actor!=='a')throw Error('Valid login rejected');

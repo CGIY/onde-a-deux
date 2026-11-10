@@ -1,8 +1,8 @@
-# D6 à deux — version web 0.4.7
+# D6 à deux — version web 0.4.8
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 
-Les étoiles de relance forment des constellations autour des profils, et leur symbole accompagne le coût de relance. « Une idée à deux » se trouve dans Duo. Sur iPhone, la navigation utilise davantage le bas de l’écran.
+Les étoiles forment des constellations autour des profils et servent à relancer une carte ou à prolonger une mission. « Une idée à deux » se trouve dans Duo. Sur iPhone, la navigation utilise davantage le bas de l’écran.
 
 Chaque personne se connecte sur son téléphone avec son identifiant et son mot de passe. Les deux comptes sont créés dans la base privée ; il n’y a ni inscription publique ni code d’association. Les noms ne sont retournés qu’après connexion. Le mot de passe n’est jamais conservé par l’application ; l’accès de cet appareil reste enregistré pour les prochaines ouvertures.
 
@@ -23,6 +23,7 @@ Pour lancer le dé, touche-le ou fais-le glisser dans la direction de ton choix.
 - Chaque joueur dispose de sa propre manche. Chacun peut tirer pendant que l’autre prépare sa carte. Envoyer un challenge libère immédiatement un nouveau tirage personnel, dans la limite des tickets disponibles.
 - **Relancer, proposer, réaliser ou refuser.** Une relance de carte gratuite est disponible une fois par tour avant l’envoi ; pour une carte classique moderne, elle retire aussi la variante déjà choisie ; pour Hardcore, elle donne directement une autre carte de la même main. Le sous-pool reste fixé pendant la manche ; relancer la catégorie effectue un nouveau choix à 50/50. L’envoi place le challenge dans « À faire » pour vingt-quatre heures. Le destinataire peut choisir **Refuser · D20** : le serveur tire un D20 uniforme, le dé s’anime puis le challenge est retiré. Toutes les faces respectent le refus, sans point ni consommation de ticket.
 - Chacun coche sa propre case pour signaler la réalisation ; les deux coches retirent le challenge et ajoutent un point commun. L’expiration ou le refus ne rapporte aucun point. L’ajout à la liste ne vaut pas accord du destinataire. Plusieurs challenges peuvent rester dans la liste pendant un nouveau tour.
+- Dans **Missions**, chacun peut dépenser une étoile de sa réserve pour ajouter **24 h à l’échéance** d’un challenge en cours. La prolongation s’applique aux deux profils, une seule fois par challenge. La limite d’une étoile par jour et par personne (heure de Paris) est commune aux relances et aux prolongations.
 
 Le remplissage du bouton évolue du sable au corail pendant le maintien, avec un léger frémissement visuel qui suit la charge. Un clic court reste possible ; au clavier, Espace permet le maintien et Entrée le clic immédiat. La puissance change seulement le mouvement, jamais le résultat, les points ou le quota. Une attente réseau est signalée séparément. Les dés au repos gardent une orientation inclinée. Les pauses après résultat passent de 1 800 à 450 ms pour la catégorie et de 2 800 à 900 ms pour la carte. Les dos des cartes apparaissent directement avec leur couleur et leur grain ; aucun fondu collectif ne retarde leur matière. Seule la carte sélectionnée se révèle avant le dé de variante. Les actualisations inchangées ne reconstruisent pas la grille.
 

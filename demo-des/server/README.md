@@ -15,6 +15,8 @@ Pour une base neuve, appliquer les schémas consolidés dans cet ordre :
 
 Sur une base existante, appliquer uniquement les migrations manquantes de `migrations/`, dans l’ordre de leur version. Ne pas rejouer ces anciennes migrations par-dessus une installation des schémas consolidés : elles décrivent les états antérieurs de la base.
 
+Pour les prolongations, appliquer `20261110215418_desir_task_reminder_deadline.sql` avant le déploiement de `desir-game`. Le planificateur peut alors créer un rappel à la nouvelle échéance, et le worker écarte un rappel encore en attente qui correspond à l’ancienne.
+
 Pour la gestion des appareils, appliquer d’abord `20261110084051_desir_revoke_sessions.sql`, puis déployer la fonction `desir-game`, puis publier le client web. La fonction ne permet de révoquer que les sessions du compte appelant et retire les abonnements push des appareils révoqués. Pour une installation neuve par schémas consolidés, appliquer `revoke-sessions.sql` après `schema.sql` et `push-schema.sql`.
 
 La migration `20261107222844_desir_daily_draw_counter.sql` corrige le compteur après `20261107131541_desir_daily_draw_pool.sql`. Le quota annonçait trois tirages, mais la clé primaire autorisait une seule ligne par compte et par journée : le deuxième tirage échouait avec `23505`, puis sa reprise automatique empêchait le rafraîchissement du client. Le compteur `draw_count`, borné de 1 à 3, conserve cette clé et l’horodatage initial. Chaque ligne existante vaut un tirage consommé ; les sessions, les reçus, l’état de jeu et le déclenchement des notifications restent inchangés. L’incrément conditionnel, le reçu et l’état sont validés dans la même transaction.
@@ -41,6 +43,8 @@ Toutes les opérations utilisent `POST` JSON. Les requêtes du client indiquent 
 - `drain_push` : réservé au cron avec l’en-tête `X-Desir-Cron`, réponse 202 après mise en file et traitement différé.
 
 Snapshot : `{roomId,state,revision,actor,paired,quota,serverTime,badges?,roll?}`. `serverTime` est rafraîchi à chaque réponse, même lorsqu’un ancien reçu est rejoué, pour le décompte des vingt-quatre heures sur un téléphone dont l’horloge est décalée. `roll` ne figure que sur la réponse à un lancer autorisé. Les erreurs 409 de conflit ou de phase incluent le snapshot actuel. Le client ne doit pas remplacer un snapshot par une révision inférieure : une réponse idempotente ancienne peut être rejouée exactement.
+
+Un snapshot de protocole 8 avec `canExtendTasks:true` annonce l’action `EXTEND_TASK`, qui prend le `taskId` d’une mission active. Elle ajoute 24 h à son échéance une seule fois et débite la réserve de l’acteur authentifié dans le même commit. La limite d’une dépense par jour de Paris est commune aux relances de carte et aux prolongations.
 
 Le snapshot ajoute `badges`, projection versionnée du catalogue de 90 définitions `G.badgeCatalog` : 30 individuelles et 60 partagées. `G.badgeView(room, actor)` expose les progressions et gains individuels du lecteur ainsi que ceux du duo, sans les compteurs, calendriers ou gains privés du partenaire. Le registre interne `progression` reste réservé à l’état canonique du serveur ; il n’est pas inclus dans la projection de jeu `state`. Le champ reste optionnel dans le validateur de transport pour une reprise sans collection ; la dernière collection vérifiée de la même identité reste affichée jusqu’à la lecture enrichie. Les reçus des protocoles précédents ne sont jamais rejoués comme des commandes du protocole 6.
 

@@ -281,7 +281,7 @@
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
   const now=serverNow(),nextQuotaAt=Date.parse(value.quota?.nextAt);
   const quotaClock=value.quota?.remaining===0&&Number.isFinite(nextQuotaAt)?(nextQuotaAt<=now?'elapsed':G.parisDateKey(now)):null;
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,canExtendTasks:value.canExtendTasks,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   loadMemberPortraits(value);
@@ -624,7 +624,7 @@
     continue;
    }
    const {balance,usedToday}=G.cardRerollStars(game,id,at);
-   const label=name(id)+' · '+balance+' étoile'+(balance===1?'':'s')+' sur '+G.rules.cardRerollMax+(usedToday?' · Relance utilisée aujourd’hui':'');
+   const label=name(id)+' · '+balance+' étoile'+(balance===1?'':'s')+' sur '+G.rules.cardRerollMax+(usedToday?' · Étoile dépensée aujourd’hui':'');
    if(counter.title!==label){counter.setAttribute('aria-label',label);counter.title=label;}
    const signature=balance+':'+usedToday;
    if(counter.dataset.stars===signature)continue;
@@ -702,6 +702,9 @@
  }
 
  function timeLeft(task){const minutes=Math.max(0,Math.ceil((Date.parse(task.expiresAt)-serverNow())/60000));return Math.floor(minutes/60)+' h '+String(minutes%60).padStart(2,'0');}
+ function canExtendMission(task,at=serverStamp()){
+  return (!remoteMode||remoteSnapshot?.canExtendTasks===true)&&G.canExtendTask(ownState||state,task,viewPlayer,at);
+ }
  function taskStatus(task){
   const mine=task.checks[viewPlayer],partner=G.otherPlayer(viewPlayer),theirs=task.checks[partner];
   if(mine&&theirs)return 'Un moment partagé · +1 point pour vous.';
@@ -712,12 +715,14 @@
  const checkBox='<span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>';
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'" data-check-player="'+player+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId,roundVersion(task)).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'>'+checkBox+'<span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
-  const tasks=state.tasks||[];
+  const tasks=state.tasks||[],at=serverStamp();
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'':'Confirmation du refus…')+'</p>';
   return '<h1 class="oa-title oa-missions-title">Les choses <em>à faire.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
    const c=G.getCard(task.cardId,roundVersion(task)),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;
-   const remaining=timeLeft(task),status=taskStatus(task);
-   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+rollFormula(task,c)+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(task.to===viewPlayer?'<div class="oa-task-actions">'+textBtn('Refuser · D20','refuse-task','data-task="'+h(task.id)+'"')+'</div>':'')+'</article>';
+   const remaining=timeLeft(task),status=taskStatus(task),target='data-task="'+h(task.id)+'"';
+   const actions=(canExtendMission(task,at)?textBtn('+24 h <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>','extend-task-confirm',target+' aria-label="Prolonger de 24 heures pour une étoile"'):'')+
+    (task.to===viewPlayer?textBtn('Refuser · D20','refuse-task',target):'');
+   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+rollFormula(task,c)+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
   }).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+
    (state.phase==='accepted'?'<div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+'</div>':'');
  }
@@ -1382,7 +1387,7 @@
    '<div class="oa-rule"><b>'+(version>=4?'D8':'D6')+'</b><div><h3>La carte.</h3><p>'+cardRule+'</p></div></div>'+
    '<div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>'+rerollRule+'</p></div></div>'+
    '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut refuser la carte avec le D20.</p></div></div>'+
-   '<div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans les Missions. Elles quittent la liste après vos deux coches, ou à l’expiration.</p></div></div>'+
+   '<div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans les Missions. Elles quittent la liste après vos deux coches, ou à l’expiration.'+(!remoteMode||remoteSnapshot?.canExtendTasks?' Chacun peut dépenser son étoile du jour pour prolonger une mission en cours de 24 h, une seule fois par mission.':'')+'</p></div></div>'+
    '<div class="oa-actions">'+btn('Fermer','close')+'</div>');
  }
 
@@ -1437,6 +1442,20 @@
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
   if(action==='send'){await sendCurrentCard();return;}
+  if(action==='extend-task-confirm'){
+   const task=state.tasks.find(item=>item.id===el.dataset.task);
+   if(pendingChecks.size||!canExtendMission(task))return;
+   openSheet('Prolonger de 24 h ?', '<p>Une étoile de ta réserve ajoute 24 h à l’échéance de cette mission pour vous deux.</p><div class="oa-actions">'+btn('Dépenser 1 étoile','extend-task','','data-task="'+h(task.id)+'"')+textBtn('Annuler','close')+'</div>');
+   return;
+  }
+  if(action==='extend-task'){
+   const taskId=el.dataset.task,task=state.tasks.find(item=>item.id===taskId);
+   closeSheet();
+   if(!canExtendMission(task)){render();toast('Cette mission ne peut plus être prolongée.');return;}
+   const changed=await dispatch({type:'EXTEND_TASK',taskId});
+   if(changed){announce('Mission prolongée de 24 heures.');toast('Mission prolongée de 24 h.');}
+   return;
+  }
   if(action==='refuse-task'){await refuseTask(el.dataset.task);return;}
   if(action==='new'){gaugeFrames.clear();tab='play';await dispatch({type:'NEW_ROUND'});return;}
   if(action==='logout-confirm'){
