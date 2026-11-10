@@ -493,7 +493,14 @@
       usedToday:wallet.spentAt!==null && parisDateKey(wallet.spentAt)===parisDateKey(at)
     };
   }
-  function spendRerollStar(state,actor,at){
+  function canSpendStar(state,actor,at){
+    if(!isoTime(at))return false;
+    const saved=state.cardRerollWallets?.[actor];
+    if(saved && Date.parse(at)<Date.parse(saved.spentAt??saved.anchorAt))return false;
+    const {balance,usedToday}=cardRerollStars(state,actor,at);
+    return balance>0 && !usedToday;
+  }
+  function spendStar(state,actor,at){
     state.cardRerollWallets??=initialRerollWallets(at);
     const wallet=refillRerollWallet(state.cardRerollWallets[actor],at);
     state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt:at};
@@ -598,7 +605,8 @@
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
       // L'échéance enregistrée fait foi : toute durée bornée (1 h à 48 h) reste valide après un changement de règles.
-      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || !((Date.parse(task.expiresAt)-Date.parse(task.createdAt)>=3600000)&&(Date.parse(task.expiresAt)-Date.parse(task.createdAt)<=172800000))) return false;
+      const duration=Date.parse(task.expiresAt)-Date.parse(task.createdAt);
+      if(!isoTime(task.createdAt) || !isoTime(task.expiresAt) || duration<3600000 || duration>2*rules.taskLifetimeMs) return false;
       if(!task.checks || typeof task.checks!=='object' || Array.isArray(task.checks) || Object.keys(task.checks).sort().join(',')!=='a,b' || ['a','b'].some(id=>typeof task.checks[id]!=='boolean') || task.checks.a&&task.checks.b) return false;
       if(task.proposal!==null && (typeof task.proposal!=='string' || !task.proposal.trim() || task.proposal.length>400)) return false;
       if(task.id===s.round.id && (s.phase!=='accepted' || task.cardId!==s.round.cardId || task.variantRoll!==s.round.variantRoll || task.from!==s.round.from || task.to!==s.round.to || task.createdAt!==s.round.acceptedAt)) return false;
@@ -844,16 +852,19 @@
     return Array.isArray(round.rolls) && round.rolls.length>0;
   }
 
-  // Une seule relance de carte par tour, gratuite, avant l'envoi.
+  // Une seule relance de carte par tour, avant l'envoi.
   function canRerollCard(state,at){
     const {activePlayer,round}=state;
     if(state.phase!=='draft' || activePlayer!==round.from || round.cardRerolled || round.draftChallengeUsed || round.draftRolls.length)return false;
-    if(round.catalogueVersion!==currentCatalogueVersion)return true;
-    if(!isoTime(at))return false;
-    const saved=state.cardRerollWallets?.[activePlayer];
-    if(saved && Date.parse(at)<Date.parse(saved.spentAt??saved.anchorAt))return false;
-    const stars=cardRerollStars(state,activePlayer,at);
-    return stars.balance>0 && !stars.usedToday;
+    return round.catalogueVersion!==currentCatalogueVersion || canSpendStar(state,activePlayer,at);
+  }
+
+  function canExtendTask(state,task,actor,at){
+    if(!task || (actor!==task.from && actor!==task.to))return false;
+    const starts=Date.parse(task.createdAt),deadline=Date.parse(task.expiresAt),time=Date.parse(at);
+    // Un challenge prolongé dure plus de 24 h, même avec une ancienne durée initiale plus courte.
+    return taskStartTime(task.expiresAt) && deadline-starts<=rules.taskLifetimeMs &&
+      starts<=time && time<deadline && canSpendStar(state,actor,at);
   }
 
   function recordHistory(s, round) {
@@ -914,7 +925,7 @@
       return fresh;
     }
     // Reject stale UI callbacks, such as an animation from a previous round.
-    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','REFUSE_TASK','EXPIRE_TASKS'].includes(kind)) return state;
+    if(action.roundId && action.roundId!==state.round.id && !['TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK','EXPIRE_TASKS'].includes(kind)) return state;
     if(action.actor && action.actor!==state.activePlayer) return state;
     const s=JSON.parse(JSON.stringify(state));
     const r=s.round;
@@ -943,6 +954,13 @@
           s.stats.byCategory[task.categoryId]++;
           finishTask(s,task,'completed',action.at);
         }
+        return s;
+      }
+      case 'EXTEND_TASK': {
+        const task=s.tasks.find(item=>item.id===action.taskId);
+        if(!canExtendTask(s,task,actor,action.at))return state;
+        spendStar(s,actor,action.at);
+        task.expiresAt=new Date(Date.parse(task.expiresAt)+rules.taskLifetimeMs).toISOString();
         return s;
       }
       case 'REFUSE_TASK': {
@@ -1037,7 +1055,7 @@
         const reroll=kind==='REROLL_CARD';
         if(reroll?!canRerollCard(s,action.at):s.phase!=='card' || actor!==r.from) return state;
         if(!Number.isInteger(action.value) || action.value<1 || action.value>cardSides(r) || reroll&&action.value===r.cardRoll) return state;
-        if(reroll && r.catalogueVersion===currentCatalogueVersion)spendRerollStar(s,actor,action.at);
+        if(reroll && r.catalogueVersion===currentCatalogueVersion)spendStar(s,actor,action.at);
         if(reroll && previousCoconVariant(r)) r.proposal=null;
         r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId,r.catalogueVersion).hp??null;
         if(reroll) { r.cardRerolled=true; if(needsVariant(r)) r.variantRoll=null; }
@@ -1239,7 +1257,7 @@
     }
     const actor=action.actor || (action.type==='EXPIRE_TASKS'?'a':null);
     if(!roomActors.includes(actor)) return room;
-    const shared=['TOGGLE_TASK_CHECK','REFUSE_TASK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
+    const shared=['TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK','EXPIRE_TASKS','SET_PREFS','TOGGLE_FAVORITE'].includes(action.type);
     const laneOwner=shared?null:roomActors.find(id=>room.lanes[id].round.id===action.roundId);
     const pendingIndex=shared?-1:room.pendingRounds.findIndex(item=>item.round.id===action.roundId);
     const owner=shared?actor:laneOwner||(pendingIndex>=0?room.pendingRounds[pendingIndex].round.from:null);
@@ -1727,7 +1745,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

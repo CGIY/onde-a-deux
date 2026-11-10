@@ -166,6 +166,37 @@ async function rollSession(options={}){
  const ui=shell(remote,options);await tick();return {remote,ui};
 }
 (async()=>{
+ // A deployment may update the client before the Edge function. Show the
+ // option only after the server advertises it and confirm before spending.
+ {
+  const at='2026-11-10T16:00:00.000Z';
+  let room=roomDraw(G.createRoom({at}),'a');
+  const task=room.lanes.a.round.id;
+  room=G.reduceRoom(room,{type:'SEND',directQueue:true,roundId:task,actor:'a',at});
+  const snapshot=(revision,capability={})=>({...roomSnapshot(room,'b',revision),gameVersion:8,serverTime:at,...capability});
+  const remote=mockRemote(snapshot(1)),ui=shell(remote,{clockAt:at});
+  await tick();
+  await ui.click('tab',{tab:'tasks'});
+  check(()=>assert.doesNotMatch(ui.html,/extend-task-confirm/));
+  remote.emit(snapshot(1,{canExtendTasks:true}));
+  check(()=>assert.match(ui.html,/extend-task-confirm/));
+  const original=room.tasks[0].expiresAt;
+  await ui.click('extend-task-confirm',{task});
+  check(()=>assert.match(ui.sheet.innerHTML,/Dépenser 1 étoile/));
+  await ui.click('close');
+  check(()=>assert.equal(remote.calls.filter(call=>call.method==='action').length,0));
+  remote.actionImpl=async action=>{
+   assert.deepEqual(copy(action),{type:'EXTEND_TASK',taskId:task,roundId:room.lanes.b.round.id});
+   room=G.reduceRoom(room,{...action,actor:'b',at});
+   return snapshot(2,{canExtendTasks:true});
+  };
+  await ui.click('extend-task-confirm',{task});
+  await ui.click('extend-task',{task});
+  check(()=>assert.equal(Date.parse(room.tasks[0].expiresAt)-Date.parse(original),G.rules.taskLifetimeMs));
+  check(()=>assert.ok(ui.html.includes('datetime="'+room.tasks[0].expiresAt+'"')));
+  check(()=>assert.doesNotMatch(ui.html,/extend-task-confirm/));
+  check(()=>assert.match(ui.toast.textContent,/Mission prolongée/));
+ }
  // Private photos retry once online and reconcile decoding after a suspended tab resumes.
  {
   const remote=mockRemote(snap(initial()));let calls=0,finishPortraits;

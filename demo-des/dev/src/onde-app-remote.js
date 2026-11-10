@@ -1,7 +1,7 @@
 /* D6 à deux — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK']);
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK']);
  const GAME_VERSION=8;
  const SUPPORTED_GAME_VERSIONS=[6,7,GAME_VERSION];
  const TOKEN=/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
@@ -76,7 +76,7 @@
     activity={streak:raw.activity.streak,lastDay:raw.activity.lastDay};
    }
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -156,7 +156,7 @@
    if(action.type==='TOGGLE_TASK_CHECK'){
     if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId)||typeof action.checked!=='boolean')throw failure('invalid_action','La case n’a pas pu être confirmée.');
     value.taskId=action.taskId;value.checked=action.checked;
-   }else if(action.type==='REFUSE_TASK'){
+   }else if(action.type==='REFUSE_TASK'||action.type==='EXTEND_TASK'){
     if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId))throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
     value.taskId=action.taskId;
    }

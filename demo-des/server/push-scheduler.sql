@@ -23,7 +23,13 @@ alter table public.desir_push_outbox drop constraint if exists desir_push_outbox
 alter table public.desir_push_outbox add constraint desir_push_outbox_kind_check check(kind in ('invitation','confirmation','task-ready','shared-moment','draw-available','task-reminder'));
 alter table public.desir_push_outbox drop constraint if exists desir_push_outbox_room_id_revision_target_actor_kind_key;
 create unique index if not exists desir_push_outbox_transition_unique on public.desir_push_outbox(room_id,revision,target_actor,kind) where dedupe_key is null;
-create unique index if not exists desir_push_outbox_scheduled_unique on public.desir_push_outbox(room_id,target_actor,kind,dedupe_key) where dedupe_key is not null;
+create unique index if not exists desir_push_outbox_scheduled_once_unique
+  on public.desir_push_outbox(room_id,target_actor,kind,dedupe_key)
+  where dedupe_key is not null and kind<>'task-reminder';
+create unique index if not exists desir_push_outbox_reminder_deadline_unique
+  on public.desir_push_outbox(room_id,target_actor,kind,dedupe_key,expires_at)
+  where dedupe_key is not null and kind='task-reminder';
+drop index if exists public.desir_push_outbox_scheduled_unique;
 create index if not exists desir_push_outbox_global_pending on public.desir_push_outbox(created_at,id) where delivered_at is null and attempts<8;
 
 create or replace function public.desir_configure_push_scheduler(p_endpoint_url text,p_cron_token text,p_publishable_key text default '')

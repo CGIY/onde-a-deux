@@ -86,6 +86,19 @@ check(()=>assert.equal(tick(expiring),expiring));
 let early=accept();early=toggle(early,early.round.id);early=act(early,'SWITCH_PLAYER',{player:'a'});early=toggle(early,early.round.id,true,after(86400000-1));
 check(()=>assert.equal(early.stats.totalCompleted,1));
 check(()=>assert.equal(tick(early),early));
+// The same star wallet serves extensions and rerolls. A saved six-hour task
+// gains exactly 24 hours from its original deadline and can only do so once.
+const extension={type:'EXTEND_TASK',taskId:id,at:after(3600000)};
+const prolonged=act(legacySixHour,extension.type,extension);
+check(()=>assert.equal(prolonged.tasks[0].expiresAt,after(30*3600000)));
+check(()=>assert.deepEqual(prolonged.tasks[0].checks,task.checks));
+check(()=>assert.equal(G.cardRerollStars(prolonged,'b',extension.at).balance,0));
+check(()=>assert.equal(G.cardRerollStars(prolonged,'a',extension.at).balance,1));
+const otherProfile=act(prolonged,'SWITCH_PLAYER',{player:'a'});
+check(()=>assert.equal(act(otherProfile,extension.type,extension),otherProfile));
+check(()=>assert.equal(act(state,extension.type,{...extension,at:task.expiresAt}),state));
+check(()=>assert.equal(tick(prolonged,30*3600000-1),prolonged));
+check(()=>assert.equal(tick(prolonged,30*3600000).tasks.length,0));
 // Expiration does not disturb an unrelated in-progress drawing round.
 let later=accept();later=act(later,'NEW_ROUND');const laterRound=clone(later.round);later=tick(later);
 check(()=>assert.deepEqual(later.round,laterRound));
