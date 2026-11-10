@@ -612,7 +612,7 @@
   }
   updateStarBudget();
  }
- const rerollStar='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>';
+ const rerollStar='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5C12.8 7.5 16.5 11.2 22.5 12C16.5 12.8 12.8 16.5 12 22.5C11.2 16.5 7.5 12.8 1.5 12C7.5 11.2 11.2 7.5 12 1.5Z"/></svg>';
  function updateStarBudget(game=ownState||state){
   const at=serverStamp(),enabled=!persona.hidden&&drawVersion()===G.currentCatalogueVersion;
   for(const id of ['a','b']){
@@ -761,7 +761,7 @@
   const n=remote.notificationStatus;
   return '<section class="oa-notification-setting"><div class="oa-section-head"><h2>Les notifications</h2></div>'+(n.subscribed?'<p class="oa-note">Activées sur cet appareil.</p>':n.supported&&n.permission!=='denied'?btn('Activer les notifications','enable-notifications','oa-secondary'):'')+(n.message?'<p class="oa-note">'+h(n.message)+'</p>':'')+'</section>';
  }
- function renderUs(){return sharedScore()+badgesSection();}
+ function renderUs(){return sharedScore()+infoIdeaCard()+badgesSection();}
 
  function infoSettings(){
   if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);
@@ -800,19 +800,21 @@
  function infoIdeaMarkup(){
   return infoIdea?`<span class="oa-info-idea-theme" style="--category:${h(infoIdea.color)}">${h(infoIdea.label)}</span><p>${h(infoIdea.text)}</p>`:'';
  }
+ function infoIdeaCard(){
+  return `<section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
+   <div class="oa-info-idea-head">
+    <h2 id="oa-info-idea">Une idée <em>à deux.</em></h2>
+    ${btn('Piocher <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea','','aria-label="Piocher une question"')}
+   </div>
+   <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">${infoIdeaMarkup()}</div>
+  </section>`;
+ }
  function renderInfo(){
   const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
   return `<article class="oa-info" aria-labelledby="oa-info-title">
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
    <h1 class="oa-sr" id="oa-info-title">Carnet</h1>
    <div class="oa-info-cards">
-    <section class="oa-info-card oa-info-lab" aria-labelledby="oa-info-idea">
-     <div class="oa-info-idea-head">
-      <h2 id="oa-info-idea">Une idée <em>à deux.</em></h2>
-      ${btn('Piocher <span class="oa-arrow" aria-hidden="true">↗</span>','info-idea','','aria-label="Piocher une question"')}
-     </div>
-     <div class="oa-info-idea-output" aria-live="polite" aria-atomic="true">${infoIdeaMarkup()}</div>
-    </section>
     <section class="oa-info-card oa-info-summary" id="oa-info-activity" aria-labelledby="oa-info-activity-title">
      <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
      <div class="oa-info-status">

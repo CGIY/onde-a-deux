@@ -1,6 +1,8 @@
-# D6 à deux — version web 0.4.6
+# D6 à deux — version web 0.4.7
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
+
+Les étoiles de relance forment des constellations autour des profils, et leur symbole accompagne le coût de relance. « Une idée à deux » se trouve dans Duo. Sur iPhone, la navigation utilise davantage le bas de l’écran.
 
 Chaque personne se connecte sur son téléphone avec son identifiant et son mot de passe. Les deux comptes sont créés dans la base privée ; il n’y a ni inscription publique ni code d’association. Les noms ne sont retournés qu’après connexion. Le mot de passe n’est jamais conservé par l’application ; l’accès de cet appareil reste enregistré pour les prochaines ouvertures.
 
