@@ -45,7 +45,7 @@ try{
  }
  const originalDeadline='2030-01-01T14:00:00Z',extendedDeadline='2030-01-02T14:00:00Z';
  await enqueueReminder(originalDeadline,reminderAt,1);
- await db.exec(await fs.readFile(new URL('../migrations/20261110212950_desir_task_reminder_deadline.sql',import.meta.url),'utf8'));
+ await db.exec(await fs.readFile(new URL('../migrations/20261110215418_desir_task_reminder_deadline.sql',import.meta.url),'utf8'));
  await enqueueReminder(originalDeadline,reminderAt,0);
  await enqueueReminder(extendedDeadline,reminderAt,0);
  await enqueueReminder(extendedDeadline,'2030-01-02T12:00:00Z',1);
