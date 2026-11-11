@@ -149,11 +149,11 @@ def libido_modules():
             weekly, frequent, anal = shares
             body = f"""
 <table class="oa-rhythm-table" aria-label="Fréquences par semaine">
-  <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
+  <thead><tr><th scope="col">Par semaine</th><th scope="col" class="oa-rhythm-reference"><small>Repères nationaux</small> <strong>Hebdomadaires</strong></th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
   <tbody>
-    <tr><th scope="row">Avec pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>{weekly} %</small></span><span><b><i>≥</i>3</b><small>{frequent} %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="withPenetration"></span> <small data-rhythm-share="withPenetration"></small></td></tr>
-    <tr><th scope="row">Sans pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≈</i>3</b><small>indicatif</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="withoutPenetration"></span> <small data-rhythm-share="withoutPenetration"></small></td></tr>
-    <tr><th scope="row">Pénétration anale</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>{anal} % · 18–24 ans</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="anal"></span> <small data-rhythm-share="anal"></small></td></tr>
+    <tr><th scope="row">Avec pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>{weekly} %</small></span><span><b><i>≥</i>3</b><small>{frequent} %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Sans pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≈</i>3</b><small>indicatif</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Pénétration anale</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>{anal} % · 18–24 ans</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
   </tbody>
 </table>
 <div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
