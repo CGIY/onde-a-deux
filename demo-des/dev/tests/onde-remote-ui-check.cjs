@@ -662,25 +662,45 @@ async function rollSession(options={}){
    const at=new Date().toISOString();let room=roomDrawCurrent(G.createRoom({at}),'a',pool,at);const taskId=room.lanes.a.round.id;
    room=G.reduceRoom(room,{type:'SEND',directQueue:true,roundId:taskId,actor:'a',at});
    const remote=mockRemote(roomSnapshot(room,'b')),ui=shell(remote);await tick();await ui.click('tab',{tab:'tasks'});
-   remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'REFUSE_TASK',roundId:room.lanes.b.round.id,taskId}));room=G.reduceRoom(room,{...action,actor:'b',value:20,at});return {...roomSnapshot(room,'b',2),roll:{kind:20,value:20}};};
+   remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'REFUSE_TASK',roundId:room.lanes.b.round.id,taskId,starCost:1}));room=G.reduceRoom(room,{...action,actor:'b',value:20,at});return {...roomSnapshot(room,'b',2),roll:{kind:20,value:20}};};
    await ui.click('refuse-task',{task:taskId});
    check(()=>{assert.equal(room.tasks.length,0);assert.equal(room.stats.totalCompleted,0);assert.equal(room.history.at(-1).refusalRoll,20);assert.deepEqual(ui.die.calls,[20]);assert.ok(ui.die.colors.includes(G.getCategory('intimite',3).color));assert.equal(ui.rngCalls,0);assert.equal(ui.sheet.hidden,true);assert.ok(ui.html.includes('Rien en attente.'));});
   }
  }
- // Refusing a task rolls the server's D20 and removes it for every face, without score or quota changes.
+ // The paid server roll removes the task only on a face above ten.
  {
-  for(const face of [1,10,20]){
+  for(const face of [1,10,11,20]){
    let room=roomDraw(G.createRoom(),'a');const taskId=room.lanes.a.round.id;room=G.reduceRoom(room,{type:'SEND',directQueue:true,roundId:taskId,actor:'a',at:new Date().toISOString()});
    const before=copy(room),remote=mockRemote(roomSnapshot(room,'b')),ui=shell(remote,{delayedDie:true});await tick();await ui.click('tab',{tab:'tasks'});
-   let confirm;remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'REFUSE_TASK',roundId:before.lanes.b.round.id,taskId}));return new Promise(resolve=>confirm=()=>{room=G.reduceRoom(room,{...action,actor:'b',value:face,at:new Date().toISOString()});resolve({...roomSnapshot(room,'b',2),roll:{kind:20,value:face}});});};
+   let confirm;remote.actionImpl=action=>{check(()=>assert.deepEqual(copy(action),{type:'REFUSE_TASK',roundId:before.lanes.b.round.id,taskId,starCost:1}));return new Promise(resolve=>confirm=()=>{room=G.reduceRoom(room,{...action,actor:'b',value:face,at:new Date().toISOString()});resolve({...roomSnapshot(room,'b',2),roll:{kind:20,value:face},failedRefusals:face<=10?{[taskId]:face}:{}});});};
    const work=ui.click('refuse-task',{task:taskId});await tick();
    check(()=>{assert.ok(ui.html.includes('Un D20'));assert.ok(ui.html.includes('Confirmation du refus…'));assert.equal(ui.stage.dataset.kind,'20');assert.equal(ui.die.calls.length,0);assert.equal(ui.rngCalls,0);});
    confirm();await tick();const rollingWrites=ui.writes;
    check(()=>{assert.deepEqual(ui.die.calls,[face]);assert.deepEqual(ui.die.visible,[true]);assert.ok(ui.html.includes('data-roll-role="refusal"'));assert.ok(!ui.rollStatus.textContent);assert.equal(ui.interrupted,0);assert.equal(ui.rngCalls,0);});
-   const same=roomSnapshot(room,'b',3);remote.emit(same);check(()=>assert.equal(ui.writes,rollingWrites));
+   const same={...roomSnapshot(room,'b',3),failedRefusals:face<=10?{[taskId]:face}:{}};remote.emit(same);check(()=>assert.equal(ui.writes,rollingWrites));
    ui.finishDie();await work;
-   check(()=>{assert.ok(ui.html.includes('Rien en attente.'));assert.equal(room.tasks.length,0);assert.equal(room.stats.totalCompleted,before.stats.totalCompleted);assert.deepEqual(room.stats,before.stats);assert.deepEqual(room.lanes,before.lanes);assert.equal(remote.snapshot.quota.remaining,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.equal(ui.interrupted,0);assert.ok(ui.announcements.includes('D20 : '+face+'. Carte refusée, sans pénalité.'));assert.equal(ui.rngCalls,0);});
+   check(()=>{assert.equal(ui.html.includes('Rien en attente.'),face>10);assert.equal(room.tasks.length,face>10?0:1);assert.equal(ui.html.includes('D20 · '+face+' · −1 étoile'),face<=10);assert.equal(room.stats.totalCompleted,before.stats.totalCompleted);assert.deepEqual(room.stats,before.stats);assert.deepEqual(room.lanes,before.lanes);assert.equal(remote.snapshot.quota.remaining,1);assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.equal(ui.interrupted,0);assert.ok(ui.announcements.includes('D20 : '+face+'. '+(face>10?'Défi retiré.':'Le défi reste actif.')+' Une étoile dépensée.'));assert.equal(ui.rngCalls,0);});
   }
+ }
+ // The Missions badge counts unchecked cards; pending cards sort by expiry.
+ {
+  const at=new Date().toISOString(),ids=[];
+  let room=G.createRoom({at});
+  for(let index=0;index<3;index++){
+   room=roomDraw(room,'a');
+   const roundId=room.lanes.a.round.id;
+   ids.push(roundId);
+   room=G.reduceRoom(room,{type:'SEND',directQueue:true,roundId,actor:'a',at:new Date(Date.parse(at)+index*1000).toISOString()});
+  }
+  room=G.reduceRoom(room,{type:'EXTEND_TASK',taskId:ids[0],actor:'a',at});
+  room=G.reduceRoom(room,{type:'TOGGLE_TASK_CHECK',taskId:ids[2],checked:true,actor:'b',at:new Date(Date.parse(at)+3000).toISOString()});
+  room.cardRerollWallets.b.balance=0;
+  const ui=shell(mockRemote(roomSnapshot(room,'b')));await tick();await ui.click('tab',{tab:'tasks'});
+  check(()=>{
+   assert.deepEqual([...ui.html.matchAll(/<article class="oa-task" data-task="([^"]+)"/g)].map(match=>match[1]),[ids[1],ids[0],ids[2]]);
+   assert.equal(ui.root.querySelector('.oa-task-count').textContent,'2');
+   assert.ok(ui.html.includes('Aucune étoile disponible'));
+  });
  }
  // Only the recipient can refuse; failure keeps the task and never invents a die result.
  {
@@ -702,7 +722,7 @@ async function rollSession(options={}){
   await ui.click('send');let saved=JSON.parse(values.get('onde-couple-prototype-v1'));
   check(()=>{assert.equal(saved.tasks.length,1);assert.equal(saved.pendingRounds.length,0);assert.equal(saved.lanes.a.phase,'category');assert.ok(ui.html.includes('Les choses'));assert.equal(ui.rngCalls,0);});
   await ui.click('profile',{player:'b'});await ui.click('refuse-task',{task:taskId});saved=JSON.parse(values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(saved.tasks.length,0);assert.equal(saved.stats.totalCompleted,0);assert.deepEqual(ui.rngSides,[20]);assert.deepEqual(ui.die.calls,[1]);assert.ok(ui.html.includes('Rien en attente.'));assert.equal(saved.history.at(-1).refusalRoll,1);});
+  check(()=>{assert.equal(saved.tasks.length,1);assert.equal(saved.stats.totalCompleted,0);assert.deepEqual(ui.rngSides,[20]);assert.deepEqual(ui.die.calls,[1]);assert.ok(ui.html.includes('data-task='+JSON.stringify(taskId)));assert.equal(saved.history.at(-1).refusalRoll,undefined);});
  }
  // Polls that only advance a revision preserve the physical card grid and do not restart its texture.
  {

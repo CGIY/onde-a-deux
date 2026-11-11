@@ -506,7 +506,7 @@
     state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt:at};
   }
   function canApplyMissionPenalty(state,task){
-    if(task.starPenalty!==true || task.checks[task.to])return false;
+    if(task.starPenalty!==true || task.checks[task.to] || task.failedRefusalRoll!==undefined)return false;
     const day=parisDateKey(task.expiresAt),last=state.taskPenaltyDays?.[task.to];
     if(!day || last && last>=day)return false;
     const wallet=state.cardRerollWallets?.[task.to];
@@ -526,7 +526,7 @@
     state.taskPenaltyDays??={a:null,b:null};
     state.taskPenaltyDays[actor]=day;
   }
-  const starRollActions=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW','ROLL_DRAFT_DEFENSE','ROLL_DEFENSE']);
+  const starRollActions=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW','ROLL_DRAFT_DEFENSE','ROLL_DEFENSE','REFUSE_TASK']);
   const requiresRollStar=type=>starRollActions.has(type);
 
   function randomInt(n) {
@@ -624,7 +624,8 @@
     return s.tasks.every(task=>{
       if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
       if(task.starPenalty!==undefined && task.starPenalty!==true)return false;
-      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[])];
+      if(task.failedRefusalRoll!==undefined && (!Number.isInteger(task.failedRefusalRoll)||task.failedRefusalRoll<1||task.failedRefusalRoll>10))return false;
+      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[]),...(task.failedRefusalRoll===undefined?[]:['failedRefusalRoll'])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -1002,10 +1003,10 @@
         if(!original || original.to!==actor) return state;
         const expired=expireTasks(s,action.at),task=s.tasks.find(item=>item.id===action.taskId);
         if(!task || Date.parse(action.at)<Date.parse(task.createdAt)) return expired?s:state;
-        const hasStar=cardRerollStars(s,actor,action.at).balance>0;
-        if(hasStar ? (!Number.isInteger(action.value)||action.value<1||action.value>20) : action.value!==undefined)return expired?s:state;
-        // The D20 records the refusal; no face can require the challenge.
-        finishTask(s,task,'passed',action.at,hasStar?{refusalRoll:action.value}:{});
+        if(!canSpendStar(s,actor,action.at)||!Number.isInteger(action.value)||action.value<1||action.value>20)return expired?s:state;
+        spendStar(s,actor,action.at);
+        if(action.value>10)finishTask(s,task,'passed',action.at,{refusalRoll:action.value});
+        else task.failedRefusalRoll=action.value;
         return s;
       }
       case 'SWITCH_PLAYER':
@@ -1782,7 +1783,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,canApplyMissionPenalty,requiresRollStar,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,canApplyMissionPenalty,canSpendStar,requiresRollStar,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

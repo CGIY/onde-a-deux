@@ -64,7 +64,17 @@
 }
 #onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:3px 5px 0;color:#c6bdd7;font-size:11px}
 #onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
-#onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor])[hidden]{display:none}
+#onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor],[data-rhythm-reference],[data-rhythm-comparison])[hidden]{display:none}
+#onde-app-v1 .oa-rhythm-table:has(th[data-rhythm-reference][hidden]) thead th:first-child{width:64%}
+#onde-app-v1 .oa-rhythm-table:has(th[data-rhythm-reference][hidden]) thead th:last-child{width:36%}
+#onde-app-v1 .oa-rhythm-comparison{
+ margin:4px 5px 0;padding:0;border:0;background:none;color:#d9cce6;font:inherit;font-size:11px;
+ min-height:32px;cursor:pointer
+}
+#onde-app-v1 .oa-rhythm-comparison span::after{content:" +";color:#f1cfdd}
+#onde-app-v1 .oa-rhythm-comparison[aria-expanded=true] span::after{content:" −"}
+#onde-app-v1 .oa-info-studies{margin-top:0}
+#onde-app-v1 .oa-info-studies > .oa-info-cards{margin-top:6px}
 #onde-app-v1 .oa-rhythm-editor{margin-top:5px;padding:0 5px;color:#f1cfdd;font-size:11px}
 #onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;padding:6px 0}
 #onde-app-v1 .oa-rhythm-choices{display:flex;gap:4px;flex-wrap:wrap}

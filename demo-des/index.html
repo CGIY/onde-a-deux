@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.12">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.13">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -444,6 +444,9 @@
 #onde-app-v1 .oa-task-proposal{font-size:12px;line-height:1.5;color:var(--oa-muted);margin:-9px 0 18px}
 #onde-app-v1 .oa-task-status{margin:0 0 8px;padding:7px 10px;border-radius:11px;border:1px solid var(--oa-line);background:var(--oa-panel-inset);font-size:11px;line-height:1.5;color:#dbe4f2}
 #onde-app-v1 .oa-task-status .oa-status-dot{width:6px;height:6px}
+#onde-app-v1 .oa-task-refusal-note,#onde-app-v1 .oa-draw-budget{margin:4px 0 0;color:var(--oa-muted);font-size:11px;line-height:1.4}
+#onde-app-v1 .oa-task-refusal-note{text-align:right}
+#onde-app-v1 .oa-draw-budget{text-align:center}
 #onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #c4d1b525;padding-top:10px}
 #onde-app-v1 .oa-task-check{display:flex;align-items:center;gap:9px;position:relative;min-height:44px;font-size:12px;color:#e1e8d9;cursor:pointer;min-width:0}
 #onde-app-v1 .oa-task-check.is-other{cursor:default;color:#b8c2af}
@@ -1076,15 +1079,16 @@
 </style>
 <template id="oa-libido-places"><section class="oa-info-card oa-libido places" id="oa-libido-card-places" aria-labelledby="oa-libido-title-places"><p class="oa-info-kicker">Lieux et expériences</p><h2 id="oa-libido-title-places">Au-delà de la chambre.</h2><p class="place-intro">Les lieux expérimentés par les Français.</p><div class="place-chart"><div class="place-row" data-frequency="high"><span>Douche / baignoire</span><div class="place-track" role="img" aria-label="Douche / baignoire : 72 pour cent"><i style="--width:72%"></i></div><b><span class="count-value" data-info-count="72" aria-hidden="true">72</span><span class="oa-sr">72</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Voiture</span><div class="place-track" role="img" aria-label="Voiture : 63 pour cent"><i style="--width:63%"></i></div><b><span class="count-value" data-info-count="63" aria-hidden="true">63</span><span class="oa-sr">63</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Cuisine</span><div class="place-track" role="img" aria-label="Cuisine : 58 pour cent"><i style="--width:58%"></i></div><b><span class="count-value" data-info-count="58" aria-hidden="true">58</span><span class="oa-sr">58</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Table</span><div class="place-track" role="img" aria-label="Table : 56 pour cent"><i style="--width:56%"></i></div><b><span class="count-value" data-info-count="56" aria-hidden="true">56</span><span class="oa-sr">56</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Dans la nature<small class="place-average">Moyenne de 3 lieux</small></span><div class="place-track" aria-hidden="true"><i style="--width:37%"></i></div><b><span aria-hidden="true">≈</span><span class="count-value" data-info-count="37" aria-hidden="true">37</span><span class="oa-sr">Environ 37</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Ascenseur</span><div class="place-track" role="img" aria-label="Ascenseur : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Train</span><div class="place-track" role="img" aria-label="Train : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div></div><p class="base">Expériences de couples cohabitants en France</p><div class="place-fantasies"><p>Endroits originaux · fantasmes</p><div class="place-fantasy-grid"><div><span>Cabine d’essayage</span><b><span class="count-value" data-info-count="39" aria-hidden="true">39</span><span class="oa-sr">39</span><small>%</small></b></div><div class="place-fantasy-featured"><span>Lieux de culte / religieux</span><b><span class="count-value" data-info-count="11" aria-hidden="true">11</span><span class="oa-sr">11</span><small>%</small></b></div></div></div></section></template>
 <template id="oa-libido-benchmarks"><section class="oa-info-card oa-libido benchmarks" id="oa-libido-card-benchmarks" aria-label="Fréquences hebdomadaires">
-<table class="oa-rhythm-table" aria-label="Fréquences par semaine">
-  <thead><tr><th scope="col">Par semaine</th><th scope="col" class="oa-rhythm-reference"><small>Repères nationaux</small> <strong>Hebdomadaires</strong></th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
+<table class="oa-rhythm-table" id="oa-rhythm-table" aria-label="Fréquences par semaine">
+  <thead><tr><th scope="col">Par semaine</th><th scope="col" class="oa-rhythm-reference" data-rhythm-reference><small>Repères nationaux</small> <strong>Hebdomadaires</strong></th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
   <tbody>
-    <tr><th scope="row">Avec pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>68 %</small></span><span><b><i>≥</i>3</b><small>26 %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Sans pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≈</i>3</b><small>indicatif</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Pénétration anale</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>55 % · 18–24 ans</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Avec pénétration</th><td data-rhythm-reference><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>68 %</small></span><span><b><i>≥</i>3</b><small>26 %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Sans pénétration</th><td data-rhythm-reference><div class="oa-rhythm-benchmarks"><span><b><i>≈</i>3</b><small>indicatif</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Pénétration anale</th><td data-rhythm-reference><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>55 % · 18–24 ans</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
   </tbody>
 </table>
 <div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
+<button class="oa-rhythm-comparison" type="button" data-rhythm-comparison aria-expanded="false" aria-controls="oa-rhythm-table" hidden>Repères nationaux<span aria-hidden="true"></span></button>
 <details class="oa-rhythm-editor" data-rhythm-editor hidden>
   <summary>Ajouter un rapport</summary>
   <div class="oa-rhythm-choices">
@@ -1187,7 +1191,17 @@
 }
 #onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:3px 5px 0;color:#c6bdd7;font-size:11px}
 #onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
-#onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor])[hidden]{display:none}
+#onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor],[data-rhythm-reference],[data-rhythm-comparison])[hidden]{display:none}
+#onde-app-v1 .oa-rhythm-table:has(th[data-rhythm-reference][hidden]) thead th:first-child{width:64%}
+#onde-app-v1 .oa-rhythm-table:has(th[data-rhythm-reference][hidden]) thead th:last-child{width:36%}
+#onde-app-v1 .oa-rhythm-comparison{
+ margin:4px 5px 0;padding:0;border:0;background:none;color:#d9cce6;font:inherit;font-size:11px;
+ min-height:32px;cursor:pointer
+}
+#onde-app-v1 .oa-rhythm-comparison span::after{content:" +";color:#f1cfdd}
+#onde-app-v1 .oa-rhythm-comparison[aria-expanded=true] span::after{content:" −"}
+#onde-app-v1 .oa-info-studies{margin-top:0}
+#onde-app-v1 .oa-info-studies > .oa-info-cards{margin-top:6px}
 #onde-app-v1 .oa-rhythm-editor{margin-top:5px;padding:0 5px;color:#f1cfdd;font-size:11px}
 #onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;padding:6px 0}
 #onde-app-v1 .oa-rhythm-choices{display:flex;gap:4px;flex-wrap:wrap}
@@ -1897,7 +1911,7 @@
     state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt:at};
   }
   function canApplyMissionPenalty(state,task){
-    if(task.starPenalty!==true || task.checks[task.to])return false;
+    if(task.starPenalty!==true || task.checks[task.to] || task.failedRefusalRoll!==undefined)return false;
     const day=parisDateKey(task.expiresAt),last=state.taskPenaltyDays?.[task.to];
     if(!day || last && last>=day)return false;
     const wallet=state.cardRerollWallets?.[task.to];
@@ -1917,7 +1931,7 @@
     state.taskPenaltyDays??={a:null,b:null};
     state.taskPenaltyDays[actor]=day;
   }
-  const starRollActions=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW','ROLL_DRAFT_DEFENSE','ROLL_DEFENSE']);
+  const starRollActions=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW','ROLL_DRAFT_DEFENSE','ROLL_DEFENSE','REFUSE_TASK']);
   const requiresRollStar=type=>starRollActions.has(type);
 
   function randomInt(n) {
@@ -2015,7 +2029,8 @@
     return s.tasks.every(task=>{
       if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
       if(task.starPenalty!==undefined && task.starPenalty!==true)return false;
-      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[])];
+      if(task.failedRefusalRoll!==undefined && (!Number.isInteger(task.failedRefusalRoll)||task.failedRefusalRoll<1||task.failedRefusalRoll>10))return false;
+      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[]),...(task.failedRefusalRoll===undefined?[]:['failedRefusalRoll'])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -2393,10 +2408,10 @@
         if(!original || original.to!==actor) return state;
         const expired=expireTasks(s,action.at),task=s.tasks.find(item=>item.id===action.taskId);
         if(!task || Date.parse(action.at)<Date.parse(task.createdAt)) return expired?s:state;
-        const hasStar=cardRerollStars(s,actor,action.at).balance>0;
-        if(hasStar ? (!Number.isInteger(action.value)||action.value<1||action.value>20) : action.value!==undefined)return expired?s:state;
-        // The D20 records the refusal; no face can require the challenge.
-        finishTask(s,task,'passed',action.at,hasStar?{refusalRoll:action.value}:{});
+        if(!canSpendStar(s,actor,action.at)||!Number.isInteger(action.value)||action.value<1||action.value>20)return expired?s:state;
+        spendStar(s,actor,action.at);
+        if(action.value>10)finishTask(s,task,'passed',action.at,{refusalRoll:action.value});
+        else task.failedRefusalRoll=action.value;
         return s;
       }
       case 'SWITCH_PLAYER':
@@ -3173,7 +3188,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,canApplyMissionPenalty,requiresRollStar,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,canApplyMissionPenalty,canSpendStar,requiresRollStar,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -4608,7 +4623,12 @@ void main(){
     const taskIds=new Set(state.tasks.map(task=>task.id));
     if(!Array.isArray(penaltyTaskIds)||new Set(penaltyTaskIds).size!==penaltyTaskIds.length||penaltyTaskIds.some(id=>!taskIds.has(id)))throw failure('invalid_response','Les missions reçues sont invalides.');
    }
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(penaltyTaskIds===undefined?{}:{penaltyTaskIds:[...penaltyTaskIds]}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
+   const failedRefusals=raw.failedRefusals;
+   if(failedRefusals!==undefined){
+    const receivedTasks=new Set(state.tasks.filter(task=>task.to===identity.actor).map(task=>task.id));
+    if(!failedRefusals||typeof failedRefusals!=='object'||Array.isArray(failedRefusals)||Object.entries(failedRefusals).some(([id,face])=>!receivedTasks.has(id)||!Number.isInteger(face)||face<1||face>10))throw failure('invalid_response','Les résultats de refus sont invalides.');
+   }
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(penaltyTaskIds===undefined?{}:{penaltyTaskIds:[...penaltyTaskIds]}),...(failedRefusals===undefined?{}:{failedRefusals:{...failedRefusals}}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -4626,7 +4646,7 @@ void main(){
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',no_stars:'Il te faut une étoile pour lancer les dés.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',no_stars:'Il te faut une étoile pour lancer les dés.',star_spent_today:'Tu as déjà dépensé une étoile aujourd’hui.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -4692,6 +4712,10 @@ void main(){
    }else if(action.type==='REFUSE_TASK'||action.type==='EXTEND_TASK'){
     if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId))throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
     value.taskId=action.taskId;
+    if(action.type==='REFUSE_TASK'){
+     if(action.starCost!==1)throw failure('upgrade_required','Rouvre D6 à deux pour utiliser le refus à une étoile.');
+     value.starCost=1;
+    }
    }
    return value;
   }
@@ -5672,7 +5696,9 @@ void main(){
  }
  function categoryAction(){
   const quota=remoteSnapshot?.quota;
-  if(!remoteMode||quota?.remaining!==0)return rollReadout;
+  if(!remoteMode||!Number.isInteger(quota?.remaining))return rollReadout;
+  const {balance}=G.cardRerollStars(ownState||state,viewPlayer,serverStamp());
+  if(quota.remaining>0)return rollReadout+'<p class="oa-draw-budget">'+quota.remaining+' tirage'+(quota.remaining===1?'':'s')+' · '+balance+' étoile'+(balance===1?'':'s')+'</p>';
   const nextAt=Date.parse(quota.nextAt),now=serverNow();
   let renewal='à la prochaine plage';
   if(Number.isFinite(nextAt)){
@@ -5763,18 +5789,24 @@ void main(){
  const checkBox='<span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>';
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'" data-check-player="'+player+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId,roundVersion(task)).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'>'+checkBox+'<span>'+h(name(player))+'</span></label>';}
  function renderTasks(){
-  const tasks=state.tasks||[],at=serverStamp();
+  const tasks=[...(state.tasks||[])].sort((a,b)=>Number(a.checks[viewPlayer])-Number(b.checks[viewPlayer])||Date.parse(a.expiresAt)-Date.parse(b.expiresAt));
+  const at=serverStamp(),canRefuse=G.canSpendStar(ownState||state,viewPlayer,at);
+  const {balance}=G.cardRerollStars(ownState||state,viewPlayer,at);
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'':'Confirmation du refus…')+'</p>';
   return '<h1 class="oa-title oa-missions-title">Les choses <em>à faire.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
    const c=G.getCard(task.cardId,roundVersion(task)),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;
-   const penalty=task.to===viewPlayer&&!task.checks[viewPlayer]&&(remoteMode?remoteSnapshot?.penaltyTaskIds?.includes(task.id):task.starPenalty);
+   const received=task.to===viewPlayer;
+   const face=received?(remoteMode?remoteSnapshot?.failedRefusals?.[task.id]:task.failedRefusalRoll):undefined;
+   const penalty=received&&face===undefined&&!task.checks[viewPlayer]&&(remoteMode?remoteSnapshot?.penaltyTaskIds?.includes(task.id):task.starPenalty);
+   const refusalNote=face!==undefined?'D20 · '+face+' · −1 étoile':received&&!canRefuse?(balance?'Étoile du jour déjà dépensée':'Aucune étoile disponible'):'';
    const warning=penalty?'<span class="oa-task-penalty" title="Une étoile peut être retirée si ta case reste vide à l’échéance."><span aria-hidden="true">−1 ✦</span><span class="oa-sr">Une étoile peut être retirée si ta case reste vide à l’échéance.</span></span>':'';
    const remaining=timeLeft(task),status=taskStatus(task),target='data-task="'+h(task.id)+'"';
    const actions=(canExtendMission(task,at)?textBtn('+24 h <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>','extend-task-confirm',target+' aria-label="Prolonger de 24 heures pour une étoile"'):'')+
-    (task.to===viewPlayer?textBtn(hasRollStar()?'Refuser · D20':'Refuser','refuse-task',target):'');
+    (received?textBtn('Refuser · D20 <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>','refuse-task',target+' aria-label="Tenter de refuser pour une étoile. Réussite à partir de 11 sur 20."'+(canRefuse?'':' disabled aria-describedby="oa-refusal-note-'+h(task.id)+'"')):'');
+   const note=refusalNote?'<p class="oa-task-refusal-note" id="oa-refusal-note-'+h(task.id)+'">'+refusalNote+'</p>':'';
    const meta='<div class="oa-task-meta">'+rollFormula(task,c)+taskRecipient(task)+'</div>';
    const deadline='<div class="oa-task-deadline">'+warning+'<time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>';
-   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span>'+deadline+'</div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
+   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span>'+deadline+'</div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+note+'</article>';
   }).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+
    (state.phase==='accepted'?'<div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+'</div>':'');
  }
@@ -5848,7 +5880,7 @@ void main(){
   return `<div class="oa-info-ticket">
    <span>Tirages du jour</span>
    <span class="oa-info-ticket-dots" role="img" aria-label="${quotaLabel}" title="${quotaLabel}">${dots}</span>
-   <small>1 relance gratuite par jour</small>
+   <small>Relance du thème gratuite · 1×/jour</small>
   </div>`;
  }
 
@@ -5872,6 +5904,7 @@ void main(){
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
    <h1 class="oa-sr" id="oa-info-title">Carnet</h1>
    <div class="oa-info-cards">
+    ${libido('benchmarks')}
     <section class="oa-info-card oa-info-summary" id="oa-info-activity" aria-labelledby="oa-info-activity-title">
      <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
      <div class="oa-info-status">
@@ -5885,10 +5918,14 @@ void main(){
       <strong>+${G.rules.completedCardPoints} point</strong>
      </div>
     </section>
-    ${libido('benchmarks')}
-    ${libido('destinations')}
-    ${libido('women')}
-    ${libido('places')}
+    <details class="oa-info-install oa-info-studies">
+     <summary>Études et comparatifs</summary>
+     <div class="oa-info-cards">
+      ${libido('destinations')}
+      ${libido('women')}
+      ${libido('places')}
+     </div>
+    </details>
     <div data-info-settings>${infoSettings()}</div>
    </div>
    ${(remoteMode||root.querySelector('.oa-player-avatar'))?textBtn('Les règles du jeu','rules'):''}
@@ -5906,16 +5943,26 @@ void main(){
   const rhythm=panel.querySelector('.oa-libido.benchmarks');
   let disposed=false,readingRhythm=false,recordingRhythm=false,rhythmVersion=0,rhythmTimer;
   const editor=rhythm?.querySelector('[data-rhythm-editor]');
+  const comparison=rhythm?.querySelector('[data-rhythm-comparison]');
   const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
   const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
   const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
   const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+  function setComparison(open){
+   comparison.setAttribute('aria-expanded',String(open));
+   for(const cell of rhythm.querySelectorAll('[data-rhythm-reference]'))cell.hidden=!comparison.hidden&&!open;
+  }
+  const toggleComparison=()=>setComparison(comparison.getAttribute('aria-expanded')!=='true');
   function renderRhythm(data){
    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
     element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
    }
    rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
+   if(comparison){
+    comparison.hidden=!data;
+    setComparison(!!data&&comparison.getAttribute('aria-expanded')==='true');
+   }
    if(editor){
     editor.hidden=!(data?.canRecord&&remote.recordRhythm);
     if(editor.hidden){editor.open=false;rhythmStatus.textContent='';}
@@ -5960,6 +6007,7 @@ void main(){
    rhythmTimer=window.setInterval?.(refreshRhythm,15000);
    document.addEventListener('visibilitychange',refreshRhythm);
    editor?.addEventListener('click',addRhythm);
+   comparison?.addEventListener('click',toggleComparison);
   }
   const highlight=panel.querySelector('.dest-featured');
   const invitation=panel.querySelector('.women-invitation');
@@ -6060,6 +6108,7 @@ void main(){
    if(rhythmTimer!==undefined)window.clearInterval?.(rhythmTimer);
    document.removeEventListener('visibilitychange',refreshRhythm);
    editor?.removeEventListener('click',addRhythm);
+   comparison?.removeEventListener('click',toggleComparison);
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);
@@ -6223,7 +6272,12 @@ void main(){
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
-  const count=root.querySelector('.oa-task-count');if(count){count.textContent=String((state.tasks||[]).length);count.hidden=!(state.tasks||[]).length;}
+  const count=root.querySelector('.oa-task-count');
+  if(count){
+   const awaiting=(state.tasks||[]).filter(task=>!task.checks[viewPlayer]).length;
+   count.textContent=String(awaiting);count.hidden=!awaiting;
+   count.setAttribute('aria-label',awaiting+' mission'+(awaiting===1?'':'s')+' à cocher');
+  }
   if(!replaceMain){infoReading?.refresh();scheduleExpiry();scheduleAutoNewRound();scheduleAutomaticMission();updateBadgeNotice();return;}
   const holder=main.querySelector('[data-stage]');
   if(holder){
@@ -6447,29 +6501,35 @@ void main(){
  }
  async function refuseTask(taskId){
   const task=state.tasks.find(item=>item.id===taskId);
-  if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady)return;
+  if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady||!G.canSpendStar(ownState||state,viewPlayer,serverStamp()))return;
   const context={actor:viewPlayer,roomId:remote?.connection?.roomId,epoch:presentationEpoch},roundId=(ownState||state).round.id;
   const serial=++animationSerial;
-  if(hasRollStar())refusal={taskId,title:G.getCard(task.cardId,roundVersion(task)).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
+  refusal={taskId,title:G.getCard(task.cardId,roundVersion(task)).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
   tab='tasks';busy=true;render();setControlsBusy(true);
   try{
    let face;
    if(remoteMode){
-    const value=await remote.action({type:'REFUSE_TASK',roundId,taskId});
-    if(value.roll&&value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
+    const value=await remote.action({type:'REFUSE_TASK',roundId,taskId,starCost:1});
+    if(value.roll?.kind!==20)throw Error('Unconfirmed refusal roll');
     if(!presentationValid(context))return;
     face=value.roll?.value;
     if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
-    pullShared();face=hasRollStar()?G.randomInt(20):undefined;
+    pullShared();
+    if(!G.canSpendStar(localRoom,viewPlayer,now()))return;
+    face=G.randomInt(20);
     const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
     if(next===localRoom)return;localRoom=next;save();
    }
    if(!presentationValid(context))return;
-   if(face===undefined||!refusal){announce('Carte refusée, sans pénalité.');toast('Carte refusée.');return;}
+   if(!refusal)return;
    refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='';
    if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
-   if(presentationValid(context))announce('D20 : '+face+'. Carte refusée, sans pénalité.');
+   if(presentationValid(context)){
+    const result=face>10?'Défi retiré.':'Le défi reste actif.';
+    announce('D20 : '+face+'. '+result+' Une étoile dépensée.');
+    toast(result+' −1 étoile.');
+   }
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
   finally{if(serial===animationSerial){activeRollFace=null;refusal=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);else{remoteReady=false;deferredSnapshot=null;}}else syncLocalView();render();}}
  }
@@ -6499,13 +6559,13 @@ void main(){
   const rerollRule=stars?'Une relance de carte coûte une étoile. Chacun en gagne une toutes les 12 h, avec une réserve de trois et une dépense par jour.':'Une fois par tour, la carte peut être relancée avant d’être gardée.';
   const missionRule=stars?'La carte gardée rejoint les Missions. Elle y passe automatiquement quand la relance est épuisée.':'La carte gardée rejoint les Missions.';
   const penaltyRule=(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds))?
-   ' Sur une nouvelle mission, une case vide à l’échéance peut coûter une étoile à son destinataire, une fois par jour. Le refus est gratuit. À zéro étoile, tu peux refuser directement et les dés reprennent à la recharge.':'';
+   ' Sur une nouvelle mission, une case vide à l’échéance peut coûter une étoile à son destinataire, une fois par jour. À zéro étoile, les dés reprennent à la recharge.':'';
   openSheet('Les règles.',
    '<div class="oa-rule"><b>↗</b><div><h3>Lancer le dé.</h3><p>Appuie sur le dé ou fais-le glisser dans la direction de ton choix. Maintiens avant de relâcher pour lui donner plus d’élan.</p></div></div>'+
    '<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div>'+
    '<div class="oa-rule"><b>'+(version>=4?'D8':'D6')+'</b><div><h3>La carte.</h3><p>'+cardRule+'</p></div></div>'+
    '<div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>'+rerollRule+'</p></div></div>'+
-   '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut refuser la carte avec le D20.'+penaltyRule+'</p></div></div>'+
+   '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut dépenser son étoile du jour pour tenter un refus au D20. De 11 à 20, le défi est retiré. De 1 à 10, il reste actif. L’étoile est dépensée dans les deux cas.'+penaltyRule+'</p></div></div>'+
    '<div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans les Missions. Elles quittent la liste après vos deux coches, ou à l’expiration.'+(!remoteMode||remoteSnapshot?.canExtendTasks?' Chacun peut dépenser son étoile du jour pour prolonger une mission en cours de 24 h, une seule fois par mission.':'')+'</p></div></div>'+
    '<div class="oa-actions">'+btn('Fermer','close')+'</div>');
  }

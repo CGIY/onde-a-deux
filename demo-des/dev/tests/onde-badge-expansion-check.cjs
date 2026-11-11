@@ -73,6 +73,7 @@ for(const badge of added){
   const {criterion}=badge;
   let room=G.createRoom({at}),queued=queue(room,criterion);room=queued.room;
   eq(viewItem(room,badge.id).progress.value,0);eq(viewItem(room,badge.id).award,null);
+  room.cardRerollWallets.b.balance=2;
   room=step(room,'REFUSE_TASK','b',{taskId:queued.taskId,value:20});eq(viewItem(room,badge.id).progress.value,0);
   const wrong=criterion.variantRoll===undefined?{cardId:G.hardcoreCards.find(card=>card.id!==criterion.cardId).id}:
     {...criterion,variantRoll:criterion.variantRoll===1?2:1};
@@ -164,6 +165,7 @@ for(const badge of deckBadges){
   const card=G.getCard(criterion.cardId,5);
   const alternative=G.cardsForCategory(card.categoryId,5).find(other=>other.id!==card.id);
   let {room,taskId}=queue(G.createRoom({at}),criterion,drawer,at,5);
+  room.cardRerollWallets[G.otherPlayer(drawer)].balance=2;
   room=step(room,'REFUSE_TASK',G.otherPlayer(drawer),{taskId,value:20});
   eq(viewItem(room,badge.id).progress.value,0);
   const wrong=criterion.variantRoll===undefined?{cardId:alternative.id}:{...criterion,variantRoll:criterion.variantRoll===1?2:1};

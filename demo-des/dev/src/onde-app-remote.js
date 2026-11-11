@@ -82,7 +82,12 @@
     const taskIds=new Set(state.tasks.map(task=>task.id));
     if(!Array.isArray(penaltyTaskIds)||new Set(penaltyTaskIds).size!==penaltyTaskIds.length||penaltyTaskIds.some(id=>!taskIds.has(id)))throw failure('invalid_response','Les missions reçues sont invalides.');
    }
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(penaltyTaskIds===undefined?{}:{penaltyTaskIds:[...penaltyTaskIds]}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
+   const failedRefusals=raw.failedRefusals;
+   if(failedRefusals!==undefined){
+    const receivedTasks=new Set(state.tasks.filter(task=>task.to===identity.actor).map(task=>task.id));
+    if(!failedRefusals||typeof failedRefusals!=='object'||Array.isArray(failedRefusals)||Object.entries(failedRefusals).some(([id,face])=>!receivedTasks.has(id)||!Number.isInteger(face)||face<1||face>10))throw failure('invalid_response','Les résultats de refus sont invalides.');
+   }
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(penaltyTaskIds===undefined?{}:{penaltyTaskIds:[...penaltyTaskIds]}),...(failedRefusals===undefined?{}:{failedRefusals:{...failedRefusals}}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -100,7 +105,7 @@
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',no_stars:'Il te faut une étoile pour lancer les dés.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',no_stars:'Il te faut une étoile pour lancer les dés.',star_spent_today:'Tu as déjà dépensé une étoile aujourd’hui.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -166,6 +171,10 @@
    }else if(action.type==='REFUSE_TASK'||action.type==='EXTEND_TASK'){
     if(typeof action.taskId!=='string'||!ROUND_ID.test(action.taskId))throw failure('invalid_action','La carte n’a pas pu être identifiée. Actualise la partie.');
     value.taskId=action.taskId;
+    if(action.type==='REFUSE_TASK'){
+     if(action.starCost!==1)throw failure('upgrade_required','Rouvre D6 à deux pour utiliser le refus à une étoile.');
+     value.starCost=1;
+    }
    }
    return value;
   }
