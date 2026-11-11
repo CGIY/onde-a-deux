@@ -1,4 +1,4 @@
-# D6 à deux — version web 0.4.8
+# D6 à deux — version web 0.4.9
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 
