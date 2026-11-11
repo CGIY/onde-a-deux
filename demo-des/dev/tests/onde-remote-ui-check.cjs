@@ -249,6 +249,10 @@ async function rollSession(options={}){
   const sent=G.reduce(finalGame(cardId,1),{type:'SEND',directQueue:true,at:new Date().toISOString()});sent.activePlayer='b';
   const received=shell(mockRemote(snap(sent)));await tick();await received.click('tab',{tab:'tasks'});
   check(()=>{assert.ok(hasTitle(received.html,G.getCard(cardId).title));assert.ok(received.html.includes(escapedText(G.getVariant(sent.round))));assert.ok(!received.html.includes('data-action="accept"'));assert.ok(received.html.includes('data-action="refuse-task"'));assertNoEvidence(received.html);});
+  check(()=>assert.match(received.html,/data-recipient="b"[^>]*>.*>À toi de jouer<\/span>/));
+  const sentView={...sent,activePlayer:'a',players:[sent.players[0],{id:'b',name:'Éva & Lou'}]};
+  const sender=shell(mockRemote(snap(sentView)));await tick();await sender.click('tab',{tab:'tasks'});
+  check(()=>assert.match(sender.html,/data-recipient="b"[^>]*>.*>É<\/span>.*>Pour Éva &amp; Lou<\/span>/));
   const legacy=draftGame(),legacyUI=shell(mockRemote(snap(legacy)));await tick();
   check(()=>{assert.ok(legacyUI.html.includes(cardNotesFixture[legacy.round.cardId]));assertNoEvidence(legacyUI.html);});
  }
@@ -368,7 +372,6 @@ async function rollSession(options={}){
   const at='2026-11-09T12:00:00.000Z',actor='a';
   let room=G.createRoom({at}),revision=1,finishSend;
   const roundId=room.lanes[actor].round.id;
-  room.cardRerollWallets[actor].balance=balance;
   const apply=action=>{room=G.reduceRoom(room,{...action,at,actor,roundId});};
   apply({type:'ROLL_CATEGORY',value:4,...G.drawCategory(G.roomView(room,actor),4,5)});
   apply({type:'ROLL_CARD',value:1});
@@ -379,6 +382,7 @@ async function rollSession(options={}){
    assert.equal(action.roundId,roundId);
    if(action.type==='ROLL_VARIANT'){
     apply({...action,value:1});revision++;
+    room.cardRerollWallets[actor].balance=balance;
     return {...versioned(),roll:{kind:6,value:1}};
    }
    assert.equal(action.type,'SEND');
@@ -1197,7 +1201,7 @@ async function rollSession(options={}){
  {
   const at=new Date().toISOString();let game=initial();game=G.reduce(game,{type:'ROLL_CATEGORY',value:1,hand:G.legacyCards.filter(c=>c.categoryId==='complicite').slice(0,6).map(c=>c.id)});game=G.reduce(game,{type:'ROLL_CARD',value:1});game=G.reduce(game,{type:'SEND',at});game=G.reduce(game,{type:'SWITCH_PLAYER',player:'b'});game=G.reduce(game,{type:'ACCEPT',at});game.activePlayer='a';
   const remote=mockRemote(snap(game)),ui=shell(remote);await tick();await ui.click('tab',{tab:'tasks'});check(()=>assert.ok(!ui.html.includes('Une fois vécu, chacun coche sa case.')));let resolveAction;remote.actionImpl=action=>{check(()=>assert.equal(action.type,'TOGGLE_TASK_CHECK'));check(()=>assert.equal(action.checked,true));return new Promise(resolve=>resolveAction=()=>{game=G.reduce(game,{...action,at:new Date().toISOString()});resolve(snap(game,2));});};
-  const before=ui.writes,change=await ui.taskCheck(game.tasks[0].id,true);await tick();check(()=>assert.equal(change.input.checked,false));check(()=>assert.equal(change.input.disabled,true));check(()=>assert.equal(ui.writes,before));resolveAction();await change.promise;check(()=>assert.equal(change.input.checked,true));check(()=>assert.equal(change.label.classList.contains('is-waving'),true));check(()=>assert.equal(game.stats.totalCompleted,0));const settle=ui.timers.find(t=>t.ms===1200);check(()=>assert.ok(settle));settle.fn();check(()=>assert.ok(ui.html.includes('Les choses')));check(()=>assert.ok(ui.html.includes('Ta coche est posée · Personne B doit encore cocher.')));game.activePlayer='b';const otherUI=shell(mockRemote(snap(game,3)));await tick();await otherUI.click('tab',{tab:'tasks'});check(()=>assert.ok(otherUI.html.includes('Personne A a coché · à toi de jouer.')));
+  const before=ui.writes,change=await ui.taskCheck(game.tasks[0].id,true);await tick();check(()=>assert.equal(change.input.checked,false));check(()=>assert.equal(change.input.disabled,true));check(()=>assert.equal(ui.writes,before));resolveAction();await change.promise;check(()=>assert.equal(change.input.checked,true));check(()=>assert.equal(change.label.classList.contains('is-waving'),true));check(()=>assert.equal(game.stats.totalCompleted,0));const settle=ui.timers.find(t=>t.ms===1200);check(()=>assert.ok(settle));settle.fn();check(()=>assert.ok(ui.html.includes('Les choses')));check(()=>assert.ok(ui.html.includes('Ta coche est posée · Personne B doit encore cocher.')));game.activePlayer='b';const otherUI=shell(mockRemote(snap(game,3)));await tick();await otherUI.click('tab',{tab:'tasks'});check(()=>assert.ok(otherUI.html.includes('Personne A a coché · ta coche reste à poser.')));
  }
  // Revocation hides the previous private screen rather than falling back to the demo.
  {

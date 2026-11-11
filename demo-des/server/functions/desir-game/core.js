@@ -505,6 +505,29 @@
     const wallet=refillRerollWallet(state.cardRerollWallets[actor],at);
     state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt:at};
   }
+  function canApplyMissionPenalty(state,task){
+    if(task.starPenalty!==true || task.checks[task.to])return false;
+    const day=parisDateKey(task.expiresAt),last=state.taskPenaltyDays?.[task.to];
+    if(!day || last && last>=day)return false;
+    const wallet=state.cardRerollWallets?.[task.to];
+    if(wallet && Date.parse(task.expiresAt)<Date.parse(wallet.spentAt??wallet.anchorAt))return false;
+    return cardRerollStars(state,task.to,task.expiresAt).balance>0;
+  }
+  function applyMissionPenalty(state,task){
+    if(!canApplyMissionPenalty(state,task))return;
+    const actor=task.to,at=task.expiresAt,day=parisDateKey(at);
+    state.cardRerollWallets??=initialRerollWallets(task.createdAt);
+    const wallet=refillRerollWallet(state.cardRerollWallets[actor],at);
+    // Keep the voluntary spend limit even when a refill advanced its anchor.
+    const spentAt=wallet.spentAt!==null && parisDateKey(wallet.spentAt)===day
+      ? (Date.parse(wallet.spentAt)<Date.parse(wallet.anchorAt)?wallet.anchorAt:wallet.spentAt)
+      : null;
+    state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt};
+    state.taskPenaltyDays??={a:null,b:null};
+    state.taskPenaltyDays[actor]=day;
+  }
+  const starRollActions=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW','ROLL_DRAFT_DEFENSE','ROLL_DEFENSE']);
+  const requiresRollStar=type=>starRollActions.has(type);
 
   function randomInt(n) {
     if (!Number.isInteger(n) || n < 1 || n > 4294967296) throw new RangeError('randomInt expects an integer from 1 to 2^32.');
@@ -600,7 +623,8 @@
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
       if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
-      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[])];
+      if(task.starPenalty!==undefined && task.starPenalty!==true)return false;
+      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -617,6 +641,9 @@
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
     if(!validRerollWallets(s.cardRerollWallets))return false;
+    const penaltyDays=s.taskPenaltyDays;
+    if(penaltyDays!==undefined && (!penaltyDays || Object.keys(penaltyDays).sort().join(',')!=='a,b' ||
+      !Object.values(penaltyDays).every(day=>day===null || typeof day==='string' && /^\d{4}-\d{2}-\d{2}$/.test(day))))return false;
     if (!validStats(s.stats) || s.progression!==undefined&&!validProgression(s.progression,s.sequence)) return false;
     if (!Number.isSafeInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
     if (!validTasks(s)) return false;
@@ -876,13 +903,14 @@
     s.history=rows.filter(item=>retained.has(item.id));
   }
 
-  function enqueueTask(s, acceptedAt) {
+  function enqueueTask(s, acceptedAt, starPenalty=false) {
     const r=s.round;
     if(s.tasks.some(task=>task.id===r.id)) return;
     s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
       checks:{a:false,b:false},proposal:r.adapted?r.proposal:previousCoconVariant(r)?getVariant(r):null,...(needsVariant(r)?{variantRoll:r.variantRoll}:{}),
-      ...(storedCatalogue(r.catalogueVersion)?{catalogueVersion:r.catalogueVersion,intimacyPool:r.intimacyPool}:{})});
+      ...(storedCatalogue(r.catalogueVersion)?{catalogueVersion:r.catalogueVersion,intimacyPool:r.intimacyPool}:{}),
+      ...(starPenalty===true?{starPenalty:true}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
 
@@ -900,8 +928,12 @@
   }
 
   function expireTasks(s, at) {
-    const expired=s.tasks.filter(task=>Date.parse(task.expiresAt)<=Date.parse(at));
-    for(const task of expired) finishTask(s,task,'expired',at);
+    const expired=s.tasks.filter(task=>Date.parse(task.expiresAt)<=Date.parse(at))
+      .sort((a,b)=>Date.parse(a.expiresAt)-Date.parse(b.expiresAt));
+    for(const task of expired) {
+      applyMissionPenalty(s,task);
+      finishTask(s,task,'expired',at);
+    }
     return expired.length>0;
   }
 
@@ -930,6 +962,7 @@
     const s=JSON.parse(JSON.stringify(state));
     const r=s.round;
     const actor=s.activePlayer;
+    if(requiresRollStar(kind) && cardRerollStars(s,actor,action.at).balance===0)return state;
 
     switch(kind) {
       case 'EXPIRE_TASKS': {
@@ -964,13 +997,15 @@
         return s;
       }
       case 'REFUSE_TASK': {
-        if(typeof action.taskId!=='string' || !isoTime(action.at) || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(typeof action.taskId!=='string' || !isoTime(action.at))return state;
         const original=s.tasks.find(item=>item.id===action.taskId);
         if(!original || original.to!==actor) return state;
         const expired=expireTasks(s,action.at),task=s.tasks.find(item=>item.id===action.taskId);
         if(!task || Date.parse(action.at)<Date.parse(task.createdAt)) return expired?s:state;
+        const hasStar=cardRerollStars(s,actor,action.at).balance>0;
+        if(hasStar ? (!Number.isInteger(action.value)||action.value<1||action.value>20) : action.value!==undefined)return expired?s:state;
         // The D20 records the refusal; no face can require the challenge.
-        finishTask(s,task,'passed',action.at,{refusalRoll:action.value});
+        finishTask(s,task,'passed',action.at,hasStar?{refusalRoll:action.value}:{});
         return s;
       }
       case 'SWITCH_PLAYER':
@@ -1078,7 +1113,7 @@
           // "accepted" is the historical task phase, not recipient consent.
           Object.assign(r,{directQueued:true,fromConfirmed:true,toConfirmed:false,autoProposed:false,
             status:'accepted',awaiting:null,sentAt:action.at,acceptedAt:action.at});
-          s.phase='accepted';enqueueTask(s,action.at);return s;
+          s.phase='accepted';enqueueTask(s,action.at,action.starPenalty);return s;
         }
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
@@ -1116,7 +1151,8 @@
   const roomCopy=value=>JSON.parse(JSON.stringify(value));
   const roomShared=room=>({
     ...Object.fromEntries(roomSharedKeys.map(key=>[key,room[key]])),
-    ...(room.cardRerollWallets===undefined?{}:{cardRerollWallets:room.cardRerollWallets})
+    ...(room.cardRerollWallets===undefined?{}:{cardRerollWallets:room.cardRerollWallets}),
+    ...(room.taskPenaltyDays===undefined?{}:{taskPenaltyDays:room.taskPenaltyDays})
   });
   const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
 
@@ -1220,6 +1256,7 @@
     reset.players=roomCopy(room.players);
     reset.favorites=roomCopy(room.favorites);
     if(room.cardRerollWallets)reset.cardRerollWallets=roomCopy(room.cardRerollWallets);
+    if(room.taskPenaltyDays)reset.taskPenaltyDays=roomCopy(room.taskPenaltyDays);
     if(options.keepPrefs!==false) reset.prefs=roomCopy(room.prefs);
     // Never reuse IDs: delayed pre-reset actions must not target a fresh draw.
     reset.sequence=room.sequence+2;
@@ -1745,7 +1782,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,canApplyMissionPenalty,requiresRollStar,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);

@@ -23,12 +23,12 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       const current=await store.rpc('desir_get_session',{p_token_hash:tokenHash});
       if(!current)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
       if(!current.member||!['a','b'].includes(current.member.actor)||!current.room||!Number.isSafeInteger(Number(current.room.revision)))throw new Error('Invalid session data');
-      const parallel=supportsParallelGame(gameVersion)||current.room.state?.version===2;
-      const normalized=parallel?G.normalizeRoom(current.room.state,{at:iso()}):G.normalizeState(current.room.state,{at:iso()});
+      const parallel=supportsParallelGame(gameVersion)||current.room.state?.version===2,at=iso();
+      const normalized=parallel?G.normalizeRoom(current.room.state,{at}):G.normalizeState(current.room.state,{at});
       if(!normalized)throw new Error('Invalid stored game');
       const actorState=parallel?normalized:{...normalized,activePlayer:current.member.actor};
-      const next=parallel?G.reduceRoom(normalized,{type:'EXPIRE_TASKS',at:iso()}):G.reduce(actorState,{type:'EXPIRE_TASKS',at:iso()});
-      if(normalized===current.room.state&&next===actorState)return current;
+      const next=parallel?G.reduceRoom(normalized,{type:'EXPIRE_TASKS',at}):G.reduce(actorState,{type:'EXPIRE_TASKS',at});
+      if(normalized===current.room.state&&next===actorState)return {...current,actionAt:at};
       if(parallel&&normalized.categoryBoost)next.categoryBoost=normalized.categoryBoost;
       await store.rpc('desir_expire_room',{p_room_id:current.room.id,p_expected_revision:current.room.revision,p_next_state:next});
     }
@@ -128,7 +128,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       for(let attempt=0;attempt<4;attempt++){
         if(action.type==='ROLL_CATEGORY'&&current.quota.remaining===0)await conflict(tokenHash,gameVersion,'quota_exhausted','Ton tirage de cette plage a déjà été utilisé.');
         let result;
-        try{result=applyAction(G,current.room.state,current.member.actor,action,body.requestId,iso(),G.randomInt,gameVersion);}
+        try{result=applyAction(G,current.room.state,current.member.actor,action,body.requestId,current.actionAt,G.randomInt,gameVersion);}
         catch(error){if(error instanceof HttpError&&error.status===409)await conflict(tokenHash,gameVersion,error.code,error.message);throw error;}
         const reply=snapshot(G,{...current,room:{...current.room,state:result.state}},{...(result.roll?{roll:result.roll}:{})},gameVersion);
         const committed=await store.rpc('desir_commit',{p_room_id:current.room.id,p_actor:current.member.actor,p_request_id:body.requestId,p_payload_hash:payloadHash,p_expected_revision:current.room.revision,p_next_state:result.state,p_response:reply,p_consume_ticket:result.consumeTicket,p_notification:result.notification});

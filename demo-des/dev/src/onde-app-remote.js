@@ -76,7 +76,12 @@
     activity={streak:raw.activity.streak,lastDay:raw.activity.lastDay};
    }
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
+   const penaltyTaskIds=raw.penaltyTaskIds;
+   if(penaltyTaskIds!==undefined){
+    const taskIds=new Set(state.tasks.map(task=>task.id));
+    if(!Array.isArray(penaltyTaskIds)||new Set(penaltyTaskIds).size!==penaltyTaskIds.length||penaltyTaskIds.some(id=>!taskIds.has(id)))throw failure('invalid_response','Les missions reçues sont invalides.');
+   }
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(penaltyTaskIds===undefined?{}:{penaltyTaskIds:[...penaltyTaskIds]}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -94,7 +99,7 @@
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',no_stars:'Il te faut une étoile pour lancer les dés.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -149,6 +154,7 @@
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
    if(typeof action.roundId!=='string'||!ROUND_ID.test(action.roundId))throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
    const value={type:action.type,roundId:action.roundId};
+   if(action.type==='SEND' && action.starPenalty===true)value.starPenalty=true;
    if(action.type==='JOKER_DRAW'){
     if(!Number.isInteger(action.category)||action.category<1||action.category>4)throw failure('invalid_action','La catégorie n’a pas pu être identifiée.');
     value.category=action.category;

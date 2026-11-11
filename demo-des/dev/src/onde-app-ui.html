@@ -432,9 +432,9 @@
 #onde-app-v1 .oa-task-top time{font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums;color:#e8d8bd;white-space:nowrap}
 #onde-app-v1 .oa-task h2{font-size:22px;font-weight:500;line-height:1.25;letter-spacing:-.025em;margin:16px 0 20px;text-wrap:balance}
 #onde-app-v1 .oa-task-proposal{font-size:12px;line-height:1.5;color:var(--oa-muted);margin:-9px 0 18px}
-#onde-app-v1 .oa-task-status{margin:0 0 12px;padding:9px 10px;border-radius:11px;border:1px solid var(--oa-line);background:var(--oa-panel-inset);font-size:11px;line-height:1.5;color:#dbe4f2}
+#onde-app-v1 .oa-task-status{margin:0 0 8px;padding:7px 10px;border-radius:11px;border:1px solid var(--oa-line);background:var(--oa-panel-inset);font-size:11px;line-height:1.5;color:#dbe4f2}
 #onde-app-v1 .oa-task-status .oa-status-dot{width:6px;height:6px}
-#onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #c4d1b525;padding-top:15px}
+#onde-app-v1 .oa-task-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #c4d1b525;padding-top:10px}
 #onde-app-v1 .oa-task-check{display:flex;align-items:center;gap:9px;position:relative;min-height:44px;font-size:12px;color:#e1e8d9;cursor:pointer;min-width:0}
 #onde-app-v1 .oa-task-check.is-other{cursor:default;color:#b8c2af}
 #onde-app-v1 .oa-task-check>span:last-child{min-width:0;overflow-wrap:anywhere;line-height:1.4}
@@ -542,7 +542,7 @@
 @media(prefers-reduced-motion:reduce){#onde-app-v1 .oa-switch button:has(.oa-player-avatar):after{transition:none}}
 #onde-app-v1 .oa-wordmark{font-size:clamp(20px,6vw,24px);letter-spacing:.12em;gap:8px}
 #onde-app-v1 .oa-task{isolation:isolate}
-#onde-app-v1 .oa-task-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:8px}
+#onde-app-v1 .oa-task-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:4px}
 #onde-app-v1 .oa-shell:before{opacity:.58;background-size:144px 144px}
 #onde-app-v1 .oa-playing-card:after{opacity:.22;background-size:128px 128px}
 #onde-app-v1 .oa-task:before{opacity:.16;background-size:128px 128px}
@@ -553,7 +553,7 @@
 #onde-app-v1 .oa-button.oa-secondary{background:linear-gradient(145deg,#31465e91,#2c36528a);border-color:var(--oa-control-rim);color:#e1eaf9;box-shadow:0 3px 8px #05081229;font-weight:500}
 #onde-app-v1 .oa-button:not(:disabled):hover{transform:none;filter:none;box-shadow:inset 0 0 0 1px #d4e3ff16,0 5px 13px #05081240}
 #onde-app-v1 .oa-button:not(:disabled):active{transform:scale(.98)}
-#onde-app-v1 .oa-task{padding:18px;border-radius:22px;box-shadow:var(--oa-edge)}
+#onde-app-v1 .oa-task{padding:14px 18px;border-radius:22px;box-shadow:var(--oa-edge)}
 #onde-app-v1 .oa-task h2{font-size:20px;margin:15px 0 18px;font-weight:500;letter-spacing:-.025em;line-height:1.3}
 #onde-app-v1 .oa-task-top{font-size:10px;color:#c4cbbb}
 #onde-app-v1 .oa-task-top time{padding:4px 7px;border:1px solid #e5c6a62c;border-radius:8px;background:var(--oa-panel-inset);color:#f0d9b9;font-size:12px;font-weight:550;text-transform:none}
@@ -765,9 +765,9 @@
  #onde-app-v1 .oa-hp-track i,#onde-app-v1 .oa-hp-track i:nth-child(n){height:19px}
  #onde-app-v1 .oa-roll-history{margin-top:6px}
  #onde-app-v1 .oa-hp-odds{margin-top:7px}
- #onde-app-v1 .oa-task{padding:15px;border-radius:20px}
+ #onde-app-v1 .oa-task{padding:12px 15px;border-radius:20px}
  #onde-app-v1 .oa-task h2{font-size:19px;margin:12px 0 14px}
- #onde-app-v1 .oa-task-checks{padding-top:10px}
+ #onde-app-v1 .oa-task-checks{padding-top:7px}
  #onde-app-v1 .oa-score-grid{gap:8px}
  #onde-app-v1 .oa-quiet-home{min-height:180px}
  #onde-app-v1 .oa-invitation{margin-top:20px;padding:18px 15px}
@@ -926,9 +926,22 @@
 #onde-app-v1 .oa-task-empty p{color:var(--oa-muted);font-size:13px}
 #onde-app-v1 .oa-roll-formula{display:flex;align-items:center;gap:8px;width:max-content;color:color-mix(in srgb,var(--category) 58%,#e0e5f0)}
 #onde-app-v1 .oa-playing-card .oa-roll-formula{margin:12px 0}
-#onde-app-v1 .oa-task .oa-roll-formula{margin:8px 0 4px}
+#onde-app-v1 .oa-task-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 2px}
+#onde-app-v1 .oa-task-meta .oa-roll-formula{flex:none}
+#onde-app-v1 .oa-task-recipient{
+ --oa-recipient-ink:var(--oa-iris-ice);
+ display:flex;align-items:center;gap:6px;min-width:0;
+ color:color-mix(in srgb,var(--oa-recipient-ink) 36%,var(--oa-text));font-size:12px;font-weight:500
+}
+#onde-app-v1 .oa-task-recipient[data-recipient=b]{--oa-recipient-ink:var(--oa-iris-violet)}
+#onde-app-v1 .oa-task-initial{
+ display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;
+ border:1px solid color-mix(in srgb,var(--oa-recipient-ink) 55%,transparent);
+ background:color-mix(in srgb,var(--oa-recipient-ink) 18%,var(--oa-panel-inset));font-size:11px
+}
+#onde-app-v1 .oa-task-recipient-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Keep the proposal alongside its title where readable, wrapping naturally on narrow cards. */
-#onde-app-v1 .oa-task-heading{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:4px;margin:12px 0 16px;min-width:0}
+#onde-app-v1 .oa-task-heading{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:4px;margin:8px 0 10px;min-width:0}
 #onde-app-v1 .oa-task-heading h2{flex:0 1 auto;min-width:0;max-width:100%;margin:0;overflow-wrap:anywhere}
 #onde-app-v1 .oa-task-heading .oa-task-proposal{flex:0 1 auto;min-width:min(100%,8.5rem);max-width:100%;margin:0;overflow-wrap:anywhere}
 #onde-app-v1 .oa-roll-formula svg,#onde-app-v1 .oa-roll-formula b{width:22px;height:22px}
@@ -937,6 +950,8 @@
 #onde-app-v1 .oa-mission-transfer{margin:12px 0;text-align:center;color:var(--oa-muted);font-size:12px}
 #onde-app-v1 .oa-task-top time{display:inline-flex;align-items:center;gap:5px;color:#d1ebf5;border-color:#a1c8dd4a;background:#182b3f66}
 #onde-app-v1 .oa-task-top time::before{content:"";width:4px;height:4px;border-radius:50%;background:#a3d6e4;box-shadow:0 0 5px #a3d6e472}
+#onde-app-v1 .oa-task-deadline{display:flex;flex:none;align-items:center;gap:7px}
+#onde-app-v1 .oa-task-penalty{color:#efd4a9;letter-spacing:0;font-size:11px;white-space:nowrap}
 #onde-app-v1 :is(.oa-task-check[data-check-player=a],.oa-info-checks>.oa-check-box:first-child){--oa-check-tint:#93d3e0;--oa-check-depth:#528ba3}
 #onde-app-v1 :is(.oa-task-check[data-check-player=b],.oa-info-checks>.oa-check-box:last-child){--oa-check-tint:#c9b3dd;--oa-check-depth:#9178b0}
 #onde-app-v1 .oa-task-check .oa-check-box{border-color:color-mix(in srgb,var(--oa-check-tint) 49%,transparent)}
