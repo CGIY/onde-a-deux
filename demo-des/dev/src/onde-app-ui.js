@@ -867,6 +867,17 @@
   const progress=panel.querySelector('.oa-info-progress i');
   const agreement=panel.querySelector('.oa-info-agreement');
   const rhythm=panel.querySelector('.oa-libido.benchmarks');
+  let disposed=false;
+  if(rhythm&&remoteMode&&remote?.loadRhythm){
+   remote.loadRhythm().then(data=>{
+    if(!data||disposed||!remote.authenticated)return;
+    const number=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
+    const date=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]'))element.textContent=number.format(data[element.dataset.rhythmRate]);
+    rhythm.querySelector('[data-rhythm-dates]').textContent=date.formatRange(new Date(data.start),new Date(data.end));
+    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=false);
+   }).catch(()=>{});
+  }
   const highlight=panel.querySelector('.dest-featured');
   const invitation=panel.querySelector('.women-invitation');
   const [ink,rest]=invitation?.querySelector('.women-invitation-ink')?.children||[];
@@ -962,6 +973,7 @@
   updateProgress();
   updateMotion();
   return {refresh,updateMotion,dispose(){
+   disposed=true;
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);

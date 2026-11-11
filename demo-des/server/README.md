@@ -15,6 +15,8 @@ Pour une base neuve, appliquer les schémas consolidés dans cet ordre :
 
 Sur une base existante, appliquer uniquement les migrations manquantes de `migrations/`, dans l’ordre de leur version. Ne pas rejouer ces anciennes migrations par-dessus une installation des schémas consolidés : elles décrivent les états antérieurs de la base.
 
+Pour « Notre rythme » dans le Carnet, appliquer la migration `desir_private_rhythm` avant de publier la fonction Edge. La colonne apparaît pour un duo après ajout de ses dates et comptes agrégés dans la base privée. Le serveur vérifie la session avant de lire cette ligne.
+
 Pour les prolongations, appliquer `20261110215418_desir_task_reminder_deadline.sql` avant le déploiement de `desir-game`. Le planificateur peut alors créer un rappel à la nouvelle échéance, et le worker écarte un rappel encore en attente qui correspond à l’ancienne.
 
 Pour la gestion des appareils, appliquer d’abord `20261110084051_desir_revoke_sessions.sql`, puis déployer la fonction `desir-game`, puis publier le client web. La fonction ne permet de révoquer que les sessions du compte appelant et retire les abonnements push des appareils révoqués. Pour une installation neuve par schémas consolidés, appliquer `revoke-sessions.sql` après `schema.sql` et `push-schema.sql`.

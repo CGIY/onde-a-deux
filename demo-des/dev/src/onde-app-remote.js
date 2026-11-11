@@ -285,6 +285,20 @@
   }
   const logout=()=>changeSessions('current');
   const revokeOtherDevices=()=>changeSessions('others');
+  async function loadRhythm(){
+   requireConnection();
+   const identity=connection;
+   const raw=await request({op:'rhythm'},identity.token,1,false);
+   if(connection!==identity||authFailed)throw connectionChanged();
+   const data=raw?.rhythm;
+   if(!data)return null;
+   const start=data.started_on,end=data.ended_on;
+   const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)?Date.parse(value):NaN;
+   const days=(day(end)-day(start))/86400000;
+   const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal;
+   if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration)return null;
+   return {start,end,withPenetration:withPenetration*7/days,withoutPenetration:withoutPenetration*7/days,anal:anal*7/days,total:(withPenetration+withoutPenetration)*7/days};
+  }
   async function loadPortraits(){
    requireConnection();
    const identity=connection;
@@ -372,7 +386,7 @@
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||5000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',online);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',online);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,loadRhythm,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

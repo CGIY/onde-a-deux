@@ -251,6 +251,21 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  equal(saved.state,before);equal(saved.revision,revision);equal(saved.used.size,0);equal(saved.receipts.size,0);
 }
 
+{
+ const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
+ const fixture={started_on:'2030-01-01',ended_on:'2030-02-01',with_penetration:4,without_penetration:7,anal:2};
+ const paths=[];
+ saved.request=async path=>{paths.push(path);return [fixture];};
+ const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-rhythm'}));
+ for(const token of [tokenA,tokenB]){
+  const reply=await deliver({op:'rhythm',gameVersion:8},token);
+  equal(reply.status,200);equal(reply.body,{rhythm:fixture});equal(reply.headers.get('cache-control'),'no-store');
+ }
+ equal((await deliver({op:'rhythm',gameVersion:8,roomId:'other-room'})).status,400);
+ equal((await deliver({op:'rhythm',gameVersion:8},Buffer.alloc(32,3).toString('base64url'))).status,401);
+ equal(paths,Array(2).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal&room_id=eq.'+roomId));
+}
+
 // Outdated clients receive a safe upgrade before migration or any game mutation.
 {
  const saved=new MemoryStore();await authorize(saved);

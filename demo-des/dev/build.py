@@ -143,14 +143,21 @@ def libido_modules():
             body = body.replace('des <b>étudiants ayant un partenaire</b> interrogés déclarent des jeux rudes avec lui.',
                                 'des étudiants interrogés ayant un partenaire déclarent des jeux rudes.')
         if key == 'benchmarks':
-            body = body.replace('Sur les 7 jours étudiés · France · Ipsos 2015', 'Sur sept jours, en France')
-            body = body.replace('<small>Repère international · sondage commercial</small>', '')
-            body = re.sub(r'<span>(≈ [^<]+)<br>\s*<strong>(.*?)</strong>\s*</span>',
-                          r'<strong class="frequency-label">\2</strong><span class="frequency-estimate">\1</span>',
-                          body, flags=re.S)
-            body = body.replace('<br>par semaine', ' par semaine')
-            body = body.replace('>au moins 1 rapport', '>Au moins 1 rapport')
-            body = body.replace('<br>chez les 18–24 ans interrogés', ' · chez les 18–24 ans interrogés')
+            shares = re.findall(r'data-count="([0-9]+)"', body)
+            if len(shares) != 3:
+                raise SystemExit('Expected two couple benchmarks and one anal benchmark.')
+            weekly, frequent, anal = shares
+            body = f"""
+<table class="oa-rhythm-table" aria-label="Fréquences par semaine">
+  <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Avec pénétration</th><td><span><b>≥1</b> · {weekly} %</span> <span><b>≥3</b> · {frequent} %</span></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Sans pénétration</th><td><b>≈3</b> <small>indicatif</small></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Pénétration anale</th><td><span><b>≥1</b> · {anal} %</span> <small>18–24 ans</small></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
+  </tbody>
+</table>
+<div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
+"""
         if key == 'women':
             body = body.split('<div class="women-porn">', 1)[0]
             body = body.replace('<p class="women-kicker">Fantasmes déclarés</p>', '')
@@ -195,6 +202,8 @@ def libido_modules():
         raise SystemExit('Missing libido cards in p/index.html.')
 
     def reading_section(key, content, *, nested=False):
+        if key == 'benchmarks':
+            return f'<section class="oa-info-card oa-libido benchmarks" id="oa-libido-card-benchmarks" aria-label="Fréquences hebdomadaires">{content}</section>'
         label, title = titles[key]
         css_class = 'oa-libido-subsection' if nested else f'oa-info-card oa-libido {key}'
         heading = 'h3' if nested else 'h2'

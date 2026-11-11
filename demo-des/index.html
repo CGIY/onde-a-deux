@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.9">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.10">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -1075,33 +1075,16 @@
 #onde-app-v1 .oa-reroll-frequency{color:#b4c4d8;font-weight:400}
 </style>
 <template id="oa-libido-places"><section class="oa-info-card oa-libido places" id="oa-libido-card-places" aria-labelledby="oa-libido-title-places"><p class="oa-info-kicker">Lieux et expériences</p><h2 id="oa-libido-title-places">Au-delà de la chambre.</h2><p class="place-intro">Les lieux expérimentés par les Français.</p><div class="place-chart"><div class="place-row" data-frequency="high"><span>Douche / baignoire</span><div class="place-track" role="img" aria-label="Douche / baignoire : 72 pour cent"><i style="--width:72%"></i></div><b><span class="count-value" data-info-count="72" aria-hidden="true">72</span><span class="oa-sr">72</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Voiture</span><div class="place-track" role="img" aria-label="Voiture : 63 pour cent"><i style="--width:63%"></i></div><b><span class="count-value" data-info-count="63" aria-hidden="true">63</span><span class="oa-sr">63</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Cuisine</span><div class="place-track" role="img" aria-label="Cuisine : 58 pour cent"><i style="--width:58%"></i></div><b><span class="count-value" data-info-count="58" aria-hidden="true">58</span><span class="oa-sr">58</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Table</span><div class="place-track" role="img" aria-label="Table : 56 pour cent"><i style="--width:56%"></i></div><b><span class="count-value" data-info-count="56" aria-hidden="true">56</span><span class="oa-sr">56</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Dans la nature<small class="place-average">Moyenne de 3 lieux</small></span><div class="place-track" aria-hidden="true"><i style="--width:37%"></i></div><b><span aria-hidden="true">≈</span><span class="count-value" data-info-count="37" aria-hidden="true">37</span><span class="oa-sr">Environ 37</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Ascenseur</span><div class="place-track" role="img" aria-label="Ascenseur : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Train</span><div class="place-track" role="img" aria-label="Train : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div></div><p class="base">Expériences de couples cohabitants en France</p><div class="place-fantasies"><p>Endroits originaux · fantasmes</p><div class="place-fantasy-grid"><div><span>Cabine d’essayage</span><b><span class="count-value" data-info-count="39" aria-hidden="true">39</span><span class="oa-sr">39</span><small>%</small></b></div><div class="place-fantasy-featured"><span>Lieux de culte / religieux</span><b><span class="count-value" data-info-count="11" aria-hidden="true">11</span><span class="oa-sr">11</span><small>%</small></b></div></div></div></section></template>
-<template id="oa-libido-benchmarks"><section class="oa-info-card oa-libido benchmarks" id="oa-libido-card-benchmarks" aria-labelledby="oa-libido-title-benchmarks"><p class="oa-info-kicker">Fréquence déclarée</p><h2 id="oa-libido-title-benchmarks">Les rythmes du couple.</h2>
-
-
-<div class="frequency-refs">
-<div>
-<b><span class="count-value" data-info-count="68" aria-hidden="true">68</span><span class="oa-sr">68</span><small>%</small>
-</b>
-<strong class="frequency-label">Au moins 1 rapport par semaine</strong><span class="frequency-estimate">≈ 2 couples sur 3</span>
-</div>
-<div>
-<b><span class="count-value" data-info-count="26" aria-hidden="true">26</span><span class="oa-sr">26</span><small>%</small>
-</b>
-<strong class="frequency-label">3 rapports ou plus par semaine</strong><span class="frequency-estimate">≈ 1 couple sur 4</span>
-</div>
-</div>
-<p class="base">Sur sept jours, en France</p><div class="anal-benchmark">
-<div class="anal-value"><span class="count-value" data-info-count="55" aria-hidden="true">55</span><span class="oa-sr">55</span><small>%</small>
-</div>
-<div>
-<h3>Pénétration anale</h3>
-<p>
-<b>Au moins 1× / semaine</b>
- · chez les 18–24 ans interrogés</p>
-
-</div>
-
-</div>
+<template id="oa-libido-benchmarks"><section class="oa-info-card oa-libido benchmarks" id="oa-libido-card-benchmarks" aria-label="Fréquences hebdomadaires">
+<table class="oa-rhythm-table" aria-label="Fréquences par semaine">
+  <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Avec pénétration</th><td><span><b>≥1</b> · 68 %</span> <span><b>≥3</b> · 26 %</span></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Sans pénétration</th><td><b>≈3</b> <small>indicatif</small></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Pénétration anale</th><td><span><b>≥1</b> · 55 %</span> <small>18–24 ans</small></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
+  </tbody>
+</table>
+<div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
 </section></template>
 <template id="oa-libido-destinations"><section class="oa-info-card oa-libido destinations" id="oa-libido-card-destinations" aria-labelledby="oa-libido-title-destinations"><p class="oa-info-kicker">Enquête et préférences</p><h2 id="oa-libido-title-destinations">Où va le sperme ?</h2>
 
@@ -1168,8 +1151,29 @@
 #onde-app-v1 .oa-libido.women{--oa-panel-tint:var(--oa-iris-quartz);--chart:#ecc5a3;border-color:#c7a48a48}
 #onde-app-v1 .oa-libido.benchmarks{padding:8px 11px}
 #onde-app-v1 .oa-libido.benchmarks::before{
- background:radial-gradient(ellipse at 74% 0%,#ffe3b184,transparent 72%),var(--oa-grain) 0 0/128px;
+ background:radial-gradient(ellipse at 74% 0%,#c294d42c,transparent 72%),var(--oa-grain) 0 0/128px;
 }
+#onde-app-v1 .oa-rhythm-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0 3px;font-size:11px;line-height:1.3}
+#onde-app-v1 .oa-rhythm-table :is(th,td){padding:4px 5px;text-align:left;vertical-align:middle}
+#onde-app-v1 .oa-rhythm-table th{font-weight:500}
+#onde-app-v1 .oa-rhythm-table thead th{color:#c6bdd7}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(1){width:37%}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(2){width:36%}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(3){width:27%;color:#f1cfdd;text-align:center}
+#onde-app-v1 .oa-rhythm-table tbody th{background:#282a3c;border-radius:7px 0 0 7px}
+#onde-app-v1 .oa-rhythm-table tbody td{background:#282a3c;color:#dfd4ec}
+#onde-app-v1 .oa-rhythm-table tbody :is(td>span,small){white-space:nowrap}
+#onde-app-v1 .oa-rhythm-table b{font-weight:550;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-rhythm-table small{font-size:inherit;color:#c4bbd1}
+#onde-app-v1 .oa-rhythm-table tbody .oa-rhythm-value{
+ text-align:center;border-radius:7px;border:1px solid #8e5067;
+ background:radial-gradient(ellipse at top right,#a34d7177,transparent 68%),linear-gradient(125deg,#5a304b,#39273f);
+ box-shadow:inset 0 1px #f59baf30;color:#ff8b96;text-shadow:0 0 7px #ff677641;
+ font-size:16px;font-weight:500;font-variant-numeric:tabular-nums
+}
+#onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:3px 5px 0;color:#c6bdd7;font-size:11px}
+#onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
+#onde-app-v1 [data-rhythm-personal][hidden]{display:none}
 #onde-app-v1 .oa-libido h2{margin-bottom:8px}
 #onde-app-v1 .oa-libido h3{font-size:12px;line-height:1.3;font-weight:550}
 #onde-app-v1 .oa-libido-subsection{margin-top:10px;padding-top:10px;border-top:1px solid var(--chart-line)}
@@ -4783,6 +4787,20 @@ void main(){
   }
   const logout=()=>changeSessions('current');
   const revokeOtherDevices=()=>changeSessions('others');
+  async function loadRhythm(){
+   requireConnection();
+   const identity=connection;
+   const raw=await request({op:'rhythm'},identity.token,1,false);
+   if(connection!==identity||authFailed)throw connectionChanged();
+   const data=raw?.rhythm;
+   if(!data)return null;
+   const start=data.started_on,end=data.ended_on;
+   const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)?Date.parse(value):NaN;
+   const days=(day(end)-day(start))/86400000;
+   const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal;
+   if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration)return null;
+   return {start,end,withPenetration:withPenetration*7/days,withoutPenetration:withoutPenetration*7/days,anal:anal*7/days,total:(withPenetration+withoutPenetration)*7/days};
+  }
   async function loadPortraits(){
    requireConnection();
    const identity=connection;
@@ -4870,7 +4888,7 @@ void main(){
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||5000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',online);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',online);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,loadRhythm,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
@@ -5830,6 +5848,17 @@ void main(){
   const progress=panel.querySelector('.oa-info-progress i');
   const agreement=panel.querySelector('.oa-info-agreement');
   const rhythm=panel.querySelector('.oa-libido.benchmarks');
+  let disposed=false;
+  if(rhythm&&remoteMode&&remote?.loadRhythm){
+   remote.loadRhythm().then(data=>{
+    if(!data||disposed||!remote.authenticated)return;
+    const number=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
+    const date=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]'))element.textContent=number.format(data[element.dataset.rhythmRate]);
+    rhythm.querySelector('[data-rhythm-dates]').textContent=date.formatRange(new Date(data.start),new Date(data.end));
+    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=false);
+   }).catch(()=>{});
+  }
   const highlight=panel.querySelector('.dest-featured');
   const invitation=panel.querySelector('.women-invitation');
   const [ink,rest]=invitation?.querySelector('.women-invitation-ink')?.children||[];
@@ -5925,6 +5954,7 @@ void main(){
   updateProgress();
   updateMotion();
   return {refresh,updateMotion,dispose(){
+   disposed=true;
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);
