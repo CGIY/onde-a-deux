@@ -867,16 +867,66 @@
   const progress=panel.querySelector('.oa-info-progress i');
   const agreement=panel.querySelector('.oa-info-agreement');
   const rhythm=panel.querySelector('.oa-libido.benchmarks');
-  let disposed=false;
+  let disposed=false,readingRhythm=false,recordingRhythm=false,rhythmVersion=0,rhythmTimer;
+  const editor=rhythm?.querySelector('[data-rhythm-editor]');
+  const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
+  const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
+  const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
+  const shareFormat=new Intl.NumberFormat('fr-FR',{style:'percent',maximumFractionDigits:0});
+  const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+  function renderRhythm(data){
+   for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
+    element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
+   }
+   for(const element of rhythm.querySelectorAll('[data-rhythm-share]')){
+    element.textContent=data?.shares?shareFormat.format(data.shares[element.dataset.rhythmShare]):data?'—':'';
+   }
+   rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
+   rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
+   if(editor){
+    editor.hidden=!(data?.canRecord&&remote.recordRhythm);
+    if(editor.hidden){editor.open=false;rhythmStatus.textContent='';}
+   }
+  }
+  async function refreshRhythm(){
+   if(disposed||document.hidden||readingRhythm||recordingRhythm)return;
+   if(!remote.authenticated){renderRhythm(null);return;}
+   readingRhythm=true;
+   const version=rhythmVersion;
+   try{
+    const data=await remote.loadRhythm();
+    if(!disposed&&version===rhythmVersion)renderRhythm(remote.authenticated?data:null);
+   }catch(error){
+    if(!disposed&&version===rhythmVersion&&(!remote.authenticated||error.status===401))renderRhythm(null);
+   }finally{readingRhythm=false;}
+  }
+  async function addRhythm(event){
+   const button=event.target.closest('[data-rhythm-add]');
+   if(!button||editor.hidden||recordingRhythm||!remote.authenticated)return;
+   recordingRhythm=true;
+   rhythmVersion++;
+   for(const choice of rhythmButtons)choice.disabled=true;
+   rhythmStatus.textContent='Enregistrement…';
+   try{
+    const data=await remote.recordRhythm(button.dataset.rhythmAdd);
+    if(disposed)return;
+    renderRhythm(remote.authenticated?data:null);
+    if(!editor.hidden)rhythmStatus.textContent='Rapport enregistré.';
+   }catch(error){
+    if(disposed)return;
+    if(!remote.authenticated)renderRhythm(null);
+    else if(error.status===403)editor.hidden=true;
+    else rhythmStatus.textContent=error.code==='pending_action'?error.message:'Saisie à confirmer. Retouche la même catégorie.';
+   }finally{
+    recordingRhythm=false;
+    if(!disposed)for(const choice of rhythmButtons)choice.disabled=false;
+   }
+  }
   if(rhythm&&remoteMode&&remote?.loadRhythm){
-   remote.loadRhythm().then(data=>{
-    if(!data||disposed||!remote.authenticated)return;
-    const number=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
-    const date=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
-    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]'))element.textContent=number.format(data[element.dataset.rhythmRate]);
-    rhythm.querySelector('[data-rhythm-dates]').textContent=date.formatRange(new Date(data.start),new Date(data.end));
-    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=false);
-   }).catch(()=>{});
+   refreshRhythm();
+   rhythmTimer=window.setInterval?.(refreshRhythm,15000);
+   document.addEventListener('visibilitychange',refreshRhythm);
+   editor?.addEventListener('click',addRhythm);
   }
   const highlight=panel.querySelector('.dest-featured');
   const invitation=panel.querySelector('.women-invitation');
@@ -974,6 +1024,9 @@
   updateMotion();
   return {refresh,updateMotion,dispose(){
    disposed=true;
+   if(rhythmTimer!==undefined)window.clearInterval?.(rhythmTimer);
+   document.removeEventListener('visibilitychange',refreshRhythm);
+   editor?.removeEventListener('click',addRhythm);
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);

@@ -154,6 +154,9 @@ class WebBuild(BuildFixture):
         self.assertEqual(rhythm.count('scope="row"'), 3)
         self.assertEqual(rhythm.count('data-rhythm-personal hidden'), 5)
         self.assertIn('Notre rythme', rhythm)
+        self.assertEqual(rhythm.count('class="oa-rhythm-benchmarks"'), 3)
+        self.assertEqual(re.findall(r'<b><i>([≥≈])</i>([13])</b>', rhythm),
+                         [('≥', '1'), ('≥', '3'), ('≈', '3'), ('≥', '1')])
         self.assertNotIn('Les rythmes du couple.', rhythm)
         self.assertNotIn('class="place-extras"', html)
         women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]

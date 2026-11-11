@@ -151,12 +151,21 @@ def libido_modules():
 <table class="oa-rhythm-table" aria-label="Fréquences par semaine">
   <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
   <tbody>
-    <tr><th scope="row">Avec pénétration</th><td><span><b>≥1</b> · {weekly} %</span> <span><b>≥3</b> · {frequent} %</span></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Sans pénétration</th><td><b>≈3</b> <small>indicatif</small></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Pénétration anale</th><td><span><b>≥1</b> · {anal} %</span> <small>18–24 ans</small></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Avec pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>{weekly} %</small></span><span><b><i>≥</i>3</b><small>{frequent} %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="withPenetration"></span> <small data-rhythm-share="withPenetration"></small></td></tr>
+    <tr><th scope="row">Sans pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≈</i>3</b><small>indicatif</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="withoutPenetration"></span> <small data-rhythm-share="withoutPenetration"></small></td></tr>
+    <tr><th scope="row">Pénétration anale</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>{anal} % · 18–24 ans</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="anal"></span> <small data-rhythm-share="anal"></small></td></tr>
   </tbody>
 </table>
 <div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
+<details class="oa-rhythm-editor" data-rhythm-editor hidden>
+  <summary>Ajouter un rapport</summary>
+  <div class="oa-rhythm-choices">
+    <button type="button" data-rhythm-add="penetration">Avec pénétration (hors anal)</button>
+    <button type="button" data-rhythm-add="no_penetration">Sans pénétration</button>
+    <button type="button" data-rhythm-add="anal">Anal</button>
+  </div>
+  <p data-rhythm-status role="status"></p>
+</details>
 """
         if key == 'women':
             body = body.split('<div class="women-porn">', 1)[0]
