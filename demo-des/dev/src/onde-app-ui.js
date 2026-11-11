@@ -872,14 +872,10 @@
   const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
   const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
   const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
-  const shareFormat=new Intl.NumberFormat('fr-FR',{style:'percent',maximumFractionDigits:0});
   const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
   function renderRhythm(data){
    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
     element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
-   }
-   for(const element of rhythm.querySelectorAll('[data-rhythm-share]')){
-    element.textContent=data?.shares?shareFormat.format(data.shares[element.dataset.rhythmShare]):data?'—':'';
    }
    rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);

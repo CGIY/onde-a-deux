@@ -153,7 +153,12 @@ class WebBuild(BuildFixture):
         rhythm = re.search(r'<template id="oa-libido-benchmarks">(.*?)</template>', html, re.S)[1]
         self.assertEqual(rhythm.count('scope="row"'), 3)
         self.assertEqual(rhythm.count('data-rhythm-personal hidden'), 5)
-        self.assertIn('Notre rythme', rhythm)
+        self.assertEqual(re.findall(r'<th scope="col"[^>]*>(.*?)</th>', rhythm),
+                         ['Par semaine', '<small>Repères nationaux</small> <strong>Hebdomadaires</strong>', 'Notre rythme'])
+        self.assertEqual(re.findall(r'<td class="oa-rhythm-value" data-rhythm-rate="([^"]+)" data-rhythm-personal hidden></td>', rhythm),
+                         ['withPenetration', 'withoutPenetration', 'anal'])
+        self.assertNotIn('data-rhythm-share', rhythm)
+        self.assertEqual(rhythm.count('%'), 3)
         self.assertEqual(rhythm.count('class="oa-rhythm-benchmarks"'), 3)
         self.assertEqual(re.findall(r'<b><i>([≥≈])</i>([13])</b>', rhythm),
                          [('≥', '1'), ('≥', '3'), ('≈', '3'), ('≥', '1')])
