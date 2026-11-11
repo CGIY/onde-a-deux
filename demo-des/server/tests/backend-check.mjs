@@ -255,15 +255,34 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
  const fixture={started_on:'2030-01-01',ended_on:'2030-02-01',with_penetration:4,without_penetration:7,anal:2};
  const paths=[];
- saved.request=async path=>{paths.push(path);return [fixture];};
- const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-rhythm'}));
+ saved.request=async path=>{paths.push(path);return [{...fixture,editor_actor:'b'}];};
+ const rpc=saved.rpc.bind(saved);
+ saved.rpc=async (fn,args)=>{
+  if(fn!=='desir_record_rhythm')return rpc(fn,args);
+  const session=await rpc('desir_get_session',{p_token_hash:args.p_token_hash});
+  if(!session)return {status:'unauthorized'};
+  if(session.member.actor!=='b')return {status:'forbidden'};
+  return {status:'ok',rhythm:{...fixture,ended_on:'2030-02-02',with_penetration:5,anal:3}};
+ };
+ let instant='2030-02-01T22:59:59.000Z';
+ const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-rhythm',clock:()=>new Date(instant)}));
  for(const token of [tokenA,tokenB]){
   const reply=await deliver({op:'rhythm',gameVersion:8},token);
-  equal(reply.status,200);equal(reply.body,{rhythm:fixture});equal(reply.headers.get('cache-control'),'no-store');
+  equal(reply.status,200);equal(reply.body,{rhythm:fixture,canRecord:token===tokenB});equal(reply.headers.get('cache-control'),'no-store');
  }
+ instant='2030-02-01T23:00:00.000Z';
+ const midnight=await deliver({op:'rhythm',gameVersion:8},tokenA);
+ equal(midnight.body,{rhythm:{...fixture,ended_on:'2030-02-02'},canRecord:false});
  equal((await deliver({op:'rhythm',gameVersion:8,roomId:'other-room'})).status,400);
  equal((await deliver({op:'rhythm',gameVersion:8},Buffer.alloc(32,3).toString('base64url'))).status,401);
- equal(paths,Array(2).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal&room_id=eq.'+roomId));
+ equal(paths,Array(3).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,editor_actor&room_id=eq.'+roomId));
+ const add={op:'rhythm_add',gameVersion:8,requestId:uuid(510),kind:'anal'};
+ equal((await deliver(add,tokenA)).status,403);
+ equal((await deliver({...add,actor:'b'},tokenA)).status,400);
+ equal((await deliver({...add,kind:'other'},tokenB)).status,400);
+ const written=await deliver(add,tokenB);
+ equal(written.status,200);equal(written.body,{rhythm:{...fixture,ended_on:'2030-02-02',with_penetration:5,anal:3},canRecord:true});
+ equal(written.headers.get('cache-control'),'no-store');
 }
 
 // Outdated clients receive a safe upgrade before migration or any game mutation.

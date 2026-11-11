@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.10">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.11">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -1079,12 +1079,21 @@
 <table class="oa-rhythm-table" aria-label="Fréquences par semaine">
   <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
   <tbody>
-    <tr><th scope="row">Avec pénétration</th><td><span><b>≥1</b> · 68 %</span> <span><b>≥3</b> · 26 %</span></td><td class="oa-rhythm-value" data-rhythm-rate="withPenetration" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Sans pénétration</th><td><b>≈3</b> <small>indicatif</small></td><td class="oa-rhythm-value" data-rhythm-rate="withoutPenetration" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Pénétration anale</th><td><span><b>≥1</b> · 55 %</span> <small>18–24 ans</small></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
+    <tr><th scope="row">Avec pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>68 %</small></span><span><b><i>≥</i>3</b><small>26 %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="withPenetration"></span> <small data-rhythm-share="withPenetration"></small></td></tr>
+    <tr><th scope="row">Sans pénétration</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≈</i>3</b><small>indicatif</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="withoutPenetration"></span> <small data-rhythm-share="withoutPenetration"></small></td></tr>
+    <tr><th scope="row">Pénétration anale</th><td><div class="oa-rhythm-benchmarks"><span><b><i>≥</i>1</b><small>55 % · 18–24 ans</small></span></div></td><td class="oa-rhythm-value" data-rhythm-personal hidden><span data-rhythm-rate="anal"></span> <small data-rhythm-share="anal"></small></td></tr>
   </tbody>
 </table>
 <div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
+<details class="oa-rhythm-editor" data-rhythm-editor hidden>
+  <summary>Ajouter un rapport</summary>
+  <div class="oa-rhythm-choices">
+    <button type="button" data-rhythm-add="penetration">Avec pénétration (hors anal)</button>
+    <button type="button" data-rhythm-add="no_penetration">Sans pénétration</button>
+    <button type="button" data-rhythm-add="anal">Anal</button>
+  </div>
+  <p data-rhythm-status role="status"></p>
+</details>
 </section></template>
 <template id="oa-libido-destinations"><section class="oa-info-card oa-libido destinations" id="oa-libido-card-destinations" aria-labelledby="oa-libido-title-destinations"><p class="oa-info-kicker">Enquête et préférences</p><h2 id="oa-libido-title-destinations">Où va le sperme ?</h2>
 
@@ -1158,13 +1167,16 @@
 #onde-app-v1 .oa-rhythm-table th{font-weight:500}
 #onde-app-v1 .oa-rhythm-table thead th{color:#c6bdd7}
 #onde-app-v1 .oa-rhythm-table thead th:nth-child(1){width:37%}
-#onde-app-v1 .oa-rhythm-table thead th:nth-child(2){width:36%}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(2){width:36%;text-align:center}
 #onde-app-v1 .oa-rhythm-table thead th:nth-child(3){width:27%;color:#f1cfdd;text-align:center}
 #onde-app-v1 .oa-rhythm-table tbody th{background:#282a3c;border-radius:7px 0 0 7px}
 #onde-app-v1 .oa-rhythm-table tbody td{background:#282a3c;color:#dfd4ec}
-#onde-app-v1 .oa-rhythm-table tbody :is(td>span,small){white-space:nowrap}
-#onde-app-v1 .oa-rhythm-table b{font-weight:550;font-variant-numeric:tabular-nums}
-#onde-app-v1 .oa-rhythm-table small{font-size:inherit;color:#c4bbd1}
+#onde-app-v1 .oa-rhythm-table .oa-rhythm-value :is(span,small){white-space:nowrap}
+#onde-app-v1 .oa-rhythm-benchmarks{display:flex;justify-content:center;gap:2px 10px;text-align:center}
+#onde-app-v1 .oa-rhythm-benchmarks span{display:grid;justify-items:center}
+#onde-app-v1 .oa-rhythm-benchmarks b{color:#f3edf9;font-size:16px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-rhythm-benchmarks i{color:#d0c5dc;font-style:normal;font-size:.75em}
+#onde-app-v1 .oa-rhythm-benchmarks small{font-size:9px;line-height:1.15;color:#c4bbd1;white-space:normal}
 #onde-app-v1 .oa-rhythm-table tbody .oa-rhythm-value{
  text-align:center;border-radius:7px;border:1px solid #8e5067;
  background:radial-gradient(ellipse at top right,#a34d7177,transparent 68%),linear-gradient(125deg,#5a304b,#39273f);
@@ -1173,7 +1185,18 @@
 }
 #onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:3px 5px 0;color:#c6bdd7;font-size:11px}
 #onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
-#onde-app-v1 [data-rhythm-personal][hidden]{display:none}
+#onde-app-v1 .oa-rhythm-table .oa-rhythm-value small{color:#f1cfdd;font-size:10px;text-shadow:none}
+#onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor])[hidden]{display:none}
+#onde-app-v1 .oa-rhythm-editor{margin-top:5px;padding:0 5px;color:#f1cfdd;font-size:11px}
+#onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;padding:6px 0}
+#onde-app-v1 .oa-rhythm-choices{display:flex;gap:4px;flex-wrap:wrap}
+#onde-app-v1 .oa-rhythm-choices button{
+ flex:1 1 auto;min-height:44px;padding:4px 8px;border:1px solid #8e5067;border-radius:7px;
+ background:#39273f;color:inherit;font:inherit;cursor:pointer
+}
+#onde-app-v1 .oa-rhythm-choices button:disabled{opacity:.6}
+#onde-app-v1 [data-rhythm-status]{margin:4px 0 0}
+#onde-app-v1 [data-rhythm-status]:empty{margin:0}
 #onde-app-v1 .oa-libido h2{margin-bottom:8px}
 #onde-app-v1 .oa-libido h3{font-size:12px;line-height:1.3;font-weight:550}
 #onde-app-v1 .oa-libido-subsection{margin-top:10px;padding-top:10px;border-top:1px solid var(--chart-line)}
@@ -4524,6 +4547,7 @@ void main(){
   let endpoint='';try{const url=new URL(config.endpoint);if(url.protocol==='https:'||(url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))endpoint=url.href;}catch(_){}
   const enabled=!!(endpoint&&G&&fetcher&&crypto?.getRandomValues);
   let connection=null,snapshot=null,refreshing=null,recovering=null,restoring=null,queue=Promise.resolve(),sessionOperation=false,started=false,pollTimer=null,registration=null,preparing=null,preparingIdentity=null,notificationReconcile=false,vapidKey=null,authFailed=false;
+  let pendingRhythm=null;
   let status={phase:enabled?'disconnected':'unconfigured',message:'',lastUpdated:null,errorCode:null};
   let notificationStatus={supported:false,permission:'unsupported',subscribed:false,reason:null,message:''};
   const listeners=new Set();
@@ -4779,7 +4803,7 @@ void main(){
      if(target==='current'&&error.status===401)confirmed=true;else throw error;
     }
     if(confirmed&&target==='current'){
-     connection=null;snapshot=null;authFailed=false;remove(storageKey);remove(registrationKey);remove(actionKey);
+     connection=null;snapshot=null;pendingRhythm=null;authFailed=false;remove(storageKey);remove(registrationKey);remove(actionKey);
      setNotification({subscribed:false});setStatus('disconnected');
     }
     return {revoked:true};
@@ -4787,11 +4811,7 @@ void main(){
   }
   const logout=()=>changeSessions('current');
   const revokeOtherDevices=()=>changeSessions('others');
-  async function loadRhythm(){
-   requireConnection();
-   const identity=connection;
-   const raw=await request({op:'rhythm'},identity.token,1,false);
-   if(connection!==identity||authFailed)throw connectionChanged();
+  function decodeRhythm(raw){
    const data=raw?.rhythm;
    if(!data)return null;
    const start=data.started_on,end=data.ended_on;
@@ -4799,7 +4819,42 @@ void main(){
    const days=(day(end)-day(start))/86400000;
    const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal;
    if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration)return null;
-   return {start,end,withPenetration:withPenetration*7/days,withoutPenetration:withoutPenetration*7/days,anal:anal*7/days,total:(withPenetration+withoutPenetration)*7/days};
+   const total=withPenetration+withoutPenetration;
+   return {
+    start,end,canRecord:raw.canRecord===true,
+    withPenetration:withPenetration*7/days,withoutPenetration:withoutPenetration*7/days,anal:anal*7/days,total:total*7/days,
+    shares:total?{withPenetration:withPenetration/total,withoutPenetration:withoutPenetration/total,anal:anal/total}:null
+   };
+  }
+  async function loadRhythm(){
+   requireConnection();
+   const identity=connection;
+   const raw=await request({op:'rhythm'},identity.token,1,false);
+   if(connection!==identity||authFailed)throw connectionChanged();
+   return decodeRhythm(raw);
+  }
+  function recordRhythm(kind){
+   return serial(async()=>{
+    requireConnection();
+    const identity=connection;
+    if(!['penetration','no_penetration','anal'].includes(kind))throw failure('invalid_request','Catégorie invalide.');
+    if(pendingRhythm?.identity!==identity)pendingRhythm=null;
+    if(pendingRhythm&&pendingRhythm.kind!==kind)throw failure('pending_action','Retouche la catégorie de la dernière saisie pour confirmer son enregistrement.');
+    const pending=pendingRhythm||{identity,kind,id:requestId()};
+    pendingRhythm=pending;
+    try{
+     const raw=await request({op:'rhythm_add',kind,requestId:pending.id},identity.token,2,false);
+     if(connection!==identity||authFailed)throw connectionChanged();
+     const data=decodeRhythm(raw);
+     if(!data?.canRecord)throw failure('invalid_response','La saisie n’a pas pu être confirmée. Retouche la même catégorie.');
+     pendingRhythm=null;
+     return data;
+    }catch(error){
+     if(connection!==identity||authFailed||error.status>=400&&error.status<500&&error.status!==429)pendingRhythm=null;
+     if(error.status===401&&connection===identity)markFailure(error);
+     throw error;
+    }
+   });
   }
   async function loadPortraits(){
    requireConnection();
@@ -4888,7 +4943,7 @@ void main(){
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||5000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',online);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',online);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,loadRhythm,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,loadRhythm,recordRhythm,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
@@ -5848,16 +5903,66 @@ void main(){
   const progress=panel.querySelector('.oa-info-progress i');
   const agreement=panel.querySelector('.oa-info-agreement');
   const rhythm=panel.querySelector('.oa-libido.benchmarks');
-  let disposed=false;
+  let disposed=false,readingRhythm=false,recordingRhythm=false,rhythmVersion=0,rhythmTimer;
+  const editor=rhythm?.querySelector('[data-rhythm-editor]');
+  const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
+  const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
+  const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
+  const shareFormat=new Intl.NumberFormat('fr-FR',{style:'percent',maximumFractionDigits:0});
+  const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+  function renderRhythm(data){
+   for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
+    element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
+   }
+   for(const element of rhythm.querySelectorAll('[data-rhythm-share]')){
+    element.textContent=data?.shares?shareFormat.format(data.shares[element.dataset.rhythmShare]):data?'—':'';
+   }
+   rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
+   rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
+   if(editor){
+    editor.hidden=!(data?.canRecord&&remote.recordRhythm);
+    if(editor.hidden){editor.open=false;rhythmStatus.textContent='';}
+   }
+  }
+  async function refreshRhythm(){
+   if(disposed||document.hidden||readingRhythm||recordingRhythm)return;
+   if(!remote.authenticated){renderRhythm(null);return;}
+   readingRhythm=true;
+   const version=rhythmVersion;
+   try{
+    const data=await remote.loadRhythm();
+    if(!disposed&&version===rhythmVersion)renderRhythm(remote.authenticated?data:null);
+   }catch(error){
+    if(!disposed&&version===rhythmVersion&&(!remote.authenticated||error.status===401))renderRhythm(null);
+   }finally{readingRhythm=false;}
+  }
+  async function addRhythm(event){
+   const button=event.target.closest('[data-rhythm-add]');
+   if(!button||editor.hidden||recordingRhythm||!remote.authenticated)return;
+   recordingRhythm=true;
+   rhythmVersion++;
+   for(const choice of rhythmButtons)choice.disabled=true;
+   rhythmStatus.textContent='Enregistrement…';
+   try{
+    const data=await remote.recordRhythm(button.dataset.rhythmAdd);
+    if(disposed)return;
+    renderRhythm(remote.authenticated?data:null);
+    if(!editor.hidden)rhythmStatus.textContent='Rapport enregistré.';
+   }catch(error){
+    if(disposed)return;
+    if(!remote.authenticated)renderRhythm(null);
+    else if(error.status===403)editor.hidden=true;
+    else rhythmStatus.textContent=error.code==='pending_action'?error.message:'Saisie à confirmer. Retouche la même catégorie.';
+   }finally{
+    recordingRhythm=false;
+    if(!disposed)for(const choice of rhythmButtons)choice.disabled=false;
+   }
+  }
   if(rhythm&&remoteMode&&remote?.loadRhythm){
-   remote.loadRhythm().then(data=>{
-    if(!data||disposed||!remote.authenticated)return;
-    const number=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
-    const date=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
-    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]'))element.textContent=number.format(data[element.dataset.rhythmRate]);
-    rhythm.querySelector('[data-rhythm-dates]').textContent=date.formatRange(new Date(data.start),new Date(data.end));
-    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=false);
-   }).catch(()=>{});
+   refreshRhythm();
+   rhythmTimer=window.setInterval?.(refreshRhythm,15000);
+   document.addEventListener('visibilitychange',refreshRhythm);
+   editor?.addEventListener('click',addRhythm);
   }
   const highlight=panel.querySelector('.dest-featured');
   const invitation=panel.querySelector('.women-invitation');
@@ -5955,6 +6060,9 @@ void main(){
   updateMotion();
   return {refresh,updateMotion,dispose(){
    disposed=true;
+   if(rhythmTimer!==undefined)window.clearInterval?.(rhythmTimer);
+   document.removeEventListener('visibilitychange',refreshRhythm);
+   editor?.removeEventListener('click',addRhythm);
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);

@@ -48,6 +48,32 @@ function badgeRoom(actor='a',sent=false){
   unavailable=true;await assert.rejects(r.loadPortraits(),{status:503});
   check(()=>assert.equal(r.authenticated,true));
  }
+ // Civil days advance the weekly rate; percentages change only with counts.
+ {
+  const storage=memory(),writes=[];
+  let loseReply=false;
+  const rhythm={started_on:'2030-02-01',ended_on:'2030-02-08',with_penetration:1,without_penetration:2,anal:0};
+  const r=create(config,env(async(url,options)=>{
+   const body=payload(options);
+   if(body.op==='login')return response(loginReply(options));
+   if(body.op==='rhythm')return response({rhythm,canRecord:true});
+   writes.push(body);
+   if(loseReply)return response({error:{code:'server_error'}},503);
+   return response({rhythm:{...rhythm,with_penetration:2,anal:1},canRecord:true});
+  },storage));
+  await r.login('fixture-a','fixture-secret');
+  const first=await r.loadRhythm();
+  rhythm.ended_on='2030-02-09';
+  const second=await r.loadRhythm();
+  check(()=>{assert.equal(first.total,3);assert.equal(second.total,21/8);assert.deepEqual(second.shares,first.shares);});
+  loseReply=true;
+  await assert.rejects(r.recordRhythm('anal'),{status:503});
+  await assert.rejects(r.recordRhythm('penetration'),{code:'pending_action'});
+  loseReply=false;
+  const recorded=await r.recordRhythm('anal');
+  check(()=>{assert.equal(writes.length,3);assert.equal(new Set(writes.map(write=>write.requestId)).size,1);assert.equal(recorded.total,28/8);assert.deepEqual(recorded.shares,{withPenetration:.5,withoutPenetration:.5,anal:.25});});
+  check(()=>assert.ok([...storage.values.values()].every(value=>!value.includes('2030-02-01')&&!value.includes(writes[0].requestId))));
+ }
  // New activity metadata is optional and only the streak and date are retained.
  {
   const activity={streak:2,lastDay:'2026-11-08'},r=create(config,env(async(url,options)=>{

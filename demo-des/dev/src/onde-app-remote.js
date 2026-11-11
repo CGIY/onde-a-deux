@@ -22,6 +22,7 @@
   let endpoint='';try{const url=new URL(config.endpoint);if(url.protocol==='https:'||(url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))endpoint=url.href;}catch(_){}
   const enabled=!!(endpoint&&G&&fetcher&&crypto?.getRandomValues);
   let connection=null,snapshot=null,refreshing=null,recovering=null,restoring=null,queue=Promise.resolve(),sessionOperation=false,started=false,pollTimer=null,registration=null,preparing=null,preparingIdentity=null,notificationReconcile=false,vapidKey=null,authFailed=false;
+  let pendingRhythm=null;
   let status={phase:enabled?'disconnected':'unconfigured',message:'',lastUpdated:null,errorCode:null};
   let notificationStatus={supported:false,permission:'unsupported',subscribed:false,reason:null,message:''};
   const listeners=new Set();
@@ -277,7 +278,7 @@
      if(target==='current'&&error.status===401)confirmed=true;else throw error;
     }
     if(confirmed&&target==='current'){
-     connection=null;snapshot=null;authFailed=false;remove(storageKey);remove(registrationKey);remove(actionKey);
+     connection=null;snapshot=null;pendingRhythm=null;authFailed=false;remove(storageKey);remove(registrationKey);remove(actionKey);
      setNotification({subscribed:false});setStatus('disconnected');
     }
     return {revoked:true};
@@ -285,11 +286,7 @@
   }
   const logout=()=>changeSessions('current');
   const revokeOtherDevices=()=>changeSessions('others');
-  async function loadRhythm(){
-   requireConnection();
-   const identity=connection;
-   const raw=await request({op:'rhythm'},identity.token,1,false);
-   if(connection!==identity||authFailed)throw connectionChanged();
+  function decodeRhythm(raw){
    const data=raw?.rhythm;
    if(!data)return null;
    const start=data.started_on,end=data.ended_on;
@@ -297,7 +294,42 @@
    const days=(day(end)-day(start))/86400000;
    const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal;
    if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration)return null;
-   return {start,end,withPenetration:withPenetration*7/days,withoutPenetration:withoutPenetration*7/days,anal:anal*7/days,total:(withPenetration+withoutPenetration)*7/days};
+   const total=withPenetration+withoutPenetration;
+   return {
+    start,end,canRecord:raw.canRecord===true,
+    withPenetration:withPenetration*7/days,withoutPenetration:withoutPenetration*7/days,anal:anal*7/days,total:total*7/days,
+    shares:total?{withPenetration:withPenetration/total,withoutPenetration:withoutPenetration/total,anal:anal/total}:null
+   };
+  }
+  async function loadRhythm(){
+   requireConnection();
+   const identity=connection;
+   const raw=await request({op:'rhythm'},identity.token,1,false);
+   if(connection!==identity||authFailed)throw connectionChanged();
+   return decodeRhythm(raw);
+  }
+  function recordRhythm(kind){
+   return serial(async()=>{
+    requireConnection();
+    const identity=connection;
+    if(!['penetration','no_penetration','anal'].includes(kind))throw failure('invalid_request','Catégorie invalide.');
+    if(pendingRhythm?.identity!==identity)pendingRhythm=null;
+    if(pendingRhythm&&pendingRhythm.kind!==kind)throw failure('pending_action','Retouche la catégorie de la dernière saisie pour confirmer son enregistrement.');
+    const pending=pendingRhythm||{identity,kind,id:requestId()};
+    pendingRhythm=pending;
+    try{
+     const raw=await request({op:'rhythm_add',kind,requestId:pending.id},identity.token,2,false);
+     if(connection!==identity||authFailed)throw connectionChanged();
+     const data=decodeRhythm(raw);
+     if(!data?.canRecord)throw failure('invalid_response','La saisie n’a pas pu être confirmée. Retouche la même catégorie.');
+     pendingRhythm=null;
+     return data;
+    }catch(error){
+     if(connection!==identity||authFailed||error.status>=400&&error.status<500&&error.status!==429)pendingRhythm=null;
+     if(error.status===401&&connection===identity)markFailure(error);
+     throw error;
+    }
+   });
   }
   async function loadPortraits(){
    requireConnection();
@@ -386,7 +418,7 @@
   function start(){if(started||!enabled)return;started=true;pollTimer=every(refreshQuietly,Number(config.pollIntervalMs)||5000);doc?.addEventListener?.('visibilitychange',visible);scope.addEventListener?.('online',online);scope.addEventListener?.('pageshow',visible);nav.serviceWorker?.addEventListener?.('message',pushMessage);if(nav.serviceWorker)serviceWorker().catch(()=>{});}
   function stop(){if(!started)return;started=false;if(pollTimer)cancelEvery(pollTimer);pollTimer=null;doc?.removeEventListener?.('visibilitychange',visible);scope.removeEventListener?.('online',online);scope.removeEventListener?.('pageshow',visible);nav.serviceWorker?.removeEventListener?.('message',pushMessage);}
   inspectNotifications();
-  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,loadRhythm,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
+  return Object.freeze({enabled,get authenticated(){return !!connection&&!authFailed;},get connection(){return connection?{roomId:connection.roomId,actor:connection.actor}:null;},get snapshot(){return clone(snapshot);},get status(){return {...status};},get notificationStatus(){return {...notificationStatus};},get pendingRegistration(){const value=storedLogin();return value?{op:value.op}:null;},restore,login,refresh,action,logout,revokeOtherDevices,loadPortraits,loadRhythm,recordRhythm,enableNotifications,prepareNotifications,start,stop,subscribeToChanges(listener){if(typeof listener!=='function')throw new TypeError('A listener is required.');listeners.add(listener);return ()=>listeners.delete(listener);}});
  }
  const api=Object.freeze({create});scope.OndeRemote=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

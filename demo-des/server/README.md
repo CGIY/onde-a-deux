@@ -17,6 +17,8 @@ Sur une base existante, appliquer uniquement les migrations manquantes de `migra
 
 Pour « Notre rythme » dans le Carnet, appliquer la migration `desir_private_rhythm` avant de publier la fonction Edge. La colonne apparaît pour un duo après ajout de ses dates et comptes agrégés dans la base privée. Le serveur vérifie la session avant de lire cette ligne.
 
+Pour activer la saisie, appliquer ensuite `20261111120749_desir_rhythm_entries.sql`, puis déployer la fonction Edge et le client. Renseigner `editor_actor` sur la seule ligne du duo, avec le rôle du compte autorisé vérifié dans `desir_accounts`. Une valeur nulle désactive la saisie. Le serveur calcule la fin de période à partir du jour de Paris, y compris en l’absence d’enregistrement.
+
 Pour les prolongations, appliquer `20261110215418_desir_task_reminder_deadline.sql` avant le déploiement de `desir-game`. Le planificateur peut alors créer un rappel à la nouvelle échéance, et le worker écarte un rappel encore en attente qui correspond à l’ancienne.
 
 Pour la gestion des appareils, appliquer d’abord `20261110084051_desir_revoke_sessions.sql`, puis déployer la fonction `desir-game`, puis publier le client web. La fonction ne permet de révoquer que les sessions du compte appelant et retire les abonnements push des appareils révoqués. Pour une installation neuve par schémas consolidés, appliquer `revoke-sessions.sql` après `schema.sql` et `push-schema.sql`.
@@ -38,6 +40,8 @@ Toutes les opérations utilisent `POST` JSON. Les requêtes du client indiquent 
 - `login` : `{op:"login", username, password}` et `Authorization: Bearer <session-prospective>`. Les identifiants sont normalisés en minuscules, sans accents ; le mot de passe reste exact. Le client génère et conserve auparavant 32 octets aléatoires encodés en base64url (43 caractères). La réponse ajoute `connection:{token,roomId,actor}`.
 - `state` : session existante, retour du snapshot courant et expiration des tâches selon l’horloge serveur.
 - `portraits` : session existante, portraits JPEG des membres de sa propre salle. Le client les conserve en mémoire.
+- `rhythm` : agrégats du duo et indicateur d’autorisation de saisie.
+- `rhythm_add` : `{op:"rhythm_add",requestId:<UUID>,kind:"penetration"|"no_penetration"|"anal"}` pour le compte autorisé. Un même UUID n’incrémente les compteurs qu’une fois. La catégorie anal incrémente aussi le compteur avec pénétration.
 - `action` : `{op:"action", requestId:<UUID>, action:{type,roundId,taskId?,checked?}}`.
 - `hardcore` : ancienne route retirée ; protocole 6 → HTTP 410 `mode_removed`, avant tout RPC, reçu, présence ou mutation. Les protocoles antérieurs reçoivent d’abord `upgrade_required`.
 - `push_config` : session existante, retour `{vapidPublicKey}`.

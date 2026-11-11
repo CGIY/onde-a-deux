@@ -36,6 +36,8 @@ try{
  await db.query('insert into public.desir_rooms(id,state) values($1,$2)',[room,JSON.stringify(G.createState())]);
  await db.query("insert into public.desir_room_portraits values($1,'a','/9j/2Q==')",[room]);
  await db.query("insert into public.desir_room_rhythm values($1,'2030-01-01','2030-02-01',4,7,2)",[room]);
+ await db.exec(await fs.readFile(new URL('../migrations/20261111120749_desir_rhythm_entries.sql',import.meta.url),'utf8'));
+ await db.query("update public.desir_room_rhythm set editor_actor='b' where room_id=$1",[room]);
  await db.query("insert into public.desir_accounts(actor,room_id,login_normalized,display_name,password_hash) values('a',$1,'alpha','Alpha',extensions.crypt('test-only-password',extensions.gen_salt('bf',12))),('b',$1,'bravo','Bravo',extensions.crypt('test-only-password',extensions.gen_salt('bf',12)))",[room]);
  const reminderAt='2030-01-01T12:00:00Z';
  async function enqueueReminder(expiresAt,at,expected){
@@ -61,12 +63,29 @@ try{
  const collision=await db.query('select public.desir_login($1,$2,$3) as result',['bravo','test-only-password','a'.repeat(64)]);if(collision.rows[0].result.error!=='session_conflict')throw Error('Token reassigned to another account');
  const portrait=await db.query('select jpeg_base64 from public.desir_room_portraits where room_id=$1',[room]);if(portrait.rows[0].jpeg_base64!=='/9j/2Q==')throw Error('Service cannot read the room portrait');
  const rhythm=await db.query('select anal from public.desir_room_rhythm where room_id=$1',[room]);if(rhythm.rows[0].anal!==2)throw Error('Service cannot read the private rhythm');
+ const writer=await db.query('select public.desir_login($1,$2,$3) as result',['bravo','test-only-password','b'.repeat(64)]);
+ if(writer.rows[0].result.actor!=='b')throw Error('Writer login failed');
+ const receipt='0eed386e-7853-4215-bbb7-5825dc8eb51c';
+ async function record(actor,kind,id=receipt){
+  const {rows:[{result}]}=await db.query('select public.desir_record_rhythm($1,$2,$3) as result',[actor.repeat(64),id,kind]);
+  return result;
+ }
+ if((await record('a','anal')).status!=='forbidden')throw Error('Reader was allowed to record');
+ if((await record('c','anal')).status!=='unauthorized')throw Error('Invalid session was allowed to record');
+ for(let attempt=0;attempt<2;attempt++){
+  const result=await record('b','anal');
+  if(result.status!=='ok'||result.rhythm.anal!==3||result.rhythm.with_penetration!==5||result.rhythm.without_penetration!==7||'editor_actor' in result.rhythm)throw Error('Anal write or replay counted incorrectly');
+ }
+ const result=await record('b','no_penetration','0eed386e-7853-4215-bbb7-5825dc8eb51d');
+ if(result.status!=='ok'||result.rhythm.without_penetration!==8||result.rhythm.with_penetration!==5)throw Error('Nonpenetrative write counted incorrectly');
  for(const role of ['anon','authenticated']){
   await db.exec('reset role;set role '+role);
   let denied=false;try{await db.query('select * from public.desir_room_portraits');}catch{denied=true;}
   if(!denied)throw Error('Private portrait read allowed for '+role);
   denied=false;try{await db.query('select * from public.desir_room_rhythm');}catch{denied=true;}
   if(!denied)throw Error('Private rhythm read allowed for '+role);
+  denied=false;try{await record('b','anal');}catch{denied=true;}
+  if(!denied)throw Error('Private rhythm RPC allowed for '+role);
  }
  await db.exec('reset role;set role anon');let denied=false;try{await db.query('select * from public.desir_accounts');}catch{denied=true;}if(!denied)throw Error('Anonymous account read allowed');
  console.log('Dés·ir actual PostgreSQL (PGlite 0.5.14 + pgcrypto): schema, personal draw readiness, quota/DST/CAS/receipt/ACL SQL suite, bcrypt login, service role session, token collision and anonymous denial PASS.');
