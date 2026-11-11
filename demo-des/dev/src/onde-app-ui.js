@@ -121,16 +121,17 @@
   : state.activePlayer===state.round.from;
  const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
  const serverStamp=()=>new Date(serverNow()).toISOString();
+ const hasRollStar=()=>G.cardRerollStars(ownState||state,viewPlayer,serverStamp()).balance>0;
  const canRerollCurrentCard=()=>G.canRerollCard(state,serverStamp());
  const parisToday=()=>G.parisDateKey(new Date(serverNow()).toISOString());
- const canRerollCategoryNow=()=>state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
- const jokerAvailable=()=>state.phase==='category'&&state.activePlayer===state.round.from&&!!state.joker&&state.joker.weekKey===G.isoWeekKey(new Date(serverNow()).toISOString())&&!state.joker.usedBy;
+ const canRerollCategoryNow=()=>hasRollStar()&&state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
+ const jokerAvailable=()=>hasRollStar()&&state.phase==='category'&&state.activePlayer===state.round.from&&!!state.joker&&state.joker.weekKey===G.isoWeekKey(new Date(serverNow()).toISOString())&&!state.joker.usedBy;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
  const chargeNow=()=>window.performance?.now?window.performance.now():Date.now();
  const chargeLimit=1200;
  function rollButton(target){const button=target.closest?.('[data-action]');return button&&root.contains(button)&&['roll','reroll'].includes(button.dataset.action)?button:null;}
  function canCharge(button){
-  if(!button||button.disabled||!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return false;
+  if(!button||button.disabled||!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady||!hasRollStar())return false;
   if(button.dataset.action==='reroll')return canRerollCurrentCard();
   return state.phase==='category'&&canDraw()&&(!remoteMode||remoteSnapshot?.quota?.remaining!==0)||['card','variant'].includes(state.phase)&&canDraw();
  }
@@ -281,7 +282,7 @@
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
   const now=serverNow(),nextQuotaAt=Date.parse(value.quota?.nextAt);
   const quotaClock=value.quota?.remaining===0&&Number.isFinite(nextQuotaAt)?(nextQuotaAt<=now?'elapsed':G.parisDateKey(now)):null;
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,canExtendTasks:value.canExtendTasks,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,canExtendTasks:value.canExtendTasks,penaltyTaskIds:value.penaltyTaskIds,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   loadMemberPortraits(value);
@@ -681,6 +682,11 @@
     stage(sides,'02 / UNE AUTRE CARTE',rerolling.cardRoll,'card'),'<p class="oa-die-readout" data-roll-status role="status" aria-busy="true"></p>',
     sides===8?'':handGrid({hand:rerolling.hand,catalogueVersion:rerolling.catalogueVersion,intimacyPool:rerolling.intimacyPool,discarded:{cardId:rerolling.cardId,slot:rerolling.cardRoll}}));
   }
+  if(!busy&&['category','card','variant'].includes(state.phase)&&!hasRollStar()){
+   const {nextAt}=G.cardRerollStars(ownState||state,viewPlayer,serverStamp());
+   return heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
+    (nextAt?'<div class="oa-next-draw" role="status">Prochaine étoile dans <strong>'+timeLeft({expiresAt:nextAt})+'</strong></div>':'');
+  }
   if(state.phase==='category')return rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
    stage(G.rules.categorySides,'01 / LE THÈME',3,'category',remoteSnapshot?.quota?.remaining===0?'':'Lancer le D'+G.rules.categorySides),categoryAction(),
    jokerAvailable()?'<div class="oa-actions">'+textBtn('Joker · choisir le thème','open-joker')+'</div>':'');
@@ -724,11 +730,14 @@
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'':'Confirmation du refus…')+'</p>';
   return '<h1 class="oa-title oa-missions-title">Les choses <em>à faire.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
    const c=G.getCard(task.cardId,roundVersion(task)),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;
+   const penalty=task.to===viewPlayer&&!task.checks[viewPlayer]&&(remoteMode?remoteSnapshot?.penaltyTaskIds?.includes(task.id):task.starPenalty);
+   const warning=penalty?'<span class="oa-task-penalty" title="Une étoile peut être retirée si ta case reste vide à l’échéance."><span aria-hidden="true">−1 ✦</span><span class="oa-sr">Une étoile peut être retirée si ta case reste vide à l’échéance.</span></span>':'';
    const remaining=timeLeft(task),status=taskStatus(task),target='data-task="'+h(task.id)+'"';
    const actions=(canExtendMission(task,at)?textBtn('+24 h <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>','extend-task-confirm',target+' aria-label="Prolonger de 24 heures pour une étoile"'):'')+
-    (task.to===viewPlayer?textBtn('Refuser · D20','refuse-task',target):'');
+    (task.to===viewPlayer?textBtn(hasRollStar()?'Refuser · D20':'Refuser','refuse-task',target):'');
    const meta='<div class="oa-task-meta">'+rollFormula(task,c)+taskRecipient(task)+'</div>';
-   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
+   const deadline='<div class="oa-task-deadline">'+warning+'<time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>';
+   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span>'+deadline+'</div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
   }).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+
    (state.phase==='accepted'?'<div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+'</div>':'');
  }
@@ -1217,7 +1226,8 @@
   const taskId=state.round.id;
   missionSending=true;
   try{
-   const changed=await dispatch({type:'SEND'},false);
+   const starPenalty=!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds);
+   const changed=await dispatch({type:'SEND',...(starPenalty?{starPenalty:true}:{})},false);
    const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);
    missionError=!queued&&state.phase==='draft'&&state.round.id===taskId?taskId:null;
    if(queued)tab='tasks';
@@ -1239,6 +1249,7 @@
  async function roll(reroll=false,power=0,direction=null){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
+  if(!hasRollStar()){render();return;}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
   const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round),hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
@@ -1341,21 +1352,23 @@
   if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady)return;
   const context={actor:viewPlayer,roomId:remote?.connection?.roomId,epoch:presentationEpoch},roundId=(ownState||state).round.id;
   const serial=++animationSerial;
-  refusal={taskId,title:G.getCard(task.cardId,roundVersion(task)).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
+  if(hasRollStar())refusal={taskId,title:G.getCard(task.cardId,roundVersion(task)).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
   tab='tasks';busy=true;render();setControlsBusy(true);
   try{
    let face;
    if(remoteMode){
     const value=await remote.action({type:'REFUSE_TASK',roundId,taskId});
-    if(!value.roll||value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
+    if(value.roll&&value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
     if(!presentationValid(context))return;
-    face=value.roll.value;
+    face=value.roll?.value;
     if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
-    face=G.randomInt(20);pullShared();const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
+    pullShared();face=hasRollStar()?G.randomInt(20):undefined;
+    const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
     if(next===localRoom)return;localRoom=next;save();
    }
    if(!presentationValid(context))return;
+   if(face===undefined||!refusal){announce('Carte refusée, sans pénalité.');toast('Carte refusée.');return;}
    refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='';
    if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
    if(presentationValid(context))announce('D20 : '+face+'. Carte refusée, sans pénalité.');
@@ -1387,12 +1400,14 @@
    ' Les cartes classiques ont ensuite une variante D6. Le lot Hardcore contient des cartes prêtes à jouer.';
   const rerollRule=stars?'Une relance de carte coûte une étoile. Chacun en gagne une toutes les 12 h, avec une réserve de trois et une dépense par jour.':'Une fois par tour, la carte peut être relancée avant d’être gardée.';
   const missionRule=stars?'La carte gardée rejoint les Missions. Elle y passe automatiquement quand la relance est épuisée.':'La carte gardée rejoint les Missions.';
+  const penaltyRule=(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds))?
+   ' Sur une nouvelle mission, une case vide à l’échéance peut coûter une étoile à son destinataire, une fois par jour. Le refus est gratuit. À zéro étoile, tu peux refuser directement et les dés reprennent à la recharge.':'';
   openSheet('Les règles.',
    '<div class="oa-rule"><b>↗</b><div><h3>Lancer le dé.</h3><p>Appuie sur le dé ou fais-le glisser dans la direction de ton choix. Maintiens avant de relâcher pour lui donner plus d’élan.</p></div></div>'+
    '<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div>'+
    '<div class="oa-rule"><b>'+(version>=4?'D8':'D6')+'</b><div><h3>La carte.</h3><p>'+cardRule+'</p></div></div>'+
    '<div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>'+rerollRule+'</p></div></div>'+
-   '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut refuser la carte avec le D20.</p></div></div>'+
+   '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut refuser la carte avec le D20.'+penaltyRule+'</p></div></div>'+
    '<div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans les Missions. Elles quittent la liste après vos deux coches, ou à l’expiration.'+(!remoteMode||remoteSnapshot?.canExtendTasks?' Chacun peut dépenser son étoile du jour pour prolonger une mission en cours de 24 h, une seule fois par mission.':'')+'</p></div></div>'+
    '<div class="oa-actions">'+btn('Fermer','close')+'</div>');
  }
@@ -1529,7 +1544,7 @@
  setInterval(async()=>{
   if(document.hidden||busy||operationBusy||missionSending||pendingChecks.size)return;
   if(welcomeDismissed&&(!remoteMode||remoteReady))updateStarBudget();
-  const needsReading=tab==='tasks'||tab==='play'&&state.phase==='draft';
+  const needsReading=tab==='tasks'||tab==='play';
   if(remoteMode){if(remoteReady&&needsReading)render();}
   else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='info')render();}
  },30000);

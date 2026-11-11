@@ -715,6 +715,59 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
  ok(G.validateRoom(saved.state));
 }
 
+// Missed missions debit the recipient once per Paris day. The roll lock is
+// enforced before randomness, but refusing an active mission needs no star.
+{
+ let time='2026-11-10T10:00:00.000Z',id=2700,draws=0;
+ const saved=new MemoryStore();saved.state=G.createRoom({at:time});await authorize(saved);
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{draws++;return 1;}},store:saved,rateSecret:'fixture-penalty',clock:()=>new Date(time)}));
+ const send=async starPenalty=>{
+  saved.used.delete('a');
+  const roundId=view(saved,'a').round.id;
+  for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND']){
+   const flags=type==='SEND'&&starPenalty?{starPenalty:true}:{};
+   equal((await deliver({...intent(type,id++,roundId,flags),gameVersion:8})).status,200);
+  }
+  return saved.state.tasks.at(-1);
+ };
+ const first=await send(true),second=await send(true);
+ const checked=await send(true);
+ equal((await deliver({...intent('TOGGLE_TASK_CHECK',id++,view(saved,'b').round.id,{taskId:checked.id,checked:true}),gameVersion:8},tokenB)).status,200);
+ const unmarked=await send(false);
+ const bRound=view(saved,'b').round.id;
+ const before=await deliver({op:'state',gameVersion:8},tokenB);
+ equal(before.body.penaltyTaskIds,[first.id,second.id,checked.id]);
+ ok(before.body.state.tasks.every(task=>!Object.hasOwn(task,'starPenalty')));
+ time='2026-11-10T11:00:00.000Z';
+ const declined=await send(true);
+ const future=await send(true);
+ time='2026-11-11T09:00:00.000Z';
+ saved.state.cardRerollWallets.b={balance:2,anchorAt:time,spentAt:time};
+ const refused=await deliver({...intent('REFUSE_TASK',id++,bRound,{taskId:declined.id}),gameVersion:8},tokenB);
+ equal(refused.status,200);equal(refused.body.roll.kind,20);
+ const senderWallet=clone(saved.state.cardRerollWallets.a);
+ time=first.expiresAt;
+ const concurrent=await Promise.all([deliver({op:'state',gameVersion:8},tokenA),deliver({op:'state',gameVersion:8},tokenB)]);
+ equal(concurrent.map(x=>x.status),[200,200]);
+ equal(saved.state.tasks.map(task=>task.id),[future.id]);
+ ok(!saved.state.tasks.some(task=>task.id===unmarked.id));
+ equal(saved.state.taskPenaltyDays,{a:null,b:G.parisDateKey(time)});
+ equal(saved.state.cardRerollWallets.a,senderWallet);
+ equal(G.cardRerollStars(saved.state,'b',time).balance,1);
+ equal(G.cardRerollStars(saved.state,'b',time).usedToday,true);
+ saved.state.cardRerollWallets.b.balance=0;
+ const beforeLock=draws;
+ for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW']){
+  const extra=type==='JOKER_DRAW'?{category:1}:{};
+  const locked=await deliver({...intent(type,id++,bRound,extra),gameVersion:8},tokenB);
+  equal(locked.status,409);equal(locked.body.error.code,'no_stars');
+ }
+ const plainRefusal=await deliver({...intent('REFUSE_TASK',id++,bRound,{taskId:future.id}),gameVersion:8},tokenB);
+ equal(plainRefusal.status,200);equal(plainRefusal.body.roll,undefined);equal(draws,beforeLock);
+ time='2026-11-11T21:00:00.000Z';
+ equal((await deliver({...intent('ROLL_CATEGORY',id++,bRound),gameVersion:8},tokenB)).status,200);
+}
+
 // Catalogue expansion keeps old attributed awards and imports only newly
 // introduced qualifications. A real 2 -> 3 completion is still a live gain,
 // committed once with the existing CAS and idempotency receipt.

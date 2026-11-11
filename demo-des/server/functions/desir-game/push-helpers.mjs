@@ -40,16 +40,16 @@ export async function validateSubscription(raw) {
   try {await crypto.subtle.importKey('raw', publicKey, {name: 'ECDH', namedCurve: 'P-256'}, false, []);} catch (_) {throw new Error('Clé de notification invalide.');}
   return cleaned;
 }
-export function pushPayload(event) {
+export function pushPayload(event,starPenalty=false) {
   if (!event || typeof event !== 'object' || !UUID.test(event.id) || !PUSH_KINDS.includes(event.kind) || !Number.isSafeInteger(Number(event.revision)) || Number(event.revision) < 0) throw new Error('Événement de notification invalide.');
   // Deliberately exclude room IDs, codes, cards, titles, identities and tokens.
   const payload = {type: 'desir-state-refresh', eventId: event.id, kind: event.kind, revision: Number(event.revision)};
-  // A deadline is the only optional content: the device formats the remaining time
-  // when a delayed notification actually arrives, without receiving the card title.
+  // The device formats the deadline and the potential cost without the card title.
   if (event.kind === 'task-reminder') {
     const deadline = Date.parse(event.expires_at);
     if (!Number.isFinite(deadline)) throw new Error('Échéance de notification invalide.');
     payload.expiresAt = new Date(deadline).toISOString();
+    if(starPenalty===true)payload.starPenalty=true;
   }
   return JSON.stringify(payload);
 }

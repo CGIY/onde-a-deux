@@ -27,8 +27,13 @@ function parseKnownAction(input,types){
   if(taskTypes.has(input.type))keys.push('taskId');
   if(input.type==='TOGGLE_TASK_CHECK')keys.push('checked');
   if(input.type==='JOKER_DRAW')keys.push('category');
+  if(input.type==='SEND')keys.push('starPenalty');
   if(Object.keys(input).some(key=>!keys.includes(key))||typeof input.roundId!=='string'||!/^onde-[1-9]\d*$/.test(input.roundId))throw new HttpError(400,'invalid_action','Action invalide.');
   const action={type:input.type,roundId:input.roundId};
+  if(input.type==='SEND' && Object.hasOwn(input,'starPenalty')){
+    if(input.starPenalty!==true)throw new HttpError(400,'invalid_action','Action invalide.');
+    action.starPenalty=true;
+  }
   if(input.type==='TOGGLE_TASK_CHECK'){
     if(typeof input.taskId!=='string'||!/^onde-[1-9]\d*$/.test(input.taskId)||typeof input.checked!=='boolean')throw new HttpError(400,'invalid_action','Case invalide.');
     action.taskId=input.taskId;action.checked=input.checked;
@@ -67,6 +72,8 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
   if(!G.validateState(full)||!['a','b'].includes(actor))throw new Error('Invalid authoritative state');
   const projected=copy(full);projected.activePlayer=actor;projected.seen={};projected.favorites=[];
   delete projected.progression;
+  delete projected.taskPenaltyDays;
+  for(const task of projected.tasks)delete task.starPenalty;
   if(gameVersion!==8)delete projected.cardRerollWallets;
   projected.history=projected.history.filter(round=>
     (gameVersion>=2||!(round.catalogueVersion>=2)) &&
@@ -96,7 +103,8 @@ export function snapshot(G,context,extra={},gameVersion=2){
     const invitations=full.pendingRounds.map(item=>G.roomView(full,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
     const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,gameVersion));
     const pendingOutgoing=invitations.filter(value=>value.round.from===actor).length;
-    return {roomId:context.room.id,state:projectState(G,own,actor,gameVersion),badges,activity:G.activityCalendar(full,actor),incoming,pendingOutgoing,gameVersion,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...(gameVersion===8?{canExtendTasks:true}:{}),...extra};
+    const missionFeatures=gameVersion===8?{canExtendTasks:true,penaltyTaskIds:own.tasks.filter(task=>task.starPenalty).map(task=>task.id)}:{};
+    return {roomId:context.room.id,state:projectState(G,own,actor,gameVersion),badges,activity:G.activityCalendar(full,actor),incoming,pendingOutgoing,gameVersion,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...missionFeatures,...extra};
   }
   return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
 }
@@ -122,7 +130,7 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   if(gameVersion===3||gameVersion===4||gameVersion===5)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(!supportsParallelGame(gameVersion))return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
   const action=parseAction(input);
-  if(action.type==='EXTEND_TASK'&&gameVersion<8)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
+  if((action.type==='EXTEND_TASK'||action.starPenalty)&&gameVersion<8)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
   const room=G.normalizeRoom(full,{at});
   if(!room)throw new Error('Invalid authoritative room');
@@ -130,6 +138,8 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   const target=taskTypes.has(action.type)?G.roomView(room,actor):G.roomView(room,actor,action.roundId);
   if(!target)throw new HttpError(409,'stale_round','Le tour a changé.');
   const owns=target.round.from===actor;
+  const hasStar=G.cardRerollStars(room,actor,at).balance>0;
+  if(!hasStar&&G.requiresRollStar(action.type))throw new HttpError(409,'no_stars','Il te faut une étoile pour lancer les dés.');
   const catalogueVersion=catalogueForGame.get(gameVersion);
   const boost=activeCategoryBoost(G,room,at);
   const boosted=!!boost&&boost.actor===actor&&['ROLL_CATEGORY','REROLL_CATEGORY'].includes(action.type);
@@ -139,9 +149,11 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
     if(action.roundId!==target.round.id)throw new HttpError(409,'stale_round','Le tour a changé.');
     const task=room.tasks.find(item=>item.id===action.taskId);
     if(!task||task.to!==actor||Date.parse(task.expiresAt)<=Date.parse(at))throw new HttpError(409,'invalid_phase','Ce défi n’est plus disponible.');
-    const value=randomInt(20);
-    if(!Number.isInteger(value)||value<1||value>20)throw new Error('Invalid authoritative random outcome');
-    action.value=value;action.token='request:'+requestId;roll={kind:20,value};
+    if(hasStar){
+      const value=randomInt(20);
+      if(!Number.isInteger(value)||value<1||value>20)throw new Error('Invalid authoritative random outcome');
+      action.value=value;action.token='request:'+requestId;roll={kind:20,value};
+    }
   }else if(action.type==='ROLL_CATEGORY'){
     if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const sides=G.categorySides(catalogueVersion),value=boosted?rollBoostedCategory(G,catalogueVersion,randomInt,at):G.rollCategory(catalogueVersion,randomInt,at);
@@ -182,12 +194,14 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
 }
 function applyLegacyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){
   const action=parseKnownAction(input,legacyTypes);
+  if(action.starPenalty)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
   if(action.type!=='TOGGLE_TASK_CHECK'&&action.roundId!==full.round.id)throw new HttpError(409,'stale_round','Le tour a changé.');
   if(action.type==='NEW_ROUND'&&!['accepted','resolved'].includes(full.phase))throw new HttpError(409,'invalid_phase','Le tour est déjà en cours.');
   const state=copy(full);state.activePlayer=actor;
   if(!G.validateState(state))throw new Error('Invalid authoritative state');
   assertClientCompatibility(G,state,actor,gameVersion);
+  if(G.requiresRollStar(action.type)&&G.cardRerollStars(state,actor,at).balance===0)throw new HttpError(409,'no_stars','Il te faut une étoile pour lancer les dés.');
   let roll;
   if(action.type==='ROLL_CATEGORY'){
     const sides=G.categorySides(gameVersion),value=G.rollCategory(gameVersion,randomInt);

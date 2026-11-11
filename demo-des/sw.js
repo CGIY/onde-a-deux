@@ -106,6 +106,7 @@ function safeNotification(raw) {
       const hours = Math.floor(minutes / 60), rest = minutes % 60;
       const time = hours ? hours + ' h' + (rest ? ' ' + rest : '') : minutes + ' min';
       body = 'Il reste ' + time + ' pour votre action.';
+      if(data.starPenalty===true)body='Il te reste '+time+' pour cocher ta case. Si elle reste vide, tu peux perdre 1 étoile.';
     } else {
       // WebKit requires every received push to show a notification. A delayed
       // message must not revoke the subscription or advertise an expired task.

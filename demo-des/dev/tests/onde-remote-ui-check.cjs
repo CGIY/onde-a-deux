@@ -372,7 +372,6 @@ async function rollSession(options={}){
   const at='2026-11-09T12:00:00.000Z',actor='a';
   let room=G.createRoom({at}),revision=1,finishSend;
   const roundId=room.lanes[actor].round.id;
-  room.cardRerollWallets[actor].balance=balance;
   const apply=action=>{room=G.reduceRoom(room,{...action,at,actor,roundId});};
   apply({type:'ROLL_CATEGORY',value:4,...G.drawCategory(G.roomView(room,actor),4,5)});
   apply({type:'ROLL_CARD',value:1});
@@ -383,6 +382,7 @@ async function rollSession(options={}){
    assert.equal(action.roundId,roundId);
    if(action.type==='ROLL_VARIANT'){
     apply({...action,value:1});revision++;
+    room.cardRerollWallets[actor].balance=balance;
     return {...versioned(),roll:{kind:6,value:1}};
    }
    assert.equal(action.type,'SEND');

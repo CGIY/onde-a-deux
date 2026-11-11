@@ -51,15 +51,26 @@ export async function enqueueScheduled(store: Store): Promise<unknown> {
   // decide eligibility; a caller cannot choose its own scheduling timestamp.
   return await store.rpc('desir_enqueue_scheduled_push', {});
 }
-async function stillRelevant(store: Store, event: Event): Promise<boolean> {
-  if (pushTTL(event) === 0) return false;
+async function notificationContext(store: Store, event: Event): Promise<{starPenalty: boolean} | null> {
+  if (pushTTL(event) === 0) return null;
   // A reset may cancel an event after the worker claimed it. Read its current
   // pending status and room together; no endpoint or subscription is returned.
   const rows = await store.request('desir_push_outbox?select=expires_at,desir_rooms!inner(state)&id=eq.' + encodeURIComponent(event.id) + '&delivered_at=is.null&limit=1');
   const current = Array.isArray(rows) && rows[0];
-  if (!current || pushTTL(current) === 0) return false;
-  if (event.kind === 'draw-available') return await store.rpc('desir_push_draw_ready', {p_room_id: event.room_id, p_actor: event.target_actor, p_window_key: event.window_key || null}) === true;
-  return pushEventRelevant(current.desir_rooms?.state, event);
+  if (!current || pushTTL(current) === 0) return null;
+  const state=current.desir_rooms?.state;
+  const game=(globalThis as typeof globalThis & {OndeGame?: {
+    canApplyMissionPenalty(state: unknown, task: unknown): boolean;
+    cardRerollStars(state: unknown, actor: string, at: string): {balance: number};
+  }}).OndeGame;
+  if (event.kind === 'draw-available') {
+    if(game?.cardRerollStars(state,event.target_actor,new Date().toISOString()).balance===0)return null;
+    const ready = await store.rpc('desir_push_draw_ready', {p_room_id: event.room_id, p_actor: event.target_actor, p_window_key: event.window_key || null});
+    return ready===true?{starPenalty:false}:null;
+  }
+  if (!pushEventRelevant(state,event)) return null;
+  const task=event.kind==='task-reminder'?state.tasks.find((item: {id: string})=>item.id===event.task_id):null;
+  return {starPenalty:!!task && task.to===event.target_actor && game?.canApplyMissionPenalty(state,task)===true};
 }
 async function finish(store: Store, event: Event, delivered: boolean): Promise<void> {
   await store.rpc('desir_finish_push_event', {p_event_id: event.id, p_delivered: delivered, p_retry_seconds: pushRetrySeconds(event.attempts)});
@@ -70,15 +81,16 @@ export async function flushPushOutbox(store: Store, roomId?: string): Promise<{c
   let config: Config | undefined;
   for (const event of events) {
     try {
-      if (!await stillRelevant(store, event)) {await finish(store, event, true); continue;}
+      if (!await notificationContext(store, event)) {await finish(store, event, true); continue;}
       const subscriptions = await store.request('desir_push_subscriptions?select=endpoint_hash,subscription,desir_devices!inner(revoked_at,expires_at)&room_id=eq.' + encodeURIComponent(event.room_id) + '&actor=eq.' + event.target_actor + '&desir_devices.revoked_at=is.null&desir_devices.expires_at=gt.' + encodeURIComponent(new Date().toISOString()));
       if (!subscriptions.length) {await finish(store, event, true); continue;}
       const previous = await store.request('desir_push_deliveries?select=endpoint_hash&event_id=eq.' + encodeURIComponent(event.id));
       const delivered = new Set(previous.map((item: {endpoint_hash: string}) => item.endpoint_hash));
       config ||= await privatePushConfig(store);
-      const payload = pushPayload(event);
       // Configuration/subscription reads may have overlapped a reset/refusal.
-      if (!await stillRelevant(store, event)) {await finish(store, event, true); continue;}
+      const context=await notificationContext(store,event);
+      if (!context) {await finish(store, event, true); continue;}
+      const payload = pushPayload(event,context.starPenalty);
       const results = await Promise.all(subscriptions.map(async (record: {endpoint_hash: string; subscription: unknown}) => {
         if (delivered.has(record.endpoint_hash)) return true;
         try {

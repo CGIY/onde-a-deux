@@ -960,6 +960,8 @@
 #onde-app-v1 .oa-mission-transfer{margin:12px 0;text-align:center;color:var(--oa-muted);font-size:12px}
 #onde-app-v1 .oa-task-top time{display:inline-flex;align-items:center;gap:5px;color:#d1ebf5;border-color:#a1c8dd4a;background:#182b3f66}
 #onde-app-v1 .oa-task-top time::before{content:"";width:4px;height:4px;border-radius:50%;background:#a3d6e4;box-shadow:0 0 5px #a3d6e472}
+#onde-app-v1 .oa-task-deadline{display:flex;flex:none;align-items:center;gap:7px}
+#onde-app-v1 .oa-task-penalty{color:#efd4a9;letter-spacing:0;font-size:11px;white-space:nowrap}
 #onde-app-v1 :is(.oa-task-check[data-check-player=a],.oa-info-checks>.oa-check-box:first-child){--oa-check-tint:#93d3e0;--oa-check-depth:#528ba3}
 #onde-app-v1 :is(.oa-task-check[data-check-player=b],.oa-info-checks>.oa-check-box:last-child){--oa-check-tint:#c9b3dd;--oa-check-depth:#9178b0}
 #onde-app-v1 .oa-task-check .oa-check-box{border-color:color-mix(in srgb,var(--oa-check-tint) 49%,transparent)}
@@ -1866,6 +1868,29 @@
     const wallet=refillRerollWallet(state.cardRerollWallets[actor],at);
     state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt:at};
   }
+  function canApplyMissionPenalty(state,task){
+    if(task.starPenalty!==true || task.checks[task.to])return false;
+    const day=parisDateKey(task.expiresAt),last=state.taskPenaltyDays?.[task.to];
+    if(!day || last && last>=day)return false;
+    const wallet=state.cardRerollWallets?.[task.to];
+    if(wallet && Date.parse(task.expiresAt)<Date.parse(wallet.spentAt??wallet.anchorAt))return false;
+    return cardRerollStars(state,task.to,task.expiresAt).balance>0;
+  }
+  function applyMissionPenalty(state,task){
+    if(!canApplyMissionPenalty(state,task))return;
+    const actor=task.to,at=task.expiresAt,day=parisDateKey(at);
+    state.cardRerollWallets??=initialRerollWallets(task.createdAt);
+    const wallet=refillRerollWallet(state.cardRerollWallets[actor],at);
+    // Keep the voluntary spend limit even when a refill advanced its anchor.
+    const spentAt=wallet.spentAt!==null && parisDateKey(wallet.spentAt)===day
+      ? (Date.parse(wallet.spentAt)<Date.parse(wallet.anchorAt)?wallet.anchorAt:wallet.spentAt)
+      : null;
+    state.cardRerollWallets[actor]={...wallet,balance:wallet.balance-1,spentAt};
+    state.taskPenaltyDays??={a:null,b:null};
+    state.taskPenaltyDays[actor]=day;
+  }
+  const starRollActions=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CATEGORY','REROLL_CARD','JOKER_DRAW','ROLL_DRAFT_DEFENSE','ROLL_DEFENSE']);
+  const requiresRollStar=type=>starRollActions.has(type);
 
   function randomInt(n) {
     if (!Number.isInteger(n) || n < 1 || n > 4294967296) throw new RangeError('randomInt expects an integer from 1 to 2^32.');
@@ -1961,7 +1986,8 @@
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
       if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
-      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[])];
+      if(task.starPenalty!==undefined && task.starPenalty!==true)return false;
+      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -1978,6 +2004,9 @@
   function validateState(s) {
     if (!s || s.version !== 1 || !['a','b'].includes(s.activePlayer) || !phases.includes(s.phase)) return false;
     if(!validRerollWallets(s.cardRerollWallets))return false;
+    const penaltyDays=s.taskPenaltyDays;
+    if(penaltyDays!==undefined && (!penaltyDays || Object.keys(penaltyDays).sort().join(',')!=='a,b' ||
+      !Object.values(penaltyDays).every(day=>day===null || typeof day==='string' && /^\d{4}-\d{2}-\d{2}$/.test(day))))return false;
     if (!validStats(s.stats) || s.progression!==undefined&&!validProgression(s.progression,s.sequence)) return false;
     if (!Number.isSafeInteger(s.sequence) || s.sequence < 1 || !s.round || !Array.isArray(s.history) || s.history.length > 80) return false;
     if (!validTasks(s)) return false;
@@ -2237,13 +2266,14 @@
     s.history=rows.filter(item=>retained.has(item.id));
   }
 
-  function enqueueTask(s, acceptedAt) {
+  function enqueueTask(s, acceptedAt, starPenalty=false) {
     const r=s.round;
     if(s.tasks.some(task=>task.id===r.id)) return;
     s.tasks.push({id:r.id,cardId:r.cardId,categoryId:r.categoryId,from:r.from,to:r.to,
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
       checks:{a:false,b:false},proposal:r.adapted?r.proposal:previousCoconVariant(r)?getVariant(r):null,...(needsVariant(r)?{variantRoll:r.variantRoll}:{}),
-      ...(storedCatalogue(r.catalogueVersion)?{catalogueVersion:r.catalogueVersion,intimacyPool:r.intimacyPool}:{})});
+      ...(storedCatalogue(r.catalogueVersion)?{catalogueVersion:r.catalogueVersion,intimacyPool:r.intimacyPool}:{}),
+      ...(starPenalty===true?{starPenalty:true}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
 
@@ -2261,8 +2291,12 @@
   }
 
   function expireTasks(s, at) {
-    const expired=s.tasks.filter(task=>Date.parse(task.expiresAt)<=Date.parse(at));
-    for(const task of expired) finishTask(s,task,'expired',at);
+    const expired=s.tasks.filter(task=>Date.parse(task.expiresAt)<=Date.parse(at))
+      .sort((a,b)=>Date.parse(a.expiresAt)-Date.parse(b.expiresAt));
+    for(const task of expired) {
+      applyMissionPenalty(s,task);
+      finishTask(s,task,'expired',at);
+    }
     return expired.length>0;
   }
 
@@ -2291,6 +2325,7 @@
     const s=JSON.parse(JSON.stringify(state));
     const r=s.round;
     const actor=s.activePlayer;
+    if(requiresRollStar(kind) && cardRerollStars(s,actor,action.at).balance===0)return state;
 
     switch(kind) {
       case 'EXPIRE_TASKS': {
@@ -2325,13 +2360,15 @@
         return s;
       }
       case 'REFUSE_TASK': {
-        if(typeof action.taskId!=='string' || !isoTime(action.at) || !Number.isInteger(action.value) || action.value<1 || action.value>20) return state;
+        if(typeof action.taskId!=='string' || !isoTime(action.at))return state;
         const original=s.tasks.find(item=>item.id===action.taskId);
         if(!original || original.to!==actor) return state;
         const expired=expireTasks(s,action.at),task=s.tasks.find(item=>item.id===action.taskId);
         if(!task || Date.parse(action.at)<Date.parse(task.createdAt)) return expired?s:state;
+        const hasStar=cardRerollStars(s,actor,action.at).balance>0;
+        if(hasStar ? (!Number.isInteger(action.value)||action.value<1||action.value>20) : action.value!==undefined)return expired?s:state;
         // The D20 records the refusal; no face can require the challenge.
-        finishTask(s,task,'passed',action.at,{refusalRoll:action.value});
+        finishTask(s,task,'passed',action.at,hasStar?{refusalRoll:action.value}:{});
         return s;
       }
       case 'SWITCH_PLAYER':
@@ -2439,7 +2476,7 @@
           // "accepted" is the historical task phase, not recipient consent.
           Object.assign(r,{directQueued:true,fromConfirmed:true,toConfirmed:false,autoProposed:false,
             status:'accepted',awaiting:null,sentAt:action.at,acceptedAt:action.at});
-          s.phase='accepted';enqueueTask(s,action.at);return s;
+          s.phase='accepted';enqueueTask(s,action.at,action.starPenalty);return s;
         }
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
@@ -2477,7 +2514,8 @@
   const roomCopy=value=>JSON.parse(JSON.stringify(value));
   const roomShared=room=>({
     ...Object.fromEntries(roomSharedKeys.map(key=>[key,room[key]])),
-    ...(room.cardRerollWallets===undefined?{}:{cardRerollWallets:room.cardRerollWallets})
+    ...(room.cardRerollWallets===undefined?{}:{cardRerollWallets:room.cardRerollWallets}),
+    ...(room.taskPenaltyDays===undefined?{}:{taskPenaltyDays:room.taskPenaltyDays})
   });
   const focusedRoomState=(room,actor,lane)=>({version:1,activePlayer:actor,...roomShared(room),phase:lane.phase,round:lane.round});
 
@@ -2581,6 +2619,7 @@
     reset.players=roomCopy(room.players);
     reset.favorites=roomCopy(room.favorites);
     if(room.cardRerollWallets)reset.cardRerollWallets=roomCopy(room.cardRerollWallets);
+    if(room.taskPenaltyDays)reset.taskPenaltyDays=roomCopy(room.taskPenaltyDays);
     if(options.keepPrefs!==false) reset.prefs=roomCopy(room.prefs);
     // Never reuse IDs: delayed pre-reset actions must not target a fresh draw.
     reset.sequence=room.sequence+2;
@@ -3106,7 +3145,7 @@
     return sequences.every((value,index)=>value===index+1);
   }
 
-  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
+  const api={badgeCatalog,badgeView,validateBadgeView,gradeLevels,activityCalendar,validateActivityCalendar,activeStreak,categories,legacyCategories,categorySides,rollCategory,categoryScore,cards:newCards,hardcoreCards,legacyCards:publishedCards,players,rules,currentCatalogueVersion,cardSides,getVariant,needsVariant,cardsForRound,cardsForCategory,createState,validateState,normalizeState,createRoom,resetRoom,validateRoom,normalizeRoom,roomView,reduceRoom,randomInt,drawHand,drawCategory,reduce,getCard,getCategory,otherPlayer,canRespond,canSeeRound,canRerollCard,canExtendTask,canApplyMissionPenalty,requiresRollStar,cardRerollStars,parisDateKey,isoWeekKey,drawDaily};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   scope.OndeGame=api;
 })(typeof window!=='undefined' ? window : globalThis);
@@ -4535,7 +4574,12 @@ void main(){
     activity={streak:raw.activity.streak,lastDay:raw.activity.lastDay};
    }
    const serverTime=typeof raw.serverTime==='string'&&Number.isFinite(Date.parse(raw.serverTime))?raw.serverTime:null;
-   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
+   const penaltyTaskIds=raw.penaltyTaskIds;
+   if(penaltyTaskIds!==undefined){
+    const taskIds=new Set(state.tasks.map(task=>task.id));
+    if(!Array.isArray(penaltyTaskIds)||new Set(penaltyTaskIds).size!==penaltyTaskIds.length||penaltyTaskIds.some(id=>!taskIds.has(id)))throw failure('invalid_response','Les missions reçues sont invalides.');
+   }
+   return {base:{roomId:identity.roomId,state,revision:raw.revision,actor:raw.actor,paired:raw.paired,pairingCode,quota,serverTime,...(raw.drawAvailable===undefined?{}:{drawAvailable:raw.drawAvailable}),gameVersion:raw.gameVersion,incoming,pendingOutgoing,...(raw.canExtendTasks===true?{canExtendTasks:true}:{}),...(penaltyTaskIds===undefined?{}:{penaltyTaskIds:[...penaltyTaskIds]}),...(badges===undefined?{}:{badges}),...(activity===undefined?{}:{activity})},roll};
   }
   function acceptSnapshot(raw,identity=connection){
    const checked=validateSnapshot(raw,identity);
@@ -4553,7 +4597,7 @@ void main(){
   }
   function remoteError(response,body,identity){
    const code=body?.error?.code||body?.code;
-   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
+   const messages={upgrade_required:'Une nouvelle version est disponible. Ferme puis rouvre D6 à deux.',conflict:'La partie a changé sur l’autre téléphone. Elle vient d’être actualisée.',stale_round:'Cette proposition a changé. La partie vient d’être actualisée.',pairing_invalid:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_code:'Ce code n’est plus disponible. Vérifie-le avec l’autre personne.',invalid_token:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',unauthorized:'Cet accès n’est plus reconnu. Reconnecte cet appareil.',rate_limited:'Trop de tentatives rapprochées. Réessaie dans quelques instants.',not_allowed:'Cette action n’est pas disponible pour ce joueur.',invalid_credentials:'L’identifiant ou le mot de passe n’est pas reconnu.',no_stars:'Il te faut une étoile pour lancer les dés.',quota_exhausted:'Ton prochain tirage sera disponible à la prochaine plage.'};
    const fallback=response.status===401?'Cet accès n’est plus reconnu. Reconnecte cet appareil.':response.status===429?'Trop de tentatives rapprochées. Réessaie dans quelques instants.':response.status>=500?'La connexion au duo est momentanément indisponible.':'Cette action n’a pas pu être confirmée.';
    let updated=null;if(body?.state&&identity&&connection===identity&&!authFailed){try{updated=acceptSnapshot(body,identity);}catch(_){}}
    return failure(code||(response.status===409?'conflict':response.status===401?'unauthorized':'request_failed'),messages[code]||fallback,response.status,updated);
@@ -4608,6 +4652,7 @@ void main(){
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
    if(typeof action.roundId!=='string'||!ROUND_ID.test(action.roundId))throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
    const value={type:action.type,roundId:action.roundId};
+   if(action.type==='SEND' && action.starPenalty===true)value.starPenalty=true;
    if(action.type==='JOKER_DRAW'){
     if(!Number.isInteger(action.category)||action.category<1||action.category>4)throw failure('invalid_action','La catégorie n’a pas pu être identifiée.');
     value.category=action.category;
@@ -5039,16 +5084,17 @@ void main(){
   : state.activePlayer===state.round.from;
  const canSeeCurrentRound=()=>G.canSeeRound(state)&&(state.phase!=='category'||canDraw());
  const serverStamp=()=>new Date(serverNow()).toISOString();
+ const hasRollStar=()=>G.cardRerollStars(ownState||state,viewPlayer,serverStamp()).balance>0;
  const canRerollCurrentCard=()=>G.canRerollCard(state,serverStamp());
  const parisToday=()=>G.parisDateKey(new Date(serverNow()).toISOString());
- const canRerollCategoryNow=()=>state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
- const jokerAvailable=()=>state.phase==='category'&&state.activePlayer===state.round.from&&!!state.joker&&state.joker.weekKey===G.isoWeekKey(new Date(serverNow()).toISOString())&&!state.joker.usedBy;
+ const canRerollCategoryNow=()=>hasRollStar()&&state.phase==='card'&&state.activePlayer===state.round.from&&!!state.dailyReroll&&!(state.dailyReroll.dateKey===parisToday()&&state.dailyReroll.used.includes(state.activePlayer));
+ const jokerAvailable=()=>hasRollStar()&&state.phase==='category'&&state.activePlayer===state.round.from&&!!state.joker&&state.joker.weekKey===G.isoWeekKey(new Date(serverNow()).toISOString())&&!state.joker.usedBy;
  const currentDate=()=>new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
  const chargeNow=()=>window.performance?.now?window.performance.now():Date.now();
  const chargeLimit=1200;
  function rollButton(target){const button=target.closest?.('[data-action]');return button&&root.contains(button)&&['roll','reroll'].includes(button.dataset.action)?button:null;}
  function canCharge(button){
-  if(!button||button.disabled||!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return false;
+  if(!button||button.disabled||!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady||!hasRollStar())return false;
   if(button.dataset.action==='reroll')return canRerollCurrentCard();
   return state.phase==='category'&&canDraw()&&(!remoteMode||remoteSnapshot?.quota?.remaining!==0)||['card','variant'].includes(state.phase)&&canDraw();
  }
@@ -5199,7 +5245,7 @@ void main(){
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
   const now=serverNow(),nextQuotaAt=Date.parse(value.quota?.nextAt);
   const quotaClock=value.quota?.remaining===0&&Number.isFinite(nextQuotaAt)?(nextQuotaAt<=now?'elapsed':G.parisDateKey(now)):null;
-  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,canExtendTasks:value.canExtendTasks,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
+  const signature=JSON.stringify({state:value.state,actor:value.actor,quota:value.quota,quotaClock,paired:value.paired,drawAvailable:value.drawAvailable,canExtendTasks:value.canExtendTasks,penaltyTaskIds:value.penaltyTaskIds,gameVersion:value.gameVersion,incoming:value.incoming,pendingOutgoing:value.pendingOutgoing,badges:value.badges,activity:value.activity,streak:value.activity?G.activeStreak(value.activity,new Date(now).toISOString()):null});
   const changed=signature!==remoteSignature;remoteSignature=signature;remoteSnapshot=value;
   viewPlayer=value.actor;ownState={...normalized,prefs:{...normalized.prefs,...localPrefs}};incomingStates=(value.incoming||[]).map(incoming=>({...incoming,prefs:{...incoming.prefs,...localPrefs}}));outgoingCount=Number.isInteger(value.pendingOutgoing)?value.pendingOutgoing:0;selectDisplayState();remoteReady=true;authBusy=false;loginError='';
   loadMemberPortraits(value);
@@ -5599,6 +5645,11 @@ void main(){
     stage(sides,'02 / UNE AUTRE CARTE',rerolling.cardRoll,'card'),'<p class="oa-die-readout" data-roll-status role="status" aria-busy="true"></p>',
     sides===8?'':handGrid({hand:rerolling.hand,catalogueVersion:rerolling.catalogueVersion,intimacyPool:rerolling.intimacyPool,discarded:{cardId:rerolling.cardId,slot:rerolling.cardRoll}}));
   }
+  if(!busy&&['category','card','variant'].includes(state.phase)&&!hasRollStar()){
+   const {nextAt}=G.cardRerollStars(ownState||state,viewPlayer,serverStamp());
+   return heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
+    (nextAt?'<div class="oa-next-draw" role="status">Prochaine étoile dans <strong>'+timeLeft({expiresAt:nextAt})+'</strong></div>':'');
+  }
   if(state.phase==='category')return rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
    stage(G.rules.categorySides,'01 / LE THÈME',3,'category',remoteSnapshot?.quota?.remaining===0?'':'Lancer le D'+G.rules.categorySides),categoryAction(),
    jokerAvailable()?'<div class="oa-actions">'+textBtn('Joker · choisir le thème','open-joker')+'</div>':'');
@@ -5642,11 +5693,14 @@ void main(){
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'':'Confirmation du refus…')+'</p>';
   return '<h1 class="oa-title oa-missions-title">Les choses <em>à faire.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
    const c=G.getCard(task.cardId,roundVersion(task)),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;
+   const penalty=task.to===viewPlayer&&!task.checks[viewPlayer]&&(remoteMode?remoteSnapshot?.penaltyTaskIds?.includes(task.id):task.starPenalty);
+   const warning=penalty?'<span class="oa-task-penalty" title="Une étoile peut être retirée si ta case reste vide à l’échéance."><span aria-hidden="true">−1 ✦</span><span class="oa-sr">Une étoile peut être retirée si ta case reste vide à l’échéance.</span></span>':'';
    const remaining=timeLeft(task),status=taskStatus(task),target='data-task="'+h(task.id)+'"';
    const actions=(canExtendMission(task,at)?textBtn('+24 h <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>','extend-task-confirm',target+' aria-label="Prolonger de 24 heures pour une étoile"'):'')+
-    (task.to===viewPlayer?textBtn('Refuser · D20','refuse-task',target):'');
+    (task.to===viewPlayer?textBtn(hasRollStar()?'Refuser · D20':'Refuser','refuse-task',target):'');
    const meta='<div class="oa-task-meta">'+rollFormula(task,c)+taskRecipient(task)+'</div>';
-   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
+   const deadline='<div class="oa-task-deadline">'+warning+'<time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>';
+   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span>'+deadline+'</div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
   }).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+
    (state.phase==='accepted'?'<div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+'</div>':'');
  }
@@ -6135,7 +6189,8 @@ void main(){
   const taskId=state.round.id;
   missionSending=true;
   try{
-   const changed=await dispatch({type:'SEND'},false);
+   const starPenalty=!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds);
+   const changed=await dispatch({type:'SEND',...(starPenalty?{starPenalty:true}:{})},false);
    const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);
    missionError=!queued&&state.phase==='draft'&&state.round.id===taskId?taskId:null;
    if(queued)tab='tasks';
@@ -6157,6 +6212,7 @@ void main(){
  async function roll(reroll=false,power=0,direction=null){
   if(!welcomeDismissed||busy||operationBusy||tab!=='play'||remoteMode&&!remoteReady)return;
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
+  if(!hasRollStar()){render();return;}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
   const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round),hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
@@ -6259,21 +6315,23 @@ void main(){
   if(!task||task.to!==viewPlayer||busy||operationBusy||pendingChecks.size||remoteMode&&!remoteReady)return;
   const context={actor:viewPlayer,roomId:remote?.connection?.roomId,epoch:presentationEpoch},roundId=(ownState||state).round.id;
   const serial=++animationSerial;
-  refusal={taskId,title:G.getCard(task.cardId,roundVersion(task)).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
+  if(hasRollStar())refusal={taskId,title:G.getCard(task.cardId,roundVersion(task)).title,color:G.getCategory(task.categoryId,roundVersion(task))?.color,face:null};
   tab='tasks';busy=true;render();setControlsBusy(true);
   try{
    let face;
    if(remoteMode){
     const value=await remote.action({type:'REFUSE_TASK',roundId,taskId});
-    if(!value.roll||value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
+    if(value.roll&&value.roll.kind!==20||value.state.tasks.some(item=>item.id===taskId))throw Error('Unconfirmed refusal');
     if(!presentationValid(context))return;
-    face=value.roll.value;
+    face=value.roll?.value;
     if(!samePerspective(value,deferredSnapshot)||value.revision>=deferredSnapshot.revision)deferredSnapshot=value;
    }else{
-    face=G.randomInt(20);pullShared();const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
+    pullShared();face=hasRollStar()?G.randomInt(20):undefined;
+    const next=G.reduceRoom(localRoom,{type:'REFUSE_TASK',roundId,taskId,value:face,actor:viewPlayer,at:now()});
     if(next===localRoom)return;localRoom=next;save();
    }
    if(!presentationValid(context))return;
+   if(face===undefined||!refusal){announce('Carte refusée, sans pénalité.');toast('Carte refusée.');return;}
    refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='';
    if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
    if(presentationValid(context))announce('D20 : '+face+'. Carte refusée, sans pénalité.');
@@ -6305,12 +6363,14 @@ void main(){
    ' Les cartes classiques ont ensuite une variante D6. Le lot Hardcore contient des cartes prêtes à jouer.';
   const rerollRule=stars?'Une relance de carte coûte une étoile. Chacun en gagne une toutes les 12 h, avec une réserve de trois et une dépense par jour.':'Une fois par tour, la carte peut être relancée avant d’être gardée.';
   const missionRule=stars?'La carte gardée rejoint les Missions. Elle y passe automatiquement quand la relance est épuisée.':'La carte gardée rejoint les Missions.';
+  const penaltyRule=(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds))?
+   ' Sur une nouvelle mission, une case vide à l’échéance peut coûter une étoile à son destinataire, une fois par jour. Le refus est gratuit. À zéro étoile, tu peux refuser directement et les dés reprennent à la recharge.':'';
   openSheet('Les règles.',
    '<div class="oa-rule"><b>↗</b><div><h3>Lancer le dé.</h3><p>Appuie sur le dé ou fais-le glisser dans la direction de ton choix. Maintiens avant de relâcher pour lui donner plus d’élan.</p></div></div>'+
    '<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div>'+
    '<div class="oa-rule"><b>'+(version>=4?'D8':'D6')+'</b><div><h3>La carte.</h3><p>'+cardRule+'</p></div></div>'+
    '<div class="oa-rule"><b>↻</b><div><h3>Une relance.</h3><p>'+rerollRule+'</p></div></div>'+
-   '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut refuser la carte avec le D20.</p></div></div>'+
+   '<div class="oa-rule"><b>✓</b><div><h3>Les Missions.</h3><p>'+missionRule+' Le destinataire peut refuser la carte avec le D20.'+penaltyRule+'</p></div></div>'+
    '<div class="oa-rule"><b>+1</b><div><h3>Les deux cases, un point.</h3><p>Les propositions restent vingt-quatre heures dans les Missions. Elles quittent la liste après vos deux coches, ou à l’expiration.'+(!remoteMode||remoteSnapshot?.canExtendTasks?' Chacun peut dépenser son étoile du jour pour prolonger une mission en cours de 24 h, une seule fois par mission.':'')+'</p></div></div>'+
    '<div class="oa-actions">'+btn('Fermer','close')+'</div>');
  }
@@ -6447,7 +6507,7 @@ void main(){
  setInterval(async()=>{
   if(document.hidden||busy||operationBusy||missionSending||pendingChecks.size)return;
   if(welcomeDismissed&&(!remoteMode||remoteReady))updateStarBudget();
-  const needsReading=tab==='tasks'||tab==='play'&&state.phase==='draft';
+  const needsReading=tab==='tasks'||tab==='play';
   if(remoteMode){if(remoteReady&&needsReading)render();}
   else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='info')render();}
  },30000);
