@@ -61,7 +61,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const job=push.flushPushOutbox(store).catch(()=>{});if(waitUntil)waitUntil(job);else await job;
         return respond({queued:true},202);
       }
-      if(!['login','state','action','portraits','push_config','subscribe','hardcore','revoke_sessions'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
+      if(!['login','state','action','portraits','rhythm','push_config','subscribe','hardcore','revoke_sessions'].includes(body.op))throw new HttpError(404,'not_found','Opération indisponible.');
       const gameVersion=Object.hasOwn(body,'gameVersion')?body.gameVersion:1;
       if(![1,2,3,4,5].includes(gameVersion)&&!supportsParallelGame(gameVersion))throw new HttpError(400,'invalid_request','Version de jeu invalide.');
       const token=getBearer(req),tokenHash=await sha256('device:'+token);
@@ -96,12 +96,16 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         if(!revoked)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
         return respond({revoked:true});
       }
-      if(body.op==='portraits'){
+      if(body.op==='portraits'||body.op==='rhythm'){
         if(Object.keys(body).some(key=>!['op','gameVersion'].includes(key)))throw new HttpError(400,'invalid_request','Requête invalide.');
         const current=await store.rpc('desir_get_session',{p_token_hash:tokenHash});
         if(!current)throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
         const roomId=current.member?.room_id;
-        if(!['a','b'].includes(current.member?.actor)||typeof roomId!=='string'||roomId!==current.room?.id)throw new Error('Invalid portrait session');
+        if(!['a','b'].includes(current.member?.actor)||typeof roomId!=='string'||roomId!==current.room?.id)throw new Error('Invalid room session');
+        if(body.op==='rhythm'){
+          const rows=await store.request('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal&room_id=eq.'+encodeURIComponent(roomId));
+          return respond({rhythm:rows[0]??null});
+        }
         const rows=await store.request('desir_room_portraits?select=actor,jpeg_base64&room_id=eq.'+encodeURIComponent(roomId));
         const portraits={};
         for(const row of rows)if(['a','b'].includes(row.actor)&&validPortrait(row.jpeg_base64))portraits[row.actor]=row.jpeg_base64;

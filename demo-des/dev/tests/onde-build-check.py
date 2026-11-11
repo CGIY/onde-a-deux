@@ -150,7 +150,11 @@ class WebBuild(BuildFixture):
         self.assertIn('class="rough-highlights"', html)
         self.assertIn('class="rough-insults"', html)
         self.assertIn('class="dest-cell dest-featured"', html)
-        self.assertEqual(html.count('class="frequency-label"'), 2)
+        rhythm = re.search(r'<template id="oa-libido-benchmarks">(.*?)</template>', html, re.S)[1]
+        self.assertEqual(rhythm.count('scope="row"'), 3)
+        self.assertEqual(rhythm.count('data-rhythm-personal hidden'), 5)
+        self.assertIn('Notre rythme', rhythm)
+        self.assertNotIn('Les rythmes du couple.', rhythm)
         self.assertNotIn('class="place-extras"', html)
         women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]
         fantasies, experiences = women.split('<section class="oa-libido-subsection" id="oa-libido-card-rough"')

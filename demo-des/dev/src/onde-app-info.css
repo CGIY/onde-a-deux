@@ -37,8 +37,29 @@
 #onde-app-v1 .oa-libido.women{--oa-panel-tint:var(--oa-iris-quartz);--chart:#ecc5a3;border-color:#c7a48a48}
 #onde-app-v1 .oa-libido.benchmarks{padding:8px 11px}
 #onde-app-v1 .oa-libido.benchmarks::before{
- background:radial-gradient(ellipse at 74% 0%,#ffe3b184,transparent 72%),var(--oa-grain) 0 0/128px;
+ background:radial-gradient(ellipse at 74% 0%,#c294d42c,transparent 72%),var(--oa-grain) 0 0/128px;
 }
+#onde-app-v1 .oa-rhythm-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0 3px;font-size:11px;line-height:1.3}
+#onde-app-v1 .oa-rhythm-table :is(th,td){padding:4px 5px;text-align:left;vertical-align:middle}
+#onde-app-v1 .oa-rhythm-table th{font-weight:500}
+#onde-app-v1 .oa-rhythm-table thead th{color:#c6bdd7}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(1){width:37%}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(2){width:36%}
+#onde-app-v1 .oa-rhythm-table thead th:nth-child(3){width:27%;color:#f1cfdd;text-align:center}
+#onde-app-v1 .oa-rhythm-table tbody th{background:#282a3c;border-radius:7px 0 0 7px}
+#onde-app-v1 .oa-rhythm-table tbody td{background:#282a3c;color:#dfd4ec}
+#onde-app-v1 .oa-rhythm-table tbody :is(td>span,small){white-space:nowrap}
+#onde-app-v1 .oa-rhythm-table b{font-weight:550;font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-rhythm-table small{font-size:inherit;color:#c4bbd1}
+#onde-app-v1 .oa-rhythm-table tbody .oa-rhythm-value{
+ text-align:center;border-radius:7px;border:1px solid #8e5067;
+ background:radial-gradient(ellipse at top right,#a34d7177,transparent 68%),linear-gradient(125deg,#5a304b,#39273f);
+ box-shadow:inset 0 1px #f59baf30;color:#ff8b96;text-shadow:0 0 7px #ff677641;
+ font-size:16px;font-weight:500;font-variant-numeric:tabular-nums
+}
+#onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:3px 5px 0;color:#c6bdd7;font-size:11px}
+#onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
+#onde-app-v1 [data-rhythm-personal][hidden]{display:none}
 #onde-app-v1 .oa-libido h2{margin-bottom:8px}
 #onde-app-v1 .oa-libido h3{font-size:12px;line-height:1.3;font-weight:550}
 #onde-app-v1 .oa-libido-subsection{margin-top:10px;padding-top:10px;border-top:1px solid var(--chart-line)}
