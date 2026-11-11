@@ -13,7 +13,7 @@ try{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
  await db.exec(await fs.readFile(new URL('../schema.sql',import.meta.url),'utf8'));
  await db.exec(await fs.readFile(new URL('../portraits-schema.sql',import.meta.url),'utf8'));
- await db.exec(await fs.readFile(new URL('../migrations/20261111111943_desir_private_rhythm.sql',import.meta.url),'utf8'));
+ await db.exec(await fs.readFile(new URL('../migrations/20261111115320_desir_private_rhythm.sql',import.meta.url),'utf8'));
  const originalScheduler=await fs.readFile(new URL('../migrations/20261102155223_desir_push_scheduler.sql',import.meta.url),'utf8');
  // Use the scheduler SQL without the cron and networking extensions.
  await db.exec(originalScheduler.slice(originalScheduler.indexOf('create schema'),originalScheduler.indexOf('-- This sole privileged routine')));
