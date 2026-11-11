@@ -709,8 +709,13 @@
   const mine=task.checks[viewPlayer],partner=G.otherPlayer(viewPlayer),theirs=task.checks[partner];
   if(mine&&theirs)return 'Un moment partagé · +1 point pour vous.';
   if(mine)return 'Ta coche est posée · '+name(partner)+' doit encore cocher.';
-  if(theirs)return name(partner)+' a coché · à toi de jouer.';
+  if(theirs)return name(partner)+' a coché · ta coche reste à poser.';
   return '';
+ }
+ function taskRecipient(task){
+  const recipient=name(task.to),initial=recipient.normalize().match(/[\p{L}\p{N}]/u)?.[0]?.toLocaleUpperCase('fr-FR')||'·';
+  const label=task.to===viewPlayer?'À toi de jouer':'Pour '+recipient;
+  return '<div class="oa-task-recipient" data-recipient="'+h(task.to)+'"><span class="oa-task-initial" aria-hidden="true">'+h(initial)+'</span><span class="oa-task-recipient-label" title="'+h(label)+'">'+h(label)+'</span></div>';
  }
  const checkBox='<span class="oa-check-box" aria-hidden="true"><span class="oa-check-water"><svg viewBox="0 0 96 48" preserveAspectRatio="none"><path d="M0 8Q12 0 24 8T48 8T72 8T96 8V48H0Z"/><path d="M0 12Q12 20 24 12T48 12T72 12T96 12V48H0Z"/></svg></span><svg class="oa-check-mark" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>';
  function taskCheck(task,player){const checked=task.checks[player],own=player===state.activePlayer,enabled=own&&!pendingChecks.has(task.id);return '<label class="oa-task-check '+(!own?'is-other':'')+'" data-check-player="'+player+'"><input type="checkbox" data-task-check="'+h(task.id)+'" data-player="'+player+'" aria-label="'+h(name(player)+' · '+G.getCard(task.cardId,roundVersion(task)).title)+'" '+(checked?'checked ':'')+(!enabled?'disabled':'')+'>'+checkBox+'<span>'+h(name(player))+'</span></label>';}
@@ -722,7 +727,8 @@
    const remaining=timeLeft(task),status=taskStatus(task),target='data-task="'+h(task.id)+'"';
    const actions=(canExtendMission(task,at)?textBtn('+24 h <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>','extend-task-confirm',target+' aria-label="Prolonger de 24 heures pour une étoile"'):'')+
     (task.to===viewPlayer?textBtn('Refuser · D20','refuse-task',target):'');
-   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+rollFormula(task,c)+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
+   const meta='<div class="oa-task-meta">'+rollFormula(task,c)+taskRecipient(task)+'</div>';
+   return '<article class="oa-task" data-task="'+h(task.id)+'" style="--category:'+cat.color+'"><div class="oa-task-top"><span>'+h(categoryLabel(task))+'</span><time datetime="'+h(task.expiresAt)+'" aria-label="Temps restant : '+remaining+'">'+remaining+'</time></div>'+meta+'<div class="oa-task-heading"><h2>'+h(c.title)+'</h2>'+(detail?'<p class="oa-task-proposal">'+h(detail)+'</p>':'')+'</div>'+(status?'<p class="oa-task-status">'+h(status)+'</p>':'')+'<div class="oa-task-checks">'+taskCheck(task,'a')+taskCheck(task,'b')+'</div>'+(actions?'<div class="oa-task-actions">'+actions+'</div>':'')+'</article>';
   }).join('')+'</div>':'<div class="oa-task-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.5 4.7-5"/></svg><p>Rien en attente.</p></div>')+
    (state.phase==='accepted'?'<div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+'</div>':'');
  }
