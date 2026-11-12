@@ -146,18 +146,47 @@ def libido_modules():
             shares = re.findall(r'data-count="([0-9]+)"', body)
             if len(shares) != 3:
                 raise SystemExit('Expected two couple benchmarks and one anal benchmark.')
-            weekly, frequent, anal = shares
+            weekly, frequent, anal = map(int, shares)
+            # The three-or-more group is already counted in the one-or-more group.
+            vaginal_rate = ((weekly - frequent) + 3 * frequent) / 100
+            anal_rate = anal / 100
+            masturbation_rate = (1 + 4) / 2
+            nudes_rate = 1
+
+            def format_rate(rate):
+                return f'{rate:.2f}'.rstrip('0').rstrip('.').replace('.', ',')
+
             body = f"""
-<table class="oa-rhythm-table" aria-label="Fréquences par semaine">
-  <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères nationaux</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
-  <tbody>
-    <tr><th scope="row">Vaginal</th><td><div class="oa-rhythm-benchmarks"><span><b>1</b><small>{weekly} %</small></span><span><b>3</b><small>{frequent} %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="vaginal" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Oral</th><td><div class="oa-rhythm-benchmarks"><span><b>3</b></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="oral" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Anal</th><td><div class="oa-rhythm-benchmarks"><span><b>1</b><small>{anal} %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Masturbation<small>seul ou à deux</small></th><td><div class="oa-rhythm-benchmarks"><span><b>1 à 4</b></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="masturbation" data-rhythm-personal hidden></td></tr>
-  </tbody>
-</table>
-<div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
+<header class="oa-rhythm-head">
+  <h2>Par semaine</h2>
+  <span class="oa-rhythm-date" data-rhythm-personal data-rhythm-dates hidden></span>
+</header>
+<div class="oa-rhythm-columns" aria-hidden="true"><span>Pratique</span><span>Nous</span><span>Repère</span></div>
+<div class="oa-rhythm-list">
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i>Vaginal</h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="vaginal" data-rhythm-benchmark="{vaginal_rate}"></span></b><span class="oa-rhythm-benchmark">{format_rate(vaginal_rate)}</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme vaginal par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i>Oral</h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="oral" data-rhythm-benchmark="3"></span></b><span class="oa-rhythm-benchmark">3</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme oral par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i>Anal</h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="anal" data-rhythm-benchmark="{anal_rate}"></span></b><span class="oa-rhythm-benchmark">{format_rate(anal_rate)}</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme anal par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i><span>Masturbation<small>seul ou à deux</small></span></h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="masturbation" data-rhythm-benchmark="{masturbation_rate}"></span></b><span class="oa-rhythm-benchmark">{format_rate(masturbation_rate)}</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme de masturbation par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i><span>Nudes<small>repère hebdo</small></span></h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="nudes" data-rhythm-benchmark="{nudes_rate}"></span></b><span class="oa-rhythm-benchmark">{format_rate(nudes_rate)}</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme de nudes par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+</div>
+<div class="oa-rhythm-scale" data-rhythm-personal hidden aria-label="Écart au repère, en dix teintes minérales corail à sauge">
+  <span>Écart au repère</span><div aria-hidden="true">{''.join(f'<i data-rhythm-scale-tone="{tone}"></i>' for tone in range(1, 11))}</div>
+</div>
 <details class="oa-rhythm-editor" data-rhythm-editor hidden>
   <summary>Ajouter un rapport</summary>
   <div class="oa-rhythm-choices">
@@ -165,6 +194,7 @@ def libido_modules():
     <button type="button" data-rhythm-add="no_penetration">Oral</button>
     <button type="button" data-rhythm-add="anal">Anal</button>
     <button type="button" data-rhythm-add="masturbation">Masturbation</button>
+    <button type="button" data-rhythm-add="nudes">Nudes</button>
   </div>
   <p data-rhythm-status role="status"></p>
 </details>

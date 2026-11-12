@@ -38,6 +38,7 @@ try{
  await db.query("insert into public.desir_room_rhythm values($1,'2030-01-01','2030-02-01',4,7,2)",[room]);
  await db.exec(await fs.readFile(new URL('../migrations/20261111120749_desir_rhythm_entries.sql',import.meta.url),'utf8'));
  await db.exec(await fs.readFile(new URL('../migrations/20261112131353_desir_rhythm_four_practices.sql',import.meta.url),'utf8'));
+ await db.exec(await fs.readFile(new URL('../migrations/20261112150657_desir_rhythm_nudes.sql',import.meta.url),'utf8'));
  await db.query("update public.desir_room_rhythm set editor_actor='b' where room_id=$1",[room]);
  await db.query("insert into public.desir_accounts(actor,room_id,login_normalized,display_name,password_hash) values('a',$1,'alpha','Alpha',extensions.crypt('test-only-password',extensions.gen_salt('bf',12))),('b',$1,'bravo','Bravo',extensions.crypt('test-only-password',extensions.gen_salt('bf',12)))",[room]);
  const reminderAt='2030-01-01T12:00:00Z';
@@ -63,7 +64,7 @@ try{
  const ctx=await db.query('select public.desir_get_session($1) as result',['a'.repeat(64)]);if(ctx.rows[0].result.member.actor!=='a'||ctx.rows[0].result.room.state.players[1].name!=='Bravo')throw Error('Bad session context');
  const collision=await db.query('select public.desir_login($1,$2,$3) as result',['bravo','test-only-password','a'.repeat(64)]);if(collision.rows[0].result.error!=='session_conflict')throw Error('Token reassigned to another account');
  const portrait=await db.query('select jpeg_base64 from public.desir_room_portraits where room_id=$1',[room]);if(portrait.rows[0].jpeg_base64!=='/9j/2Q==')throw Error('Service cannot read the room portrait');
- const rhythm=await db.query('select anal from public.desir_room_rhythm where room_id=$1',[room]);if(rhythm.rows[0].anal!==2)throw Error('Service cannot read the private rhythm');
+ const rhythm=await db.query('select anal,nudes from public.desir_room_rhythm where room_id=$1',[room]);if(rhythm.rows[0].anal!==2||rhythm.rows[0].nudes!==0)throw Error('Service cannot read the private rhythm');
  const writer=await db.query('select public.desir_login($1,$2,$3) as result',['bravo','test-only-password','b'.repeat(64)]);
  if(writer.rows[0].result.actor!=='b')throw Error('Writer login failed');
  const receipt='0eed386e-7853-4215-bbb7-5825dc8eb51c';
@@ -82,6 +83,10 @@ try{
  for(let attempt=0;attempt<2;attempt++){
   const result=await record('b','masturbation','0eed386e-7853-4215-bbb7-5825dc8eb51e');
   if(result.status!=='ok'||result.rhythm.masturbation!==1||result.rhythm.without_penetration!==9||result.rhythm.with_penetration!==5||result.rhythm.anal!==3)throw Error('Masturbation write or replay counted incorrectly');
+ }
+ for(let attempt=0;attempt<2;attempt++){
+  const result=await record('b','nudes','0eed386e-7853-4215-bbb7-5825dc8eb51f');
+  if(result.status!=='ok'||result.rhythm.nudes!==1||result.rhythm.masturbation!==1||result.rhythm.without_penetration!==9||result.rhythm.with_penetration!==5||result.rhythm.anal!==3)throw Error('Nudes write or replay counted incorrectly');
  }
  for(const role of ['anon','authenticated']){
   await db.exec('reset role;set role '+role);

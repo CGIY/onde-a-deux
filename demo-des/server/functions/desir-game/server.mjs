@@ -98,7 +98,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
       }
       if(body.op==='rhythm_add'){
         if(Object.keys(body).some(key=>!['op','gameVersion','requestId','kind'].includes(key))||
-          !validRequestId(body.requestId)||!['penetration','no_penetration','anal','masturbation'].includes(body.kind))throw new HttpError(400,'invalid_request','Saisie invalide.');
+          !validRequestId(body.requestId)||!['penetration','no_penetration','anal','masturbation','nudes'].includes(body.kind))throw new HttpError(400,'invalid_request','Saisie invalide.');
         const result=await store.rpc('desir_record_rhythm',{p_token_hash:tokenHash,p_request_id:body.requestId,p_kind:body.kind});
         if(result?.status==='unauthorized')throw new HttpError(401,'unauthorized','Connecte-toi pour continuer.');
         if(result?.status==='forbidden')throw new HttpError(403,'not_allowed','La saisie est réservée au compte autorisé.');
@@ -112,7 +112,7 @@ export function createHandler({G,store,push,rateSecret,clock=()=>new Date(),allo
         const roomId=current.member?.room_id;
         if(!['a','b'].includes(current.member?.actor)||typeof roomId!=='string'||roomId!==current.room?.id)throw new Error('Invalid room session');
         if(body.op==='rhythm'){
-          const rows=await store.request('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,masturbation,editor_actor&room_id=eq.'+encodeURIComponent(roomId));
+          const rows=await store.request('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,masturbation,nudes,editor_actor&room_id=eq.'+encodeURIComponent(roomId));
           if(!rows[0])return respond({rhythm:null,canRecord:false});
           const {editor_actor,...rhythm}=rows[0];
           const today=G.parisDateKey(iso());
