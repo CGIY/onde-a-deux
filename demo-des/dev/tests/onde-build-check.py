@@ -151,17 +151,17 @@ class WebBuild(BuildFixture):
         self.assertIn('class="rough-insults"', html)
         self.assertIn('class="dest-cell dest-featured"', html)
         rhythm = re.search(r'<template id="oa-libido-benchmarks">(.*?)</template>', html, re.S)[1]
-        self.assertEqual(rhythm.count('scope="row"'), 3)
-        self.assertEqual(rhythm.count('data-rhythm-personal hidden'), 5)
+        self.assertEqual(rhythm.count('scope="row"'), 4)
+        self.assertEqual(rhythm.count('data-rhythm-personal hidden'), 6)
         self.assertEqual(re.findall(r'<th scope="col"[^>]*>(.*?)</th>', rhythm),
-                         ['Par semaine', '<small>Repères nationaux</small> <strong>Hebdomadaires</strong>', 'Notre rythme'])
+                         ['Par semaine', 'Repères nationaux', 'Notre rythme'])
         self.assertEqual(re.findall(r'<td class="oa-rhythm-value" data-rhythm-rate="([^"]+)" data-rhythm-personal hidden></td>', rhythm),
-                         ['withPenetration', 'withoutPenetration', 'anal'])
+                         ['vaginal', 'oral', 'anal', 'masturbation'])
         self.assertNotIn('data-rhythm-share', rhythm)
         self.assertEqual(rhythm.count('%'), 3)
-        self.assertEqual(rhythm.count('class="oa-rhythm-benchmarks"'), 3)
-        self.assertEqual(re.findall(r'<b><i>([≥≈])</i>([13])</b>', rhythm),
-                         [('≥', '1'), ('≥', '3'), ('≈', '3'), ('≥', '1')])
+        self.assertEqual(rhythm.count('class="oa-rhythm-benchmarks"'), 4)
+        self.assertEqual(re.findall(r'<b>([^<]+)</b>', rhythm), ['1', '3', '3', '1', '1 à 4'])
+        self.assertIn('Masturbation<small>seul ou à deux</small>', rhythm)
         self.assertNotIn('Les rythmes du couple.', rhythm)
         self.assertNotIn('class="place-extras"', html)
         women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]

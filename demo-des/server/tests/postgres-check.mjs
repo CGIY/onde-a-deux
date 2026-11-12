@@ -37,6 +37,7 @@ try{
  await db.query("insert into public.desir_room_portraits values($1,'a','/9j/2Q==')",[room]);
  await db.query("insert into public.desir_room_rhythm values($1,'2030-01-01','2030-02-01',4,7,2)",[room]);
  await db.exec(await fs.readFile(new URL('../migrations/20261111120749_desir_rhythm_entries.sql',import.meta.url),'utf8'));
+ await db.exec(await fs.readFile(new URL('../migrations/20261112131353_desir_rhythm_four_practices.sql',import.meta.url),'utf8'));
  await db.query("update public.desir_room_rhythm set editor_actor='b' where room_id=$1",[room]);
  await db.query("insert into public.desir_accounts(actor,room_id,login_normalized,display_name,password_hash) values('a',$1,'alpha','Alpha',extensions.crypt('test-only-password',extensions.gen_salt('bf',12))),('b',$1,'bravo','Bravo',extensions.crypt('test-only-password',extensions.gen_salt('bf',12)))",[room]);
  const reminderAt='2030-01-01T12:00:00Z';
@@ -78,6 +79,10 @@ try{
  }
  const result=await record('b','no_penetration','0eed386e-7853-4215-bbb7-5825dc8eb51d');
  if(result.status!=='ok'||result.rhythm.without_penetration!==8||result.rhythm.with_penetration!==5)throw Error('Nonpenetrative write counted incorrectly');
+ for(let attempt=0;attempt<2;attempt++){
+  const result=await record('b','masturbation','0eed386e-7853-4215-bbb7-5825dc8eb51e');
+  if(result.status!=='ok'||result.rhythm.masturbation!==1||result.rhythm.without_penetration!==9||result.rhythm.with_penetration!==5||result.rhythm.anal!==3)throw Error('Masturbation write or replay counted incorrectly');
+ }
  for(const role of ['anon','authenticated']){
   await db.exec('reset role;set role '+role);
   let denied=false;try{await db.query('select * from public.desir_room_portraits');}catch{denied=true;}

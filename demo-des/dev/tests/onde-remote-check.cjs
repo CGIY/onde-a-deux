@@ -52,7 +52,7 @@ function badgeRoom(actor='a',sent=false){
  {
   const storage=memory(),writes=[];
   let loseReply=false;
-  const rhythm={started_on:'2030-02-01',ended_on:'2030-02-08',with_penetration:1,without_penetration:2,anal:0};
+  const rhythm={started_on:'2030-02-01',ended_on:'2030-02-08',with_penetration:1,without_penetration:2,anal:0,masturbation:1};
   const r=create(config,env(async(url,options)=>{
    const body=payload(options);
    if(body.op==='login')return response(loginReply(options));
@@ -65,13 +65,13 @@ function badgeRoom(actor='a',sent=false){
   const first=await r.loadRhythm();
   rhythm.ended_on='2030-02-09';
   const second=await r.loadRhythm();
-  check(()=>{assert.equal(first.total,3);assert.equal(second.total,21/8);assert.deepEqual(second.shares,first.shares);});
+  check(()=>{assert.equal(first.total,3);assert.equal(first.oral,1);assert.equal(first.masturbation,1);assert.equal(second.total,21/8);assert.deepEqual(second.shares,first.shares);});
   loseReply=true;
   await assert.rejects(r.recordRhythm('anal'),{status:503});
   await assert.rejects(r.recordRhythm('penetration'),{code:'pending_action'});
   loseReply=false;
   const recorded=await r.recordRhythm('anal');
-  check(()=>{assert.equal(writes.length,3);assert.equal(new Set(writes.map(write=>write.requestId)).size,1);assert.equal(recorded.total,28/8);assert.deepEqual(recorded.shares,{withPenetration:.5,withoutPenetration:.5,anal:.25});});
+  check(()=>{assert.equal(writes.length,3);assert.equal(new Set(writes.map(write=>write.requestId)).size,1);assert.equal(recorded.total,28/8);assert.equal(recorded.vaginal,7/8);assert.equal(recorded.anal,7/8);assert.deepEqual(recorded.shares,{withPenetration:.5,withoutPenetration:.5,anal:.25});});
   check(()=>assert.ok([...storage.values.values()].every(value=>!value.includes('2030-02-01')&&!value.includes(writes[0].requestId))));
  }
  // New activity metadata is optional and only the streak and date are retained.
