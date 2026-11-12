@@ -882,26 +882,26 @@
   const rhythm=panel.querySelector('.oa-libido.benchmarks');
   let disposed=false,readingRhythm=false,recordingRhythm=false,rhythmVersion=0,rhythmTimer;
   const editor=rhythm?.querySelector('[data-rhythm-editor]');
-  const comparison=rhythm?.querySelector('[data-rhythm-comparison]');
   const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
   const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
   const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
   const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
-  function setComparison(open){
-   comparison.setAttribute('aria-expanded',String(open));
-   for(const cell of rhythm.querySelectorAll('[data-rhythm-reference]'))cell.hidden=!comparison.hidden&&!open;
+  const refreshClock=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'Europe/Paris'});
+  function scheduleRhythmRefresh(){
+   const hour=3600000;
+   const next=new Date((Math.floor(Date.now()/hour)+1)*hour);
+   while(Number(refreshClock.format(next))%6!==0)next.setTime(next.getTime()+hour);
+   rhythmTimer=window.setTimeout(()=>{
+    void refreshRhythm();
+    scheduleRhythmRefresh();
+   },next.getTime()-Date.now());
   }
-  const toggleComparison=()=>setComparison(comparison.getAttribute('aria-expanded')!=='true');
   function renderRhythm(data){
    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
     element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
    }
    rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
-   if(comparison){
-    comparison.hidden=!data;
-    setComparison(!!data&&comparison.getAttribute('aria-expanded')==='true');
-   }
    if(editor){
     editor.hidden=!(data?.canRecord&&remote.recordRhythm);
     if(editor.hidden){editor.open=false;rhythmStatus.textContent='';}
@@ -943,10 +943,9 @@
   }
   if(rhythm&&remoteMode&&remote?.loadRhythm){
    refreshRhythm();
-   rhythmTimer=window.setInterval?.(refreshRhythm,15000);
+   scheduleRhythmRefresh();
    document.addEventListener('visibilitychange',refreshRhythm);
    editor?.addEventListener('click',addRhythm);
-   comparison?.addEventListener('click',toggleComparison);
   }
   const highlight=panel.querySelector('.dest-featured');
   const invitation=panel.querySelector('.women-invitation');
@@ -1044,10 +1043,9 @@
   updateMotion();
   return {refresh,updateMotion,dispose(){
    disposed=true;
-   if(rhythmTimer!==undefined)window.clearInterval?.(rhythmTimer);
+   if(rhythmTimer!==undefined)window.clearTimeout(rhythmTimer);
    document.removeEventListener('visibilitychange',refreshRhythm);
    editor?.removeEventListener('click',addRhythm);
-   comparison?.removeEventListener('click',toggleComparison);
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
    clearTimeout(typingTimer);

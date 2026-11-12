@@ -275,7 +275,7 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  equal(midnight.body,{rhythm:{...fixture,ended_on:'2030-02-02'},canRecord:false});
  equal((await deliver({op:'rhythm',gameVersion:8,roomId:'other-room'})).status,400);
  equal((await deliver({op:'rhythm',gameVersion:8},Buffer.alloc(32,3).toString('base64url'))).status,401);
- equal(paths,Array(3).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,editor_actor&room_id=eq.'+roomId));
+ equal(paths,Array(3).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,masturbation,editor_actor&room_id=eq.'+roomId));
  const add={op:'rhythm_add',gameVersion:8,requestId:uuid(510),kind:'anal'};
  equal((await deliver(add,tokenA)).status,403);
  equal((await deliver({...add,actor:'b'},tokenA)).status,400);
