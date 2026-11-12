@@ -174,7 +174,7 @@ function client(handler){
   return {status:response.status,body:await response.json(),headers:response.headers};
  };
 }
-const intent=(type,id,roundId='onde-1',extra={})=>({op:'action',requestId:uuid(id),action:{type,roundId,...extra}});
+const intent=(type,id,roundId='onde-1',extra={})=>({op:'action',requestId:uuid(id),action:{type,roundId,...(type==='REFUSE_TASK'?{starCost:1}:{}),...extra}});
 const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 
 // The temporary category allowance is consumed only by a committed roll. A
@@ -378,21 +378,43 @@ for(const sides of [4,6]){
  equal(store.state.daily,null,'no extra daily card is created');
 }
 
-// Every authoritative refusal face dismisses the task once, without points or quota.
+// A paid refusal commits one debit and one authoritative result on every face.
 for(let face=1;face<=20;face++){
- const store=new MemoryStore();store.state=G.createRoom();await authorize(store);const randomCalls=[];
- const deliver=client(createHandler({G:{...G,randomInt:n=>{randomCalls.push(n);return n===20?face:1;}},store,rateSecret:'fixture',clock:()=>new Date(at)}));
+ const store=new MemoryStore();store.state=G.createRoom({at});store.state.cardRerollWallets.b.balance=2;await authorize(store);const randomCalls=[];let time=at;
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{randomCalls.push(n);return n===20?face:1;}},store,rateSecret:'fixture',clock:()=>new Date(time)}));
  const taskId=view(store,'a').round.id;let requestId=1000+face*10;
- for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','SEND'])equal((await deliver(intent(type,requestId++,taskId))).status,200);
+ for(const type of ['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT'])equal((await deliver(intent(type,requestId++,taskId))).status,200);
+ equal((await deliver({...intent('SEND',requestId++,taskId,{starPenalty:true}),gameVersion:8})).status,200);
+ const deadline=store.state.tasks[0].expiresAt;
  const used=store.used.size,revision=store.revision,bId=view(store,'b').round.id,calls=randomCalls.length;
  const invalidSender=await deliver(intent('REFUSE_TASK',requestId++,view(store,'a').round.id,{taskId}));equal(invalidSender.status,409);equal(randomCalls.length,calls,'sender refusal does not draw');
  const illegal=await deliver(intent('REFUSE_TASK',requestId++,bId,{taskId,value:20}),tokenB);equal(illegal.status,400);equal(randomCalls.length,calls,'client cannot choose the D20');
- const action=intent('REFUSE_TASK',requestId++,bId,{taskId});
- const results=await Promise.all([deliver(action,tokenB),deliver(action,tokenB)]);equal(results.map(x=>x.status),[200,200]);equal(results[0].body,results[1].body,'concurrent replay keeps the committed D20');
- equal(results[0].body.roll,{kind:20,value:face});equal(store.state.tasks,[]);equal(store.state.stats.totalCompleted,0);equal(store.used.size,used);equal(store.revision,revision+1);equal(store.state.history.find(r=>r.id===taskId).refusalRoll,face);equal(store.state.history.find(r=>r.id===taskId).status,'passed');
+ const legacy=intent('REFUSE_TASK',requestId++,bId,{taskId});delete legacy.action.starCost;
+ equal((await deliver(legacy,tokenB)).body.error.code,'upgrade_required');equal(randomCalls.length,calls);
+ const balance=G.cardRerollStars(store.state,'b',at).balance;
+ const action={...intent('REFUSE_TASK',requestId++,bId,{taskId}),gameVersion:8};
+ const results=await Promise.all([deliver(action,tokenB),deliver(action,tokenB)]);equal(results.map(x=>x.status),[200,200],JSON.stringify(results.map(x=>x.body.error)));equal(results[0].body,results[1].body,'concurrent replay keeps the committed D20');
+ equal(results[0].body.roll,{kind:20,value:face});equal(store.state.tasks.length,face>10?0:1);equal(store.state.stats.totalCompleted,0);equal(store.used.size,used);equal(store.revision,revision+1);
+ equal(G.cardRerollStars(store.state,'b',at).balance,balance-1);equal(store.state.history.find(r=>r.id===taskId).refusalRoll,face>10?face:undefined);
+ equal(results[0].body.failedRefusals,face>10?{}:{[taskId]:face});
+ equal(results[0].body.penaltyTaskIds,[]);
+ ok(results[0].body.state.tasks.every(task=>!Object.hasOwn(task,'failedRefusalRoll')));
  const replay=await deliver(action,tokenB);equal(replay.body,results[0].body);equal(store.revision,revision+1);
- equal((await deliver(intent('REFUSE_TASK',requestId++,bId,{taskId}),tokenB)).status,409,'a dismissed task cannot be refused again');
+ const priorDraws=randomCalls.length;
+ const second=await deliver(intent('REFUSE_TASK',requestId++,bId,{taskId}),tokenB);
+ equal(second.status,409,'a second attempt cannot spend another star that day');
+ equal(second.body.error.code,face>10?'invalid_phase':'star_spent_today');equal(randomCalls.length,priorDraws);
+ equal(G.cardRerollStars(store.state,'b',at).balance,balance-1);
  equal(randomCalls.slice(calls).every(n=>n===20),true);equal(store.outbox.length,1,'refusal creates no extra person-directed notification');
+ if(face===10){
+  const sender=await deliver({op:'state',gameVersion:8},tokenA);
+  equal(sender.body.failedRefusals,{},'the sender does not receive a failed face');
+  time=deadline;
+  const atDeadline=G.cardRerollStars(store.state,'b',time).balance;
+  equal((await deliver({op:'state',gameVersion:8},tokenB)).status,200);
+  equal(store.state.tasks,[]);
+  equal(G.cardRerollStars(store.state,'b',time).balance,atDeadline,'no second debit at expiry');
+ }
 }
 
 // Polling refreshes state without creating redundant push drain workers.
@@ -750,11 +772,11 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
 }
 
 // Missed missions debit the recipient once per Paris day. The roll lock is
-// enforced before randomness, but refusing an active mission needs no star.
+// enforced before randomness, including for a paid refusal.
 {
  let time='2026-11-10T10:00:00.000Z',id=2700,draws=0;
  const saved=new MemoryStore();saved.state=G.createRoom({at:time});await authorize(saved);
- const deliver=client(createHandler({G:{...G,randomInt:n=>{draws++;return 1;}},store:saved,rateSecret:'fixture-penalty',clock:()=>new Date(time)}));
+ const deliver=client(createHandler({G:{...G,randomInt:n=>{draws++;return n===20?20:1;}},store:saved,rateSecret:'fixture-penalty',clock:()=>new Date(time)}));
  const send=async starPenalty=>{
   saved.used.delete('a');
   const roundId=view(saved,'a').round.id;
@@ -776,7 +798,7 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
  const declined=await send(true);
  const future=await send(true);
  time='2026-11-11T09:00:00.000Z';
- saved.state.cardRerollWallets.b={balance:2,anchorAt:time,spentAt:time};
+ saved.state.cardRerollWallets.b={balance:3,anchorAt:time,spentAt:null};
  const refused=await deliver({...intent('REFUSE_TASK',id++,bRound,{taskId:declined.id}),gameVersion:8},tokenB);
  equal(refused.status,200);equal(refused.body.roll.kind,20);
  const senderWallet=clone(saved.state.cardRerollWallets.a);
@@ -797,7 +819,7 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
   equal(locked.status,409);equal(locked.body.error.code,'no_stars');
  }
  const plainRefusal=await deliver({...intent('REFUSE_TASK',id++,bRound,{taskId:future.id}),gameVersion:8},tokenB);
- equal(plainRefusal.status,200);equal(plainRefusal.body.roll,undefined);equal(draws,beforeLock);
+ equal(plainRefusal.status,409);equal(plainRefusal.body.error.code,'no_stars');equal(draws,beforeLock);
  time='2026-11-11T21:00:00.000Z';
  equal((await deliver({...intent('ROLL_CATEGORY',id++,bRound),gameVersion:8},tokenB)).status,200);
 }

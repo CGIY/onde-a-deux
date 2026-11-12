@@ -158,7 +158,7 @@ for(const [cardId,face,oldText,newText] of [
   assert.equal(G.getVariant(sent.tasks[0]),text);
   assert.equal(G.getVariant(sent.history[0]),text);
   const received=act(sent,'SWITCH_PLAYER',{player:'b'});
-  const refused=act(received,'REFUSE_TASK',{taskId:sent.round.id,value:1});
+  const refused=act(received,'REFUSE_TASK',{taskId:sent.round.id,value:11});
   assert.equal(G.getVariant(refused.history[0]),text);
  }
  assert.equal(act(draft,'REROLL_CARD',{value:1}).round.proposal,null);

@@ -401,8 +401,8 @@ function badgeRoom(actor='a',sent=false){
   let sent;const storage=memory();
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options,'b'));sent=p;return response(reply('b',2,state('b'),{roll:{kind:20,value:20}}));},storage));
   await r.login('fixture-user','fixture-password');
-  const result=await r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1',value:1,actor:'a',penalty:4});
-  check(()=>{assert.deepEqual(sent.action,{type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1'});assert.equal(sent.gameVersion,8);assert.deepEqual(result.roll,{kind:20,value:20});assert.equal(storage.getItem('desir-connection-v1-action'),null);});
+  const result=await r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1',starCost:1,value:1,actor:'a',penalty:4});
+  check(()=>{assert.deepEqual(sent.action,{type:'REFUSE_TASK',roundId:'onde-2',taskId:'onde-1',starCost:1});assert.equal(sent.gameVersion,8);assert.deepEqual(result.roll,{kind:20,value:20});assert.equal(storage.getItem('desir-connection-v1-action'),null);});
   for(const type of ['ACCEPT','PASS','SEND_DAILY'])await assert.rejects(r.action({type,roundId:'onde-2'}),{code:'not_allowed'});
   await assert.rejects(r.action({type:'REFUSE_TASK',roundId:'onde-2',taskId:'invalid'}),{code:'invalid_action'});
  }
@@ -440,7 +440,7 @@ function badgeRoom(actor='a',sent=false){
  {
   const storage=memory();let actions=0;
   const r=create(config,env(async(url,options)=>{const p=payload(options);if(p.op==='login')return response(loginReply(options));actions++;return response({...reply('a',2,drawn()),error:{code:'stale_round'}},409);},storage));await r.login('fixture-user','fixture-password');
-  await assert.rejects(r.action({type:'REFUSE_TASK',roundId:'onde-1',taskId:'onde-2'}),{code:'stale_round'});
+  await assert.rejects(r.action({type:'REFUSE_TASK',roundId:'onde-1',taskId:'onde-2',starCost:1}),{code:'stale_round'});
   check(()=>assert.equal(actions,1));check(()=>assert.equal(r.snapshot.revision,2));check(()=>assert.equal(r.status.phase,'connected'));check(()=>assert.equal(r.authenticated,true));check(()=>assert.equal(storage.getItem('desir-connection-v1-action'),null));check(()=>assert.match(r.status.message,/actualisée/));
  }
  // An explicit re-login can replace a revoked token, without keeping the previous actor's view.

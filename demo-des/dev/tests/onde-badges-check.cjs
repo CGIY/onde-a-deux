@@ -109,6 +109,7 @@ for(const badge of G.badgeCatalog.slice(0,90).filter(badge=>badge.criterion.card
  const {cardId,variantRoll}=badge.criterion,wrongFace=variantRoll===1?2:1;
  let {room,taskId}=queue(G.createRoom({at}),'a',cardId,variantRoll);
  eq(item(room,'a',badge.id).progress.value,0);
+ room.cardRerollWallets.b.balance=2;
  room=step(room,'REFUSE_TASK','b',{taskId,value:20});eq(item(room,'a',badge.id).progress.value,0);
  room=complete(room,'a',cardId,wrongFace);
  const otherCard=G.cards.find(card=>card.categoryId===G.getCard(cardId).categoryId&&card.id!==cardId);

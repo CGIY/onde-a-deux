@@ -119,7 +119,7 @@ for(const actor of ['a','b'])for(const mode of [1,10,11,20]){
     if(hardcore){
       for(let refusal=1;refusal<=20;refusal++){
         const refused=act(sent,'REFUSE_TASK',G.otherPlayer(actor),{taskId,value:refusal,at:later});
-        eq(refused.tasks,[]);eq(refused.stats.totalCompleted,0);eq(refused.history[0].refusalRoll,refusal);eq(refused.progression,sent.progression);
+        eq(refused.tasks,refusal>10?[]:[{...sent.tasks[0],failedRefusalRoll:refusal}]);eq(refused.stats.totalCompleted,0);eq(refused.history[0].refusalRoll,refusal>10?refusal:undefined);eq(refused.progression,sent.progression);
       }
       const noHistory=copy(sent);noHistory.history=[];ok(G.validateRoom(noHistory));
       const expired=act(noHistory,'EXPIRE_TASKS',G.otherPlayer(actor),{at:'2026-11-09T11:00:00.000Z'});

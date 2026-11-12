@@ -26,6 +26,7 @@ function parseKnownAction(input,types){
   const keys=['type','roundId'];
   if(taskTypes.has(input.type))keys.push('taskId');
   if(input.type==='TOGGLE_TASK_CHECK')keys.push('checked');
+  if(input.type==='REFUSE_TASK')keys.push('starCost');
   if(input.type==='JOKER_DRAW')keys.push('category');
   if(input.type==='SEND')keys.push('starPenalty');
   if(Object.keys(input).some(key=>!keys.includes(key))||typeof input.roundId!=='string'||!/^onde-[1-9]\d*$/.test(input.roundId))throw new HttpError(400,'invalid_action','Action invalide.');
@@ -41,6 +42,10 @@ function parseKnownAction(input,types){
   if(input.type==='REFUSE_TASK'||input.type==='EXTEND_TASK'){
     if(typeof input.taskId!=='string'||!/^onde-[1-9]\d*$/.test(input.taskId))throw new HttpError(400,'invalid_action','Défi invalide.');
     action.taskId=input.taskId;
+    if(input.type==='REFUSE_TASK'){
+      if(input.starCost!==1)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser le refus à une étoile.');
+      action.starCost=1;
+    }
   }
   if(input.type==='JOKER_DRAW'){
     if(!Number.isInteger(input.category)||input.category<1||input.category>4)throw new HttpError(400,'invalid_action','Catégorie invalide.');
@@ -73,7 +78,7 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
   const projected=copy(full);projected.activePlayer=actor;projected.seen={};projected.favorites=[];
   delete projected.progression;
   delete projected.taskPenaltyDays;
-  for(const task of projected.tasks)delete task.starPenalty;
+  for(const task of projected.tasks){delete task.starPenalty;delete task.failedRefusalRoll;}
   if(gameVersion!==8)delete projected.cardRerollWallets;
   projected.history=projected.history.filter(round=>
     (gameVersion>=2||!(round.catalogueVersion>=2)) &&
@@ -103,7 +108,11 @@ export function snapshot(G,context,extra={},gameVersion=2){
     const invitations=full.pendingRounds.map(item=>G.roomView(full,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
     const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,gameVersion));
     const pendingOutgoing=invitations.filter(value=>value.round.from===actor).length;
-    const missionFeatures=gameVersion===8?{canExtendTasks:true,penaltyTaskIds:own.tasks.filter(task=>task.starPenalty).map(task=>task.id)}:{};
+    const missionFeatures=gameVersion===8?{
+      canExtendTasks:true,
+      penaltyTaskIds:own.tasks.filter(task=>task.starPenalty&&task.failedRefusalRoll===undefined).map(task=>task.id),
+      failedRefusals:Object.fromEntries(own.tasks.filter(task=>task.to===actor&&task.failedRefusalRoll!==undefined).map(task=>[task.id,task.failedRefusalRoll]))
+    }:{};
     return {roomId:context.room.id,state:projectState(G,own,actor,gameVersion),badges,activity:G.activityCalendar(full,actor),incoming,pendingOutgoing,gameVersion,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:own.phase==='category',quota:copy(context.quota),...missionFeatures,...extra};
   }
   return {roomId:context.room.id,state:projectState(G,full,actor,gameVersion),badges,revision:Number(context.room.revision),actor,paired:context.paired===true,drawAvailable:full.phase==='category',quota:copy(context.quota),...extra};
@@ -149,11 +158,10 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
     if(action.roundId!==target.round.id)throw new HttpError(409,'stale_round','Le tour a changé.');
     const task=room.tasks.find(item=>item.id===action.taskId);
     if(!task||task.to!==actor||Date.parse(task.expiresAt)<=Date.parse(at))throw new HttpError(409,'invalid_phase','Ce défi n’est plus disponible.');
-    if(hasStar){
-      const value=randomInt(20);
-      if(!Number.isInteger(value)||value<1||value>20)throw new Error('Invalid authoritative random outcome');
-      action.value=value;action.token='request:'+requestId;roll={kind:20,value};
-    }
+    if(!G.canSpendStar(room,actor,at))throw new HttpError(409,'star_spent_today','Tu as déjà dépensé une étoile aujourd’hui.');
+    const value=randomInt(20);
+    if(!Number.isInteger(value)||value<1||value>20)throw new Error('Invalid authoritative random outcome');
+    action.value=value;action.token='request:'+requestId;roll={kind:20,value};
   }else if(action.type==='ROLL_CATEGORY'){
     if(!owns||target.phase!=='category')throw new HttpError(409,'invalid_phase','Cette action n’est plus disponible.');
     const sides=G.categorySides(catalogueVersion),value=boosted?rollBoostedCategory(G,catalogueVersion,randomInt,at):G.rollCategory(catalogueVersion,randomInt,at);

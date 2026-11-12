@@ -31,10 +31,12 @@ for(const from of ['a','b']){
  for(const face of [0,21,1.5,null])eq(apply(sent,'REFUSE_TASK',to,{taskId:oldId,value:face}),sent,'invalid die face rejected');
  for(let value=1;value<=20;value++){
   const refused=apply(sent,'REFUSE_TASK',to,{taskId:oldId,value,at:later});
-  eq(refused.tasks,[],'each D20 face honours the refusal');
-  eq(refused.history[0].status,'passed');eq(refused.history[0].refusalRoll,value);eq(refused.history[0].closedBy,to);
+  eq(refused.tasks,value>10?[]:[{...sent.tasks[0],failedRefusalRoll:value}],'a failed face is saved on the active task');
+  eq(G.cardRerollStars(refused,to,later).balance,G.cardRerollStars(sent,to,later).balance-1);
+  if(value>10){eq(refused.history[0].status,'passed');eq(refused.history[0].refusalRoll,value);eq(refused.history[0].closedBy,to);}
+  else eq(refused.history,sent.history);
   eq(refused.stats,sent.stats);eq(refused.lanes,sent.lanes,'refusal leaves both active draws alone');
-  eq(apply(refused,'REFUSE_TASK',to,{taskId:oldId,value:20}),refused,'repeating refusal has no effect');
+  eq(apply(refused,'REFUSE_TASK',to,{taskId:oldId,value:20,at:later}),refused,'a second expense the same day is blocked');
  }
  let checked=apply(sent,'TOGGLE_TASK_CHECK',from,{taskId:oldId,checked:true,at:later});
  eq(checked.stats.totalCompleted,0);eq(checked.tasks.length,1);
@@ -50,7 +52,7 @@ for(const from of ['a','b']){
  // never manufacture recipient agreement when the task is refused or expires.
  const withoutHistory=copy(sent);withoutHistory.history=[];
  ok(G.validateRoom(withoutHistory));
- const refusedWithoutHistory=apply(withoutHistory,'REFUSE_TASK',to,{taskId:oldId,value:8,at:later});
+ const refusedWithoutHistory=apply(withoutHistory,'REFUSE_TASK',to,{taskId:oldId,value:11,at:later});
  eq(refusedWithoutHistory.tasks,[]);eq(refusedWithoutHistory.history[0].toConfirmed,false);
  const expiredWithoutHistory=apply(withoutHistory,'EXPIRE_TASKS',to,{at:'2026-11-09T10:00:00.000Z'});
  eq(expiredWithoutHistory.tasks,[]);eq(expiredWithoutHistory.history[0].toConfirmed,false);
@@ -64,7 +66,7 @@ for(const from of ['a','b']){
  const incomplete=copy(legacy);incomplete.history=copy(sent.history);
  delete incomplete.history[0].fromConfirmed;delete incomplete.history[0].toConfirmed;
  ok(G.validateRoom(incomplete));
- for(const action of [{type:'EXPIRE_TASKS',at:'2026-11-09T10:00:00.000Z'},{type:'REFUSE_TASK',taskId:oldId,value:9,at:later}]){
+ for(const action of [{type:'EXPIRE_TASKS',at:'2026-11-09T10:00:00.000Z'},{type:'REFUSE_TASK',taskId:oldId,value:11,at:later}]){
   const ended=apply(incomplete,action.type,to,action);
   eq(ended.tasks,[]);eq(ended.lanes[from].phase,'resolved');eq(ended.lanes[from].round.toConfirmed,true);
  }
@@ -86,4 +88,4 @@ for(const task of before.tasks){
 }
 const oldRound=before.lanes.a.round.id;
 eq(apply(reset,'ROLL_CATEGORY','a',{roundId:oldRound,value:1,catalogueVersion:2,hand:G.cards.filter(card=>card.categoryId===G.categories[0].id).map(card=>card.id)}),reset,'pre-reset draw cannot act on the new room');
-console.log(`Dés·ir direct sharing/refusal/reset: ${checks} checks passed; no invitation, every D20 refusal honoured, independent draws, two checks for points, monotonic reset IDs.`);
+console.log(`Dés·ir direct sharing/refusal/reset: ${checks} checks passed; no invitation, paid D20 threshold verified, independent draws, two checks for points, monotonic reset IDs.`);
