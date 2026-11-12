@@ -151,17 +151,28 @@ class WebBuild(BuildFixture):
         self.assertIn('class="rough-insults"', html)
         self.assertIn('class="dest-cell dest-featured"', html)
         rhythm = re.search(r'<template id="oa-libido-benchmarks">(.*?)</template>', html, re.S)[1]
-        self.assertEqual(rhythm.count('scope="row"'), 4)
-        self.assertEqual(rhythm.count('data-rhythm-personal hidden'), 6)
-        self.assertEqual(re.findall(r'<th scope="col"[^>]*>(.*?)</th>', rhythm),
-                         ['Par semaine', 'Repères nationaux', 'Notre rythme'])
-        self.assertEqual(re.findall(r'<td class="oa-rhythm-value" data-rhythm-rate="([^"]+)" data-rhythm-personal hidden></td>', rhythm),
-                         ['vaginal', 'oral', 'anal', 'masturbation'])
+        self.assertNotIn('<table', rhythm)
+        self.assertIn('<h2>Par semaine</h2>', rhythm)
+        self.assertEqual(rhythm.count('class="oa-rhythm-item'), 5)
+        self.assertEqual(rhythm.count('data-rhythm-personal'), 12)
+        self.assertEqual(rhythm.count('data-rhythm-track'), 5)
+        self.assertEqual(rhythm.count('data-rhythm-fill'), 5)
+        self.assertIn('<div class="oa-rhythm-columns"', rhythm)
+        self.assertEqual(re.findall(r'data-rhythm-rate="([^"]+)" data-rhythm-benchmark="([^"]+)" data-rhythm-personal hidden', rhythm),
+                         [])
+        self.assertEqual(re.findall(r'data-rhythm-rate="([^"]+)" data-rhythm-benchmark="([^"]+)"', rhythm),
+                         [('vaginal', '1.2'), ('oral', '3'), ('anal', '0.55'), ('masturbation', '2.5'), ('nudes', '1')])
         self.assertNotIn('data-rhythm-share', rhythm)
-        self.assertEqual(rhythm.count('%'), 3)
-        self.assertEqual(rhythm.count('class="oa-rhythm-benchmarks"'), 4)
-        self.assertEqual(re.findall(r'<b>([^<]+)</b>', rhythm), ['1', '3', '3', '1', '1 à 4'])
+        self.assertNotIn('/ semaine</small>', rhythm)
+        self.assertEqual(re.findall(r'class="oa-rhythm-benchmark">([^<]+)</span>', rhythm),
+                         ['1,2', '3', '0,55', '2,5', '1'])
+        self.assertEqual(re.findall(r'data-rhythm-scale-tone="([^"]+)"', rhythm), [str(tone) for tone in range(1, 11)])
+        self.assertEqual(re.findall(r'data-rhythm-add="([^"]+)"', rhythm),
+                         ['penetration', 'no_penetration', 'anal', 'masturbation', 'nudes'])
         self.assertIn('Masturbation<small>seul ou à deux</small>', rhythm)
+        self.assertIn('Nudes<small>repère hebdo</small>', rhythm)
+        self.assertNotIn('Total hors nudes', rhythm)
+        self.assertNotIn('Rythme du couple', rhythm)
         self.assertNotIn('Les rythmes du couple.', rhythm)
         self.assertNotIn('class="place-extras"', html)
         women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]

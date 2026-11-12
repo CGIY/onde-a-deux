@@ -301,12 +301,12 @@
    const start=data.started_on,end=data.ended_on;
    const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)?Date.parse(value):NaN;
    const days=(day(end)-day(start))/86400000;
-   const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal,masturbation=data.masturbation??0;
-   if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal,masturbation].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration||masturbation>withoutPenetration)return null;
+   const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal,masturbation=data.masturbation??0,nudes=data.nudes??0;
+   if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal,masturbation,nudes].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration||masturbation>withoutPenetration)return null;
    const total=withPenetration+withoutPenetration;
    return {
     start,end,canRecord:raw.canRecord===true,
-    vaginal:(withPenetration-anal)*7/days,oral:(withoutPenetration-masturbation)*7/days,anal:anal*7/days,masturbation:masturbation*7/days,total:total*7/days,
+    vaginal:(withPenetration-anal)*7/days,oral:(withoutPenetration-masturbation)*7/days,anal:anal*7/days,masturbation:masturbation*7/days,nudes:nudes*7/days,total:total*7/days,
     shares:total?{withPenetration:withPenetration/total,withoutPenetration:withoutPenetration/total,anal:anal/total}:null
    };
   }
@@ -321,7 +321,7 @@
    return serial(async()=>{
     requireConnection();
     const identity=connection;
-    if(!['penetration','no_penetration','anal','masturbation'].includes(kind))throw failure('invalid_request','Catégorie invalide.');
+    if(!['penetration','no_penetration','anal','masturbation','nudes'].includes(kind))throw failure('invalid_request','Catégorie invalide.');
     if(pendingRhythm?.identity!==identity)pendingRhythm=null;
     if(pendingRhythm&&pendingRhythm.kind!==kind)throw failure('pending_action','Retouche la catégorie de la dernière saisie pour confirmer son enregistrement.');
     const pending=pendingRhythm||{identity,kind,id:requestId()};

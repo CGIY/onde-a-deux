@@ -885,6 +885,7 @@
   const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
   const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
   const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
+  const rhythmToneThresholds=[0.10,0.20,0.35,0.55,0.75,0.95,1.05,1.10,1.15];
   const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
   const refreshClock=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'Europe/Paris'});
   function scheduleRhythmRefresh(){
@@ -898,7 +899,20 @@
   }
   function renderRhythm(data){
    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
-    element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
+    const {rhythmRate,rhythmBenchmark}=element.dataset;
+    const value=data?.[rhythmRate];
+    element.textContent=data?rateFormat.format(value):'';
+    if(!rhythmBenchmark)continue;
+    const comparison=element.closest('[data-rhythm-comparison]');
+    const fill=comparison.querySelector('[data-rhythm-fill]');
+    const track=comparison.querySelector('[data-rhythm-track]');
+    if(!data){delete comparison.dataset.rhythmTone;fill.style.width='0%';track.removeAttribute('aria-valuenow');track.removeAttribute('aria-valuetext');continue;}
+    const ratio=value/Number(rhythmBenchmark);
+    comparison.dataset.rhythmTone=String(1+rhythmToneThresholds.filter(threshold=>ratio+Number.EPSILON>=threshold).length);
+    const percent=Math.max(0,Math.min(100,ratio*100));
+    fill.style.width=`${percent}%`;
+    track.setAttribute('aria-valuenow',String(Math.round(percent)));
+    track.setAttribute('aria-valuetext',`${rateFormat.format(value)} par semaine, ${Math.round(ratio*100)} % du repère de ${rateFormat.format(Number(rhythmBenchmark))}`);
    }
    rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
@@ -930,7 +944,7 @@
     const data=await remote.recordRhythm(button.dataset.rhythmAdd);
     if(disposed)return;
     renderRhythm(remote.authenticated?data:null);
-    if(!editor.hidden)rhythmStatus.textContent='Rapport enregistré.';
+    if(!editor.hidden)rhythmStatus.textContent='Pratique enregistrée.';
    }catch(error){
     if(disposed)return;
     if(!remote.authenticated)renderRhythm(null);

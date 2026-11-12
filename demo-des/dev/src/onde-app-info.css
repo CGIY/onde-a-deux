@@ -35,39 +35,49 @@
 #onde-app-v1 .oa-libido.destinations{--oa-panel-tint:var(--oa-iris-violet);--chart:#d3afd9;--outside-color:#a7c2d6;padding:8px 11px;border-color:#c3a4cf48}
 #onde-app-v1 .oa-libido.places{--oa-panel-tint:var(--oa-iris-ice);--chart:#b7cfe1;border-color:#adc3d44a}
 #onde-app-v1 .oa-libido.women{--oa-panel-tint:var(--oa-iris-quartz);--chart:#ecc5a3;border-color:#c7a48a48}
-#onde-app-v1 .oa-libido.benchmarks{padding:8px 11px}
+#onde-app-v1 .oa-libido.benchmarks{padding:13px 12px 10px}
 #onde-app-v1 .oa-libido.benchmarks::before{
- background:radial-gradient(ellipse at 74% 0%,#c294d42c,transparent 72%),var(--oa-grain) 0 0/128px;
+ background:radial-gradient(ellipse at 0 0,#52748642,transparent 61%),radial-gradient(ellipse at 100% 7%,#80678638,transparent 63%),var(--oa-grain) 0 0/128px;
 }
-#onde-app-v1 .oa-rhythm-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:12px;line-height:1.3}
-#onde-app-v1 .oa-rhythm-table :is(th,td){padding:6px 4px;vertical-align:middle}
-#onde-app-v1 .oa-rhythm-table thead th{padding-block:2px 8px;color:#c6bdd7;font-weight:650}
-#onde-app-v1 .oa-rhythm-table thead th:first-child{width:36%;text-align:left;color:#f3edf9;font-weight:800}
-#onde-app-v1 .oa-rhythm-table thead th:nth-child(2){width:35%;text-align:center}
-#onde-app-v1 .oa-rhythm-table thead th:last-child{width:29%;color:#f1cfdd;text-align:center}
-#onde-app-v1 .oa-rhythm-table tbody :is(th,td){border-top:1px solid #685a744d}
-#onde-app-v1 .oa-rhythm-table tbody th{text-align:left;font-weight:600}
-#onde-app-v1 .oa-rhythm-table tbody small{display:block;margin-top:2px;color:#c4bbd1;font-size:11px;font-weight:400}
-#onde-app-v1 .oa-rhythm-benchmarks{display:flex;justify-content:center;gap:3px 12px;text-align:center}
-#onde-app-v1 .oa-rhythm-benchmarks span{white-space:nowrap}
-#onde-app-v1 .oa-rhythm-benchmarks b{color:#f3edf9;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
-#onde-app-v1 .oa-rhythm-table tbody .oa-rhythm-value{
- height:33px;text-align:center;border-color:#644358;background:#4b2c40;color:#ff9eae;
- font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.04em
-}
-#onde-app-v1 .oa-rhythm-table tbody tr:first-child .oa-rhythm-value{border-radius:10px 10px 0 0}
-#onde-app-v1 .oa-rhythm-table tbody tr:last-child .oa-rhythm-value{border-radius:0 0 10px 10px}
-#onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:8px 4px 0;color:#c6bdd7;font-size:11px}
-#onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
+#onde-app-v1 .oa-rhythm-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:1px 2px 9px}
+#onde-app-v1 .oa-rhythm-head h2{margin:0;color:#faf4fb;font:700 23px/1 var(--oa-font,system-ui);letter-spacing:-.04em}
+#onde-app-v1 .oa-rhythm-date{color:#cfc4d7;font:10px/1.2 var(--oa-font,system-ui);white-space:nowrap}
+#onde-app-v1 .oa-rhythm-columns,#onde-app-v1 .oa-rhythm-line{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;align-items:center;gap:7px}
+#onde-app-v1 .oa-rhythm-columns{padding:0 2px 6px;color:#c6bdd1;font:9px/1.2 var(--info-mono);letter-spacing:.07em;text-transform:uppercase}
+#onde-app-v1 .oa-rhythm-columns span:nth-child(n+2){text-align:center}
+#onde-app-v1 .oa-rhythm-list{border-top:1px solid var(--oa-line)}
+#onde-app-v1 .oa-rhythm-item{--rhythm-bg:#8d4054;--rhythm-ink:#fff6f8;min-width:0;min-height:67px;padding:8px 1px 7px;border-bottom:1px solid var(--oa-line)}
+#onde-app-v1 .oa-rhythm-item h3{display:flex;align-items:center;gap:7px;min-width:0;margin:0;color:#faf4fb;font:650 14px/1.05 var(--oa-font,system-ui);letter-spacing:-.015em}
+#onde-app-v1 .oa-rhythm-item h3>i{width:7px;height:7px;flex:0 0 auto;border-radius:50%;background:var(--rhythm-bg)}
+#onde-app-v1 .oa-rhythm-item h3 small{display:block;margin-top:3px;color:#cfc4d7;font:400 10px/1 var(--oa-font,system-ui);letter-spacing:0}
+#onde-app-v1 .oa-rhythm-current,#onde-app-v1 .oa-rhythm-benchmark{min-width:60px;padding:5px 6px;border-radius:9px;text-align:center;font:600 15px/1 var(--info-mono);font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-rhythm-current{background:var(--rhythm-bg);color:var(--rhythm-ink)}
+#onde-app-v1 .oa-rhythm-benchmark{background:var(--oa-panel-inset);color:#f7f0f8}
+#onde-app-v1 .oa-rhythm-track{height:10px;margin-top:7px;border-radius:999px;background:#363b4d;overflow:hidden}
+#onde-app-v1 .oa-rhythm-track>i{display:block;width:0;height:100%;border-radius:inherit;background:var(--rhythm-bg);transition:width .55s var(--info-rhythm)}
+#onde-app-v1 [data-rhythm-tone="1"],#onde-app-v1 [data-rhythm-scale-tone="1"]{--rhythm-bg:#8d4054}
+#onde-app-v1 [data-rhythm-tone="2"],#onde-app-v1 [data-rhythm-scale-tone="2"]{--rhythm-bg:#9f4a58}
+#onde-app-v1 [data-rhythm-tone="3"],#onde-app-v1 [data-rhythm-scale-tone="3"]{--rhythm-bg:#b3545d}
+#onde-app-v1 [data-rhythm-tone="4"],#onde-app-v1 [data-rhythm-scale-tone="4"]{--rhythm-bg:#c36163}
+#onde-app-v1 [data-rhythm-tone="5"],#onde-app-v1 [data-rhythm-scale-tone="5"]{--rhythm-bg:#d2706b;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="6"],#onde-app-v1 [data-rhythm-scale-tone="6"]{--rhythm-bg:#de8277;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="7"],#onde-app-v1 [data-rhythm-scale-tone="7"]{--rhythm-bg:#e79586;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="8"],#onde-app-v1 [data-rhythm-scale-tone="8"]{--rhythm-bg:#ecaa99;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="9"],#onde-app-v1 [data-rhythm-scale-tone="9"]{--rhythm-bg:#b8baaa;--rhythm-ink:#243027}
+#onde-app-v1 [data-rhythm-tone="10"],#onde-app-v1 [data-rhythm-scale-tone="10"]{--rhythm-bg:#cfd7bf;--rhythm-ink:#243027}
+#onde-app-v1 .oa-rhythm-scale{display:grid;grid-template-columns:auto minmax(120px,1fr);align-items:center;gap:8px;margin:10px 2px 0}
+#onde-app-v1 .oa-rhythm-scale>span{color:#c6bdd1;font:9px/1.2 var(--oa-font,system-ui)}
+#onde-app-v1 .oa-rhythm-scale>div{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px}
+#onde-app-v1 .oa-rhythm-scale i{height:6px;border-radius:2px;background:var(--rhythm-bg)}
 #onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor])[hidden]{display:none}
 #onde-app-v1 .oa-info-studies{margin-top:0}
 #onde-app-v1 .oa-info-studies > .oa-info-cards{margin-top:6px}
-#onde-app-v1 .oa-rhythm-editor{margin-top:5px;padding:0 5px;color:#f1cfdd;font-size:11px}
-#onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;padding:6px 0}
+#onde-app-v1 .oa-rhythm-editor{margin-top:3px;padding:0 2px;color:#f1cfdd;font-size:11px}
+#onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;min-height:38px;padding:11px 0 7px}
 #onde-app-v1 .oa-rhythm-choices{display:flex;gap:4px;flex-wrap:wrap}
 #onde-app-v1 .oa-rhythm-choices button{
- flex:1 1 auto;min-height:44px;padding:4px 8px;border:1px solid #8e5067;border-radius:7px;
- background:#39273f;color:inherit;font:inherit;cursor:pointer
+ flex:1 1 calc(33% - 4px);min-height:44px;padding:5px 7px;border:1px solid #9b686d;border-radius:8px;
+ background:#51323a;color:#f5dde2;font:inherit;cursor:pointer
 }
 #onde-app-v1 .oa-rhythm-choices button:disabled{opacity:.6}
 #onde-app-v1 [data-rhythm-status]{margin:4px 0 0}

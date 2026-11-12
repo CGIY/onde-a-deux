@@ -253,7 +253,7 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
 
 {
  const saved=new MemoryStore();saved.state=G.createRoom({at});await authorize(saved);
- const fixture={started_on:'2030-01-01',ended_on:'2030-02-01',with_penetration:4,without_penetration:7,anal:2};
+ const fixture={started_on:'2030-01-01',ended_on:'2030-02-01',with_penetration:4,without_penetration:7,anal:2,masturbation:0,nudes:0};
  const paths=[];
  saved.request=async path=>{paths.push(path);return [{...fixture,editor_actor:'b'}];};
  const rpc=saved.rpc.bind(saved);
@@ -262,7 +262,7 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
   const session=await rpc('desir_get_session',{p_token_hash:args.p_token_hash});
   if(!session)return {status:'unauthorized'};
   if(session.member.actor!=='b')return {status:'forbidden'};
-  return {status:'ok',rhythm:{...fixture,ended_on:'2030-02-02',with_penetration:5,anal:3}};
+  return {status:'ok',rhythm:args.p_kind==='nudes'?{...fixture,ended_on:'2030-02-02',nudes:1}:{...fixture,ended_on:'2030-02-02',with_penetration:5,anal:3}};
  };
  let instant='2030-02-01T22:59:59.000Z';
  const deliver=client(createHandler({G,store:saved,rateSecret:'fixture-rhythm',clock:()=>new Date(instant)}));
@@ -275,7 +275,7 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  equal(midnight.body,{rhythm:{...fixture,ended_on:'2030-02-02'},canRecord:false});
  equal((await deliver({op:'rhythm',gameVersion:8,roomId:'other-room'})).status,400);
  equal((await deliver({op:'rhythm',gameVersion:8},Buffer.alloc(32,3).toString('base64url'))).status,401);
- equal(paths,Array(3).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,masturbation,editor_actor&room_id=eq.'+roomId));
+ equal(paths,Array(3).fill('desir_room_rhythm?select=started_on,ended_on,with_penetration,without_penetration,anal,masturbation,nudes,editor_actor&room_id=eq.'+roomId));
  const add={op:'rhythm_add',gameVersion:8,requestId:uuid(510),kind:'anal'};
  equal((await deliver(add,tokenA)).status,403);
  equal((await deliver({...add,actor:'b'},tokenA)).status,400);
@@ -283,6 +283,8 @@ const view=(store,actor,roundId)=>G.roomView(store.state,actor,roundId);
  const written=await deliver(add,tokenB);
  equal(written.status,200);equal(written.body,{rhythm:{...fixture,ended_on:'2030-02-02',with_penetration:5,anal:3},canRecord:true});
  equal(written.headers.get('cache-control'),'no-store');
+ const nude=await deliver({...add,requestId:uuid(511),kind:'nudes'},tokenB);
+ equal(nude.status,200);equal(nude.body,{rhythm:{...fixture,ended_on:'2030-02-02',nudes:1},canRecord:true});
 }
 
 // Outdated clients receive a safe upgrade before migration or any game mutation.

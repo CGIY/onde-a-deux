@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.14">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.16">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -1079,16 +1079,36 @@
 </style>
 <template id="oa-libido-places"><section class="oa-info-card oa-libido places" id="oa-libido-card-places" aria-labelledby="oa-libido-title-places"><p class="oa-info-kicker">Lieux et expériences</p><h2 id="oa-libido-title-places">Au-delà de la chambre.</h2><p class="place-intro">Les lieux expérimentés par les Français.</p><div class="place-chart"><div class="place-row" data-frequency="high"><span>Douche / baignoire</span><div class="place-track" role="img" aria-label="Douche / baignoire : 72 pour cent"><i style="--width:72%"></i></div><b><span class="count-value" data-info-count="72" aria-hidden="true">72</span><span class="oa-sr">72</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Voiture</span><div class="place-track" role="img" aria-label="Voiture : 63 pour cent"><i style="--width:63%"></i></div><b><span class="count-value" data-info-count="63" aria-hidden="true">63</span><span class="oa-sr">63</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Cuisine</span><div class="place-track" role="img" aria-label="Cuisine : 58 pour cent"><i style="--width:58%"></i></div><b><span class="count-value" data-info-count="58" aria-hidden="true">58</span><span class="oa-sr">58</span><small>%</small></b></div><div class="place-row" data-frequency="mid"><span>Table</span><div class="place-track" role="img" aria-label="Table : 56 pour cent"><i style="--width:56%"></i></div><b><span class="count-value" data-info-count="56" aria-hidden="true">56</span><span class="oa-sr">56</span><small>%</small></b></div><div class="place-row" data-frequency="low"><span>Dans la nature<small class="place-average">Moyenne de 3 lieux</small></span><div class="place-track" aria-hidden="true"><i style="--width:37%"></i></div><b><span aria-hidden="true">≈</span><span class="count-value" data-info-count="37" aria-hidden="true">37</span><span class="oa-sr">Environ 37</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Ascenseur</span><div class="place-track" role="img" aria-label="Ascenseur : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div><div class="place-row" data-frequency="rare"><span>Train</span><div class="place-track" role="img" aria-label="Train : 9 pour cent"><i style="--width:9%"></i></div><b><span class="count-value" data-info-count="9" aria-hidden="true">9</span><span class="oa-sr">9</span><small>%</small></b></div></div><p class="base">Expériences de couples cohabitants en France</p><div class="place-fantasies"><p>Endroits originaux · fantasmes</p><div class="place-fantasy-grid"><div><span>Cabine d’essayage</span><b><span class="count-value" data-info-count="39" aria-hidden="true">39</span><span class="oa-sr">39</span><small>%</small></b></div><div class="place-fantasy-featured"><span>Lieux de culte / religieux</span><b><span class="count-value" data-info-count="11" aria-hidden="true">11</span><span class="oa-sr">11</span><small>%</small></b></div></div></div></section></template>
 <template id="oa-libido-benchmarks"><section class="oa-info-card oa-libido benchmarks" id="oa-libido-card-benchmarks" aria-label="Fréquences hebdomadaires">
-<table class="oa-rhythm-table" aria-label="Fréquences par semaine">
-  <thead><tr><th scope="col">Par semaine</th><th scope="col">Repères nationaux</th><th scope="col" data-rhythm-personal hidden>Notre rythme</th></tr></thead>
-  <tbody>
-    <tr><th scope="row">Vaginal</th><td><div class="oa-rhythm-benchmarks"><span><b>1</b><small>68 %</small></span><span><b>3</b><small>26 %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="vaginal" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Oral</th><td><div class="oa-rhythm-benchmarks"><span><b>3</b></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="oral" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Anal</th><td><div class="oa-rhythm-benchmarks"><span><b>1</b><small>55 %</small></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="anal" data-rhythm-personal hidden></td></tr>
-    <tr><th scope="row">Masturbation<small>seul ou à deux</small></th><td><div class="oa-rhythm-benchmarks"><span><b>1 à 4</b></span></div></td><td class="oa-rhythm-value" data-rhythm-rate="masturbation" data-rhythm-personal hidden></td></tr>
-  </tbody>
-</table>
-<div class="oa-rhythm-period" data-rhythm-personal hidden><span>Notre total <b data-rhythm-rate="total"></b> / sem.</span><span data-rhythm-dates></span></div>
+<header class="oa-rhythm-head">
+  <h2>Par semaine</h2>
+  <span class="oa-rhythm-date" data-rhythm-personal data-rhythm-dates hidden></span>
+</header>
+<div class="oa-rhythm-columns" aria-hidden="true"><span>Pratique</span><span>Nous</span><span>Repère</span></div>
+<div class="oa-rhythm-list">
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i>Vaginal</h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="vaginal" data-rhythm-benchmark="1.2"></span></b><span class="oa-rhythm-benchmark">1,2</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme vaginal par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i>Oral</h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="oral" data-rhythm-benchmark="3"></span></b><span class="oa-rhythm-benchmark">3</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme oral par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i>Anal</h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="anal" data-rhythm-benchmark="0.55"></span></b><span class="oa-rhythm-benchmark">0,55</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme anal par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i><span>Masturbation<small>seul ou à deux</small></span></h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="masturbation" data-rhythm-benchmark="2.5"></span></b><span class="oa-rhythm-benchmark">2,5</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme de masturbation par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+  <article class="oa-rhythm-item" data-rhythm-comparison>
+    <div class="oa-rhythm-line"><h3><i aria-hidden="true"></i><span>Nudes<small>repère hebdo</small></span></h3><b class="oa-rhythm-current" data-rhythm-personal hidden><span data-rhythm-rate="nudes" data-rhythm-benchmark="1"></span></b><span class="oa-rhythm-benchmark">1</span></div>
+    <div class="oa-rhythm-track" data-rhythm-personal data-rhythm-track hidden role="progressbar" aria-label="Rythme de nudes par rapport au repère" aria-valuemin="0" aria-valuemax="100"><i data-rhythm-fill></i></div>
+  </article>
+</div>
+<div class="oa-rhythm-scale" data-rhythm-personal hidden aria-label="Écart au repère, en dix teintes minérales corail à sauge">
+  <span>Écart au repère</span><div aria-hidden="true"><i data-rhythm-scale-tone="1"></i><i data-rhythm-scale-tone="2"></i><i data-rhythm-scale-tone="3"></i><i data-rhythm-scale-tone="4"></i><i data-rhythm-scale-tone="5"></i><i data-rhythm-scale-tone="6"></i><i data-rhythm-scale-tone="7"></i><i data-rhythm-scale-tone="8"></i><i data-rhythm-scale-tone="9"></i><i data-rhythm-scale-tone="10"></i></div>
+</div>
 <details class="oa-rhythm-editor" data-rhythm-editor hidden>
   <summary>Ajouter un rapport</summary>
   <div class="oa-rhythm-choices">
@@ -1096,6 +1116,7 @@
     <button type="button" data-rhythm-add="no_penetration">Oral</button>
     <button type="button" data-rhythm-add="anal">Anal</button>
     <button type="button" data-rhythm-add="masturbation">Masturbation</button>
+    <button type="button" data-rhythm-add="nudes">Nudes</button>
   </div>
   <p data-rhythm-status role="status"></p>
 </details>
@@ -1163,39 +1184,49 @@
 #onde-app-v1 .oa-libido.destinations{--oa-panel-tint:var(--oa-iris-violet);--chart:#d3afd9;--outside-color:#a7c2d6;padding:8px 11px;border-color:#c3a4cf48}
 #onde-app-v1 .oa-libido.places{--oa-panel-tint:var(--oa-iris-ice);--chart:#b7cfe1;border-color:#adc3d44a}
 #onde-app-v1 .oa-libido.women{--oa-panel-tint:var(--oa-iris-quartz);--chart:#ecc5a3;border-color:#c7a48a48}
-#onde-app-v1 .oa-libido.benchmarks{padding:8px 11px}
+#onde-app-v1 .oa-libido.benchmarks{padding:13px 12px 10px}
 #onde-app-v1 .oa-libido.benchmarks::before{
- background:radial-gradient(ellipse at 74% 0%,#c294d42c,transparent 72%),var(--oa-grain) 0 0/128px;
+ background:radial-gradient(ellipse at 0 0,#52748642,transparent 61%),radial-gradient(ellipse at 100% 7%,#80678638,transparent 63%),var(--oa-grain) 0 0/128px;
 }
-#onde-app-v1 .oa-rhythm-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:12px;line-height:1.3}
-#onde-app-v1 .oa-rhythm-table :is(th,td){padding:6px 4px;vertical-align:middle}
-#onde-app-v1 .oa-rhythm-table thead th{padding-block:2px 8px;color:#c6bdd7;font-weight:650}
-#onde-app-v1 .oa-rhythm-table thead th:first-child{width:36%;text-align:left;color:#f3edf9;font-weight:800}
-#onde-app-v1 .oa-rhythm-table thead th:nth-child(2){width:35%;text-align:center}
-#onde-app-v1 .oa-rhythm-table thead th:last-child{width:29%;color:#f1cfdd;text-align:center}
-#onde-app-v1 .oa-rhythm-table tbody :is(th,td){border-top:1px solid #685a744d}
-#onde-app-v1 .oa-rhythm-table tbody th{text-align:left;font-weight:600}
-#onde-app-v1 .oa-rhythm-table tbody small{display:block;margin-top:2px;color:#c4bbd1;font-size:11px;font-weight:400}
-#onde-app-v1 .oa-rhythm-benchmarks{display:flex;justify-content:center;gap:3px 12px;text-align:center}
-#onde-app-v1 .oa-rhythm-benchmarks span{white-space:nowrap}
-#onde-app-v1 .oa-rhythm-benchmarks b{color:#f3edf9;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
-#onde-app-v1 .oa-rhythm-table tbody .oa-rhythm-value{
- height:33px;text-align:center;border-color:#644358;background:#4b2c40;color:#ff9eae;
- font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.04em
-}
-#onde-app-v1 .oa-rhythm-table tbody tr:first-child .oa-rhythm-value{border-radius:10px 10px 0 0}
-#onde-app-v1 .oa-rhythm-table tbody tr:last-child .oa-rhythm-value{border-radius:0 0 10px 10px}
-#onde-app-v1 .oa-rhythm-period{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 9px;padding:8px 4px 0;color:#c6bdd7;font-size:11px}
-#onde-app-v1 .oa-rhythm-period b{color:#ff929c;font-weight:550}
+#onde-app-v1 .oa-rhythm-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:1px 2px 9px}
+#onde-app-v1 .oa-rhythm-head h2{margin:0;color:#faf4fb;font:700 23px/1 var(--oa-font,system-ui);letter-spacing:-.04em}
+#onde-app-v1 .oa-rhythm-date{color:#cfc4d7;font:10px/1.2 var(--oa-font,system-ui);white-space:nowrap}
+#onde-app-v1 .oa-rhythm-columns,#onde-app-v1 .oa-rhythm-line{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;align-items:center;gap:7px}
+#onde-app-v1 .oa-rhythm-columns{padding:0 2px 6px;color:#c6bdd1;font:9px/1.2 var(--info-mono);letter-spacing:.07em;text-transform:uppercase}
+#onde-app-v1 .oa-rhythm-columns span:nth-child(n+2){text-align:center}
+#onde-app-v1 .oa-rhythm-list{border-top:1px solid var(--oa-line)}
+#onde-app-v1 .oa-rhythm-item{--rhythm-bg:#8d4054;--rhythm-ink:#fff6f8;min-width:0;min-height:67px;padding:8px 1px 7px;border-bottom:1px solid var(--oa-line)}
+#onde-app-v1 .oa-rhythm-item h3{display:flex;align-items:center;gap:7px;min-width:0;margin:0;color:#faf4fb;font:650 14px/1.05 var(--oa-font,system-ui);letter-spacing:-.015em}
+#onde-app-v1 .oa-rhythm-item h3>i{width:7px;height:7px;flex:0 0 auto;border-radius:50%;background:var(--rhythm-bg)}
+#onde-app-v1 .oa-rhythm-item h3 small{display:block;margin-top:3px;color:#cfc4d7;font:400 10px/1 var(--oa-font,system-ui);letter-spacing:0}
+#onde-app-v1 .oa-rhythm-current,#onde-app-v1 .oa-rhythm-benchmark{min-width:60px;padding:5px 6px;border-radius:9px;text-align:center;font:600 15px/1 var(--info-mono);font-variant-numeric:tabular-nums}
+#onde-app-v1 .oa-rhythm-current{background:var(--rhythm-bg);color:var(--rhythm-ink)}
+#onde-app-v1 .oa-rhythm-benchmark{background:var(--oa-panel-inset);color:#f7f0f8}
+#onde-app-v1 .oa-rhythm-track{height:10px;margin-top:7px;border-radius:999px;background:#363b4d;overflow:hidden}
+#onde-app-v1 .oa-rhythm-track>i{display:block;width:0;height:100%;border-radius:inherit;background:var(--rhythm-bg);transition:width .55s var(--info-rhythm)}
+#onde-app-v1 [data-rhythm-tone="1"],#onde-app-v1 [data-rhythm-scale-tone="1"]{--rhythm-bg:#8d4054}
+#onde-app-v1 [data-rhythm-tone="2"],#onde-app-v1 [data-rhythm-scale-tone="2"]{--rhythm-bg:#9f4a58}
+#onde-app-v1 [data-rhythm-tone="3"],#onde-app-v1 [data-rhythm-scale-tone="3"]{--rhythm-bg:#b3545d}
+#onde-app-v1 [data-rhythm-tone="4"],#onde-app-v1 [data-rhythm-scale-tone="4"]{--rhythm-bg:#c36163}
+#onde-app-v1 [data-rhythm-tone="5"],#onde-app-v1 [data-rhythm-scale-tone="5"]{--rhythm-bg:#d2706b;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="6"],#onde-app-v1 [data-rhythm-scale-tone="6"]{--rhythm-bg:#de8277;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="7"],#onde-app-v1 [data-rhythm-scale-tone="7"]{--rhythm-bg:#e79586;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="8"],#onde-app-v1 [data-rhythm-scale-tone="8"]{--rhythm-bg:#ecaa99;--rhythm-ink:#2a2027}
+#onde-app-v1 [data-rhythm-tone="9"],#onde-app-v1 [data-rhythm-scale-tone="9"]{--rhythm-bg:#b8baaa;--rhythm-ink:#243027}
+#onde-app-v1 [data-rhythm-tone="10"],#onde-app-v1 [data-rhythm-scale-tone="10"]{--rhythm-bg:#cfd7bf;--rhythm-ink:#243027}
+#onde-app-v1 .oa-rhythm-scale{display:grid;grid-template-columns:auto minmax(120px,1fr);align-items:center;gap:8px;margin:10px 2px 0}
+#onde-app-v1 .oa-rhythm-scale>span{color:#c6bdd1;font:9px/1.2 var(--oa-font,system-ui)}
+#onde-app-v1 .oa-rhythm-scale>div{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px}
+#onde-app-v1 .oa-rhythm-scale i{height:6px;border-radius:2px;background:var(--rhythm-bg)}
 #onde-app-v1 :is([data-rhythm-personal],[data-rhythm-editor])[hidden]{display:none}
 #onde-app-v1 .oa-info-studies{margin-top:0}
 #onde-app-v1 .oa-info-studies > .oa-info-cards{margin-top:6px}
-#onde-app-v1 .oa-rhythm-editor{margin-top:5px;padding:0 5px;color:#f1cfdd;font-size:11px}
-#onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;padding:6px 0}
+#onde-app-v1 .oa-rhythm-editor{margin-top:3px;padding:0 2px;color:#f1cfdd;font-size:11px}
+#onde-app-v1 .oa-rhythm-editor summary{cursor:pointer;min-height:38px;padding:11px 0 7px}
 #onde-app-v1 .oa-rhythm-choices{display:flex;gap:4px;flex-wrap:wrap}
 #onde-app-v1 .oa-rhythm-choices button{
- flex:1 1 auto;min-height:44px;padding:4px 8px;border:1px solid #8e5067;border-radius:7px;
- background:#39273f;color:inherit;font:inherit;cursor:pointer
+ flex:1 1 calc(33% - 4px);min-height:44px;padding:5px 7px;border:1px solid #9b686d;border-radius:8px;
+ background:#51323a;color:#f5dde2;font:inherit;cursor:pointer
 }
 #onde-app-v1 .oa-rhythm-choices button:disabled{opacity:.6}
 #onde-app-v1 [data-rhythm-status]{margin:4px 0 0}
@@ -4830,12 +4861,12 @@ void main(){
    const start=data.started_on,end=data.ended_on;
    const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)?Date.parse(value):NaN;
    const days=(day(end)-day(start))/86400000;
-   const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal,masturbation=data.masturbation??0;
-   if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal,masturbation].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration||masturbation>withoutPenetration)return null;
+   const withPenetration=data.with_penetration,withoutPenetration=data.without_penetration,anal=data.anal,masturbation=data.masturbation??0,nudes=data.nudes??0;
+   if(!Number.isInteger(days)||days<=0||![withPenetration,withoutPenetration,anal,masturbation,nudes].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=2147483647)||anal>withPenetration||masturbation>withoutPenetration)return null;
    const total=withPenetration+withoutPenetration;
    return {
     start,end,canRecord:raw.canRecord===true,
-    vaginal:(withPenetration-anal)*7/days,oral:(withoutPenetration-masturbation)*7/days,anal:anal*7/days,masturbation:masturbation*7/days,total:total*7/days,
+    vaginal:(withPenetration-anal)*7/days,oral:(withoutPenetration-masturbation)*7/days,anal:anal*7/days,masturbation:masturbation*7/days,nudes:nudes*7/days,total:total*7/days,
     shares:total?{withPenetration:withPenetration/total,withoutPenetration:withoutPenetration/total,anal:anal/total}:null
    };
   }
@@ -4850,7 +4881,7 @@ void main(){
    return serial(async()=>{
     requireConnection();
     const identity=connection;
-    if(!['penetration','no_penetration','anal','masturbation'].includes(kind))throw failure('invalid_request','Catégorie invalide.');
+    if(!['penetration','no_penetration','anal','masturbation','nudes'].includes(kind))throw failure('invalid_request','Catégorie invalide.');
     if(pendingRhythm?.identity!==identity)pendingRhythm=null;
     if(pendingRhythm&&pendingRhythm.kind!==kind)throw failure('pending_action','Retouche la catégorie de la dernière saisie pour confirmer son enregistrement.');
     const pending=pendingRhythm||{identity,kind,id:requestId()};
@@ -5934,6 +5965,7 @@ void main(){
   const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
   const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
   const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
+  const rhythmToneThresholds=[0.10,0.20,0.35,0.55,0.75,0.95,1.05,1.10,1.15];
   const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
   const refreshClock=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'Europe/Paris'});
   function scheduleRhythmRefresh(){
@@ -5947,7 +5979,20 @@ void main(){
   }
   function renderRhythm(data){
    for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
-    element.textContent=data?rateFormat.format(data[element.dataset.rhythmRate]):'';
+    const {rhythmRate,rhythmBenchmark}=element.dataset;
+    const value=data?.[rhythmRate];
+    element.textContent=data?rateFormat.format(value):'';
+    if(!rhythmBenchmark)continue;
+    const comparison=element.closest('[data-rhythm-comparison]');
+    const fill=comparison.querySelector('[data-rhythm-fill]');
+    const track=comparison.querySelector('[data-rhythm-track]');
+    if(!data){delete comparison.dataset.rhythmTone;fill.style.width='0%';track.removeAttribute('aria-valuenow');track.removeAttribute('aria-valuetext');continue;}
+    const ratio=value/Number(rhythmBenchmark);
+    comparison.dataset.rhythmTone=String(1+rhythmToneThresholds.filter(threshold=>ratio+Number.EPSILON>=threshold).length);
+    const percent=Math.max(0,Math.min(100,ratio*100));
+    fill.style.width=`${percent}%`;
+    track.setAttribute('aria-valuenow',String(Math.round(percent)));
+    track.setAttribute('aria-valuetext',`${rateFormat.format(value)} par semaine, ${Math.round(ratio*100)} % du repère de ${rateFormat.format(Number(rhythmBenchmark))}`);
    }
    rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
    rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
@@ -5979,7 +6024,7 @@ void main(){
     const data=await remote.recordRhythm(button.dataset.rhythmAdd);
     if(disposed)return;
     renderRhythm(remote.authenticated?data:null);
-    if(!editor.hidden)rhythmStatus.textContent='Rapport enregistré.';
+    if(!editor.hidden)rhythmStatus.textContent='Pratique enregistrée.';
    }catch(error){
     if(disposed)return;
     if(!remote.authenticated)renderRhythm(null);
