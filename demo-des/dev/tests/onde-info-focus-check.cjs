@@ -6,15 +6,17 @@ const start=source.indexOf(' function mountInfo(){'),end=source.indexOf(' functi
 assert(start>=0&&end>start,'the real info widget mount is available');
 let settingVersion=0,doc;
 function control(dataset={},tag='BUTTON'){
- return {dataset,tag,disabled:false,attributes:{},matches(selector){return selector==='h2'&&tag==='H2';},setAttribute(name,value){this.attributes[name]=value;},focus(){doc.activeElement=this;}};
+ return {dataset,tag,disabled:false,attributes:{},matches(selector){return selector==='h2'&&tag==='H2'||selector==='summary'&&tag==='SUMMARY';},setAttribute(name,value){this.attributes[name]=value;},focus(){doc.activeElement=this;}};
 }
 function widget(kind){
- let markup=kind==='settings'?'settings-0':kind,items=[],heading=control({},'H2'),notificationHeading=control({},'H2');
- const node={firstElementChild:{matches:()=>false},contains(target){return items.includes(target);},querySelectorAll(selector){return selector==='[data-action], [data-pref]'?items:[];},querySelector(selector){return selector==='.oa-notification-setting h2'?notificationHeading:selector==='h2'?heading:null;}};
+ let markup=kind==='settings'?'settings-0':kind,items=[],heading=control({},'H2'),notificationHeading=control({},'H2'),detail={id:'oa-info-install',open:false},summary;
+ function resetHelp(){detail={id:'oa-info-install',open:false};summary=control({},'SUMMARY');summary.closest=()=>detail;}
+ resetHelp();
+ const node={firstElementChild:{matches:()=>false},contains(target){return items.includes(target)||target===summary;},querySelectorAll(selector){return selector==='details[open][id]'?(detail.open?[detail]:[]):selector==='[data-action], [data-pref]'?items:[];},querySelector(selector){return selector==='#oa-info-install'?detail:selector==='#oa-info-install > summary'?summary:selector==='.oa-notification-setting h2'?notificationHeading:selector==='h2'?heading:null;}};
  function reset(){items=[control({pref:'sound'}),control({action:'logout-confirm'}),control({action:'revoke-others-confirm'})];if(!settingVersion)items.push(control({action:'enable-notifications'}));}
  if(kind==='settings')reset();
- Object.defineProperty(node,'innerHTML',{get(){return markup;},set(value){markup=value;reset();}});
- node.items=()=>items;node.heading=()=>heading;node.notificationHeading=()=>notificationHeading;
+ Object.defineProperty(node,'innerHTML',{get(){return markup;},set(value){markup=value;reset();resetHelp();}});
+ node.detail=()=>detail;node.summary=()=>summary;node.items=()=>items;node.heading=()=>heading;node.notificationHeading=()=>notificationHeading;
  return node;
 }
 const activity=widget('activity'),shared=widget('shared'),tickets=widget('tickets'),settings=widget('settings');
@@ -33,5 +35,8 @@ changeFocused({pref:'sound'},w=>w.items().find(item=>item.dataset.pref==='sound'
 // A removed notification action falls back to the heading of the same section.
 settingVersion=0;mounted.refresh();const enable=settings.items().find(item=>item.dataset.action==='enable-notifications');enable.focus();settingVersion=1;mounted.refresh();assert.equal(doc.activeElement,settings.notificationHeading());assert.equal(doc.activeElement.attributes.tabindex,'-1');
 const outside=control({action:'outside'});outside.focus();settingVersion++;mounted.refresh();assert.equal(doc.activeElement,outside,'a background update never steals outside focus');
+settings.detail().open=true;settings.summary().focus();settingVersion++;mounted.refresh();
+assert.equal(settings.detail().open,true,'a settings update preserves expanded installation help');
+assert.equal(doc.activeElement,settings.summary(),'a settings update restores focus to the installation summary');
 mounted.dispose();
 console.log('Info settings: focus is retained on surviving controls, returns to the notification section when needed, and is not stolen.');

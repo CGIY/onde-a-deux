@@ -22,8 +22,6 @@ class BuildFixture(unittest.TestCase):
         self.demo = Path(self.scratch.name) / 'demo-des'
         self.dev = self.demo / 'dev'
         self.dev.mkdir(parents=True)
-        (self.demo.parent / 'p').mkdir()
-        shutil.copyfile(DEV.parent.parent / 'p/index.html', self.demo.parent / 'p/index.html')
         for filename in ['build.py', 'badges.py']:
             shutil.copyfile(DEV / filename, self.dev / filename)
         for directory in ['src', 'data']:
@@ -134,63 +132,16 @@ class WebBuild(BuildFixture):
         self.assertIn('Info questions must be unique', result.stderr)
         self.assertEqual(self.release.read_text(), 'existing-release')
 
-    def test_libido_cards_are_assembled_without_source_mentions(self):
+    def test_carnet_only_embeds_activity_and_settings(self):
         self.build('--release')
         html = self.release.read_text()
-        modules = re.findall(r'<template id="oa-libido-([^"]+)">', html)
-        self.assertCountEqual(modules, ['places', 'benchmarks', 'destinations', 'women'])
-        self.assertNotIn('href="#source-', html)
-        self.assertNotIn('Sources & périmètres', html)
-        self.assertNotIn('www.ipsos.com', html)
-        self.assertNotRegex(html, r'Source \[\d+\]|>\[\d+\]</a>')
-        self.assertNotIn('class="dest-choice"', html)
-        self.assertNotIn('class="women-porn"', html)
-        self.assertIn('class="place-row" data-frequency="high"', html)
-        self.assertIn('class="place-fantasy-featured"', html)
-        self.assertIn('class="rough-highlights"', html)
-        self.assertIn('class="rough-insults"', html)
-        self.assertIn('class="dest-cell dest-featured"', html)
-        rhythm = re.search(r'<template id="oa-libido-benchmarks">(.*?)</template>', html, re.S)[1]
-        self.assertNotIn('<table', rhythm)
-        self.assertIn('<h2>Par semaine</h2>', rhythm)
-        self.assertEqual(rhythm.count('class="oa-rhythm-item'), 5)
-        self.assertEqual(rhythm.count('data-rhythm-personal'), 12)
-        self.assertEqual(rhythm.count('data-rhythm-track'), 5)
-        self.assertEqual(rhythm.count('data-rhythm-fill'), 5)
-        self.assertIn('<div class="oa-rhythm-columns"', rhythm)
-        self.assertEqual(re.findall(r'data-rhythm-rate="([^"]+)" data-rhythm-benchmark="([^"]+)" data-rhythm-personal hidden', rhythm),
-                         [])
-        self.assertEqual(re.findall(r'data-rhythm-rate="([^"]+)" data-rhythm-benchmark="([^"]+)"', rhythm),
-                         [('vaginal', '1.2'), ('oral', '3'), ('anal', '0.55'), ('masturbation', '2.5'), ('nudes', '1')])
-        self.assertNotIn('data-rhythm-share', rhythm)
-        self.assertNotIn('/ semaine</small>', rhythm)
-        self.assertEqual(re.findall(r'class="oa-rhythm-benchmark">([^<]+)</span>', rhythm),
-                         ['1,2', '3', '0,55', '2,5', '1'])
-        self.assertEqual(re.findall(r'data-rhythm-scale-tone="([^"]+)"', rhythm), [str(tone) for tone in range(1, 11)])
-        self.assertEqual(re.findall(r'data-rhythm-add="([^"]+)"', rhythm),
-                         ['penetration', 'no_penetration', 'anal', 'masturbation', 'nudes'])
-        self.assertIn('Masturbation<small>seul ou à deux</small>', rhythm)
-        self.assertIn('Nudes<small>repère hebdo</small>', rhythm)
-        self.assertNotIn('Total hors nudes', rhythm)
-        self.assertNotIn('Rythme du couple', rhythm)
-        self.assertNotIn('Les rythmes du couple.', rhythm)
-        self.assertNotIn('class="place-extras"', html)
-        women = re.search(r'<template id="oa-libido-women">(.*?)</template>', html, re.S)[1]
-        fantasies, experiences = women.split('<section class="oa-libido-subsection" id="oa-libido-card-rough"')
-        self.assertEqual(re.findall(r'data-info-count="([^"]+)"', fantasies),
-                         ['64.6', '57.3', '56.5', '36.3', '32.5'])
-        self.assertNotIn('799 répondantes', fantasies)
-        self.assertNotIn('Être attachée', fantasies)
-        self.assertNotIn('>Dominer<', fantasies)
-        self.assertIn('<h3 id="oa-libido-title-rough">Roleplay et jeux rudes.</h3>', experiences)
-        self.assertTrue(experiences.endswith('</section></section>'))
-        places = re.search(r'<template id="oa-libido-places">(.*?)</template>', html, re.S)[1]
-        self.assertNotIn('>Cinéma<', places)
-        self.assertNotIn('>Travail<', places)
-        destinations = re.search(r'<template id="oa-libido-destinations">(.*?)</template>', html, re.S)[1]
-        self.assertIn('À la maison', destinations)
-        self.assertIn('Hors de chez soi', destinations)
-        self.assertIn('data-info-count="72"', html)
+        for retired in ['<template id="oa-libido-', 'data-rhythm-add=',
+                        'Études et comparatifs', '<h2>Par semaine</h2>']:
+            self.assertNotIn(retired, html)
+        self.assertIn('Au fil des tirages.', html)
+        self.assertIn('Réglages', html)
+        self.assertIn('Deux coches en ${G.rules.taskLifetimeMs/3600000} h', html)
+        self.assert_archive_preserved()
 
     def test_missing_or_invalid_config_fails_before_any_release_write(self):
         (self.demo / 'config.js').unlink()

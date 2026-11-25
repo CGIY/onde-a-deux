@@ -1,11 +1,11 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const filename=require('node:path').join(__dirname,'../src/onde-app-dice.js');
 const src=fs.readFileSync(filename,'utf8').replace(/global\.OndeDice=Object\.freeze\(\{[^}]*\}\);/,'$&global.__qa={CUBE_FACES,POLYS,ICON_PATHS,targetRotation,initialRotation,matrix,transform,support,clampPower,rollDuration,cameraOffset,FRAGMENT,VERTEX};');
-let now=0,nextRaf=0,queue=new Map(),uniforms={},labels=[],atlas=[],numerals=[],pictograms=[],documentHandlers=new Map(),glyphCenter=null;
+let now=0,nextRaf=0,queue=new Map(),uniforms={},labels=[],atlas=[],numerals=[],pictograms=[],documentHandlers=new Map(),glyphCenter=null,drawCalls=0;
 const gradient=()=>({stops:[],addColorStop(at,color){this.stops.push([at,color]);}});
 const selectedEngraving=mark=>mark.ink?.stops?.some(([,color])=>color==='rgba(188,196,207,0.66)');
 const ctx2d=new Proxy({createRadialGradient:gradient,createLinearGradient:gradient,fillText(text){atlas.push(String(text));numerals.push({text:String(text),ink:this.fillStyle});},fill(path,rule){if(path?.d)pictograms.push({path:path.d,ink:this.fillStyle,rule});},transform(_a,_b,_c,_d,x,y){glyphCenter=[x,y];},stroke(path){if(path?.d)pictograms.push({path:path.d,ink:this.strokeStyle,rule:"stroke",center:glyphCenter});}}, {get(o,p){return p in o?o[p]:()=>{}},set(o,p,v){o[p]=v;return true;}});
-const gl=new Proxy({VERTEX_SHADER:35633,FRAGMENT_SHADER:35632,COMPILE_STATUS:35713,LINK_STATUS:35714,getShaderParameter:()=>true,getProgramParameter:()=>true,getUniformLocation:(_p,n)=>n,getAttribLocation:()=>0,createShader:()=>({}),createProgram:()=>({}),createBuffer:()=>({}),createTexture:()=>({}),uniformMatrix3fv(n,_transpose,a){uniforms[n]=Array.from(a);},uniform3fv(n,a){uniforms[n]=Array.from(a);},uniform3f(n,...a){uniforms[n]=a;},uniform2f(n,...a){uniforms[n]=a;},uniform4f(n,...a){uniforms[n]=a;},uniform1f(n,a){uniforms[n]=a;},uniform1i(n,a){uniforms[n]=a;}},{get(o,p){return p in o?o[p]:()=>{}}});
+const gl=new Proxy({VERTEX_SHADER:35633,FRAGMENT_SHADER:35632,COMPILE_STATUS:35713,LINK_STATUS:35714,getShaderParameter:()=>true,getProgramParameter:()=>true,getUniformLocation:(_p,n)=>n,getAttribLocation:()=>0,createShader:()=>({}),createProgram:()=>({}),createBuffer:()=>({}),createTexture:()=>({}),drawArrays(){drawCalls++;},uniformMatrix3fv(n,_transpose,a){uniforms[n]=Array.from(a);},uniform3fv(n,a){uniforms[n]=Array.from(a);},uniform3f(n,...a){uniforms[n]=a;},uniform2f(n,...a){uniforms[n]=a;},uniform4f(n,...a){uniforms[n]=a;},uniform1f(n,a){uniforms[n]=a;},uniform1i(n,a){uniforms[n]=a;}},{get(o,p){return p in o?o[p]:()=>{}}});
 const makeCanvas=(useWebgl=true)=>({width:0,height:0,clientWidth:452,clientHeight:238,style:{},listeners:new Map(),getContext:type=>type==='webgl'?(useWebgl?gl:null):ctx2d,setAttribute(n,v){labels.push([n,v]);},addEventListener(n,fn){this.listeners.set(n,fn);},removeEventListener(n){this.listeners.delete(n);},dispatch(n,event={}){this.listeners.get(n)?.(event);},setPointerCapture(){},toDataURL:()=>''});
 const window={devicePixelRatio:3,addEventListener(){},removeEventListener(){}};
 const sandbox={window,Path2D:class{constructor(d){this.d=d;}},document:{createElement:()=>makeCanvas(false),addEventListener(name,fn){if(!documentHandlers.has(name))documentHandlers.set(name,new Set());documentHandlers.get(name).add(fn);},removeEventListener(name,fn){documentHandlers.get(name)?.delete(fn);}},performance:{now:()=>now},requestAnimationFrame(fn){queue.set(++nextRaf,fn);return nextRaf;},cancelAnimationFrame(id){queue.delete(id);},console};
@@ -35,8 +35,55 @@ for(const kind of [4,6,8,20])for(let value=1;value<=kind;value++){
  minVisible=Math.min(minVisible,dot(n,view));poses++;
 }
 function advance(t){now=t;const callbacks=[...queue.values()];queue.clear();for(const callback of callbacks)callback(t);return {m:uniforms.uRotation.slice(),p:uniforms.uPosition.slice(),s:uniforms.uScale.slice(),ink:uniforms.uResultLight};}
-let worstJoin=0,joins=0,inkJoins=0;
+let worstJoin=0,joins=0,inkJoins=0,boundSamples=0;
 (async()=>{
+ // ResizeObserver can report the same box again after the canvas is reattached.
+ {
+  let resize,disconnected=false;
+  sandbox.ResizeObserver=class{constructor(fn){resize=fn;}observe(){}disconnect(){disconnected=true;}};
+  const canvas=makeCanvas(),die=window.OndeDice.create(canvas,{kind:6,maxPixels:200000});
+  const initialDraws=drawCalls;
+  resize();resize();assert.equal(drawCalls,initialDraws,'unchanged resize observations never redraw');
+  canvas.clientWidth+=10;resize();assert.equal(drawCalls,initialDraws+1,'a new size redraws once');
+  const expectedWidth=canvas.width;canvas.width=1;resize();
+  assert.equal(canvas.width,expectedWidth,'an externally resized drawing buffer is restored');
+  assert.equal(drawCalls,initialDraws+2);
+  die.destroy();resize();assert.equal(drawCalls,initialDraws+2,'destroyed renderers ignore resize callbacks');
+  assert.equal(disconnected,true);delete sandbox.ResizeObserver;
+ }
+ // Sample the shader's implicit surface independently of the enclosing-sphere
+ // formula, including its pixel-sized fringe and the compressed, rotated pose.
+ for(const kind of [4,6,8,20])for(const height of [238,64]){
+  const canvas=makeCanvas();canvas.clientHeight=height;
+  const die=window.OndeDice.create(canvas,{kind,maxPixels:200000});
+  const faces=kind===6?q.CUBE_FACES:q.POLYS[kind].faces;
+  const directions=faces.flatMap(face=>face.points.map(norm));
+  for(let i=0;i<512;i++){
+   const y=1-2*(i+.5)/512,a=i*2.3999632297;
+   directions.push([Math.sqrt(1-y*y)*Math.cos(a),y,Math.sqrt(1-y*y)*Math.sin(a)]);
+  }
+  for(const charge of [0,.5,1]){
+   die.setCharge(charge);
+   const scale=uniforms.uScale,m=uniforms.uRotation,bound=uniforms.uBound;
+   assert(bound<2.05*Math.max(...scale),'the enclosing sphere skips more empty rays than the old bound');
+   for(const fringe of [0,Math.max(.0008,1.4*4.4/canvas.height)])for(const direction of directions){
+    const localFringe=fringe/Math.min(...scale);
+    let radius;
+    if(kind===6){
+     const fieldNorm=Math.pow(direction.reduce((sum,value)=>sum+value**4,0),.25);
+     radius=(1+localFringe*Math.pow(3,.25))/fieldNorm;
+    }else{
+     const exponent=kind===4?4:16;
+     const fieldNorm=Math.pow(faces.reduce((sum,face)=>sum+Math.max(0,dot(direction,face.n))**exponent,0),1/exponent);
+     radius=(faces[0].h+localFringe*Math.pow(faces.length,1/exponent))/fieldNorm;
+    }
+    const rotated=q.transform(m,direction.map(value=>value*radius));
+    assert(Math.hypot(...rotated.map((value,i)=>value*scale[i]))<=bound+1e-9,`D${kind} surface and coverage fringe stay within the raymarch sphere`);
+    boundSamples++;
+   }
+  }
+  die.destroy();
+ }
  // The pressed, waiting, confirmed and failed poses join without a visual jump.
  {
   now=0;queue.clear();const die=window.OndeDice.create(makeCanvas(),{kind:6,value:1});
@@ -325,5 +372,5 @@ let worstJoin=0,joins=0,inkJoins=0;
  const hiddenRoll=die.roll(6);sandbox.document.hidden=true;for(const listener of documentHandlers.get('visibilitychange'))listener();assert.equal(await hiddenRoll,6);assert.equal(queue.size,0,'a hidden roll resolves without starting a breath');sandbox.document.hidden=false;
  die.breathe();die.destroy();assert.equal(queue.size,0);assert.equal(intersectionDisconnected,true);delete sandbox.IntersectionObserver;
  fs.writeFileSync('/tmp/onde-dice-shaders.json',JSON.stringify({vertex:q.VERTEX,fragment:q.FRAGMENT}));
- console.log(JSON.stringify({status:'PASS',poses,minimumResultVisibility:minVisible,continuousPhaseJoins:joins,continuousInkJoins:inkJoins,maximumJoinDelta:worstJoin,forceAngularTravel:trajectories.map(t=>t.distance),forceCannotChangeResult:true,nativePressCancellation:true,initialThreeQuarterPose:true,restPosePreserved:true,rollCancellation:true,reducedMotion:true,runtimeMotionPreference:true,legacyMotionPreference:true,categoryPigment:true,inFlightPigmentPreservesPose:true,fallbackPigment:true,boundedIdleBreath:true,idleStopsOffscreen:true,idleStopsWhenHidden:true,volumePreservedDuringPressure:true,chargedLaunchIsContinuous:true,dpr2:[904,476],fallbackNumericResults:fallbackValues,shaderCompile:'Not validated by mock; shader sources exported for optional real compiler.'},null,2));
+ console.log(JSON.stringify({status:'PASS',poses,minimumResultVisibility:minVisible,continuousPhaseJoins:joins,continuousInkJoins:inkJoins,maximumJoinDelta:worstJoin,forceAngularTravel:trajectories.map(t=>t.distance),conservativeFringeBoundSamples:boundSamples,unchangedResizeSkipsDraw:true,forceCannotChangeResult:true,nativePressCancellation:true,initialThreeQuarterPose:true,restPosePreserved:true,rollCancellation:true,reducedMotion:true,runtimeMotionPreference:true,legacyMotionPreference:true,categoryPigment:true,inFlightPigmentPreservesPose:true,fallbackPigment:true,boundedIdleBreath:true,idleStopsOffscreen:true,idleStopsWhenHidden:true,volumePreservedDuringPressure:true,chargedLaunchIsContinuous:true,dpr2:[904,476],fallbackNumericResults:fallbackValues,shaderCompile:'Not validated by mock; shader sources exported for optional real compiler.'},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});

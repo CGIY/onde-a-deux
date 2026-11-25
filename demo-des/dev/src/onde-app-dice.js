@@ -189,10 +189,11 @@ void main(){
       let sum=0;for(const f of faces)sum+=Math.pow(Math.max(0,dot(d,f.n)),exponent);
       samples.push(mul(d,h/Math.pow(sum,1/exponent)));
     }
-    return {faces,samples};
+    return {faces,samples,radius,fieldScale:Math.pow(faces.length,1/exponent)/h};
   }
   const POLYS={4:makePoly(4),8:makePoly(8),20:makePoly(20)};
   const CUBE_NORMALS=[[0,1,0],[0,0,1],[1,0,0],[-1,0,0],[0,0,-1],[0,-1,0]];
+  const CUBE_RADIUS=Math.pow(3,.25);
   // One right-handed face basis is shared by WebGL, fallback and result poses.
   const CUBE_TANGENTS=[[1,0,0],[1,0,0],[0,0,-1],[0,0,1],[-1,0,0],[1,0,0]];
   const CUBE_FACES=CUBE_NORMALS.map((n,i)=>{const t=CUBE_TANGENTS[i],b=cross(n,t);return {n,t,b,h:1,value:i+1,points:[[-1,-1],[1,-1],[1,1],[-1,1]].map(p=>add(n,add(mul(t,p[0]),mul(b,p[1]))))};});
@@ -941,7 +942,7 @@ void main(){
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
     let resultLight=1,hasSettledResult=false;
-    let gl=null,program=null,buffer=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='';
+    let gl=null,program=null,buffer=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='',surfaceWidth=0,surfaceHeight=0;
     const textures=new Map();
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0,spreadBias:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
     const previousBackground=canvas.style.backgroundImage,previousSize=canvas.style.backgroundSize,previousPosition=canvas.style.backgroundPosition,previousRepeat=canvas.style.backgroundRepeat;
@@ -1169,7 +1170,14 @@ void main(){
       const position=[x,scale[1]*support(type,m)+lift+.002,z];
       lastFrame={q,sy,lift,x,z,spreadBias,m,scale,position};
       if(mode!=='webgl'){drawFallback(m,scale,position,lift);return;}
-      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,2.05*Math.max(...scale));gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
+      // Skip empty rays with the geometry's own enclosing sphere. The rounded
+      // polyhedra lie inside their original vertices; the L4 cube has radius
+      // 3^.25. Expand by the field's coverage fringe so no soft edge is clipped.
+      const poly=type===6?null:POLYS[type],radius=poly?poly.radius:CUBE_RADIUS;
+      const fieldScale=poly?poly.fieldScale:CUBE_RADIUS;
+      const fringe=Math.max(.0008,1.4*CAMERA_SPAN/Math.max(1,canvas.height))+.0005;
+      const bound=radius*Math.max(...scale)*(1+fringe*fieldScale/Math.min(...scale));
+      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }
     // Fractions from the canvas's top-left corner, independent of device pixel ratio.
     function getResultAnchor() {
@@ -1197,7 +1205,10 @@ void main(){
       // The fragment shader runs once per pixel, including during a roll.
       const pixelLimit=mode==='webgl'&&options.maxPixels>0?Math.sqrt(options.maxPixels/(w*h)):Infinity;
       const dpr=Math.min(global.devicePixelRatio||1,Number(options.maxPixelRatio)||2,pixelLimit);
-      const rw=Math.max(1,Math.round(w*dpr)),rh=Math.max(1,Math.round(h*dpr));if(canvas.width!==rw)canvas.width=rw;if(canvas.height!==rh)canvas.height=rh;
+      const rw=Math.max(1,Math.round(w*dpr)),rh=Math.max(1,Math.round(h*dpr));
+      if(surfaceWidth===rw&&surfaceHeight===rh&&canvas.width===rw&&canvas.height===rh)return;
+      surfaceWidth=rw;surfaceHeight=rh;
+      if(canvas.width!==rw)canvas.width=rw;if(canvas.height!==rh)canvas.height=rh;
       if(mode==='webgl'){gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);gl.uniform2f(uniforms.uResolution,canvas.width,canvas.height);}
       draw(lastFrame.q,lastFrame.sy,lastFrame.lift,lastFrame.x,lastFrame.z,lastFrame.spreadBias);
     }

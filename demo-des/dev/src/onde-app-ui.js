@@ -700,8 +700,8 @@
   if(state.phase==='variant')return rollScreen(heading(h(c.title),null,null),
    stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant','Tirer la variante'),rollReadout);
   if(state.phase==='draft')return heading('Ta prochaine<br><em>idée à deux.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+draftActions();
-  if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise D6 à deux pour retrouver votre liste.',null);
-  if(state.phase==='accepted')return heading('C’est dans<br><em>votre liste.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les choses à faire','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
+  if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise D6 à deux pour retrouver vos missions.',null);
+  if(state.phase==='accepted')return heading('Ajouté à<br><em>vos missions.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les missions','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
    const defended=r.status==='defended',completed=r.status==='completed',expired=r.status==='expired';
    return heading(completed?'Un moment<br><em>à garder.</em>':defended?'Carte écartée.':expired?'Temps écoulé.':'Une autre<br><em>fois, peut-être.</em>',completed?'+1 point pour votre duo.':null,null)+'<div class="oa-summary-card"><span class="oa-summary-glyph" aria-hidden="true">'+(completed?'✓':defended?'↗':'—')+'</span><div><h2>'+h(c.title)+'</h2><p>'+h(category().label)+(r.adapted?' · Variante':'')+'</p></div>'+'</div><div class="oa-actions">'+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new')+textBtn('Voir notre score','tab','data-tab="us"')+'</div>';
@@ -732,7 +732,7 @@
   const at=serverStamp(),canRefuse=G.canSpendStar(ownState||state,viewPlayer,at);
   const {balance}=G.cardRerollStars(ownState||state,viewPlayer,at);
   if(refusal)return heading('Un D20<br><em>pour le refus.</em>',h(refusal.title),null)+stage(20,'D20 DU REFUS',refusal.face||1,'refusal')+'<p class="oa-roll-status" data-refusal-status role="status">'+(refusal.face?'':'Confirmation du refus…')+'</p>';
-  return '<h1 class="oa-title oa-missions-title">Les choses <em>à faire.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
+  return '<h1 class="oa-title oa-missions-title">Vos <em>missions.</em></h1>'+(tasks.length?'<div class="oa-task-list">'+tasks.map(task=>{
    const c=G.getCard(task.cardId,roundVersion(task)),cat=G.getCategory(task.categoryId,roundVersion(task)),detail=G.getVariant(task)||task.proposal;
    const received=task.to===viewPlayer;
    const face=received?(remoteMode?remoteSnapshot?.failedRefusals?.[task.id]:task.failedRefusalRoll):undefined;
@@ -793,7 +793,13 @@
 
  function infoSettings(){
   if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);
-  return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('ambient','Animations d’ambiance','Ciel, lignes lumineuses et effets du Carnet.')+(remoteMode?notificationSetting()+'<section class="oa-notification-setting"><div class="oa-section-head"><h2>Mes appareils</h2></div><p class="oa-note">Protège ton compte en retirant l’accès à un appareil.</p><div class="oa-actions">'+textBtn('Déconnecter cet appareil','logout-confirm')+textBtn('Déconnecter mes autres appareils','revoke-others-confirm')+'</div></section>':'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+'</section>';
+  const help=`   ${(remoteMode||root.querySelector('.oa-player-avatar'))?textBtn('Les règles du jeu','rules'):''}
+   <details class="oa-info-install" id="oa-info-install">
+    <summary>Retrouver D6 à deux sur l’écran d’accueil</summary>
+    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis <strong>Carnet → Réglages</strong>.</p>
+   </details>
+`;
+  return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('ambient','Animations d’ambiance','Ciel et lignes lumineuses.')+(remoteMode?notificationSetting()+'<section class="oa-notification-setting"><div class="oa-section-head"><h2>Mes appareils</h2></div><p class="oa-note">Protège ton compte en retirant l’accès à un appareil.</p><div class="oa-actions">'+textBtn('Déconnecter cet appareil','logout-confirm')+textBtn('Déconnecter mes autres appareils','revoke-others-confirm')+'</div></section>':'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+help+'</section>';
  }
  function infoActivity(){
   const activity=remoteMode?remoteSnapshot?.activity:G.activityCalendar(localRoom,viewPlayer);
@@ -838,12 +844,10 @@
   </section>`;
  }
  function renderInfo(){
-  const libido=key=>document.getElementById('oa-libido-'+key)?.innerHTML||'';
   return `<article class="oa-info" aria-labelledby="oa-info-title">
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
    <h1 class="oa-sr" id="oa-info-title">Carnet</h1>
    <div class="oa-info-cards">
-    ${libido('benchmarks')}
     <section class="oa-info-card oa-info-summary" id="oa-info-activity" aria-labelledby="oa-info-activity-title">
      <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
      <div class="oa-info-status">
@@ -853,25 +857,12 @@
      <div data-info-shared>${infoShared()}</div>
      <div class="oa-info-agreement">
       <span class="oa-info-checks" aria-hidden="true">${checkBox}${checkBox}</span>
-      <h3>Deux oui en ${G.rules.taskLifetimeMs/3600000} h</h3>
+      <h3>Deux coches en ${G.rules.taskLifetimeMs/3600000} h</h3>
       <strong>+${G.rules.completedCardPoints} point</strong>
      </div>
     </section>
-    <details class="oa-info-install oa-info-studies">
-     <summary>Études et comparatifs</summary>
-     <div class="oa-info-cards">
-      ${libido('destinations')}
-      ${libido('women')}
-      ${libido('places')}
-     </div>
-    </details>
     <div data-info-settings>${infoSettings()}</div>
    </div>
-   ${(remoteMode||root.querySelector('.oa-player-avatar'))?textBtn('Les règles du jeu','rules'):''}
-   <details class="oa-info-install">
-    <summary>Retrouver D6 à deux sur l’écran d’accueil</summary>
-    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis <strong>Carnet → Réglages</strong>.</p>
-   </details>
   </article>`;
  }
  function mountInfo(){
@@ -879,115 +870,8 @@
   if(!panel)return;
   const progress=panel.querySelector('.oa-info-progress i');
   const agreement=panel.querySelector('.oa-info-agreement');
-  const rhythm=panel.querySelector('.oa-libido.benchmarks');
-  let disposed=false,readingRhythm=false,recordingRhythm=false,rhythmVersion=0,rhythmTimer;
-  const editor=rhythm?.querySelector('[data-rhythm-editor]');
-  const rhythmStatus=editor?.querySelector('[data-rhythm-status]');
-  const rhythmButtons=editor?.querySelectorAll('[data-rhythm-add]')||[];
-  const rateFormat=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2});
-  const rhythmToneThresholds=[0.10,0.20,0.35,0.55,0.75,0.95,1.05,1.10,1.15];
-  const dateFormat=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
-  const refreshClock=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'Europe/Paris'});
-  function scheduleRhythmRefresh(){
-   const hour=3600000;
-   const next=new Date((Math.floor(Date.now()/hour)+1)*hour);
-   while(Number(refreshClock.format(next))%6!==0)next.setTime(next.getTime()+hour);
-   rhythmTimer=window.setTimeout(()=>{
-    void refreshRhythm();
-    scheduleRhythmRefresh();
-   },next.getTime()-Date.now());
-  }
-  function renderRhythm(data){
-   for(const element of rhythm.querySelectorAll('[data-rhythm-rate]')){
-    const {rhythmRate,rhythmBenchmark}=element.dataset;
-    const value=data?.[rhythmRate];
-    element.textContent=data?rateFormat.format(value):'';
-    if(!rhythmBenchmark)continue;
-    const comparison=element.closest('[data-rhythm-comparison]');
-    const fill=comparison.querySelector('[data-rhythm-fill]');
-    const track=comparison.querySelector('[data-rhythm-track]');
-    if(!data){delete comparison.dataset.rhythmTone;fill.style.width='0%';track.removeAttribute('aria-valuenow');track.removeAttribute('aria-valuetext');continue;}
-    const ratio=value/Number(rhythmBenchmark);
-    comparison.dataset.rhythmTone=String(1+rhythmToneThresholds.filter(threshold=>ratio+Number.EPSILON>=threshold).length);
-    const percent=Math.max(0,Math.min(100,ratio*100));
-    fill.style.width=`${percent}%`;
-    track.setAttribute('aria-valuenow',String(Math.round(percent)));
-    track.setAttribute('aria-valuetext',`${rateFormat.format(value)} par semaine, ${Math.round(ratio*100)} % du repère de ${rateFormat.format(Number(rhythmBenchmark))}`);
-   }
-   rhythm.querySelector('[data-rhythm-dates]').textContent=data?dateFormat.formatRange(new Date(data.start),new Date(data.end)):'';
-   rhythm.querySelectorAll('[data-rhythm-personal]').forEach(element=>element.hidden=!data);
-   if(editor){
-    editor.hidden=!(data?.canRecord&&remote.recordRhythm);
-    if(editor.hidden){editor.open=false;rhythmStatus.textContent='';}
-   }
-  }
-  async function refreshRhythm(){
-   if(disposed||document.hidden||readingRhythm||recordingRhythm)return;
-   if(!remote.authenticated){renderRhythm(null);return;}
-   readingRhythm=true;
-   const version=rhythmVersion;
-   try{
-    const data=await remote.loadRhythm();
-    if(!disposed&&version===rhythmVersion)renderRhythm(remote.authenticated?data:null);
-   }catch(error){
-    if(!disposed&&version===rhythmVersion&&(!remote.authenticated||error.status===401))renderRhythm(null);
-   }finally{readingRhythm=false;}
-  }
-  async function addRhythm(event){
-   const button=event.target.closest('[data-rhythm-add]');
-   if(!button||editor.hidden||recordingRhythm||!remote.authenticated)return;
-   recordingRhythm=true;
-   rhythmVersion++;
-   for(const choice of rhythmButtons)choice.disabled=true;
-   rhythmStatus.textContent='Enregistrement…';
-   try{
-    const data=await remote.recordRhythm(button.dataset.rhythmAdd);
-    if(disposed)return;
-    renderRhythm(remote.authenticated?data:null);
-    if(!editor.hidden)rhythmStatus.textContent='Pratique enregistrée.';
-   }catch(error){
-    if(disposed)return;
-    if(!remote.authenticated)renderRhythm(null);
-    else if(error.status===403)editor.hidden=true;
-    else rhythmStatus.textContent=error.code==='pending_action'?error.message:'Saisie à confirmer. Retouche la même catégorie.';
-   }finally{
-    recordingRhythm=false;
-    if(!disposed)for(const choice of rhythmButtons)choice.disabled=false;
-   }
-  }
-  if(rhythm&&remoteMode&&remote?.loadRhythm){
-   refreshRhythm();
-   scheduleRhythmRefresh();
-   document.addEventListener('visibilitychange',refreshRhythm);
-   editor?.addEventListener('click',addRhythm);
-  }
-  const highlight=panel.querySelector('.dest-featured');
-  const invitation=panel.querySelector('.women-invitation');
-  const [ink,rest]=invitation?.querySelector('.women-invitation-ink')?.children||[];
-  const letters=Array.from(ink?.textContent||'');
-  const looping=new Set([agreement,rhythm,highlight,invitation,...panel.querySelectorAll('.anal-benchmark,.rough-extra,.place-fantasy-featured')].filter(Boolean));
-  let typingTimer=0,typed=letters.length;
-  const canType=()=>letters.length&&!systemReduce&&ambientMotion&&!document.hidden&&invitation.classList.contains('is-in-view');
-  function drawTyping(count){
-   if(!ink||!rest||typed===count)return;
-   typed=count;
-   ink.textContent=letters.slice(0,count).join('');
-   rest.textContent=letters.slice(count).join('');
-  }
-  function typeNext(){
-   typingTimer=0;
-   if(!canType()){drawTyping(letters.length);return;}
-   drawTyping(typed===letters.length?0:typed+1);
-   typingTimer=setTimeout(typeNext,typed===letters.length?3400:46);
-  }
-  function syncTyping(){
-   panel.classList.toggle('is-motion-paused',document.hidden||!ambientMotion);
-   if(!canType()){
-    clearTimeout(typingTimer);typingTimer=0;drawTyping(letters.length);
-   }else if(!typingTimer){
-    drawTyping(0);typingTimer=setTimeout(typeNext,240);
-   }
-  }
+  const looping=new Set([agreement].filter(Boolean));
+  const syncMotion=()=>panel.classList.toggle('is-motion-paused',document.hidden||!ambientMotion);
   let progressFrame=0;
   const updateProgress=()=>{
    progressFrame=0;
@@ -1000,8 +884,6 @@
    entries.forEach(({target,isIntersecting,intersectionRatio})=>{
     const visible=isIntersecting&&intersectionRatio>=.18;
     if(looping.has(target))target.classList.toggle('is-in-view',visible&&!systemReduce&&ambientMotion);
-    if(target===invitation){syncTyping();return;}
-    if(target===highlight)return;
     if(!visible||systemReduce||target.hasAttribute('data-info-visited'))return;
     if(!looping.has(target))observer.unobserve(target);
     target.classList.add('is-reading');target.dataset.infoVisited='';
@@ -1014,7 +896,7 @@
     panel.querySelectorAll('.oa-info-card:not([data-info-visited])').forEach(card=>observer?.observe(card));
     if(ambientMotion)looping.forEach(target=>observer?.observe(target));else looping.forEach(target=>target.classList.remove('is-in-view'));
    }
-   syncTyping();
+   syncMotion();
   };
   const widgets=[
    ['[data-info-activity]',infoActivity],
@@ -1027,10 +909,13 @@
     const markup=widget.render();
     if(markup===widget.markup)continue;
     const focused=widget.node.contains(document.activeElement)?document.activeElement:null;
+    const openDetails=Array.from(widget.node.querySelectorAll('details[open][id]'),detail=>detail.id);
+    const focusedSummary=focused?.matches?.('summary')?focused.closest('details[id]')?.id:null;
     const previous=widget.node.firstElementChild;
     const cardWasObserved=previous?.matches('.oa-info-card');
     if(cardWasObserved)observer?.unobserve(previous);
     widget.node.innerHTML=markup;widget.markup=markup;
+    for(const id of openDetails){const detail=widget.node.querySelector('#'+id);if(detail)detail.open=true;}
     const card=widget.node.firstElementChild;
     if(cardWasObserved){
      if(previous.hasAttribute('data-info-visited'))card.dataset.infoVisited='';
@@ -1038,7 +923,7 @@
     }
     if(focused){
      const controls=Array.from(widget.node.querySelectorAll('[data-action], [data-pref]'));
-     const replacement=controls.find(control=>!control.disabled&&(
+     const replacement=(focusedSummary&&widget.node.querySelector('#'+focusedSummary+' > summary'))||controls.find(control=>!control.disabled&&(
       focused.dataset.action&&control.dataset.action===focused.dataset.action||
       focused.dataset.pref&&control.dataset.pref===focused.dataset.pref
      ))||(focused.dataset.action==='enable-notifications'&&widget.node.querySelector('.oa-notification-setting h2'))||widget.node.querySelector('h2')||panel.querySelector('#oa-info-activity-title');
@@ -1052,21 +937,16 @@
   main.addEventListener('scroll',scheduleProgress,{passive:true});
   window.addEventListener('resize',scheduleProgress);
   panel.addEventListener('toggle',scheduleProgress,true);
-  document.addEventListener('visibilitychange',syncTyping);
+  document.addEventListener('visibilitychange',syncMotion);
   updateProgress();
   updateMotion();
   return {refresh,updateMotion,dispose(){
-   disposed=true;
-   if(rhythmTimer!==undefined)window.clearTimeout(rhythmTimer);
-   document.removeEventListener('visibilitychange',refreshRhythm);
-   editor?.removeEventListener('click',addRhythm);
    observer?.disconnect();resize?.disconnect();
    if(progressFrame)cancelAnimationFrame(progressFrame);
-   clearTimeout(typingTimer);
    main.removeEventListener('scroll',scheduleProgress);
    window.removeEventListener('resize',scheduleProgress);
    panel.removeEventListener('toggle',scheduleProgress,true);
-   document.removeEventListener('visibilitychange',syncTyping);
+   document.removeEventListener('visibilitychange',syncMotion);
   }};
  }
  function showInfoIdea(){
@@ -1561,7 +1441,7 @@
   if(action==='open-joker'){if(jokerAvailable())openSheet('Choisir le thème',categoriesGrid());return;}
   if(action==='joker'){const category=Number(el.dataset.category);closeSheet();if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const catalogueVersion=drawVersion(),act={type:'JOKER_DRAW',category,catalogueVersion,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,catalogueVersion,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
-  if(action==='tab'){tab=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';render();main.scrollTop=0;main.scrollLeft=0;return;}
+  if(action==='tab'){const next=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';if(next===tab)return;tab=next;render();return;}
   if(action==='info-idea'){showInfoIdea();return;}
   if(action==='profile'){
    if(remoteMode)return;
