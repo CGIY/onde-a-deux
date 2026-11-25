@@ -1,4 +1,10 @@
-# D6 à deux — version web 0.4.10
+# D6 à deux — version web 0.4.17
+
+## Carnet allégé et fluidité — 0.4.17
+
+Le Carnet conserve uniquement **Au fil des tirages** et **Réglages**. Les aides restent dans Réglages ; les comparatifs, le module hebdomadaire, leurs animations et leur chargement ne sont plus embarqués. Le vocabulaire Missions est harmonisé, les deux coches sont nommées explicitement et toucher l’onglet actif conserve la position. Une aide ouverte reste ouverte lors d’une actualisation des réglages.
+
+Le rendu des dés évite les rayons hors de leur volume visible et les redessins à taille inchangée, en conservant leur matière, leur géométrie et leurs animations. Les limites sont vérifiées numériquement, y compris les bords adoucis. Le contrôle de l’aperçu mobile vérifie le rendu ; le gain de fluidité sur les téléphones physiques reste à observer. Les règles, les données de partie et l’archive Xcode sont conservées.
 
 [Ouvrir D6 à deux](https://cgiy.github.io/onde-a-deux/demo-des/)
 

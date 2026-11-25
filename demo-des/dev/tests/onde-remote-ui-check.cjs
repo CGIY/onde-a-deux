@@ -631,7 +631,7 @@ async function rollSession(options={}){
   const remote=mockRemote(roomSnapshot(room,'a')),ui=shell(remote);await tick();
   remote.actionImpl=async action=>{check(()=>assert.deepEqual(copy(action),{type:'SEND',roundId}));room=G.reduceRoom(room,{...action,actor:'a',at:new Date().toISOString(),directQueue:true});return roomSnapshot(room,'a',2);};
   await ui.click('send');
-  check(()=>{assert.ok(ui.html.includes('Les choses'));assert.ok(hasTitle(ui.html,G.getCard(room.tasks[0].cardId).title));assert.equal(room.tasks.length,1);assert.equal(room.pendingRounds.length,0);assert.equal(remote.snapshot.state.phase,'category');assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.doesNotMatch(ui.html,/data-action="(?:accept|pass|open-invitation|send-daily)"|Carte du jour|Refuser · D20/);assert.ok(ui.announcements.includes('Proposition ajoutée aux Missions.'));assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===4000).length,0);});
+  check(()=>{assert.ok(ui.html.includes('Vos <em>missions.'));assert.ok(hasTitle(ui.html,G.getCard(room.tasks[0].cardId).title));assert.equal(room.tasks.length,1);assert.equal(room.pendingRounds.length,0);assert.equal(remote.snapshot.state.phase,'category');assert.equal(remote.calls.filter(call=>call.method==='action').length,1);assert.doesNotMatch(ui.html,/data-action="(?:accept|pass|open-invitation|send-daily)"|Carte du jour|Refuser · D20/);assert.ok(ui.announcements.includes('Proposition ajoutée aux Missions.'));assert.equal(ui.timers.filter(timer=>timer.active&&timer.ms===4000).length,0);});
   await ui.click('tab',{tab:'play'});check(()=>{assert.ok(ui.html.includes('Lancer le D4'));assert.doesNotMatch(ui.html,/Carte du jour|send-daily/);});
   const before=remote.calls.length;await ui.click('send-daily');check(()=>assert.equal(remote.calls.length,before));
  }
@@ -720,7 +720,7 @@ async function rollSession(options={}){
  {
   const room=roomDraw(G.createRoom(),'a'),taskId=room.lanes.a.round.id,values=new Map([['onde-couple-prototype-v1',JSON.stringify(room)]]),ui=shell(mockRemote(),{mode:false,storageValues:values,randomFace:1});
   await ui.click('send');let saved=JSON.parse(values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(saved.tasks.length,1);assert.equal(saved.pendingRounds.length,0);assert.equal(saved.lanes.a.phase,'category');assert.ok(ui.html.includes('Les choses'));assert.equal(ui.rngCalls,0);});
+  check(()=>{assert.equal(saved.tasks.length,1);assert.equal(saved.pendingRounds.length,0);assert.equal(saved.lanes.a.phase,'category');assert.ok(ui.html.includes('Vos <em>missions.'));assert.equal(ui.rngCalls,0);});
   await ui.click('profile',{player:'b'});await ui.click('refuse-task',{task:taskId});saved=JSON.parse(values.get('onde-couple-prototype-v1'));
   check(()=>{assert.equal(saved.tasks.length,1);assert.equal(saved.stats.totalCompleted,0);assert.deepEqual(ui.rngSides,[20]);assert.deepEqual(ui.die.calls,[1]);assert.ok(ui.html.includes('data-task='+JSON.stringify(taskId)));assert.equal(saved.history.at(-1).refusalRoll,undefined);});
  }
@@ -932,7 +932,7 @@ async function rollSession(options={}){
   for(const reason of ['pagehide','visibilitychange','revoke','tab']){
    const {remote,ui}=await rollSession({motionAPI:true});await ui.click('roll');const holder=ui.stage,animations=[...ui.motionAnimations];assert.equal(holder.style.overflow,'hidden');
    if(reason==='revoke')remote.revoke();else if(reason==='tab')await ui.click('tab',{tab:'tasks'});else if(reason==='pagehide')ui.windowEvent(reason);else ui.documentEvent(reason,{hidden:true});
-   check(()=>{assert.ok(animations.every(a=>a.cancelled));assert.equal(holder.style.overflow,'');assert.equal(remote.calls.filter(c=>c.method==='action').length,1);if(reason==='revoke'){assert.ok(ui.html.includes('autocomplete="current-password"'));assert.ok(!ui.html.includes('oa-card-grid'));}if(reason==='tab')assert.ok(ui.html.includes('Les choses'));});
+   check(()=>{assert.ok(animations.every(a=>a.cancelled));assert.equal(holder.style.overflow,'');assert.equal(remote.calls.filter(c=>c.method==='action').length,1);if(reason==='revoke'){assert.ok(ui.html.includes('autocomplete="current-password"'));assert.ok(!ui.html.includes('oa-card-grid'));}if(reason==='tab')assert.ok(ui.html.includes('Vos <em>missions.'));});
   }
  }
  // Starting the D6 before the handoff ends cancels its transform before the physical roll begins.
@@ -1107,7 +1107,7 @@ async function rollSession(options={}){
   const rows=Array.from(ui.html.matchAll(/class="oa-score-label"><i aria-hidden="true"><\/i>([^<]+)<\/span><strong>(\d+)<\/strong>/g),row=>row.slice(1));
   check(()=>assert.deepEqual(rows,[['Cocon','3'],['Offrandes','7'],['Aventures','3'],['Braises','1']]));
   const overview=ui.html.match(/<section class="oa-info-card oa-info-summary"[^>]*>[\s\S]*?<\/section>/)[0];
-  check(()=>{assert.match(overview,/Série en cours[\s\S]*Tirages du jour[\s\S]*Vos cartes partagées[\s\S]*Deux oui en 24 h[\s\S]*\+1 point/);assert.doesNotMatch(overview,/Tirages de thème|Propositions envoyées|Mes dernières cartes tirées|Chacun peut dire non/);});
+  check(()=>{assert.match(overview,/Série en cours[\s\S]*Tirages du jour[\s\S]*Vos cartes partagées[\s\S]*Deux coches en 24 h[\s\S]*\+1 point/);assert.doesNotMatch(overview,/Tirages de thème|Propositions envoyées|Mes dernières cartes tirées|Chacun peut dire non/);});
  }
  // Info displays the personal quota, including exhaustion and renewal, as three dots.
  {
@@ -1221,7 +1221,7 @@ async function rollSession(options={}){
  {
   const at=new Date().toISOString();let game=initial();game=G.reduce(game,{type:'ROLL_CATEGORY',value:1,hand:G.legacyCards.filter(c=>c.categoryId==='complicite').slice(0,6).map(c=>c.id)});game=G.reduce(game,{type:'ROLL_CARD',value:1});game=G.reduce(game,{type:'SEND',at});game=G.reduce(game,{type:'SWITCH_PLAYER',player:'b'});game=G.reduce(game,{type:'ACCEPT',at});game.activePlayer='a';
   const remote=mockRemote(snap(game)),ui=shell(remote);await tick();await ui.click('tab',{tab:'tasks'});check(()=>assert.ok(!ui.html.includes('Une fois vécu, chacun coche sa case.')));let resolveAction;remote.actionImpl=action=>{check(()=>assert.equal(action.type,'TOGGLE_TASK_CHECK'));check(()=>assert.equal(action.checked,true));return new Promise(resolve=>resolveAction=()=>{game=G.reduce(game,{...action,at:new Date().toISOString()});resolve(snap(game,2));});};
-  const before=ui.writes,change=await ui.taskCheck(game.tasks[0].id,true);await tick();check(()=>assert.equal(change.input.checked,false));check(()=>assert.equal(change.input.disabled,true));check(()=>assert.equal(ui.writes,before));resolveAction();await change.promise;check(()=>assert.equal(change.input.checked,true));check(()=>assert.equal(change.label.classList.contains('is-waving'),true));check(()=>assert.equal(game.stats.totalCompleted,0));const settle=ui.timers.find(t=>t.ms===1200);check(()=>assert.ok(settle));settle.fn();check(()=>assert.ok(ui.html.includes('Les choses')));check(()=>assert.ok(ui.html.includes('Ta coche est posée · Personne B doit encore cocher.')));game.activePlayer='b';const otherUI=shell(mockRemote(snap(game,3)));await tick();await otherUI.click('tab',{tab:'tasks'});check(()=>assert.ok(otherUI.html.includes('Personne A a coché · ta coche reste à poser.')));
+  const before=ui.writes,change=await ui.taskCheck(game.tasks[0].id,true);await tick();check(()=>assert.equal(change.input.checked,false));check(()=>assert.equal(change.input.disabled,true));check(()=>assert.equal(ui.writes,before));resolveAction();await change.promise;check(()=>assert.equal(change.input.checked,true));check(()=>assert.equal(change.label.classList.contains('is-waving'),true));check(()=>assert.equal(game.stats.totalCompleted,0));const settle=ui.timers.find(t=>t.ms===1200);check(()=>assert.ok(settle));settle.fn();check(()=>assert.ok(ui.html.includes('Vos <em>missions.')));check(()=>assert.ok(ui.html.includes('Ta coche est posée · Personne B doit encore cocher.')));game.activePlayer='b';const otherUI=shell(mockRemote(snap(game,3)));await tick();await otherUI.click('tab',{tab:'tasks'});check(()=>assert.ok(otherUI.html.includes('Personne A a coché · ta coche reste à poser.')));
  }
  // Revocation hides the previous private screen rather than falling back to the demo.
  {
@@ -1245,7 +1245,7 @@ async function rollSession(options={}){
   const game=draftGame(),remote=mockRemote(snap(game)),ui=shell(remote,{evidenceTrap:true,mobileScroll:true});await tick();ui.main.scrollTop=320;ui.main.scrollLeft=3;ui.button('send').focus();const readingWrites=ui.writes;const changed=copy(game);changed.stats.totalCompleted=1;changed.stats.byCategory.attention=1;remote.emit(snap(changed,2));
   check(()=>{assert.equal(ui.main.scrollTop,320);assert.equal(ui.main.scrollLeft,3);assert.equal(ui.activeElement,ui.button('send'));assert.equal(ui.writes,readingWrites);assertNoEvidence(ui.html);assert.equal(ui.elementScrolls.length,0);});
   ui.main.scrollTop=360;ui.button('reroll').focus();remote.emit(snap(changed,3,0));check(()=>{assert.equal(ui.main.scrollTop,360);assert.equal(ui.activeElement,ui.button('reroll'));assert.equal(ui.writes,readingWrites);});
-  await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.main.scrollTop,0));ui.main.scrollTop=400;ui.help.focus();const pending=G.reduce(changed,{type:'SEND',at:new Date().toISOString()});remote.emit(snap(pending,4,0));check(()=>{assert.equal(ui.main.scrollTop,400);assert.equal(ui.activeElement,ui.help);assert.equal(ui.elementScrolls.length,0);});await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.main.scrollTop,0));
+  await ui.click('tab',{tab:'us'});check(()=>assert.equal(ui.main.scrollTop,0));ui.main.scrollTop=400;ui.help.focus();const pending=G.reduce(changed,{type:'SEND',at:new Date().toISOString()});remote.emit(snap(pending,4,0));check(()=>{assert.equal(ui.main.scrollTop,400);assert.equal(ui.activeElement,ui.help);assert.equal(ui.elementScrolls.length,0);});const sameTabWrites=ui.writes;await ui.click('tab',{tab:'us'});check(()=>{assert.equal(ui.main.scrollTop,400);assert.equal(ui.writes,sameTabWrites);});
   await ui.click('tab',{tab:'tasks'});ui.main.scrollTop=220;await ui.intervals.find(timer=>timer.ms===30000).fn();check(()=>assert.equal(ui.main.scrollTop,220));await ui.click('tab',{tab:'play'});check(()=>{assert.equal(ui.main.scrollTop,0);assertNoEvidence(ui.html);assert.equal(ui.navigation.hidden,false);assert.equal(ui.elementScrolls.length,0);});
  }
  // Opening tasks starts their content at the top; a reroll centers only the inner scroller.
