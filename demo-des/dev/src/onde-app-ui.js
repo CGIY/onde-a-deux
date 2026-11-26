@@ -49,6 +49,7 @@
  let taskExpiryTimer;
  let visibleCardId=null, openedInvitation=null, viewPlayer='a', sharedSnapshot=null;
  let sheetContext=null;
+ let exchangeOpen=false,exchangeResumeId=null,exchangeMarkup='';
  const badgeCatalog=Array.isArray(G.badgeCatalog)?G.badgeCatalog:[];
  const badgeDefinitions=new Map(badgeCatalog.map(badge=>[badge.id,badge]));
  const badgeArtCache=new Map();
@@ -199,7 +200,7 @@
   sharedSnapshot=raw;localRoom=incoming;syncLocalView();return true;
  }
  function pullShared(){if(remoteMode||!canPersist)return false;try{return receiveShared(localStorage.getItem(storageKey));}catch(_){return false;}}
- function changeView(player){if(remoteMode||!['a','b'].includes(player))return;pullShared();viewPlayer=player;selectedIncomingRoundId=null;syncLocalView();openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
+ function changeView(player){if(remoteMode||!['a','b'].includes(player))return;clearExchange();pullShared();viewPlayer=player;selectedIncomingRoundId=null;syncLocalView();openedInvitation=null;try{sessionStorage.setItem(storageKey+'-profile',player);}catch(_){}render();}
  function awaitingPlayer(player){
   const views=remoteMode?[ownState,...incomingStates].filter(Boolean):[
    ...Object.values(localRoom.lanes).map(lane=>G.roomView(localRoom,player,lane.round.id)),
@@ -278,7 +279,7 @@
   if(samePerspective(value,remoteSnapshot)&&value.revision<remoteSnapshot.revision)return false;
   if(value.badges===undefined&&samePerspective(value,remoteSnapshot)&&remoteSnapshot.badges)value={...value,badges:remoteSnapshot.badges};
   const normalized=G.normalizeState(value.state);if(!normalized||normalized.activePlayer!==value.actor)return false;
-  if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
+  if(remoteSnapshot&&!samePerspective(value,remoteSnapshot)){clearExchange();openedInvitation=null;selectedIncomingRoundId=null;visibleCardId=null;gaugeFrames.clear();}
   if(value.serverTime&&Number.isFinite(Date.parse(value.serverTime)))serverOffset=Date.parse(value.serverTime)-Date.now();
   const now=serverNow(),nextQuotaAt=Date.parse(value.quota?.nextAt);
   const quotaClock=value.quota?.remaining===0&&Number.isFinite(nextQuotaAt)?(nextQuotaAt<=now?'elapsed':G.parisDateKey(now)):null;
@@ -668,18 +669,61 @@
  }
 
  let selectedDuoVariant=null,duoRevealKey=null;
- function duoInbox(){
-  const items=incomingStates.filter(view=>view.round.duoChoice);
-  if(!items.length)return '';
-  return '<section class="oa-duo-inbox" aria-label="Vos cartes en cours">'+items.map(view=>{
+ function exchangeItems(){return incomingStates.filter(view=>view.round.duoChoice);}
+ function renderExchanges(){
+  const items=exchangeItems(),received=items.filter(view=>view.round.from!==viewPlayer),sent=items.filter(view=>view.round.from===viewPlayer);
+  const group=(title,views)=>!views.length?'':'<section class="oa-exchange-group"><h2>'+title+'</h2><div class="oa-duo-inbox">'+views.map(view=>{
    const r=view.round,c=r.duoChoice,own=r.from===viewPlayer;
-   const label=own?(c.passed?'RELANCE OFFERTE':c.ready?'TA NOUVELLE CARTE':'EN ATTENTE DE SON CHOIX'):(c.ready||c.passed?'UNE AUTRE IDÉE SE PRÉPARE':'À TOI DE JOUER');
-   return '<button type="button" class="oa-duo-invitation" data-action="duo-open" data-round="'+h(r.id)+'"><small>'+label+'</small><strong>'+h(G.getCard(r.cardId,r.catalogueVersion).title)+'</strong></button>';
-  }).join('')+'</section>';
+   const actionable=own?(c.passed||c.ready):!c.passed&&!c.ready;
+   const label=own?(c.passed?'RELANCE OFFERTE':c.ready?'À PROPOSER':'EN ATTENTE DE SON CHOIX'):(c.ready||c.passed?'UNE AUTRE IDÉE SE PRÉPARE':c.roll===null?'À TOI DE LANCER LE D6':'À CHOISIR · À VALIDER');
+   return '<button type="button" class="oa-duo-invitation'+(actionable?' is-actionable':'')+'" data-action="duo-open" data-round="'+h(r.id)+'"><small>'+label+'</small><strong>'+h(G.getCard(r.cardId,r.catalogueVersion).title)+'</strong><span>'+h(name(own?r.to:r.from))+'<i aria-hidden="true">↗</i></span></button>';
+  }).join('')+'</div></section>';
+  return heading('La balle<br><em>change de camp.</em>',null,null)+(items.length?group('Cartes reçues',received)+group('Cartes proposées',sent):'<div class="oa-task-empty"><span aria-hidden="true">↗</span><h2>Tout est à jour.</h2><p>Vos cartes à jouer, à choisir ou à relancer se retrouveront ici.</p></div>');
+ }
+ function withOwnDraw(fn){
+  const displayed=state;state=ownState||state;
+  try{return fn();}finally{state=displayed;}
+ }
+ function clearExchange(){
+  exchangeResumeId=null;selectedDuoVariant=null;
+  if(exchangeOpen)closeSheet(false);
+ }
+ function mountDie(holder){
+  if(!holder){if(canvas.parentElement)canvas.parentElement.removeChild(canvas);die.pauseMotion?.();return;}
+  const kind=Number(holder.dataset.kind);holder.prepend(canvas);
+  die.setKind(kind,Number(holder.dataset.value));die.setLabels?.(...diceFaces(holder));
+  const theme=category(),role=holder.dataset.rollRole;
+  die.setColor?.(role==='category'?null:kind===8||role==='variant'&&state.round.catalogueVersion>=4?dicePigments[theme?.id]:refusal?.color||theme?.color);
+  die.setReducedMotion(systemReduce);
+ }
+ function syncExchangeWindow(){
+  const view=exchangeItems().find(item=>item.round.id===exchangeResumeId);
+  if(!welcomeDismissed||remoteMode&&!remoteReady||!view){clearExchange();}
+  const resume=root.querySelector('[data-action="exchange-resume"]');
+  if(resume){resume.hidden=!view||exchangeOpen||tab==='us'||!welcomeDismissed||remoteMode&&!remoteReady;resume.textContent='Reprendre · '+(view?G.getCard(view.round.cardId,view.round.catalogueVersion).title:'');}
+  if(!exchangeOpen||!view)return;
+  const body=renderDuoPending(),focused=document.activeElement,focusData=sheet.contains(focused)?{...focused.dataset}:null;
+  if(body===exchangeMarkup)return;
+  exchangeMarkup=body;
+  const panel=sheet.querySelector('[data-exchange-body]');
+  if(panel){
+   const top=panel.scrollTop;panel.innerHTML=body;panel.scrollTop=top;
+   if(focusData){const same=Array.from(panel.querySelectorAll('button')).find(el=>['action','choice'].every(key=>(el.dataset[key]||'')===(focusData[key]||''))),target=same||sheet.querySelector('[data-action="close"]');target?.focus({preventScroll:true});}
+  }
+  mountDie(sheet.querySelector('[data-stage]'));animateDuoChoices();
+ }
+ function openExchange(roundId){
+  const view=exchangeItems().find(item=>item.round.id===roundId);if(!view)return;
+  selectedIncomingRoundId=roundId;selectDisplayState();exchangeResumeId=roundId;
+  if(selectedDuoVariant?.roundId!==roundId)selectedDuoVariant=null;
+  exchangeOpen=true;exchangeMarkup='';
+  openSheet(view.round.from===viewPlayer?'Carte proposée':'Carte reçue','<div class="oa-exchange-body" data-exchange-body></div>','oa-exchange-sheet');
+  const reduce=sheet.querySelector('[data-action="close"]');if(reduce){reduce.textContent='−';reduce.setAttribute('aria-label','Réduire la carte');}
+  render();
  }
  function renderDuoPending(){
   const r=state.round,c=r.duoChoice,own=r.from===viewPlayer,title=h(G.getCard(r.cardId,r.catalogueVersion).title);
-  const back='<div class="oa-actions">'+textBtn('Mon tirage','own-draw')+'</div>';
+  const back='';
   if(own){
    if(c.passed)return heading('Une autre<br><em>chance à jouer.</em>','Ton compagnon a passé la carte. Cette relance est offerte.',null)+stage(G.cardSides(r),'UNE NOUVELLE ACTION',1,'card','Relancer la carte').replace('data-action="roll"','data-action="duo-bonus"')+back;
    if(c.ready)return heading('Une nouvelle<br><em>idée à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(card())+'</div><div class="oa-actions">'+btn('Proposer cette carte','duo-send-bonus')+'</div>'+back;
@@ -734,10 +778,10 @@
  }
  function animateDuoChoices(){
   const c=state.round.duoChoice,signature=state.round.id+':'+JSON.stringify(c?.options);
-  if(!c?.roll||state.phase!=='pending'||!main.querySelector('.oa-duo-options')||duoRevealKey===signature)return;
+  if(!c?.roll||state.phase!=='pending'||!sheet.querySelector('.oa-duo-options')||duoRevealKey===signature)return;
   duoRevealKey=signature;
   if(systemReduce||document.hidden||presentationHidden)return;
-  main.querySelectorAll('.oa-duo-option').forEach((el,index)=>playContentTransition(el,[{opacity:0,transform:'perspective(500px) rotateX(-12deg) translateY(12px)'},{opacity:1,transform:'none'}],300,null,index*55));
+  sheet.querySelectorAll('.oa-duo-option').forEach((el,index)=>playContentTransition(el,[{opacity:0,transform:'perspective(500px) rotateX(-12deg) translateY(12px)'},{opacity:1,transform:'none'}],300,null,index*55));
  }
  function privateHome(incoming=false){
   const r=state.round;
@@ -759,10 +803,10 @@
   }
   if(!busy&&['category','card','variant'].includes(state.phase)&&!hasRollStar()){
    const {nextAt}=G.cardRerollStars(ownState||state,viewPlayer,serverStamp());
-   return duoInbox()+heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
+   return heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
     (nextAt?'<div class="oa-next-draw" role="status">Prochaine étoile dans <strong>'+timeLeft({expiresAt:nextAt})+'</strong></div>':'');
   }
-  if(state.phase==='category')return duoInbox()+rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
+  if(state.phase==='category')return rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
    stage(G.rules.categorySides,'01 / LE THÈME',3,'category',remoteSnapshot?.quota?.remaining===0?'':'Lancer le D'+G.rules.categorySides),categoryAction(),
    jokerAvailable()?'<div class="oa-actions">'+textBtn('Joker · choisir le thème','open-joker')+'</div>':'');
   if(state.phase==='card'){
@@ -863,14 +907,14 @@
   const n=remote.notificationStatus;
   return '<section class="oa-notification-setting"><div class="oa-section-head"><h2>Les notifications</h2></div>'+(n.subscribed?'<p class="oa-note">Activées sur cet appareil.</p>':n.supported&&n.permission!=='denied'?btn('Activer les notifications','enable-notifications','oa-secondary'):'')+(n.message?'<p class="oa-note">'+h(n.message)+'</p>':'')+'</section>';
  }
- function renderUs(){return sharedScore()+infoIdeaCard()+badgesSection();}
+ function renderUs(){return sharedScore()+infoIdeaCard()+badgesSection()+renderInfo();}
 
  function infoSettings(){
   if(remoteMode)notificationSignature=JSON.stringify(remote.notificationStatus);
   const help=`   ${(remoteMode||root.querySelector('.oa-player-avatar'))?textBtn('Les règles du jeu','rules'):''}
    <details class="oa-info-install" id="oa-info-install">
     <summary>Retrouver D6 à deux sur l’écran d’accueil</summary>
-    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis <strong>Carnet → Réglages</strong>.</p>
+    <p>Sur iPhone, ouvre le jeu dans Safari, touche Partager, puis Sur l’écran d’accueil. Ouvre ensuite l’app pour activer les notifications depuis <strong>Duo → Réglages</strong>.</p>
    </details>
 `;
   return '<section class="oa-info-card oa-info-settings" id="oa-info-settings" aria-labelledby="oa-info-settings-title"><p class="oa-info-kicker">Sur cet appareil</p><h2 id="oa-info-settings-title">Réglages</h2>'+setting('sound','Son des dés','Un contact feutré à chaque lancer.')+setting('ambient','Animations d’ambiance','Ciel et lignes lumineuses.')+(remoteMode?notificationSetting()+'<section class="oa-notification-setting"><div class="oa-section-head"><h2>Mes appareils</h2></div><p class="oa-note">Protège ton compte en retirant l’accès à un appareil.</p><div class="oa-actions">'+textBtn('Déconnecter cet appareil','logout-confirm')+textBtn('Déconnecter mes autres appareils','revoke-others-confirm')+'</div></section>':'<p class="oa-note">Démo locale · '+(persisted?'partie conservée sur cet appareil.':'partie non sauvegardée.')+(recovery?' Ancienne sauvegarde conservée pour récupération.':'')+'</p><div class="oa-actions">'+textBtn('Effacer la partie de démonstration','reset-confirm')+'</div>')+help+'</section>';
@@ -920,7 +964,7 @@
  function renderInfo(){
   return `<article class="oa-info" aria-labelledby="oa-info-title">
    <div class="oa-info-progress" aria-hidden="true"><i></i></div>
-   <h1 class="oa-sr" id="oa-info-title">Carnet</h1>
+   <h2 class="oa-sr" id="oa-info-title">Votre activité et vos réglages</h2>
    <div class="oa-info-cards">
     <section class="oa-info-card oa-info-summary" id="oa-info-activity" aria-labelledby="oa-info-activity-title">
      <h2 id="oa-info-activity-title">Au fil des tirages.</h2>
@@ -1048,7 +1092,7 @@
   if(!welcomeDismissed)return 'welcome';if(remoteMode&&!remoteReady)return 'login';
   if(cardReveal)return cardReveal.viewKey;
   if(refusal)return 'tasks|refusal|'+refusal.taskId+'|'+viewPlayer;
-  if(tab==='info')return 'info';
+  if(tab==='us')return 'us|'+viewPlayer;
   if(tab!=='play')return tab+'|'+viewPlayer;
   if(!canSeeCurrentRound())return 'play|private-home|'+viewPlayer;
   const inbox=['pending'].includes(state.phase)&&G.canRespond(state)&&openedInvitation!==invitationKey();
@@ -1156,48 +1200,41 @@
  function render(transition=null){
   if(!remoteMode){const fresh=G.reduceRoom(localRoom,{type:'EXPIRE_TASKS',at:now(),actor:viewPlayer});if(fresh!==localRoom){localRoom=fresh;syncLocalView();save();}}
   trackGrade();trackBadges();
+  if(exchangeResumeId&&(!welcomeDismissed||remoteMode&&!remoteReady||!exchangeItems().some(view=>view.round.id===exchangeResumeId)))clearExchange();
   // Connection updates may restore the game behind this screen, never replace it.
   if(!welcomeDismissed&&renderKey==='welcome'){renderPersona();scheduleExpiry();updateBadgeNotice();return;}
   const focused=document.activeElement;
   const focusData=focused&&main.contains(focused)?{...focused.dataset}:null;
   const scrollTop=main.scrollTop,scrollLeft=main.scrollLeft;
+  const openDetails=Array.from(main.querySelectorAll('details[open][id]'),el=>el.id);
   const previousKey=renderKey;
   renderPersona();
-  const key=visibleViewKey();
+  if(remoteMode&&!remoteReady)clearExchange();
+  const key=tab==='play'&&exchangeOpen?withOwnDraw(visibleViewKey):visibleViewKey();
   const page=key.split('|',1)[0];
   const previousPage=previousKey.split('|',1)[0];
-  const gamePages=['play','tasks','us','info'];
+  const gamePages=['play','exchanges','tasks','us'];
   const pageChanged=page!==previousPage&&gamePages.includes(page)&&gamePages.includes(previousPage);
-  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?renderPlay():tab==='tasks'?renderTasks():tab==='info'?(infoReading?renderedMarkup:renderInfo()):renderUs();
+  const markup=!welcomeDismissed?renderWelcome():remoteMode&&!remoteReady?renderLogin():tab==='play'?withOwnDraw(renderPlay):tab==='exchanges'?renderExchanges():tab==='tasks'?renderTasks():renderUs();
   const replaceMain=key!==renderKey||markup!==renderedMarkup;
   const animate=key!==renderKey;renderKey=key;
-  if(replaceMain){infoReading?.dispose();infoReading=null;cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;}
+  if(replaceMain){infoReading?.dispose();infoReading=null;cancelContentTransitions();clearCharge(true,false);const parent=canvas.parentElement;if(parent&&!exchangeOpen)parent.removeChild(canvas);main.innerHTML=markup;renderedMarkup=markup;for(const id of openDetails){const detail=main.querySelector('#'+id);if(detail)detail.open=true;}}
   root.classList.toggle('oa-entering',animate&&!systemReduce&&!document.hidden&&!presentationHidden);
   root.style.setProperty('--oa-accent',(welcomeDismissed&&canSeeCurrentRound()?category():null)?.color||G.categories[1].color);
   root.querySelectorAll('.oa-switch [data-action="profile"]').forEach(el=>{const selected=el.dataset.player===state.activePlayer;el.setAttribute('aria-pressed',String(selected));const dot=el.querySelector('.oa-unread');if(dot)dot.hidden=!awaitingPlayer(el.dataset.player);});
   root.querySelectorAll('.oa-nav button').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
-  const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!awaitingPlayer(viewPlayer);
+  const invitationDot=root.querySelector('.oa-incoming-dot');if(invitationDot)invitationDot.hidden=!exchangeItems().some(view=>{const r=view.round,c=r.duoChoice;return r.from===viewPlayer?c.passed||c.ready:!c.passed&&!c.ready;});
   const count=root.querySelector('.oa-task-count');
   if(count){
    const awaiting=(state.tasks||[]).filter(task=>!task.checks[viewPlayer]).length;
    count.textContent=String(awaiting);count.hidden=!awaiting;
    count.setAttribute('aria-label',awaiting+' mission'+(awaiting===1?'':'s')+' à cocher');
   }
+  syncExchangeWindow();
   if(!replaceMain){infoReading?.refresh();scheduleExpiry();scheduleAutoNewRound();scheduleAutomaticMission();updateBadgeNotice();return;}
   animateDuoChoices();
-  const holder=main.querySelector('[data-stage]');
-  if(holder){
-   const kind=Number(holder.dataset.kind);
-   holder.prepend(canvas);
-   die.setKind(kind,Number(holder.dataset.value));
-   die.setLabels?.(...diceFaces(holder));
-   const theme=category();
-   const role=holder.dataset.rollRole;
-   const tint=role==='category'?null:kind===8||role==='variant'&&state.round.catalogueVersion>=4?dicePigments[theme?.id]:refusal?.color||theme?.color;
-   die.setColor?.(tint);
-   die.setReducedMotion(systemReduce);
-  }
-  else die.pauseMotion?.();
+  const holder=exchangeOpen?sheet.querySelector('[data-stage]'):main.querySelector('[data-stage]');
+  if(!exchangeOpen)withOwnDraw(()=>mountDie(holder));
   root.classList.toggle('is-busy',busy||operationBusy);
   animateGauge();
   const frost=pageChanged&&!transition&&frostTransition(main,360,4,completed=>{if(completed&&holder&&canvas.parentElement===holder&&!busy&&!operationBusy)die.breathe?.();});
@@ -1214,14 +1251,14 @@
   animateGrade();
   if(!cardReveal)visibleCardId=state.round.cardId;
   scheduleExpiry();
-  if(focusData&&previousKey===renderKey){
+  if(!exchangeOpen&&focusData&&previousKey===renderKey){
    const keys=['action','pref','taskCheck','player','card','tab','task','badge'];let same;
    if(keys.some(k=>focusData[k]))same=Array.from(main.querySelectorAll('button,input')).find(el=>keys.every(k=>(el.dataset[k]||'')===(focusData[k]||'')));
    if(same)same.focus({preventScroll:true});else{const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   }
-  else if(previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
+  else if(!exchangeOpen&&previousKey&&previousKey!==renderKey){const title=main.querySelector('h1');if(title){title.setAttribute('tabindex','-1');title.focus({preventScroll:true});}}
   main.scrollTop=previousKey===key?scrollTop:0;main.scrollLeft=previousKey===key?scrollLeft:0;
-  if(tab==='info')infoReading=mountInfo();
+  if(tab==='us')infoReading=mountInfo();
   if(transition)animateDiceHandoff(transition);
   scheduleAutoNewRound();
   scheduleAutomaticMission();
@@ -1253,7 +1290,7 @@
  function softSound(){if(!state.prefs.sound)return;try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();audioContext.resume();[0,.44,.83].forEach((delay,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),t=audioContext.currentTime+delay;osc.type='sine';osc.frequency.setValueAtTime(155-i*18,t);osc.frequency.exponentialRampToValueAtTime(48,t+.1);gain.gain.setValueAtTime(.055/(i+1),t);gain.gain.exponentialRampToValueAtTime(.001,t+.13);osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+.14);});}catch(_){}}
  function setControlsBusy(value){
   const active=value||busy||operationBusy;root.classList.toggle('is-busy',active);
-  if(active){controlsBusyState=controlsBusyState||new Map();root.querySelectorAll('button,input').forEach(el=>{if(el.dataset.action==='badge-dismiss'||el.dataset.action==='close'&&!sheet.hidden)return;if(!controlsBusyState.has(el))controlsBusyState.set(el,el.disabled);el.disabled=true;});}
+  if(active){controlsBusyState=controlsBusyState||new Map();root.querySelectorAll('button,input').forEach(el=>{if(el.dataset.action==='badge-dismiss'||el.dataset.action==='close'&&!sheet.hidden&&!exchangeOpen)return;if(!controlsBusyState.has(el))controlsBusyState.set(el,el.disabled);el.disabled=true;});}
   else if(controlsBusyState){for(const [el,disabled] of controlsBusyState)if(el.isConnected)el.disabled=disabled;controlsBusyState=null;}
   updateBadgeNotice();
  }
@@ -1449,13 +1486,16 @@
   const shell=root.querySelector('.oa-shell');Array.from(shell.children).forEach(el=>{if(el!==sheet&&el.id!=='oa-announcement')el.inert=true;});
   const dialog=sheet.querySelector('.oa-sheet');if(dialog)dialog.scrollTop=0;updateBadgeNotice();sheet.querySelector('button')?.focus({preventScroll:true});
  }
- function closeSheet(){
-  if(sheet.hidden)return;
+ function closeSheet(refresh=true){
+  if(sheet.hidden||exchangeOpen&&(busy||operationBusy)&&refresh)return;
+  const wasExchange=exchangeOpen;exchangeOpen=false;exchangeMarkup='';
+  if(wasExchange){selectedIncomingRoundId=null;selectDisplayState();renderedMarkup='';}
   badgeSheetOpen=false;badgeSheetMarkup='';badgeDetailId=null;badgeGalleryScroll=null;sheet.hidden=true;sheet.classList.remove('oa-collection-open');document.body.style.overflow=sheetContext?.bodyOverflow||'';main.style.overflow=sheetContext?.mainOverflow||'';sheet.innerHTML='';
   Array.from(root.querySelector('.oa-shell').children).forEach(el=>el.inert=false);
   if(lastFocus&&!lastFocus.isConnected&&lastFocus.dataset.action==='badge-detail')lastFocus=badgeTileElement(main,lastFocus.dataset.badge);
   if(lastFocus&&lastFocus.isConnected&&!lastFocus.hidden&&!lastFocus.disabled)lastFocus.focus({preventScroll:true});else{main.setAttribute('tabindex','-1');main.focus({preventScroll:true});}
   if(sheetContext?.key===renderKey){main.scrollTop=sheetContext.top;main.scrollLeft=sheetContext.left;}lastFocus=null;sheetContext=null;updateBadgeNotice();
+  if(wasExchange&&refresh)render();
  }
 
  function rules(){
@@ -1517,7 +1557,7 @@
   if(action==='open-joker'){if(jokerAvailable())openSheet('Choisir le thème',categoriesGrid());return;}
   if(action==='joker'){const category=Number(el.dataset.category);closeSheet();if(!jokerAvailable()||!Number.isInteger(category)||category<1||category>4){render();return;}const catalogueVersion=drawVersion(),act={type:'JOKER_DRAW',category,catalogueVersion,roundId:state.round.id};if(!remoteMode){act.at=now();act.value=category;Object.assign(act,G.drawCategory(state,category,catalogueVersion,G.randomInt));}const ok=await dispatch(act);if(ok)toast('Joker : thème '+((G.categories.find(c=>c.number===category)||{}).label||'choisi')+' !');render();return;}
   if(action==='reroll-category'){await rerollCategory();return;}
-  if(action==='tab'){const next=['us','tasks','info'].includes(el.dataset.tab)?el.dataset.tab:'play';if(next===tab)return;tab=next;render();return;}
+  if(action==='tab'){const next=el.dataset.tab==='info'?'us':['us','tasks','exchanges'].includes(el.dataset.tab)?el.dataset.tab:'play';if(next===tab)return;tab=next;render();return;}
   if(action==='info-idea'){showInfoIdea();return;}
   if(action==='profile'){
    if(remoteMode)return;
@@ -1527,9 +1567,8 @@
   }
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
-  if(action==='duo-open'){
-   selectedIncomingRoundId=el.dataset.round;selectDisplayState();openedInvitation=invitationKey();selectedDuoVariant=null;render();return;
-  }
+  if(action==='exchange-resume'){openExchange(exchangeResumeId);return;}
+  if(action==='duo-open'){openExchange(el.dataset.round);return;}
   if(action==='duo-roll'){await rollDuo('ROLL_CHOICES');return;}
   if(action==='duo-bonus'){await rollDuo('BONUS_CARD');return;}
   if(action==='duo-select'){
@@ -1540,17 +1579,17 @@
   if(action==='duo-confirm'){
    if(!selectedDuoVariant||selectedDuoVariant.roundId!==state.round.id)return;
    const changed=await dispatch({type:'PICK_CHOICE',choice:selectedDuoVariant.face},false);
-   if(changed){selectedDuoVariant=null;tab='tasks';toast('C’EST CHOISI · VOTRE MOMENT VOUS ATTEND !');}
+   if(changed){clearExchange();tab='tasks';toast('C’EST CHOISI · VOTRE MOMENT VOUS ATTEND !');}
    render();return;
   }
   if(action==='duo-pass'){
    const changed=await dispatch({type:'PASS_CHOICE'},false);
-   if(changed){selectedIncomingRoundId=null;selectDisplayState();toast('UNE AUTRE IDÉE · LA BALLE CHANGE DE CAMP !');}
+   if(changed){clearExchange();selectDisplayState();toast('UNE AUTRE IDÉE · LA BALLE CHANGE DE CAMP !');}
    render();return;
   }
   if(action==='duo-send-bonus'){
    const changed=await dispatch({type:'SEND_BONUS'},false);
-   if(changed)toast('NOUVELLE CARTE · NOUVEAU SUSPENSE !');render();return;
+   if(changed){clearExchange();toast('NOUVELLE CARTE · NOUVEAU SUSPENSE !');}render();return;
   }
   if(action==='send'){await sendCurrentCard();return;}
   if(action==='extend-task-confirm'){
@@ -1636,7 +1675,7 @@
   if(welcomeDismissed&&(!remoteMode||remoteReady))updateStarBudget();
   const needsReading=tab==='tasks'||tab==='play';
   if(remoteMode){if(remoteReady&&needsReading)render();}
-  else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='info')render();}
+  else{const changed=await dispatch({type:'EXPIRE_TASKS'},false);if(changed||needsReading||tab==='us'||tab==='exchanges')render();}
  },30000);
  document.addEventListener('visibilitychange',()=>{syncDuoVisibility();if(document.hidden){clearCharge();cancelContentTransitions();die.pauseMotion?.();if(activeRollFace)die.setKind(activeRollFace.kind,activeRollFace.value);finishRevealWait();}if(!document.hidden){updateViewportHeight();if(!remoteMode)pullShared();else resumeMemberPortraits();if(!busy&&!operationBusy&&!missionSending&&!pendingChecks.size)render();}updateBadgeNotice();});
  window.addEventListener('storage',event=>{if(event.key===ambientMotionKey){setAmbientMotion(event.newValue!=='0',false);infoReading?.updateMotion();infoReading?.refresh();}if(!remoteMode&&event.key===storageKey&&receiveShared(event.newValue)&&!busy&&!operationBusy&&!pendingChecks.size)render();if(event.key===badgeRegistryKey){let value;try{value=JSON.parse(event.newValue);}catch(_){}mergeBadgeRegistry(value);updateBadgeNotice();}});
@@ -1663,7 +1702,7 @@
     }
     if(event.snapshot)receiveRemote(event.snapshot);
     else if(!authBusy&&!remoteReady&&event.status.message)updateLoginError(event.status.message);
-    if(remoteReady&&tab==='info'&&!busy&&!operationBusy&&!pendingChecks.size&&notificationSignature!==JSON.stringify(remote.notificationStatus))render();
+    if(remoteReady&&tab==='us'&&!busy&&!operationBusy&&!pendingChecks.size&&notificationSignature!==JSON.stringify(remote.notificationStatus))render();
    });
    remote.start();
    remote.restore().then(value=>{if(value)flushRemote(value,false);else remoteReady=false;authBusy=false;render();}).catch(error=>{remoteReady=false;authBusy=false;loginError=error&&error.isDesirRemoteError?error.message:'La connexion est momentanément indisponible.';render();});
