@@ -13,5 +13,5 @@ const canvas={parentElement:{append(){}},animate(){}},fx=window.OndeDiceFX;
  const hidden=fx.roll(canvas,()=>new Promise(resolve=>finish=resolve));document.hidden=true;listeners.get('visibilitychange')();assert.equal(listeners.size,0);finish(3);assert.equal(await hidden,3);document.hidden=false;
  const error=new Error('network');await assert.rejects(fx.roll(canvas,()=>Promise.reject(error)),error);assert.equal(listeners.size,0);assert.equal(motionListeners.size,0);
  assert.throws(()=>fx.roll(canvas,()=>{throw error;}),error);assert.equal(listeners.size,0);
- console.log('Comic dice effects preserve results/errors, reduced motion and visibility cleanup.');
+ console.log('Cosmic dice filaments preserve results/errors, reduced motion and visibility cleanup.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,8 +1,8 @@
-# D6 à deux — version web 0.5.0
+# D6 à deux — version web 0.5.1
 
-## Effets comiques des dés
+## Filaments cosmiques des dés
 
-Huit familles de petits effets accompagnent les lancers : étoiles étourdies, gouttes, ressorts, petits pops, cœurs, surprise, éclairs et confettis. Les effets restent autour du dé, sans changer sa face ni prolonger le lancer. Ils s’arrêtent avec la réduction des mouvements et le passage en arrière-plan.
+Des filaments fins, arcs d’orbite et poussières lumineuses se dissipent autour du dé. La couche reste derrière le dé et n’encode aucun résultat : quantité et palette constantes, tracés choisis indépendamment avant le lancer. Aucun délai supplémentaire ; réduction des mouvements et arrière-plan respectés.
 
 ## Le choix du compagnon — 0.5.0
 
