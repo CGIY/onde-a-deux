@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.4.17">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.5.0">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -1078,6 +1078,19 @@
 #onde-app-v1 .oa-reroll-frequency{color:#b4c4d8;font-weight:400}
 </style>
 
+<style>
+#onde-app-v1 .oa-duo-inbox{display:grid;gap:10px;margin-bottom:24px}
+#onde-app-v1 .oa-duo-invitation{border:1px solid var(--oa-line);background:var(--oa-surface2);border-radius:18px;padding:16px;text-align:left;color:var(--oa-text);display:grid;gap:6px;width:100%;min-height:64px}
+#onde-app-v1 .oa-duo-invitation small{font-size:12px;letter-spacing:.07em;color:var(--oa-muted)}
+#onde-app-v1 .oa-duo-invitation strong{font-size:16px;font-weight:500}
+#onde-app-v1 .oa-duo-options{display:grid;gap:12px;margin:24px 0}
+#onde-app-v1 .oa-duo-option{border:1px solid var(--oa-line);background:var(--oa-surface2);border-radius:20px;padding:20px;text-align:left;min-height:70px;color:var(--oa-text);font-size:16px;line-height:1.45}
+#onde-app-v1 .oa-duo-option.is-selected{border-color:var(--oa-sage);box-shadow:inset 0 0 0 1px var(--oa-sage);background:#35402f}
+#onde-app-v1 .oa-duo-pass{display:grid;gap:6px;text-align:left;border:1px dashed var(--oa-line);background:transparent;border-radius:20px;padding:20px;width:100%;margin:18px 0;color:var(--oa-text);min-height:76px}
+#onde-app-v1 .oa-duo-pass strong{font-size:14px;letter-spacing:.07em;color:var(--oa-rose)}
+#onde-app-v1 .oa-duo-pass span{font-size:15px;color:var(--oa-muted)}
+</style>
+
 <script>window.DesirInfoQuestions={"complicite": ["Où cacherais-tu un mot pour que je le trouve au bon moment ?", "Quel compliment aimerais-tu entendre un jour tout à fait ordinaire ?", "Quel surnom ridicule ne pourrait faire rire que nous deux ?", "Quel souvenir de nous tiendrait dans une seule phrase sur un petit papier ?", "Quel mot du dictionnaire mériterait une définition inventée rien que pour nous ?", "Qu’est-ce qu’une photo de nos mains pourrait raconter de notre journée ?", "Quelle vieille photo de nous aimerais-tu refaire à l’identique ?", "Quel détail d’une journée banale mériterait un selfie souvenir ?", "Quel moment préfères-tu garder en mémoire sans sortir le téléphone ?", "Après une journée debout, tu choisirais un massage des pieds, du dos ou de la tête ?", "Quel est le meilleur moment de la journée pour un câlin sous le plaid ?", "Quand tu es tendu·e, quel geste te fait sentir que je suis là ?", "Si je te posais du vernis, quelle couleur choisirais-tu ?", "Quel soin un peu banal te ferait plaisir si on le faisait à deux ?", "Quelle odeur te fait tout de suite penser à une soirée tranquille ?", "Quel film peux-tu revoir uniquement pour une scène ?", "Dans quelle série accepterais-tu de passer une soirée en personnage secondaire ?", "À quel jeu coopératif formerions-nous une équipe redoutable ?", "Quel jeu d’ambiance révèle le mieux ton côté mauvais perdant ?", "Que ferions-nous de quinze minutes ensemble en silence ?", "Quelle habitude de téléphone aimerais-tu suspendre pendant un repas à deux ?", "Quel rituel du retour à la maison te ferait sentir attendu·e ?", "Quel moment de la semaine voudrais-tu réserver à notre soirée à deux ?", "Quel petit effort de ma part te rend la vie plus douce sans que je m’en rende compte ?", "À quoi reconnais-tu qu’une soirée t’a vraiment reposé·e ?"], "attention": ["Quel livre m’offrirais-tu pour me faire découvrir un de tes goûts ?", "Quel cadeau à moins de dix euros te ferait rire pour de bon ?", "Quel jeu vidéo aimerais-tu que je découvre en te regardant jouer ?", "Quel jeu de société offrirais-tu à quelqu’un qui déteste lire les règles ?", "Pour une surprise, préfères-tu qu’on devine ton envie ou qu’on te laisse choisir ?", "Quelle pièce de seconde main chercherais-tu pour moi sur Vinted ?", "Quelle tenue aimerais-tu qu’on choisisse ensemble pour une occasion inventée ?", "Quel indice me donnerais-tu pour choisir un cadeau à ta taille sans gâcher la surprise ?", "Si on partage un burger, quel ingrédient doit absolument y être ?", "Quelle garniture de pizza mériterait qu’on tente une demi-pizza chacun ?", "Quel sushi ferais-tu goûter à quelqu’un qui n’en a jamais mangé ?", "Quel sandwich réunit pour toi le meilleur pain et la meilleure garniture ?", "Pour une pause café dehors, qu’est-ce qui compte le plus pour toi, la boisson ou l’endroit ?", "Quel plat mexicain te donnerait envie de cuisiner ensemble un soir de semaine ?", "Quel ingrédient de cuisine indienne ou thaïlandaise aimerais-tu apprendre à utiliser ?", "Pour une soirée grecque ou italienne, quel plat mettrais-tu au milieu de la table ?", "À quel fruit ferais-tu une tarte en plein cœur de sa saison ?", "Pour des cookies maison, tu préfères les bords croustillants ou le centre fondant ?", "Quelle garniture de crêpe défendrais-tu même si personne n’était d’accord ?", "Quel gâteau te rappelle un goûter précis de ton enfance ?", "Qu’est-ce que tu voudrais trouver sur un plateau de petit-déjeuner un dimanche ?", "Quel apéro improviserais-tu avec seulement trois choses du placard ?", "Quel thé ou quelle infusion servirais-tu à quelqu’un qui a besoin de souffler ?", "Avec un chocolat chaud sur le canapé, de quoi aimerais-tu parler ?", "Si je t’apportais un goûter sans prévenir, à quel moment ferait-il vraiment plaisir ?"], "projets": ["Quelle rue du quartier aimerais-tu redécouvrir comme si on venait d’y emménager ?", "En forêt, tu choisirais un itinéraire connu ou le premier sentier qui nous intrigue ?", "Dans quel parc aimerais-tu faire une pause assez longue pour oublier l’heure ?", "À trente minutes de route, quel endroit mérite selon toi un détour ?", "En sortie photo, quel détail de la ville aimerais-tu qu’on s’amuse à chercher ?", "Quelle scène de pluie ou de brouillard voudrais-tu apprendre à photographier ?", "Pour une photo à deux sur le même sujet, quel cadre choisirais-tu pour qu’on obtienne deux images très différentes ?", "Quel lieu industriel ouvert au public aimerais-tu voir pour ses textures ou sa lumière ?", "Quel animal te ferait pardonner un portrait à l’aquarelle complètement raté ?", "Quelle plante aimerais-tu peindre avant qu’elle change de forme ou de couleur ?", "Si on se peignait l’un l’autre, quel détail voudrais-tu que j’observe mieux ?", "À quoi servirait la première coupelle en argile que nous fabriquerions ?", "Quel symbole graverais-tu sur un médaillon pour qu’il n’ait de sens que pour nous ?", "Si on ne pouvait emporter qu’un sac pour une nuit ailleurs, qu’est-ce qui y entrerait en premier ?", "Quelle escapade d’une demi-journée serait possible dès notre prochain créneau libre ?", "En vacances, quel jour aimerais-tu garder complètement vide ?", "Pour une soirée dans une ville voisine, quel serait le seul arrêt à prévoir ?", "Quel indice nous dirait qu’un week-end à deux mérite d’être refait au même endroit ?", "Quel meuble déplacerais-tu d’abord pour que la pièce soit plus agréable à vivre ?", "Quel mur aimerais-tu revoir avec une couleur différente, et laquelle ?", "Quel objet exposerais-tu chez nous pour raconter un projet qu’on a fait ensemble ?", "Quel rangement mériterait une place fixe parce qu’on y cherche toujours la même chose ?", "Quel objet laisserais-tu partir aujourd’hui sans hésiter ?", "Quel objet inutilisé garderais-tu quand même pour l’histoire qu’il porte ?", "Quel petit chantier voudrait-on pouvoir montrer du doigt dimanche en disant qu’on l’a fini ensemble ?"], "intimite": ["Quel baiser te plaît le plus pour dire bonsoir ?", "Quel signe te fait comprendre que j’ai envie de t’embrasser ?", "Quel compliment te fait te sentir désiré·e au-delà de ton apparence ?", "Tu préfères être surpris·e par une invitation ou l’attendre depuis le matin ?", "Quelle lumière te met le plus à l’aise dans un moment intime ?", "Quel rôle joue la musique pour toi quand on se rapproche ?", "Quel vêtement te plaît autant à porter qu’à me laisser découvrir ?", "Dans un jeu de rôle, tu préfères inventer les personnages ou commencer par le décor ?", "Si on jouait à se rencontrer pour la première fois, quelle serait la première phrase ?", "Quand tu imagines prendre les commandes, qu’est-ce qui te plaît dans ce rôle ?", "Quand tu préfères que je prenne l’initiative, de quelle façon aimerais-tu que je te la propose ?", "Quelle phrase te semblerait naturelle pour dire « moins vite » en plein moment ?", "Comment aimerais-tu que je vérifie que le défi te plaît toujours ?", "Quel genre de scénario te plaît à imaginer et te suffit tel quel ?", "À quel endroit privé associes-tu le plus la sensation de pouvoir prendre ton temps ?", "Pour une nuit ailleurs, qu’est-ce qui t’aiderait à te sentir vraiment à l’abri des regards ?", "Pour des photos à deux, qu’aimerais-tu décider à l’avance sur ce qu’on garde ou efface ?", "En photo, tu te sens plus à l’aise dans un portrait serré ou en silhouette ?", "Qu’est-ce qui te donnerait envie de choisir un accessoire ensemble ?", "Si on essaie un jouet à télécommande, qui aimerais-tu voir tenir la commande en premier ?", "Si une carte propose une variante qui te tente peu, comment voudrais-tu qu’on l’adapte ?", "À quel rythme aimerais-tu qu’on reparle de ce qui nous a plu dans nos moments intimes ?", "Après un moment intense, tu préfères parler, te blottir ou avoir un peu d’espace ?", "Quelle différence fais-tu entre une envie pour ce soir et une idée à garder pour plus tard ?", "Quel mot utiliserais-tu pour proposer de mettre le jeu de côté et rester simplement ensemble ?"]};</script>
 
 <style>
@@ -1562,7 +1575,23 @@
     if(!previous) return variant;
     return typeof round.proposal==='string' && round.proposal.trim()?round.proposal:previous;
   };
-  const validSelectedVariant = entry => hasVariants(getCard(entry.cardId,entry.catalogueVersion))?getVariant(entry)!==null:entry.variantRoll===undefined;
+  const blankDuoChoice = () => ({roll:null,options:[],chosen:null,passed:false,bonus:false,ready:false});
+  function validDuoChoice(choice){
+    return choice===undefined || !!choice && typeof choice==='object' &&
+      Object.keys(choice).sort().join(',')==='bonus,chosen,options,passed,ready,roll' &&
+      ['passed','bonus','ready'].every(key=>typeof choice[key]==='boolean') &&
+      (choice.roll===null || Number.isInteger(choice.roll)&&choice.roll>=1&&choice.roll<=6) &&
+      Array.isArray(choice.options) && choice.options.length===(choice.roll??0) &&
+      new Set(choice.options).size===choice.options.length && choice.options.every(value=>Number.isInteger(value)&&value>=1&&value<=6) &&
+      (choice.chosen===null || choice.options.includes(choice.chosen)) &&
+      (!choice.ready || choice.bonus) && (!choice.passed || !choice.bonus);
+  }
+  const unchosenDuo = entry => entry.duoChoice && entry.duoChoice.chosen===null && entry.variantRoll===null;
+  function validSelectedVariant(entry){
+    if(unchosenDuo(entry))return validDuoChoice(entry.duoChoice);
+    if(hasVariants(getCard(entry.cardId,entry.catalogueVersion)))return getVariant(entry)!==null;
+    return entry.variantRoll===undefined;
+  }
   const needsVariant = stateOrRound => {
     const round=stateOrRound?.round||stateOrRound;
     return modernCatalogue(round?.catalogueVersion) && !(hasIntimacyPools(round.catalogueVersion) && round.intimacyPool==='hardcore');
@@ -1766,10 +1795,11 @@
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
-      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
+      if(!task || typeof task!=='object' || Array.isArray(task) || !validDuoChoice(task.duoChoice) || unchosenDuo(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
+      if(task.duoChoice && task.duoChoice.chosen!==task.variantRoll)return false;
       if(task.starPenalty!==undefined && task.starPenalty!==true)return false;
       if(task.failedRefusalRoll!==undefined && (!Number.isInteger(task.failedRefusalRoll)||task.failedRefusalRoll<1||task.failedRefusalRoll>10))return false;
-      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[]),...(task.failedRefusalRoll===undefined?[]:['failedRefusalRoll'])];
+      const expectedKeys=[...keys,...(task.duoChoice===undefined?[]:['duoChoice']),...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[]),...(task.failedRefusalRoll===undefined?[]:['failedRefusalRoll'])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -1798,6 +1828,8 @@
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item) || !validCatalogueEntry(item))) return false;
     const r=s.round;
+    if(!validDuoChoice(r.duoChoice) || s.history.some(item=>!validDuoChoice(item.duoChoice)))return false;
+    if(r.duoChoice?.chosen!==null && r.duoChoice!==undefined && r.duoChoice.chosen!==r.variantRoll)return false;
     if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
     if(r.dailyFree!==undefined && typeof r.dailyFree!=='boolean') return false;
     if(r.refusalRoll!==undefined && (!Number.isInteger(r.refusalRoll) || r.refusalRoll<1 || r.refusalRoll>20)) return false;
@@ -1825,7 +1857,7 @@
     // rewrite an in-progress challenge or invalidate an already won one.
     if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || (hardcore?r.hp!==null:!Number.isInteger(r.hp) || r.hp<1 || r.hp>40)) return false;
     if(s.phase==='variant') return variant && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
-    if(!validSelectedVariant(r)) return false;
+    if(!validSelectedVariant(r) || unchosenDuo(r)&&!['draft','pending','resolved'].includes(s.phase)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
     if(s.phase==='pending' && (r.status!=='pending' || r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || !r.fromConfirmed || r.autoProposed)) return false;
@@ -2055,6 +2087,7 @@
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
       checks:{a:false,b:false},proposal:r.adapted?r.proposal:previousCoconVariant(r)?getVariant(r):null,...(needsVariant(r)?{variantRoll:r.variantRoll}:{}),
       ...(storedCatalogue(r.catalogueVersion)?{catalogueVersion:r.catalogueVersion,intimacyPool:r.intimacyPool}:{}),
+      ...(r.duoChoice?{duoChoice:JSON.parse(JSON.stringify(r.duoChoice))}:{}),
       ...(starPenalty===true?{starPenalty:true}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
@@ -2181,6 +2214,7 @@
         if(!cat || !validCategoryAction(action,cat)) return state;
         r.from=actor; r.to=otherPlayer(actor);
         setCategoryRound(s,action,cat);
+        if(action.companionChoice===true)r.duoChoice=blankDuoChoice();
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.phase='card';
         return s;
@@ -2194,6 +2228,7 @@
         const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
         if(used.includes(actor)) return state;
         setCategoryRound(s,action,cat);
+        if(action.companionChoice===true)r.duoChoice=blankDuoChoice();
         s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
         return s;
       }
@@ -2208,6 +2243,7 @@
         r.from=actor; r.to=otherPlayer(actor);
         setCategoryRound(s,action,cat);
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
+        if(action.companionChoice===true)r.duoChoice=blankDuoChoice();
         s.joker={weekKey,usedBy:actor};
         s.phase='card';
         return s;
@@ -2240,7 +2276,7 @@
         r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId,r.catalogueVersion).hp??null;
         if(reroll) { r.cardRerolled=true; if(needsVariant(r)) r.variantRoll=null; }
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
-        s.phase=needsVariant(r)?'variant':'draft';
+        s.phase=needsVariant(r)&&!r.duoChoice?'variant':'draft';
         r.status=s.phase==='variant'?'drawing':'draft';
         return s;
       }
@@ -2253,7 +2289,7 @@
         return s;
       case 'SEND':
         if(s.phase!=='draft' || actor!==r.from) return state;
-        if(action.directQueue===true) {
+        if(action.directQueue===true && !r.duoChoice) {
           if(!taskStartTime(action.at)) return state;
           // "accepted" is the historical task phase, not recipient consent.
           Object.assign(r,{directQueued:true,fromConfirmed:true,toConfirmed:false,autoProposed:false,
@@ -2263,8 +2299,34 @@
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
         return s;
+      case 'ROLL_CHOICES': {
+        if(s.phase!=='pending'||actor!==r.to||!r.duoChoice||r.duoChoice.passed||r.duoChoice.ready||r.duoChoice.roll!==null||!Number.isInteger(action.value)||action.value<1||action.value>6)return state;
+        const choice={...r.duoChoice,roll:action.value,options:action.options};
+        if(!validDuoChoice(choice))return state;
+        r.duoChoice=choice;return s;
+      }
+      case 'PICK_CHOICE': {
+        if(s.phase!=='pending'||actor!==r.to||!r.duoChoice||r.duoChoice.passed||r.duoChoice.ready||r.duoChoice.chosen!==null||!r.duoChoice.options.includes(action.choice)||!isoTime(action.at))return state;
+        r.duoChoice.chosen=action.choice;r.variantRoll=action.choice;
+        r.toConfirmed=true;r.status='accepted';r.awaiting=null;r.acceptedAt=action.at;s.phase='accepted';
+        enqueueTask(s,action.at,true);return s;
+      }
+      case 'PASS_CHOICE': {
+        if(s.phase!=='pending'||actor!==r.to||!r.duoChoice||r.duoChoice.passed||r.duoChoice.ready||!isoTime(action.at))return state;
+        if(r.duoChoice.bonus){closeRound(s,'passed',action);return s;}
+        r.duoChoice={...blankDuoChoice(),passed:true};r.variantRoll=null;return s;
+      }
+      case 'BONUS_CARD': {
+        if(s.phase!=='pending'||actor!==r.from||!r.duoChoice?.passed||!Number.isInteger(action.value)||action.value<1||action.value>r.hand.length||action.value===r.cardRoll)return state;
+        r.cardRoll=action.value;r.cardId=r.hand[action.value-1];r.hp=getCard(r.cardId,r.catalogueVersion).hp??null;
+        r.variantRoll=null;r.duoChoice={...blankDuoChoice(),bonus:true,ready:true};return s;
+      }
+      case 'SEND_BONUS': {
+        if(s.phase!=='pending'||actor!==r.from||!r.duoChoice?.ready||!isoTime(action.at))return state;
+        r.duoChoice.ready=false;r.sentAt=action.at;return s;
+      }
       case 'ACCEPT': {
-        if(!canRespond(s)) return state;
+        if(!canRespond(s)||r.duoChoice) return state;
         const acceptedAt=action.at===undefined?fallbackTime:taskStartTime(action.at)?action.at:null;
         if(!acceptedAt) return state;
         r.toConfirmed=true;
@@ -2275,7 +2337,7 @@
       case 'PASS':
       case 'CANCEL':
         // Le destinataire passe l'invitation : la carte est écartée, sans défi ni pénalité.
-        if(s.phase!=='pending' || !r.cardId || !canRespond(s)) return state;
+        if(s.phase!=='pending' || !r.cardId || !canRespond(s) || r.duoChoice) return state;
         closeRound(s,'passed',action);
         return s;
       case 'COMPLETE':
@@ -2545,6 +2607,374 @@
       order:previousBadgeCount+index+1,icon,target:threshold
     };
   });
+  const choiceBadges=[
+  {
+    "id": "duo-choice-completed-1",
+    "scope": "shared",
+    "title": "L’étoile du choix",
+    "description": "Réaliser une mission dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 1
+    },
+    "order": 121,
+    "icon": "spark",
+    "target": 1
+  },
+  {
+    "id": "duo-choice-completed-5",
+    "scope": "shared",
+    "title": "Premiers alignements",
+    "description": "Réaliser 5 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 5
+    },
+    "order": 122,
+    "icon": "spark",
+    "target": 5
+  },
+  {
+    "id": "duo-choice-completed-10",
+    "scope": "shared",
+    "title": "Une même trajectoire",
+    "description": "Réaliser 10 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 10
+    },
+    "order": 123,
+    "icon": "spark",
+    "target": 10
+  },
+  {
+    "id": "duo-choice-completed-25",
+    "scope": "shared",
+    "title": "Nos nuits dessinées",
+    "description": "Réaliser 25 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 25
+    },
+    "order": 124,
+    "icon": "spark",
+    "target": 25
+  },
+  {
+    "id": "duo-choice-completed-50",
+    "scope": "shared",
+    "title": "La lumière accumulée",
+    "description": "Réaliser 50 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 50
+    },
+    "order": 125,
+    "icon": "spark",
+    "target": 50
+  },
+  {
+    "id": "duo-choice-completed-100",
+    "scope": "shared",
+    "title": "Un ciel à notre image",
+    "description": "Réaliser 100 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 100
+    },
+    "order": 126,
+    "icon": "spark",
+    "target": 100
+  },
+  {
+    "id": "duo-choice-face-1",
+    "scope": "shared",
+    "title": "L’unique étoile",
+    "description": "Réaliser 3 missions avec un résultat 1 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 1
+    },
+    "order": 127,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-2",
+    "scope": "shared",
+    "title": "Deux possibles",
+    "description": "Réaliser 3 missions avec un résultat 2 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 2
+    },
+    "order": 128,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-3",
+    "scope": "shared",
+    "title": "Triangle de lumière",
+    "description": "Réaliser 3 missions avec un résultat 3 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 3
+    },
+    "order": 129,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-4",
+    "scope": "shared",
+    "title": "Les quatre fenêtres",
+    "description": "Réaliser 3 missions avec un résultat 4 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 4
+    },
+    "order": 130,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-5",
+    "scope": "shared",
+    "title": "Une poignée d’astres",
+    "description": "Réaliser 3 missions avec un résultat 5 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 5
+    },
+    "order": 131,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-6",
+    "scope": "shared",
+    "title": "Six horizons",
+    "description": "Réaliser 3 missions avec un résultat 6 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 6
+    },
+    "order": 132,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-both-1",
+    "scope": "shared",
+    "title": "Premiers échos",
+    "description": "Chacun a choisi la variante d’une mission réalisée à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 1
+    },
+    "order": 133,
+    "icon": "spark",
+    "target": 1
+  },
+  {
+    "id": "duo-choice-both-3",
+    "scope": "shared",
+    "title": "Signaux réciproques",
+    "description": "Chacun a choisi la variante de 3 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 3
+    },
+    "order": 134,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-both-5",
+    "scope": "shared",
+    "title": "Échos croisés",
+    "description": "Chacun a choisi la variante de 5 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 5
+    },
+    "order": 135,
+    "icon": "spark",
+    "target": 5
+  },
+  {
+    "id": "duo-choice-both-10",
+    "scope": "shared",
+    "title": "L’orbite réciproque",
+    "description": "Chacun a choisi la variante de 10 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 10
+    },
+    "order": 136,
+    "icon": "spark",
+    "target": 10
+  },
+  {
+    "id": "duo-choice-both-20",
+    "scope": "shared",
+    "title": "Deux voix dans la nuit",
+    "description": "Chacun a choisi la variante de 20 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 20
+    },
+    "order": 137,
+    "icon": "spark",
+    "target": 20
+  },
+  {
+    "id": "duo-choice-both-50",
+    "scope": "shared",
+    "title": "Nos lumières se répondent",
+    "description": "Chacun a choisi la variante de 50 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 50
+    },
+    "order": 138,
+    "icon": "spark",
+    "target": 50
+  },
+  {
+    "id": "duo-choice-bonus-1",
+    "scope": "shared",
+    "title": "Une autre éclaircie",
+    "description": "Réaliser une mission issue d’une relance offerte par Passer.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBonus",
+      "threshold": 1
+    },
+    "order": 139,
+    "icon": "spark",
+    "target": 1
+  },
+  {
+    "id": "duo-choice-bonus-3",
+    "scope": "shared",
+    "title": "Second souffle",
+    "description": "Réaliser 3 missions issues d’une relance offerte par Passer.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBonus",
+      "threshold": 3
+    },
+    "order": 140,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-bonus-10",
+    "scope": "shared",
+    "title": "Les détours heureux",
+    "description": "Réaliser 10 missions issues d’une relance offerte par Passer.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBonus",
+      "threshold": 10
+    },
+    "order": 141,
+    "icon": "spark",
+    "target": 10
+  },
+  {
+    "id": "duo-choice-categories",
+    "scope": "shared",
+    "title": "Les quatre saisons du ciel",
+    "description": "Réaliser une mission avec variante choisie dans chacune des quatre catégories.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCategories",
+      "threshold": 4
+    },
+    "order": 142,
+    "icon": "spark",
+    "target": 4
+  },
+  {
+    "id": "duo-choice-cards",
+    "scope": "shared",
+    "title": "Les chemins multiples",
+    "description": "Réaliser six cartes différentes avec une variante choisie.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCards",
+      "threshold": 6
+    },
+    "order": 143,
+    "icon": "spark",
+    "target": 6
+  },
+  {
+    "id": "duo-choice-variants",
+    "scope": "shared",
+    "title": "La palette des possibles",
+    "description": "Réaliser douze variantes distinctes choisies par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoVariants",
+      "threshold": 12
+    },
+    "order": 144,
+    "icon": "spark",
+    "target": 12
+  }
+];
   const badgeCatalog=[
     {"id":"ind-draws-1","scope":"individual","title":"Premier lancer, premier sourire","description":"Effectuer un premier tirage de catégorie.","family":"draws","tier":1,"criterion":{"metric":"draws","threshold":1},"order":1,"icon":"dice","target":1},
     {"id":"ind-draws-5","scope":"individual","title":"Dés en confiance","description":"Effectuer 5 tirages de catégorie.","family":"draws","tier":1,"criterion":{"metric":"draws","threshold":5},"order":2,"icon":"dice","target":5},
@@ -2636,12 +3066,13 @@
     {"id":"duo-hc-studio-3","scope":"shared","title":"Studio sous tension","description":"Valider ensemble 3 fois « Séance photo BDSM », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-13"},"order":88,"icon":"spark","target":3},
     {"id":"duo-hc-glide-3","scope":"shared","title":"Glissement de terrain","description":"Valider ensemble 3 fois « Massage Nuru », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-15"},"order":89,"icon":"spark","target":3},
     {"id":"duo-hc-remake-3","scope":"shared","title":"Oscar du meilleur remake maison","description":"Valider ensemble 3 fois « Reproduction d’un film porno », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-16"},"order":90,"icon":"spark","target":3},
-    ...challengeBadges
+    ...challengeBadges,
+    ...choiceBadges
   ];
 
   // Cumulative progression is private room data. It is deliberately excluded
   // from roomSharedKeys; only badgeView exposes the reader's own collection.
-  const badgeCatalogueVersion=3;
+  const badgeCatalogueVersion=4;
   const expansionBadges=badgeCatalog.slice(60,previousBadgeCount);
   // Keep existing badges earnable where their activity still exists on a new
   // face. The stored counters keep their original card/variant identities.
@@ -2682,11 +3113,12 @@
     calendar.streak=last!==null&&day===last+1?Math.min(Number.MAX_SAFE_INTEGER,calendar.streak+1):1;
     calendar.best=Math.max(calendar.best,calendar.streak);calendar.lastDay=key;
   }
+  const blankDuoProgress=()=>({completed:0,faces:{},chosenBy:{a:0,b:0},bonus:0,categories:{},cards:{},variants:{}});
   function blankIndividual(){
     return {...Object.fromEntries(progressMetrics.map(metric=>[metric,0])),byCategory:Object.fromEntries(progressCategories.map(id=>[id,Object.fromEntries(progressMetrics.map(metric=>[metric,0]))])),completedByCard:{},completedByVariant:{},activity:blankCalendar()};
   }
   function blankProgression(epoch){
-    return {version:1,catalogueVersion:badgeCatalogueVersion,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
+    return {version:1,catalogueVersion:badgeCatalogueVersion,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{duo:blankDuoProgress(),completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
   }
   function progressCategory(record){return mergedCategory(record.categoryId||getCard(record.cardId)?.categoryId);}
   function completedVariantKey(record){
@@ -2701,6 +3133,13 @@
   }
   function addCompletionDetails(progress,task,at){
     const categoryId=progressCategory(task),variant=completedVariantKey(task);
+    if(task.duoChoice?.chosen!==null && task.duoChoice?.chosen!==undefined){
+      const duo=progress.shared.duo??=blankDuoProgress();
+      countUp(duo,'completed');countUp(duo.faces,task.duoChoice.roll);countUp(duo.chosenBy,task.to);
+      countUp(duo.categories,categoryId);countUp(duo.cards,task.cardId);
+      if(variant)countUp(duo.variants,variant);
+      if(task.duoChoice.bonus)countUp(duo,'bonus');
+    }
     countUp(progress.shared.completedByCard,task.cardId);
     if(variant)countUp(progress.shared.completedByVariant,variant);
     for(const actor of roomActors){
@@ -2717,6 +3156,14 @@
   function badgeMetric(progress,actor,badge){
     const criterion=badge.criterion,individual=badge.scope==='individual',data=individual?progress.individual[actor]:progress.shared;
     const category=criterion.categoryId;
+    const duo=progress.shared.duo||blankDuoProgress();
+    if(criterion.metric==='duoCompleted')return duo.completed;
+    if(criterion.metric==='duoFace')return duo.faces[criterion.face]||0;
+    if(criterion.metric==='duoBoth')return Math.min(duo.chosenBy.a,duo.chosenBy.b);
+    if(criterion.metric==='duoBonus')return duo.bonus;
+    if(criterion.metric==='duoCategories')return Object.keys(duo.categories).length;
+    if(criterion.metric==='duoCards')return Object.keys(duo.cards).length;
+    if(criterion.metric==='duoVariants')return Object.keys(duo.variants).length;
     if(['participations','completed'].includes(criterion.metric)){
       if(criterion.cardId){
         const variant=criterion.variantRoll!==undefined;
@@ -2754,6 +3201,7 @@
   function currentProgression(progress){
     if(progress.catalogueVersion===badgeCatalogueVersion)return progress;
     const upgraded=progressCopy(progress);
+    upgraded.shared.duo??=blankDuoProgress();
     // Import gains silently, preserving previous award order across both expansions.
     if((progress.catalogueVersion??1)<2)awardBadges(upgraded,null,true,expansionBadges);
     awardBadges(upgraded,null,true,challengeBadges);
@@ -2820,8 +3268,19 @@
   }
   function validProgression(progress,sequence){
     if(!progressObject(progress)||progress.version!==1||!Number.isSafeInteger(progress.epoch)||progress.epoch<1||progress.epoch>sequence||!progressObject(progress.individual)||!progressObject(progress.shared)||!progressObject(progress.awards)||!progressObject(progress.awards.individual)||!progressObject(progress.awards.shared)||!progressObject(progress.sequences))return false;
-    if(progress.catalogueVersion!==undefined&&![1,2,badgeCatalogueVersion].includes(progress.catalogueVersion))return false;
+    if(progress.catalogueVersion!==undefined&&![1,2,3,badgeCatalogueVersion].includes(progress.catalogueVersion))return false;
     const shared=progress.shared;
+    if(shared.duo!==undefined){
+      const d=shared.duo;
+      if(!progressObject(d)||!progressCounter(d.completed)||!progressCounter(d.bonus)||d.bonus>d.completed)return false;
+      if(!progressObject(d.faces)||!Object.entries(d.faces).every(([key,value])=>/^[1-6]$/.test(key)&&progressCounter(value)))return false;
+      if(!progressObject(d.chosenBy)||Object.keys(d.chosenBy).sort().join(',')!=='a,b'||!roomActors.every(actor=>progressCounter(d.chosenBy[actor])))return false;
+      if(d.chosenBy.a+d.chosenBy.b!==d.completed)return false;
+      if(!progressObject(d.categories)||!Object.entries(d.categories).every(([key,value])=>progressCategories.includes(key)&&progressCounter(value)))return false;
+      if(!validProgressMap(d.cards)||!validProgressMap(d.variants,true))return false;
+      if(Object.values(d.faces).reduce((a,b)=>a+b,0)!==d.completed)return false;
+      if(Object.values(d.categories).reduce((a,b)=>a+b,0)!==d.completed)return false;
+    }
     if(!progressCounter(shared.completed)||!progressCounter(shared.weekendCompleted)||shared.weekendCompleted>shared.completed||!progressObject(shared.byCategory)||Object.keys(shared.byCategory).sort().join(',')!==progressCategories.slice().sort().join(',')||!progressCategories.every(id=>progressCounter(shared.byCategory[id]))||!validProgressMap(shared.completedByCard)||!validProgressMap(shared.completedByVariant,true)||!validCalendar(shared.completion))return false;
     if(progressCategories.reduce((total,id)=>total+shared.byCategory[id],0)!==shared.completed)return false;
     const visibleSequences={a:[],b:[]};
@@ -2897,23 +3356,23 @@
     const today=calendarOrdinal(parisDateKey(at)),last=calendarOrdinal(activity.lastDay);
     return today!==null&&last!==null&&(today===last||today===last+1)?activity.streak:0;
   }
-  function badgeView(state,actor,{legacy=false}={}){
+  function badgeView(state,actor,{legacy=false,choiceLegacy=false}={}){
     if(!roomActors.includes(actor)||!(state?.version===2?validateRoom(state):validateState(state)))return null;
     const progress=state.progression?currentProgression(state.progression):initialProgression(state);
-    const catalogue=legacy?badgeCatalog.slice(0,previousBadgeCount):badgeCatalog;
+    const catalogue=legacy?badgeCatalog.slice(0,previousBadgeCount):choiceLegacy?badgeCatalog.slice(0,120):badgeCatalog;
     const items=catalogue.map(badge=>{
       const shared=badge.scope==='shared',stored=shared?progress.awards.shared[badge.id]:progress.awards.individual[actor][badge.id];
       const award=stored?{id:progress.epoch+':'+badge.scope+':'+(shared?'':actor+':')+badge.id,at:stored.at,sequence:shared?stored.sequenceByActor[actor]:stored.sequence,...(stored.source?{source:stored.source}:{})}:null;
       return {id:badge.id,progress:{value:badgeMetric(progress,actor,badge),target:badge.target},award};
     });
-    if(legacy){
+    if(legacy||choiceLegacy){
       const awards=items.map(item=>item.award).filter(Boolean).sort((a,b)=>a.sequence-b.sequence);
       awards.forEach((award,index)=>{award.sequence=index+1;});
     }
     return {version:1,epoch:progress.epoch,items};
   }
   function validateBadgeView(view,actor){
-    if(!progressObject(view)||Object.keys(view).sort().join(',')!=='epoch,items,version'||view.version!==1||!Number.isSafeInteger(view.epoch)||view.epoch<1||!Array.isArray(view.items)||![previousBadgeCount,badgeCatalog.length].includes(view.items.length)||actor!==undefined&&!roomActors.includes(actor))return false;
+    if(!progressObject(view)||Object.keys(view).sort().join(',')!=='epoch,items,version'||view.version!==1||!Number.isSafeInteger(view.epoch)||view.epoch<1||!Array.isArray(view.items)||![previousBadgeCount,120,badgeCatalog.length].includes(view.items.length)||actor!==undefined&&!roomActors.includes(actor))return false;
     const sequences=[];
     for(let index=0;index<view.items.length;index++){
       const badge=badgeCatalog[index],item=view.items[index];
@@ -4292,9 +4751,9 @@ void main(){
 /* D6 à deux — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK']);
- const GAME_VERSION=8;
- const SUPPORTED_GAME_VERSIONS=[6,7,GAME_VERSION];
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK','ROLL_CHOICES','PICK_CHOICE','PASS_CHOICE','BONUS_CARD','SEND_BONUS']);
+ const GAME_VERSION=9;
+ const SUPPORTED_GAME_VERSIONS=[6,7,8,GAME_VERSION];
  const TOKEN=/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const REQUEST_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -4347,7 +4806,7 @@ void main(){
    if(!SUPPORTED_GAME_VERSIONS.includes(raw.gameVersion))throw failure('invalid_response','La version reçue est invalide.');
    if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
    const incoming=raw.incoming.map(value=>G.normalizeState(value));
-   if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
+   if(incoming.some(value=>!value||value.activePlayer!==identity.actor||!value.round.duoChoice&&value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
    const pendingOutgoing=raw.pendingOutgoing===undefined?0:raw.pendingOutgoing;
    if(!Number.isInteger(pendingOutgoing)||pendingOutgoing<0||pendingOutgoing>80)throw failure('invalid_response','Les invitations envoyées sont invalides.');
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
@@ -4355,7 +4814,7 @@ void main(){
    let roll;
    if(raw.roll!==undefined){
     const kind=raw.roll?.kind,value=raw.roll?.value;
-    const validD8=kind===8&&raw.gameVersion>=7&&G.cardSides(state)===8&&state.round.cardRoll===value;
+    const validD8=kind===8&&raw.gameVersion>=7&&[state,...incoming].some(view=>G.cardSides(view)===8&&view.round.cardRoll===value);
     if(!([4,6,20].includes(kind)||validD8)||!Number.isInteger(value)||value<1||value>kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');
     roll={kind,value};
    }
@@ -4451,6 +4910,7 @@ void main(){
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
    if(typeof action.roundId!=='string'||!ROUND_ID.test(action.roundId))throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
    const value={type:action.type,roundId:action.roundId};
+   if(action.type==='PICK_CHOICE'){if(!Number.isInteger(action.choice)||action.choice<1||action.choice>6)throw failure('invalid_action','Variante invalide.');value.choice=action.choice;}
    if(action.type==='SEND' && action.starPenalty===true)value.starPenalty=true;
    if(action.type==='JOKER_DRAW'){
     if(!Number.isInteger(action.category)||action.category<1||action.category>4)throw failure('invalid_action','La catégorie n’a pas pu être identifiée.');
@@ -4995,12 +5455,12 @@ void main(){
  function syncLocalView(){
   ownState=G.roomView(localRoom,viewPlayer);
   const pending=localRoom.pendingRounds.map(item=>G.roomView(localRoom,viewPlayer,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,viewPlayer));
-  incomingStates=pending.filter(value=>value.round.from!==viewPlayer&&G.canRespond(value));
+  incomingStates=pending.filter(value=>value.round.duoChoice||value.round.from!==viewPlayer&&G.canRespond(value));
   outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
- function isParallel(){return !remoteMode||[6,7,8].includes(remoteSnapshot?.gameVersion);}
- function drawVersion(){return !remoteMode||remoteSnapshot?.gameVersion===8?G.currentCatalogueVersion:remoteSnapshot?.gameVersion===7?4:3;}
+ function isParallel(){return !remoteMode||[6,7,8,9].includes(remoteSnapshot?.gameVersion);}
+ function drawVersion(){return !remoteMode||remoteSnapshot?.gameVersion>=8?G.currentCatalogueVersion:remoteSnapshot?.gameVersion===7?4:3;}
  function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
  function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
@@ -5134,7 +5594,7 @@ void main(){
    catch(error){return remoteError(error);}
    finally{operationBusy=false;setControlsBusy(false);trigger?.removeAttribute('aria-busy');if(doRender)render();}
   }
-  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,...(action.type==='SEND'?{directQueue:true}:{}),actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
+  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,...(action.type==='SEND'?{directQueue:!state.round.duoChoice}:{}),...(['ROLL_CATEGORY','JOKER_DRAW','REROLL_CATEGORY'].includes(action.type)?{companionChoice:true}:{}),actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
  }
 
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
@@ -5169,7 +5629,7 @@ void main(){
  }
  function diceFaces(holder){
   if(holder.dataset.rollRole==='category'&&holder.dataset.kind==='4')return [G.categories.map(c=>c.label),G.categories.map(c=>themeIcons[c.id])];
-  if(holder.dataset.rollRole==='variant')return variantFaces(state.round);
+  if(holder.dataset.rollRole==='variant')return state.round.duoChoice?[null,null]:variantFaces(state.round);
   if(holder.dataset.rollRole!=='card'||holder.dataset.kind!=='8')return [null,null];
   const round=cardReveal||rerolling||state.round;
   const labels=round.hand.map(id=>G.getCard(id,round.catalogueVersion).keyword);
@@ -5401,7 +5861,7 @@ void main(){
  badgeNotice?.addEventListener('focusin',event=>{if(!badgeNotice.contains(event.relatedTarget))badgeReturnFocus=event.relatedTarget;badgeFocus=true;stopBadgeTimer();});
  badgeNotice?.addEventListener('focusout',event=>{if(!badgeNotice.contains(event.relatedTarget)){badgeFocus=false;updateBadgeNotice();}});
  function renderWelcome(){
-  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Ta carte rejoint les Missions quand le tirage est terminé.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
+  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose ta carte. Ton compagnon lance son D6 et choisit une variante.</p><p>Après son choix, deux coches dans les 24 h donnent un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
  }
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
@@ -5470,6 +5930,7 @@ void main(){
  function draftActions(){
   const round=state.round;
   if(!canDraw())return '<div class="oa-actions">'+switchButton(round.from)+'</div>';
+  if(round.duoChoice)return '<div class="oa-actions">'+btn('Proposer à '+h(name(round.to)),'send')+(canRerollCurrentCard()?textBtn('Relancer la carte · 1 étoile','reroll'):'')+'</div>';
   const stars=round.catalogueVersion===G.currentCatalogueVersion,canReroll=canRerollCurrentCard();
   if(stars&&missionError===round.id)return '<div class="oa-actions">'+btn('Réessayer','send')+'</div>';
   if(stars&&!canReroll)return '<p class="oa-mission-transfer" role="status">Ajout aux Missions…</p>';
@@ -5477,6 +5938,78 @@ void main(){
    (canReroll?textBtn(stars?'Relancer <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>':'Relancer la carte','reroll',stars?'aria-label="Relancer la carte, coûte une étoile"':''):'')+'</div>';
  }
 
+ let selectedDuoVariant=null,duoRevealKey=null;
+ function duoInbox(){
+  const items=incomingStates.filter(view=>view.round.duoChoice);
+  if(!items.length)return '';
+  return '<section class="oa-duo-inbox" aria-label="Vos cartes en cours">'+items.map(view=>{
+   const r=view.round,c=r.duoChoice,own=r.from===viewPlayer;
+   const label=own?(c.passed?'RELANCE OFFERTE':c.ready?'TA NOUVELLE CARTE':'EN ATTENTE DE SON CHOIX'):(c.ready||c.passed?'UNE AUTRE IDÉE SE PRÉPARE':'À TOI DE JOUER');
+   return '<button type="button" class="oa-duo-invitation" data-action="duo-open" data-round="'+h(r.id)+'"><small>'+label+'</small><strong>'+h(G.getCard(r.cardId,r.catalogueVersion).title)+'</strong></button>';
+  }).join('')+'</section>';
+ }
+ function renderDuoPending(){
+  const r=state.round,c=r.duoChoice,own=r.from===viewPlayer,title=h(G.getCard(r.cardId,r.catalogueVersion).title);
+  const back='<div class="oa-actions">'+textBtn('Mon tirage','own-draw')+'</div>';
+  if(own){
+   if(c.passed)return heading('Une autre<br><em>chance à jouer.</em>','Ton compagnon a passé la carte. Cette relance est offerte.',null)+stage(G.cardSides(r),'UNE NOUVELLE ACTION',1,'card','Relancer la carte').replace('data-action="roll"','data-action="duo-bonus"')+back;
+   if(c.ready)return heading('Une nouvelle<br><em>idée à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(card())+'</div><div class="oa-actions">'+btn('Proposer cette carte','duo-send-bonus')+'</div>'+back;
+   return heading('À son tour<br><em>de jouer.</em>','Ton compagnon choisit sa façon de vivre cette idée.',null)+'<div class="oa-summary-card"><div><h2>'+title+'</h2><p>En attente de son choix.</p></div></div>'+back;
+  }
+  if(c.passed||c.ready)return heading('Une autre idée<br><em>se prépare.</em>','Ton compagnon peut proposer une nouvelle carte.',null)+back;
+  if(c.roll===null)return heading(title,'Lance le D6 pour découvrir combien de variantes tu peux choisir.',null)+stage(6,'TON DÉ DES POSSIBLES',1,'variant','Lancer mon D6').replace('data-action="roll"','data-action="duo-roll"')+duoPassCard()+back;
+  if(selectedDuoVariant?.roundId!==r.id||!c.options.includes(selectedDuoVariant?.face))selectedDuoVariant=null;
+  const options=c.options.map(face=>{
+   const detail=G.getVariant({...r,variantRoll:face}),selected=selectedDuoVariant?.face===face;
+   return '<button type="button" class="oa-duo-option'+(selected?' is-selected':'')+'" data-action="duo-select" data-choice="'+face+'" aria-pressed="'+selected+'"><span>'+h(detail)+'</span></button>';
+  }).join('');
+  return heading(title,'D6 · '+c.roll+' variante'+(c.roll>1?'s':'')+' à découvrir. Choisis celle qui te plaît.',null)+'<div class="oa-duo-options">'+options+'</div>'+(selectedDuoVariant?'<div class="oa-actions">'+btn('Choisir cette variante','duo-confirm')+'</div>':'')+duoPassCard()+back;
+ }
+ function duoPassCard(){return '<button type="button" class="oa-duo-pass" data-action="duo-pass"><strong>UNE AUTRE IDÉE ?</strong><span>Passer cette carte'+(state.round.duoChoice.bonus?'':' · Offrir une relance')+'</span></button>';}
+ async function rollDuo(type){
+  if(busy||operationBusy||remoteMode&&!remoteReady||!state.round.duoChoice)return;
+  const roundId=state.round.id,context={actor:viewPlayer,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch};
+  const serial=++animationSerial;busy=true;setControlsBusy(true);cancelContentTransitions();
+  try{
+   let face;
+   if(remoteMode){
+    die.startWaiting?.();
+    const result=await remote.action({type,roundId});
+    if(!result.roll)throw Error('Unconfirmed companion roll');
+    face=result.roll.value;
+    if(presentationValid(context)&&(!deferredSnapshot||result.revision>=deferredSnapshot.revision))deferredSnapshot=result;
+   }else{
+    pullShared();
+    const r=localRoom.pendingRounds.find(lane=>lane.round.id===roundId)?.round;
+    if(!r)return;
+    const action={type,roundId,actor:viewPlayer,at:now()};
+    if(type==='ROLL_CHOICES'){
+     face=G.randomInt(6);const pool=[1,2,3,4,5,6];action.options=[];
+     for(let i=0;i<face;i++)action.options.push(pool.splice(G.randomInt(pool.length)-1,1)[0]);
+    }else{
+     const pool=r.hand.map((_,index)=>index+1).filter(value=>value!==r.cardRoll);face=pool[G.randomInt(pool.length)-1];
+    }
+    const next=G.reduceRoom(localRoom,{...action,value:face});
+    if(next===localRoom)return;
+    localRoom=next;save();
+   }
+   if(presentationValid(context)&&!document.hidden&&!presentationHidden){
+    softSound();activeRollFace={kind:type==='ROLL_CHOICES'?6:G.cardSides(state),value:face};
+    await die.roll(face,{duration:systemReduce?0:1250});
+   }
+   if(presentationValid(context))announce(type==='ROLL_CHOICES'?face+' variantes à choisir.':'Nouvelle carte tirée.');
+  }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
+  finally{
+   if(serial===animationSerial){await die.stopWaiting?.();if(serial!==animationSerial)return;activeRollFace=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);}else syncLocalView();render();}
+  }
+ }
+ function animateDuoChoices(){
+  const c=state.round.duoChoice,signature=state.round.id+':'+JSON.stringify(c?.options);
+  if(!c?.roll||state.phase!=='pending'||!main.querySelector('.oa-duo-options')||duoRevealKey===signature)return;
+  duoRevealKey=signature;
+  if(systemReduce||document.hidden||presentationHidden)return;
+  main.querySelectorAll('.oa-duo-option').forEach((el,index)=>playContentTransition(el,[{opacity:0,transform:'perspective(500px) rotateX(-12deg) translateY(12px)'},{opacity:1,transform:'none'}],300,null,index*55));
+ }
  function privateHome(incoming=false){
   const r=state.round;
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('Missions · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
@@ -5497,10 +6030,10 @@ void main(){
   }
   if(!busy&&['category','card','variant'].includes(state.phase)&&!hasRollStar()){
    const {nextAt}=G.cardRerollStars(ownState||state,viewPlayer,serverStamp());
-   return heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
+   return duoInbox()+heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
     (nextAt?'<div class="oa-next-draw" role="status">Prochaine étoile dans <strong>'+timeLeft({expiresAt:nextAt})+'</strong></div>':'');
   }
-  if(state.phase==='category')return rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
+  if(state.phase==='category')return duoInbox()+rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
    stage(G.rules.categorySides,'01 / LE THÈME',3,'category',remoteSnapshot?.quota?.remaining===0?'':'Lancer le D'+G.rules.categorySides),categoryAction(),
    jokerAvailable()?'<div class="oa-actions">'+textBtn('Joker · choisir le thème','open-joker')+'</div>':'');
   if(state.phase==='card'){
@@ -5511,6 +6044,7 @@ void main(){
   if(state.phase==='variant')return rollScreen(heading(h(c.title),null,null),
    stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant','Tirer la variante'),rollReadout);
   if(state.phase==='draft')return heading('Ta prochaine<br><em>idée à deux.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+draftActions();
+  if(state.phase==='pending'&&r.duoChoice)return renderDuoPending();
   if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise D6 à deux pour retrouver vos missions.',null);
   if(state.phase==='accepted')return heading('Ajouté à<br><em>vos missions.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les missions','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
@@ -5921,6 +6455,7 @@ void main(){
    count.setAttribute('aria-label',awaiting+' mission'+(awaiting===1?'':'s')+' à cocher');
   }
   if(!replaceMain){infoReading?.refresh();scheduleExpiry();scheduleAutoNewRound();scheduleAutomaticMission();updateBadgeNotice();return;}
+  animateDuoChoices();
   const holder=main.querySelector('[data-stage]');
   if(holder){
    const kind=Number(holder.dataset.kind);
@@ -6006,7 +6541,7 @@ void main(){
   return welcomeDismissed&&!busy&&!operationBusy&&!missionSending&&state.phase==='draft'&&canSeeCurrentRound()&&canDraw()&&(!remoteMode||remoteReady);
  }
  function scheduleAutomaticMission(){
-  const shouldSend=()=>tab==='play'&&canFinalizeCard()&&state.round.catalogueVersion===G.currentCatalogueVersion&&missionError!==state.round.id&&!canRerollCurrentCard();
+  const shouldSend=()=>tab==='play'&&canFinalizeCard()&&state.round.catalogueVersion===G.currentCatalogueVersion&&!state.round.duoChoice&&missionError!==state.round.id&&!canRerollCurrentCard();
   if(missionScheduled||!shouldSend())return;
   const roundId=state.round.id;
   missionScheduled=true;
@@ -6020,12 +6555,13 @@ void main(){
   const taskId=state.round.id;
   missionSending=true;
   try{
-   const starPenalty=!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds);
+   const starPenalty=!state.round.duoChoice&&(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds));
    const changed=await dispatch({type:'SEND',...(starPenalty?{starPenalty:true}:{})},false);
    const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);
    missionError=!queued&&state.phase==='draft'&&state.round.id===taskId?taskId:null;
    if(queued)tab='tasks';
    if(changed&&queued)announce('Proposition ajoutée aux Missions.');
+   if(changed&&!queued){announce('Carte proposée à ton compagnon.');toast('CARTE ENVOYÉE · À SON TOUR DE JOUER !');}
   }finally{missionSending=false;render();}
  }
  async function rerollCategory(){
@@ -6045,11 +6581,11 @@ void main(){
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   if(!hasRollStar()){render();return;}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
-  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round),hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
+  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round)&&!state.round.duoChoice,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
   if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
   if(reroll){if(!canRerollCurrentCard())return;sides=G.cardSides(state);action={type:'REROLL_CARD'};}
-  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:drawVersion()};}
+  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:drawVersion(),...(!remoteMode?{companionChoice:true}:{})};}
   else if(phase==='card'&&canDraw()){sides=G.cardSides(state);action={type:'ROLL_CARD'};}
   else if(phase==='variant'&&canDraw()){sides=G.rules.variantSides;action={type:'ROLL_VARIANT'};}
   else return;
@@ -6195,13 +6731,13 @@ void main(){
 
  function rules(){
   const version=drawVersion(),stars=version===G.currentCatalogueVersion;
-  const cardRule=stars?'Le D8 choisit la carte, puis le D6 donne la variante.':
+  const cardRule=stars?'Le D8 choisit l’action à proposer. Ton compagnon lance ensuite le D6 et choisit parmi autant de variantes distinctes que son résultat.':
    (version===4?'Cocon utilise le D8. Les autres thèmes utilisent le D6.':'Le D6 choisit une carte parmi six.')+
    ' Les cartes classiques ont ensuite une variante D6. Le lot Hardcore contient des cartes prêtes à jouer.';
   const rerollRule=stars?'Une relance de carte coûte une étoile. Chacun en gagne une toutes les 12 h, avec une réserve de trois et une dépense par jour.':'Une fois par tour, la carte peut être relancée avant d’être gardée.';
-  const missionRule=stars?'La carte gardée rejoint les Missions. Elle y passe automatiquement quand la relance est épuisée.':'La carte gardée rejoint les Missions.';
+  const missionRule=stars?'Le choix confirmé par le compagnon démarre les 24 h et place la variante dans les Missions. Passer est gratuit et offre une relance à l’expéditeur, une seule fois pour cette proposition.':'La carte gardée rejoint les Missions.';
   const penaltyRule=(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds))?
-   ' Sur une nouvelle mission, une case vide à l’échéance peut coûter une étoile à son destinataire, une fois par jour. À zéro étoile, les dés reprennent à la recharge.':'';
+   ' Une case vide à l’échéance peut coûter une étoile au destinataire, une fois par jour. Le passage gratuit se fait avant de confirmer la variante.':'';
   openSheet('Les règles.',
    '<div class="oa-rule"><b>↗</b><div><h3>Lancer le dé.</h3><p>Appuie sur le dé ou fais-le glisser dans la direction de ton choix. Maintiens avant de relâcher pour lui donner plus d’élan.</p></div></div>'+
    '<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div>'+
@@ -6262,6 +6798,31 @@ void main(){
   }
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
+  if(action==='duo-open'){
+   selectedIncomingRoundId=el.dataset.round;selectDisplayState();openedInvitation=invitationKey();selectedDuoVariant=null;render();return;
+  }
+  if(action==='duo-roll'){await rollDuo('ROLL_CHOICES');return;}
+  if(action==='duo-bonus'){await rollDuo('BONUS_CARD');return;}
+  if(action==='duo-select'){
+   const face=Number(el.dataset.choice);
+   if(state.round.duoChoice?.options.includes(face)){selectedDuoVariant={roundId:state.round.id,face};render();}
+   return;
+  }
+  if(action==='duo-confirm'){
+   if(!selectedDuoVariant||selectedDuoVariant.roundId!==state.round.id)return;
+   const changed=await dispatch({type:'PICK_CHOICE',choice:selectedDuoVariant.face},false);
+   if(changed){selectedDuoVariant=null;tab='tasks';toast('C’EST CHOISI · VOTRE MOMENT VOUS ATTEND !');}
+   render();return;
+  }
+  if(action==='duo-pass'){
+   const changed=await dispatch({type:'PASS_CHOICE'},false);
+   if(changed){selectedIncomingRoundId=null;selectDisplayState();toast('UNE AUTRE IDÉE · LA BALLE CHANGE DE CAMP !');}
+   render();return;
+  }
+  if(action==='duo-send-bonus'){
+   const changed=await dispatch({type:'SEND_BONUS'},false);
+   if(changed)toast('NOUVELLE CARTE · NOUVEAU SUSPENSE !');render();return;
+  }
   if(action==='send'){await sendCurrentCard();return;}
   if(action==='extend-task-confirm'){
    const task=state.tasks.find(item=>item.id===el.dataset.task);

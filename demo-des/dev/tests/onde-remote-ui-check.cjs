@@ -87,7 +87,7 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  let document,motionChange;
  function node(dataset={}){const classes=new Set();const element={dataset,hidden:false,disabled:false,inert:false,isConnected:true,innerHTML:'',textContent:'',value:'',checked:false,scrollTop:0,scrollLeft:0,clientHeight:600,children:[],events:{},classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),toggle(x,v){if(v)classes.add(x);else classes.delete(x);},contains:x=>classes.has(x)},style:{values:new Map(),setProperty(k,v){this.values.set(k,v);},removeProperty(k){this.values.delete(k);},getPropertyValue(k){return this.values.get(k)||'';}},getBoundingClientRect(){return {left:0,top:0,right:240,bottom:50,height:50,width:240};},setAttribute(k,v){this[k]=String(v);},hasAttribute(k){return k.startsWith('data-')?Object.hasOwn(this.dataset,k.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())):Object.hasOwn(this,k);},removeAttribute(k){delete this[k];},focus(options){this.focusOptions=options;document.activeElement=this;},matches(){return false;},contains(el){return !!el&&(el===this||this.children.includes(el)||el.parentElement===this);},addEventListener(type,fn){this.events[type]=fn;},querySelector(){return null;},querySelectorAll(){return[];},append(x){this.children.push(x);x.parentElement=this;},prepend(x){x.parentElement=this;},removeChild(x){x.parentElement=null;},remove(){this.isConnected=false;if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(child=>child!==this);this.parentElement=null;},scrollIntoView(options){elementScrolls.push({node:this,options});},scrollTo(options){this.scrollTop=options.top||0;this.scrollLeft=options.left||0;scrollCalls.push({node:this,options});}};if(motionAPI)element.animate=(keyframes,options)=>{const animation={node:element,keyframes,options,cancelled:false,finished:false,cancel(){this.cancelled=true;this.oncancel?.();},finish(){this.finished=true;this.onfinish?.();}};motionAnimations.push(animation);return animation;};return element;}
  const root=node(),main=node(),sheet=node(),persona=node(),navigation=node(),toast=node(),announcement=node(),help=node(),count=node(),incoming=node(),title=node(),username=node(),password=node(),loginMessage=node(),rollButton=node({action:'roll'}),rollStatus=node(),rollReadout=node(),shellError=node(),shellNode=node(),dialog=node(),closeButton=node({action:'close'}),badgeNotice=node(),badgeAnnouncement=node(),badgeCollection=node(),badgeHeading=node({badgeHeading:''}),badgeBack=node({action:'badge-back'}),badgeMedal=node();
- const badgeTiles=new Map(),recentBadgeTiles=new Map();
+ const badgeTiles=new Map(),recentBadgeTiles=new Map();let duoOptions=[];
  main.getBoundingClientRect=()=>({left:0,top:100,right:402,bottom:700,width:402,height:600});
  const badgeFilterButtons=new Map(['all','individual','shared'].map(scope=>[scope,node({action:'badge-filter',scope})]));
  function mapBadgeTiles(html,container,items){
@@ -124,11 +124,12 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
  for(const control of profileButtons)control.remove=()=>{control.isConnected=false;};
  persona.querySelectorAll=selector=>selector==='[data-member]'?Object.values(persona.members):selector==='[data-action="profile"]'?profileButtons.filter(control=>control.isConnected):[];
 
- const actionButtons=new Map([['roll',rollButton],...['reroll','send','new','reconnect','refuse-task','badges-all','badge-dismiss','badge-view'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
+ const actionButtons=new Map([['roll',rollButton],...['reroll','send','new','reconnect','refuse-task','badges-all','badge-dismiss','badge-view','duo-roll','duo-bonus','duo-confirm','duo-pass','duo-send-bonus'].map(action=>[action,node({action})])]);for(const button of actionButtons.values())button.closest=()=>button;
  for(const action of ['badge-dismiss','badge-view'])actionButtons.get(action).parentElement=badgeNotice;
  const controls=[...navButtons,...profileButtons,help,...actionButtons.values()];
- Object.defineProperty(main,'innerHTML',{get:()=>mainHTML,set:value=>{mainHTML=value;mapBadgeTiles(value,main,recentBadgeTiles);currentStage=null;currentGrid=null;writes++;main.scrollTop=0;main.scrollLeft=0;if(value.includes('id="oa-username"')){username.value=(value.match(/id="oa-username"[^>]*value="([^"]*)"/)||[])[1]||'';password.value='';}}});
+ Object.defineProperty(main,'innerHTML',{get:()=>mainHTML,set:value=>{mainHTML=value;duoOptions=[...value.matchAll(/data-action="duo-select" data-choice="([1-6])"/g)].map(match=>node({action:'duo-select',choice:match[1]}));mapBadgeTiles(value,main,recentBadgeTiles);currentStage=null;currentGrid=null;writes++;main.scrollTop=0;main.scrollLeft=0;if(value.includes('id="oa-username"')){username.value=(value.match(/id="oa-username"[^>]*value="([^"]*)"/)||[])[1]||'';password.value='';}}});
  main.querySelector=selector=>{
+  if(selector==='.oa-duo-options')return mainHTML.includes('class="oa-duo-options"')?main:null;
   const tile=selector.match(/^\[data-action="badge-detail"\]\[data-badge="([^"]+)"\]$/);if(tile)return recentBadgeTiles.get(tile[1])||null;
   if(selector==='[data-reveal-selected]'){const face=Number((mainHTML.match(/data-reveal-selected aria-label="Carte (\d) choisie"/)||[])[1]);if(!face)return null;const tile=node();tile.getBoundingClientRect=()=>({left:0,right:140,top:face>3?780:350,bottom:face>3?884:454,height:104,width:140});return tile;}
   if(selector==='[data-grade]'){const match=mainHTML.match(/data-grade="(\d+)"/);if(!match)return null;const grade=node({grade:match[1]});grade.animate=(frames,options)=>gradeAnimations.push({frames,options});return grade;}
@@ -142,7 +143,7 @@ function shell(remote,{mode=true,delayedDie=false,welcomeSeen=true,storageValues
   const action=selector.match(/^\[data-action="([^"]+)"\]$/);if(action)return mainHTML.includes('data-action="'+action[1]+'"')?actionButtons.get(action[1])||null:null;
   return null;
  };
- main.querySelectorAll=selector=>selector==='button,input'?[...Array.from(actionButtons.values()).filter(el=>mainHTML.includes('data-action="'+el.dataset.action+'"')),...recentBadgeTiles.values()]:[];
+ main.querySelectorAll=selector=>selector==='.oa-duo-option'?duoOptions:selector==='button,input'?[...Array.from(actionButtons.values()).filter(el=>mainHTML.includes('data-action="'+el.dataset.action+'"')),...recentBadgeTiles.values()]:[];
  main.contains=el=>recentBadgeTiles.has(el?.dataset.badge)&&recentBadgeTiles.get(el.dataset.badge)===el||el===title&&mainHTML.includes('<h1')||[username,password].includes(el)&&mainHTML.includes('id="oa-username"')||Array.from(actionButtons.values()).includes(el)&&mainHTML.includes('data-action="'+el.dataset.action+'"');
  root.contains=()=>true;if(queryAnimations)root.getAnimations=()=>[];
  root.addEventListener=(type,handler)=>{handlers[type]=handler;};
@@ -293,7 +294,7 @@ async function rollSession(options={}){
    assert.doesNotMatch(ui.html,/oa-card-grid|data-action="roll"/);
   });
   ui.finishReveal();await work;
-  check(()=>{assert.equal(ui.stage.dataset.kind,'6');assert.deepEqual(ui.die.labels.at(-1),G.getCard('eight-complicite-aide',5).variants);assert.deepEqual(ui.die.icons.at(-1),variantGlyphs['eight-complicite-aide']);assert.equal(ui.die.colors.at(-1),'#2a1c3c');});
+  check(()=>{assert.equal(ui.stage,null);assert.match(ui.html,/data-action="send"/);assert.ok(hasTitle(ui.html,G.getCard('eight-complicite-aide',5).title));assert.equal(G.roomView(JSON.parse(ui.values.get('onde-couple-prototype-v1')),'a').round.duoChoice.roll,null);});
  }
  // A connected catalogue v3 still uses its original split, including the D6 hand.
  {
@@ -351,7 +352,7 @@ async function rollSession(options={}){
   await joker.click('joker',{category:'4'});const selected=JSON.parse(values.get('onde-couple-prototype-v1'));
   check(()=>{assert.equal(selected.lanes.a.round.catalogueVersion,5);assert.deepEqual(selected.lanes.a.round.hand,hand);assert.equal(selected.joker.usedBy,'a');assert.equal(joker.die.calls.length,0);assert.ok(joker.html.includes('Lancer le D8'));assert.doesNotMatch(joker.html,/Hardcore|Variante|data-kind="20"|hardcore-open/);});
   await joker.click('roll');const variant=JSON.parse(values.get('onde-couple-prototype-v1'));
-  check(()=>{assert.equal(variant.lanes.a.phase,'variant');assert.deepEqual(joker.die.calls,[8]);assert.ok(joker.html.includes('Tirer la variante'));assert.equal(variant.lanes.a.round.variantRoll,null);});
+  check(()=>{assert.equal(variant.lanes.a.phase,'draft');assert.deepEqual(joker.die.calls,[8]);assert.ok(joker.html.includes('data-action="send"'));assert.equal(variant.lanes.a.round.variantRoll,null);});
  }
  // Remote Joker and category reroll intents contain no caller-chosen pool, hand or timestamp.
  {
@@ -570,7 +571,7 @@ async function rollSession(options={}){
  // The first launch explains the game once, before login, without starting an action.
  {
   const remote=mockRemote(),ui=shell(remote,{welcomeSeen:false});const before=ui.writes;await tick();
-  for(const sentence of ['Les dés choisissent une idée à deux.','Ta carte rejoint les Missions quand le tirage est terminé.','Deux coches dans les 24 h, un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
+  for(const sentence of ['Les dés choisissent une idée à deux.','Propose ta carte. Ton compagnon lance son D6 et choisit une variante.','Après son choix, deux coches dans les 24 h donnent un point pour vous.'])check(()=>assert.ok(ui.html.includes(sentence)));
   check(()=>assert.equal(ui.writes,before));check(()=>assert.ok(ui.html.includes('C’est parti')));check(()=>assert.ok(!ui.html.includes('autocomplete="username"')));check(()=>assert.equal(ui.persona.hidden,true));check(()=>assert.equal(ui.navigation.hidden,true));check(()=>assert.equal(ui.help.hidden,true));
   await ui.click('roll');await ui.click('rules');await ui.submit('fixture-user','fixture-password');check(()=>assert.equal(remote.calls.filter(c=>['action','login'].includes(c.method)).length,0));check(()=>assert.equal(ui.sheet.hidden,true));
   await ui.click('welcome-start');check(()=>assert.equal(ui.values.get('desir-welcome-v1'),'1'));check(()=>assert.ok(ui.html.includes('autocomplete="username"')));check(()=>assert.ok(!ui.html.includes('C’est parti')));
@@ -731,16 +732,16 @@ async function rollSession(options={}){
   check(()=>{assert.equal(ui.writes,writes);assert.equal(ui.grid,grid);assert.equal(ui.stage,stage);assert.equal(ui.canvas.parentElement,stage);assert.equal(ui.motionAnimations.filter(animation=>animation.node===grid).length,0);});
   const css=fs.readFileSync(require('node:path').join(__dirname,'../src/onde-app-ui.html'),'utf8');check(()=>{assert.doesNotMatch(css,/\.oa-entering \.oa-mini-card\s*\{/);assert.match(css,/\.oa-mini-card\{animation:none;isolation:isolate\}/);});
  }
- // The collection shows five latest awards by stable sequence and all 120 accessible goals on demand.
+ // The collection shows five latest awards by stable sequence and all 144 accessible goals on demand.
  {
   const ids=[0,5,10,30,31,32,39].map(index=>G.badgeCatalog[index].id),view=badgeFixture('a',ids,{imported:[ids.at(-1)]});view.items[4].progress.value=17;
   const remote=mockRemote(badgeSnapshot(view)),ui=shell(remote,{mobileScroll:true});await tick();await ui.click('tab',{tab:'us'});
-  check(()=>{assert.deepEqual(badgeIds(ui.html),ids.slice(-5).reverse());assert.ok(ui.html.includes('7 / 120'));assert.ok(ui.html.includes('Tout afficher'));assert.equal(ui.badgeNotice.hidden,true);assert.equal(ui.badgeAnnouncement.textContent,'');assert.doesNotMatch(ui.html,/Invalid Date|null|undefined/);assert.equal(seenBadges(ui).value.seen.length,7);});
+  check(()=>{assert.deepEqual(badgeIds(ui.html),ids.slice(-5).reverse());assert.ok(ui.html.includes('7 / 144'));assert.ok(ui.html.includes('Tout afficher'));assert.equal(ui.badgeNotice.hidden,true);assert.equal(ui.badgeAnnouncement.textContent,'');assert.doesNotMatch(ui.html,/Invalid Date|null|undefined/);assert.equal(seenBadges(ui).value.seen.length,7);});
   ui.main.scrollTop=275;ui.button('badges-all').focus();await ui.click('badges-all');
-  check(()=>{assert.equal(ui.sheet.hidden,false);assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,120);assert.ok(ui.badgeCollection.innerHTML.includes('À débloquer'));assert.ok(ui.badgeCollection.innerHTML.includes('17 / 75'));assert.ok(ui.badgeCollection.innerHTML.includes('data-action="badge-detail"'));assert.equal(ui.activeElement,ui.closeButton);assert.equal(ui.main.inert,true);});
+  check(()=>{assert.equal(ui.sheet.hidden,false);assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,144);assert.ok(ui.badgeCollection.innerHTML.includes('À débloquer'));assert.ok(ui.badgeCollection.innerHTML.includes('17 / 75'));assert.ok(ui.badgeCollection.innerHTML.includes('data-action="badge-detail"'));assert.equal(ui.activeElement,ui.closeButton);assert.equal(ui.main.inert,true);});
   for(const theme of ['Cocon','Offrandes','Aventures','Braises'])assert.ok(ui.badgeCollection.innerHTML.includes('défis '+theme+' validés à deux.'));
   await ui.click('badge-filter',{scope:'individual'});check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,30);assert.ok(badgeIds(ui.badgeCollection.innerHTML).every(id=>id.startsWith('ind-')));assert.ok(ui.badgeCollection.innerHTML.includes('data-scope="individual" aria-pressed="true"'));});
-  await ui.click('badge-filter',{scope:'shared'});check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,90);assert.ok(badgeIds(ui.badgeCollection.innerHTML).every(id=>id.startsWith('duo-')));});
+  await ui.click('badge-filter',{scope:'shared'});check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,114);assert.ok(badgeIds(ui.badgeCollection.innerHTML).every(id=>id.startsWith('duo-')));});
   ui.closeButton.focus();await ui.key('keydown','Tab',{noFocus:true,shiftKey:true});check(()=>assert.equal(ui.activeElement,[...ui.badgeTiles.values()].at(-1)));
   await ui.key('keydown','Escape',{noFocus:true});check(()=>{assert.equal(ui.sheet.hidden,true);assert.equal(ui.main.scrollTop,275);assert.equal(ui.activeElement,ui.button('badges-all'));assert.equal(ui.main.inert,false);});
  }
@@ -748,7 +749,7 @@ async function rollSession(options={}){
  {
   const id=G.badgeCatalog[4].id,view=badgeFixture();view.items[4].progress.value=17;
   const remote=mockRemote(badgeSnapshot(view)),ui=shell(remote,{mobileScroll:true});await tick();await ui.click('tab',{tab:'us'});ui.button('badges-all').focus();await ui.click('badges-all');
-  check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,120);assert.equal((ui.badgeCollection.innerHTML.match(/<svg\b/g)||[]).length,120);assert.equal(new Set(ui.artCalls.filter(call=>call.instance==='collection').map(call=>call.id)).size,120);assert.ok(ui.artCalls.filter(call=>call.instance==='collection').every(call=>call.locked));assert.doesNotMatch(ui.badgeCollection.innerHTML,/oa-achievement-icon|<image\b|<img\b/);assert.ok(ui.badgeCollection.innerHTML.includes(escapedText(G.badgeCatalog[4].description)));});
+  check(()=>{assert.equal(badgeIds(ui.badgeCollection.innerHTML).length,144);assert.equal((ui.badgeCollection.innerHTML.match(/<svg\b/g)||[]).length,144);assert.equal(new Set(ui.artCalls.filter(call=>call.instance==='collection').map(call=>call.id)).size,144);assert.ok(ui.artCalls.filter(call=>call.instance==='collection').every(call=>call.locked));assert.doesNotMatch(ui.badgeCollection.innerHTML,/oa-achievement-icon|<image\b|<img\b/);assert.ok(ui.badgeCollection.innerHTML.includes(escapedText(G.badgeCatalog[4].description)));});
   await ui.click('badge-filter',{scope:'individual'});ui.dialog.scrollTop=410;ui.badgeTiles.get(id).focus();await ui.click('badge-detail',{badge:id});
   check(()=>{assert.equal(ui.sheet.hidden,false);assert.ok(ui.badgeCollection.innerHTML.includes('data-badge-detail="'+id+'"'));assert.ok(ui.badgeCollection.innerHTML.includes('data-badge-instance="detail"'));assert.ok(ui.badgeCollection.innerHTML.includes(escapedText(G.badgeCatalog[4].description)));assert.ok(ui.badgeCollection.innerHTML.includes('aria-valuemax="75" aria-valuenow="17"'));assert.equal(ui.dialog.scrollTop,0);assert.equal(ui.activeElement,ui.badgeHeading);assert.ok(!ui.badgeCollection.innerHTML.includes('data-action="badge-filter"'));});
   ui.dialog.scrollTop=120;const changed=copy(view);changed.items[4].progress.value=21;remote.emit(badgeSnapshot(changed,'a',2));
@@ -786,7 +787,7 @@ async function rollSession(options={}){
   check(()=>{assert.equal(animations[0].cancelled,true);assert.equal(ui.badgeWrites,writes);assert.equal(ui.badgeNotice.innerHTML,markup);assert.equal(ui.motionAnimations.filter(animation=>animation.node===ui.badgeMedal).length,1);assert.equal(ui.activeElement,ui.button());});
   await ui.click('tab',{tab:'us'});await ui.click('badges-all');
   const all=ui.html+ui.badgeCollection.innerHTML+ui.badgeNotice.innerHTML,svgIds=[...all.matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]);
-  check(()=>{assert.equal(new Set(svgIds).size,svgIds.length);assert.equal((all.match(/data-constellation=/g)||[]).length,122);assert.ok(ui.artCalls.some(call=>call.instance==='notice'));assert.ok(ui.artCalls.some(call=>call.instance==='recent'));assert.ok(ui.artCalls.some(call=>call.instance==='collection'));});
+  check(()=>{assert.equal(new Set(svgIds).size,svgIds.length);assert.equal((all.match(/data-constellation=/g)||[]).length,146);assert.ok(ui.artCalls.some(call=>call.instance==='notice'));assert.ok(ui.artCalls.some(call=>call.instance==='recent'));assert.ok(ui.artCalls.some(call=>call.instance==='collection'));});
  }
  // A runtime reduced-motion change stops the medal effect and leaves its finished artwork in place.
  {
@@ -1277,6 +1278,39 @@ async function rollSession(options={}){
  // The unconfigured local demo remains usable without the remote connection.
  {
   const ui=shell(mockRemote(),{mode:false});await tick();check(()=>assert.ok(ui.html.includes('Lancer le D4')));check(()=>assert.equal(ui.navigation.hidden,false));check(()=>assert.ok(ui.values.has('onde-couple-prototype-v1')));
+ }
+ // Exercise the new companion flow through the real server model and UI entry points.
+ {
+  const {applyAction,snapshot:serverSnapshot}=await import('../../server/functions/desir-game/model.mjs');
+  for(const reduced of [false,true])for(const face of [1,3,6]){
+   const at='2026-11-26T09:00:00.000Z';let room=G.createRoom({at}),revision=0,request=0;
+   const apply=(actor,action,random=()=>1)=>{
+    const result=applyAction(G,room,actor,action,'00000000-0000-4000-8000-'+String(++request).padStart(12,'0'),at,random,9);room=result.state;revision++;return result;
+   };
+   apply('a',{type:'ROLL_CATEGORY',roundId:room.lanes.a.round.id});
+   apply('a',{type:'ROLL_CARD',roundId:room.lanes.a.round.id});
+   const roundId=room.lanes.a.round.id;
+   apply('a',{type:'SEND',roundId});
+   const view=(actor,extra={})=>({...serverSnapshot(G,{room:{id:roomId,state:room,revision},member:{actor},paired:true,quota:{remaining:2}},extra,9),serverTime:at});
+   const remote=mockRemote(view('b')),ui=shell(remote,{reduced,motionAPI:true,clockAt:at});await tick();
+   await ui.click('duo-open',{round:roundId});
+   check(()=>{assert.match(ui.html,/data-action="duo-roll"/);assert.equal(ui.stage.dataset.kind,'6');assert.deepEqual(ui.die.labels.at(-1),null);});
+   remote.actionImpl=async action=>{
+    let calls=0;const result=apply('b',action,n=>++calls===1&&action.type==='ROLL_CHOICES'?face:1);
+    return view('b',result.roll?{roll:result.roll}:{});
+   };
+   await ui.click('duo-roll');
+   check(()=>{assert.equal((ui.html.match(/data-action="duo-select"/g)||[]).length,face);assert.match(ui.html,/UNE AUTRE IDÉE/);assert.deepEqual(ui.die.calls,[face]);});
+   const reveals=ui.motionAnimations.filter(animation=>animation.node.dataset.action==='duo-select');
+   check(()=>assert.equal(reveals.length,reduced?0:face));
+   const before=ui.motionAnimations.length;remote.emit(view('b'));
+   check(()=>assert.equal(ui.motionAnimations.length,before));
+   const selected=room.pendingRounds[0].round.duoChoice.options[0];
+   await ui.click('duo-select',{choice:String(selected)});
+   check(()=>{assert.match(ui.html,/Choisir cette variante/);assert.equal(room.tasks.length,0);});
+   await ui.click('duo-confirm');
+   check(()=>{assert.equal(room.tasks.length,1);assert.equal(room.tasks[0].variantRoll,selected);assert.equal(room.pendingRounds.length,0);assert.match(ui.html,/Vos <em>missions/);});
+  }
  }
  console.log(`Dés·ir remote UI: ${checks} targeted checks passed.`);
 })().catch(error=>{console.error(error);process.exitCode=1;});

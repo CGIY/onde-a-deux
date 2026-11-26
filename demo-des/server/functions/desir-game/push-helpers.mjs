@@ -66,19 +66,21 @@ export function pushEventRelevant(state, event, at = Date.now()) {
     // Protocol 4 sends are already shared tasks. The exact task must still exist;
     // a removed/reset challenge cannot notify just because another task exists.
     const task = Array.isArray(state.tasks) && state.tasks.find(item => item.id === event.round_id);
-    if (task) return task.to === event.target_actor && Date.parse(task.expiresAt) > at;
+    if (task) return !task.duoChoice && task.to === event.target_actor && Date.parse(task.expiresAt) > at;
     const lane = state.version === 2
       ? [...Object.values(state.lanes || {}), ...(state.pendingRounds || [])].find(value => value?.round?.id === event.round_id)
       : state;
     if (!lane || (event.round_id && lane.round?.id !== event.round_id) || lane.round?.awaiting !== event.target_actor) return false;
-    return lane.phase === 'pending';
+    return lane.phase === 'pending' && (!lane.round.duoChoice || !lane.round.duoChoice.passed && !lane.round.duoChoice.ready);
   }
   if (event.kind === 'confirmation') {
+    if(state.tasks?.some(task=>task.id===event.round_id&&task.from===event.target_actor&&task.duoChoice&&Date.parse(task.expiresAt)>at))return true;
+    if(state.history?.some(round=>round.id===event.round_id&&round.from===event.target_actor&&round.duoChoice&&round.status==='passed'))return true;
     const lane = state.version === 2
       ? [...Object.values(state.lanes || {}), ...(state.pendingRounds || [])].find(value => value?.round?.id === event.round_id)
       : (state.round && state.round.id === event.round_id ? state : null);
     if (!lane || (event.round_id && lane.round?.id !== event.round_id)) return false;
-    return ['accepted', 'resolved'].includes(lane.phase);
+    return ['accepted', 'resolved'].includes(lane.phase) || lane.phase==='pending'&&lane.round?.duoChoice?.passed===true&&lane.round.from===event.target_actor;
   }
   if (event.kind === 'task-reminder') {
     const deadline = Date.parse(event.expires_at);

@@ -34,6 +34,7 @@ jobs:
         run: |
           set -e
           for test in demo-des/dev/tests/*.cjs; do node "$test"; done
+          node demo-des/server/tests/duo-choice-check.mjs
           node demo-des/server/tests/backend-check.mjs
           node demo-des/server/tests/push-check.mjs
           node demo-des/server/tests/hardcore-check.mjs

@@ -8,7 +8,7 @@ let checks=0;
 const eq=(actual,expected,message)=>{checks++;assert.deepEqual(actual,expected,message);};
 const ok=(value,message)=>{checks++;assert.ok(value,message);};
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const added=G.badgeCatalog.slice(60,90),deckBadges=G.badgeCatalog.slice(90);
+const added=G.badgeCatalog.slice(60,90),deckBadges=G.badgeCatalog.slice(90,120);
 const viewItem=(room,id,actor='a')=>G.badgeView(room,actor).items.find(item=>item.id===id);
 function step(room,type,actor='a',extra={},time=at){
   const next=G.reduceRoom(room,{type,actor,roundId:room.lanes[actor].round.id,at:time,...extra});
@@ -54,7 +54,7 @@ function originalAwardViews(room,actor){
   });
 }
 
-eq(G.badgeCatalog.length,120);eq(added.length,30);eq(deckBadges.length,30);
+eq(G.badgeCatalog.length,144);eq(added.length,30);eq(deckBadges.length,30);
 eq(digest(G.badgeCatalog.slice(0,60)),'07e582394b90cb521db7cfd3c430f2a4dbbfcd54d8c96da95c7411d7a13cdae9','all sixty published definitions are immutable');
 eq(digest(added),'adc3d9c757d3bdebd462ed159f91114c3b38311a140de08bd753d1a3fd3b8303','all thirty definitions match the approved contract exactly');
 eq(added.map(badge=>badge.order),Array.from({length:30},(_,index)=>index+61));
@@ -107,7 +107,7 @@ for(const badge of added){
   eq(room,saved,'projection never mutates the old registry');eq(room.progression.catalogueVersion,undefined);
   eq(G.normalizeRoom(room),room,'normalization does not rewrite stored gameplay');
   const queued=queue(room,badge.criterion,'a',later);room=queued.room;
-  eq(room.progression.catalogueVersion,3);eq(room.progression.epoch,epoch);
+  eq(room.progression.catalogueVersion,4);eq(room.progression.epoch,epoch);
   eq(room.progression.shared.completed,saved.progression.shared.completed);
   for(const actor of ['a','b']){
     eq(viewItem(room,badge.id,actor).award,views[actor].items.find(item=>item.id===badge.id).award);
@@ -126,7 +126,7 @@ for(const badge of added){
   room=legacy(room);const epoch=G.badgeView(room,'a').epoch;
   eq(viewItem(room,badge.id).progress.value,2);eq(viewItem(room,badge.id).award,null);
   const queued=queue(room,badge.criterion,'a',later);room=queued.room;
-  eq(viewItem(room,badge.id).award,null);eq(room.progression.catalogueVersion,3);
+  eq(viewItem(room,badge.id).award,null);eq(room.progression.catalogueVersion,4);
   room=step(room,'TOGGLE_TASK_CHECK','a',{taskId:queued.taskId,checked:true},later);eq(viewItem(room,badge.id).award,null);
   room=step(room,'TOGGLE_TASK_CHECK','b',{taskId:queued.taskId,checked:true},later);
   const won=viewItem(room,badge.id).award;eq(won.at,later);eq(won.source,undefined);eq(G.badgeView(room,'a').epoch,epoch);
@@ -152,9 +152,9 @@ for(const badge of [added[0],added[15]]){
   delete imported.progression;eq(viewItem(imported,badge.id).progress.value,3);
   eq(viewItem(imported,badge.id).award.source,'imported');eq(viewItem(imported,badge.id).award.at,null);
 }
-for(const invalid of [0,4,'2',null]){const broken=copy(collected);broken.progression.catalogueVersion=invalid;eq(G.validateRoom(broken),false);}
+for(const invalid of [0,5,'2',null]){const broken=copy(collected);broken.progression.catalogueVersion=invalid;eq(G.validateRoom(broken),false);}
 const reset=G.resetRoom(collected,{at:later});eq(reset.progression,undefined);ok(G.badgeView(reset,'a').epoch>G.badgeView(collected,'a').epoch);
-eq(G.badgeView(reset,'a').items.length,120);eq(G.badgeView(reset,'a').items.filter(item=>item.award).length,0);
+eq(G.badgeView(reset,'a').items.length,144);eq(G.badgeView(reset,'a').items.filter(item=>item.award).length,0);
 
 // V5 challenge awards require repeated completions, including the original
 // drawer for Oral variants. Sending and either single check are insufficient.
@@ -203,7 +203,7 @@ eq(importedBadge.source,'imported');eq(importedBadge.at,null);
 eq(importedView.items.slice(0,90),compact.items);
 eq(v2,v2Original,'import does not mutate an existing room during projection');
 const upgraded=queue(v2,newBadge.criterion,'a',later,5).room;
-eq(upgraded.progression.catalogueVersion,3);eq(viewItem(upgraded,newBadge.id).award,importedBadge);
+eq(upgraded.progression.catalogueVersion,4);eq(viewItem(upgraded,newBadge.id).award,importedBadge);
 eq(G.normalizeRoom(copy(upgraded)),upgraded);
 
 // A complete, strictly ordered grade list covers every five-point milestone.

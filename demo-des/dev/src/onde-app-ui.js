@@ -184,12 +184,12 @@
  function syncLocalView(){
   ownState=G.roomView(localRoom,viewPlayer);
   const pending=localRoom.pendingRounds.map(item=>G.roomView(localRoom,viewPlayer,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,viewPlayer));
-  incomingStates=pending.filter(value=>value.round.from!==viewPlayer&&G.canRespond(value));
+  incomingStates=pending.filter(value=>value.round.duoChoice||value.round.from!==viewPlayer&&G.canRespond(value));
   outgoingCount=pending.filter(value=>value.round.from===viewPlayer).length;
   selectDisplayState();
  }
- function isParallel(){return !remoteMode||[6,7,8].includes(remoteSnapshot?.gameVersion);}
- function drawVersion(){return !remoteMode||remoteSnapshot?.gameVersion===8?G.currentCatalogueVersion:remoteSnapshot?.gameVersion===7?4:3;}
+ function isParallel(){return !remoteMode||[6,7,8,9].includes(remoteSnapshot?.gameVersion);}
+ function drawVersion(){return !remoteMode||remoteSnapshot?.gameVersion>=8?G.currentCatalogueVersion:remoteSnapshot?.gameVersion===7?4:3;}
  function focusedReply(value,roundId){return value.state.round.id===roundId?value.state:value.incoming?.find(incoming=>incoming.round.id===roundId)||null;}
  function save(){if(remoteMode||!canPersist)return;try{const raw=JSON.stringify(localRoom);localStorage.setItem(storageKey,raw);sharedSnapshot=raw;persisted=true;}catch(_){persisted=false;}}
  function receiveShared(raw){
@@ -323,7 +323,7 @@
    catch(error){return remoteError(error);}
    finally{operationBusy=false;setControlsBusy(false);trigger?.removeAttribute('aria-busy');if(doRender)render();}
   }
-  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,...(action.type==='SEND'?{directQueue:true}:{}),actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
+  const roundId=state.round.id;pullShared();const next=G.reduceRoom(localRoom,{at:now(),roundId,...action,...(action.type==='SEND'?{directQueue:!state.round.duoChoice}:{}),...(['ROLL_CATEGORY','JOKER_DRAW','REROLL_CATEGORY'].includes(action.type)?{companionChoice:true}:{}),actor:viewPlayer});const changed=next!==localRoom;localRoom=next;syncLocalView();if(changed)save();if(doRender)render();return changed;
  }
 
  function toast(text){clearTimeout(toastTimer);const el=root.querySelector('#oa-toast');el.textContent=text;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},3600);}
@@ -358,7 +358,7 @@
  }
  function diceFaces(holder){
   if(holder.dataset.rollRole==='category'&&holder.dataset.kind==='4')return [G.categories.map(c=>c.label),G.categories.map(c=>themeIcons[c.id])];
-  if(holder.dataset.rollRole==='variant')return variantFaces(state.round);
+  if(holder.dataset.rollRole==='variant')return state.round.duoChoice?[null,null]:variantFaces(state.round);
   if(holder.dataset.rollRole!=='card'||holder.dataset.kind!=='8')return [null,null];
   const round=cardReveal||rerolling||state.round;
   const labels=round.hand.map(id=>G.getCard(id,round.catalogueVersion).keyword);
@@ -590,7 +590,7 @@
  badgeNotice?.addEventListener('focusin',event=>{if(!badgeNotice.contains(event.relatedTarget))badgeReturnFocus=event.relatedTarget;badgeFocus=true;stopBadgeTimer();});
  badgeNotice?.addEventListener('focusout',event=>{if(!badgeNotice.contains(event.relatedTarget)){badgeFocus=false;updateBadgeNotice();}});
  function renderWelcome(){
-  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Ta carte rejoint les Missions quand le tirage est terminé.</p><p>Deux coches dans les 24 h, un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
+  return '<section class="oa-welcome" aria-labelledby="oa-welcome-title"><img class="oa-welcome-icon" src="./icons/desir-192.png" width="76" height="76" alt=""><div class="oa-welcome-copy"><h1 id="oa-welcome-title">Les dés choisissent une idée à deux.</h1><p>Propose ta carte. Ton compagnon lance son D6 et choisit une variante.</p><p>Après son choix, deux coches dans les 24 h donnent un point pour vous.</p></div><div class="oa-actions">'+btn('C’est parti <span class="oa-arrow" aria-hidden="true">↗</span>','welcome-start')+'</div></section>';
  }
  function renderLogin(){
   if(authBusy)return heading('Votre<br><em>espace.</em>',null,null)+'<div class="oa-login-wait" role="status">Connexion…</div>';
@@ -659,6 +659,7 @@
  function draftActions(){
   const round=state.round;
   if(!canDraw())return '<div class="oa-actions">'+switchButton(round.from)+'</div>';
+  if(round.duoChoice)return '<div class="oa-actions">'+btn('Proposer à '+h(name(round.to)),'send')+(canRerollCurrentCard()?textBtn('Relancer la carte · 1 étoile','reroll'):'')+'</div>';
   const stars=round.catalogueVersion===G.currentCatalogueVersion,canReroll=canRerollCurrentCard();
   if(stars&&missionError===round.id)return '<div class="oa-actions">'+btn('Réessayer','send')+'</div>';
   if(stars&&!canReroll)return '<p class="oa-mission-transfer" role="status">Ajout aux Missions…</p>';
@@ -666,6 +667,78 @@
    (canReroll?textBtn(stars?'Relancer <span class="oa-reroll-cost" aria-hidden="true">1 '+rerollStar+'</span>':'Relancer la carte','reroll',stars?'aria-label="Relancer la carte, coûte une étoile"':''):'')+'</div>';
  }
 
+ let selectedDuoVariant=null,duoRevealKey=null;
+ function duoInbox(){
+  const items=incomingStates.filter(view=>view.round.duoChoice);
+  if(!items.length)return '';
+  return '<section class="oa-duo-inbox" aria-label="Vos cartes en cours">'+items.map(view=>{
+   const r=view.round,c=r.duoChoice,own=r.from===viewPlayer;
+   const label=own?(c.passed?'RELANCE OFFERTE':c.ready?'TA NOUVELLE CARTE':'EN ATTENTE DE SON CHOIX'):(c.ready||c.passed?'UNE AUTRE IDÉE SE PRÉPARE':'À TOI DE JOUER');
+   return '<button type="button" class="oa-duo-invitation" data-action="duo-open" data-round="'+h(r.id)+'"><small>'+label+'</small><strong>'+h(G.getCard(r.cardId,r.catalogueVersion).title)+'</strong></button>';
+  }).join('')+'</section>';
+ }
+ function renderDuoPending(){
+  const r=state.round,c=r.duoChoice,own=r.from===viewPlayer,title=h(G.getCard(r.cardId,r.catalogueVersion).title);
+  const back='<div class="oa-actions">'+textBtn('Mon tirage','own-draw')+'</div>';
+  if(own){
+   if(c.passed)return heading('Une autre<br><em>chance à jouer.</em>','Ton compagnon a passé la carte. Cette relance est offerte.',null)+stage(G.cardSides(r),'UNE NOUVELLE ACTION',1,'card','Relancer la carte').replace('data-action="roll"','data-action="duo-bonus"')+back;
+   if(c.ready)return heading('Une nouvelle<br><em>idée à proposer.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(card())+'</div><div class="oa-actions">'+btn('Proposer cette carte','duo-send-bonus')+'</div>'+back;
+   return heading('À son tour<br><em>de jouer.</em>','Ton compagnon choisit sa façon de vivre cette idée.',null)+'<div class="oa-summary-card"><div><h2>'+title+'</h2><p>En attente de son choix.</p></div></div>'+back;
+  }
+  if(c.passed||c.ready)return heading('Une autre idée<br><em>se prépare.</em>','Ton compagnon peut proposer une nouvelle carte.',null)+back;
+  if(c.roll===null)return heading(title,'Lance le D6 pour découvrir combien de variantes tu peux choisir.',null)+stage(6,'TON DÉ DES POSSIBLES',1,'variant','Lancer mon D6').replace('data-action="roll"','data-action="duo-roll"')+duoPassCard()+back;
+  if(selectedDuoVariant?.roundId!==r.id||!c.options.includes(selectedDuoVariant?.face))selectedDuoVariant=null;
+  const options=c.options.map(face=>{
+   const detail=G.getVariant({...r,variantRoll:face}),selected=selectedDuoVariant?.face===face;
+   return '<button type="button" class="oa-duo-option'+(selected?' is-selected':'')+'" data-action="duo-select" data-choice="'+face+'" aria-pressed="'+selected+'"><span>'+h(detail)+'</span></button>';
+  }).join('');
+  return heading(title,'D6 · '+c.roll+' variante'+(c.roll>1?'s':'')+' à découvrir. Choisis celle qui te plaît.',null)+'<div class="oa-duo-options">'+options+'</div>'+(selectedDuoVariant?'<div class="oa-actions">'+btn('Choisir cette variante','duo-confirm')+'</div>':'')+duoPassCard()+back;
+ }
+ function duoPassCard(){return '<button type="button" class="oa-duo-pass" data-action="duo-pass"><strong>UNE AUTRE IDÉE ?</strong><span>Passer cette carte'+(state.round.duoChoice.bonus?'':' · Offrir une relance')+'</span></button>';}
+ async function rollDuo(type){
+  if(busy||operationBusy||remoteMode&&!remoteReady||!state.round.duoChoice)return;
+  const roundId=state.round.id,context={actor:viewPlayer,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch};
+  const serial=++animationSerial;busy=true;setControlsBusy(true);cancelContentTransitions();
+  try{
+   let face;
+   if(remoteMode){
+    die.startWaiting?.();
+    const result=await remote.action({type,roundId});
+    if(!result.roll)throw Error('Unconfirmed companion roll');
+    face=result.roll.value;
+    if(presentationValid(context)&&(!deferredSnapshot||result.revision>=deferredSnapshot.revision))deferredSnapshot=result;
+   }else{
+    pullShared();
+    const r=localRoom.pendingRounds.find(lane=>lane.round.id===roundId)?.round;
+    if(!r)return;
+    const action={type,roundId,actor:viewPlayer,at:now()};
+    if(type==='ROLL_CHOICES'){
+     face=G.randomInt(6);const pool=[1,2,3,4,5,6];action.options=[];
+     for(let i=0;i<face;i++)action.options.push(pool.splice(G.randomInt(pool.length)-1,1)[0]);
+    }else{
+     const pool=r.hand.map((_,index)=>index+1).filter(value=>value!==r.cardRoll);face=pool[G.randomInt(pool.length)-1];
+    }
+    const next=G.reduceRoom(localRoom,{...action,value:face});
+    if(next===localRoom)return;
+    localRoom=next;save();
+   }
+   if(presentationValid(context)&&!document.hidden&&!presentationHidden){
+    softSound();activeRollFace={kind:type==='ROLL_CHOICES'?6:G.cardSides(state),value:face};
+    await die.roll(face,{duration:systemReduce?0:1250});
+   }
+   if(presentationValid(context))announce(type==='ROLL_CHOICES'?face+' variantes à choisir.':'Nouvelle carte tirée.');
+  }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
+  finally{
+   if(serial===animationSerial){await die.stopWaiting?.();if(serial!==animationSerial)return;activeRollFace=null;busy=false;setControlsBusy(false);if(remoteMode){if(remote?.authenticated)flushRemote(null,false);}else syncLocalView();render();}
+  }
+ }
+ function animateDuoChoices(){
+  const c=state.round.duoChoice,signature=state.round.id+':'+JSON.stringify(c?.options);
+  if(!c?.roll||state.phase!=='pending'||!main.querySelector('.oa-duo-options')||duoRevealKey===signature)return;
+  duoRevealKey=signature;
+  if(systemReduce||document.hidden||presentationHidden)return;
+  main.querySelectorAll('.oa-duo-option').forEach((el,index)=>playContentTransition(el,[{opacity:0,transform:'perspective(500px) rotateX(-12deg) translateY(12px)'},{opacity:1,transform:'none'}],300,null,index*55));
+ }
  function privateHome(incoming=false){
   const r=state.round;
   return heading('Un peu de hasard.<br><em>Un moment à deux.</em>',null,currentDate())+(incoming?'<button type="button" class="oa-invitation cursor-interaction" data-action="open-invitation" data-round="'+h(r.id)+'"><span class="oa-invitation-dot" aria-hidden="true"></span><span><b>'+'Une invitation t’attend'+'</b><small>'+h(name(r.awaiting===r.from?r.to:r.from))+'</small></span><span class="oa-invitation-arrow" aria-hidden="true">↗</span></button>':'<div class="oa-quiet-home"><span aria-hidden="true">〰</span><p>Aucune invitation.</p></div>')+((state.tasks||[]).length?'<div class="oa-actions">'+btn('Missions · '+state.tasks.length,'tab','oa-secondary','data-tab="tasks"')+'</div>':'');
@@ -686,10 +759,10 @@
   }
   if(!busy&&['category','card','variant'].includes(state.phase)&&!hasRollStar()){
    const {nextAt}=G.cardRerollStars(ownState||state,viewPlayer,serverStamp());
-   return heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
+   return duoInbox()+heading('Dés en pause.', 'Il te faut une étoile pour lancer les dés.', null)+
     (nextAt?'<div class="oa-next-draw" role="status">Prochaine étoile dans <strong>'+timeLeft({expiresAt:nextAt})+'</strong></div>':'');
   }
-  if(state.phase==='category')return rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
+  if(state.phase==='category')return duoInbox()+rollScreen(eyebrow(currentDate())+'<h1 class="oa-sr">Tirage</h1>',
    stage(G.rules.categorySides,'01 / LE THÈME',3,'category',remoteSnapshot?.quota?.remaining===0?'':'Lancer le D'+G.rules.categorySides),categoryAction(),
    jokerAvailable()?'<div class="oa-actions">'+textBtn('Joker · choisir le thème','open-joker')+'</div>':'');
   if(state.phase==='card'){
@@ -700,6 +773,7 @@
   if(state.phase==='variant')return rollScreen(heading(h(c.title),null,null),
    stage(G.rules.variantSides,'03 / LA VARIANTE',3,'variant','Tirer la variante'),rollReadout);
   if(state.phase==='draft')return heading('Ta prochaine<br><em>idée à deux.</em>',null,null)+'<div class="oa-card-stage">'+playingCard(c)+'</div>'+draftActions();
+  if(state.phase==='pending'&&r.duoChoice)return renderDuoPending();
   if(state.phase==='pending')return heading('Une ancienne<br><em>proposition.</em>','Actualise D6 à deux pour retrouver vos missions.',null);
   if(state.phase==='accepted')return heading('Ajouté à<br><em>vos missions.</em>',null,null)+'<div class="oa-summary-card"><div><h2>'+h(c.title)+'</h2><p>'+h(proposalDetail(r)||category().label)+'</p></div></div><div class="oa-actions">'+btn('Voir les missions','tab','','data-tab="tasks"')+btn('Un nouveau tour <span class="oa-arrow">↗</span>','new','oa-secondary')+'</div>';
   if(state.phase==='resolved'){
@@ -1110,6 +1184,7 @@
    count.setAttribute('aria-label',awaiting+' mission'+(awaiting===1?'':'s')+' à cocher');
   }
   if(!replaceMain){infoReading?.refresh();scheduleExpiry();scheduleAutoNewRound();scheduleAutomaticMission();updateBadgeNotice();return;}
+  animateDuoChoices();
   const holder=main.querySelector('[data-stage]');
   if(holder){
    const kind=Number(holder.dataset.kind);
@@ -1195,7 +1270,7 @@
   return welcomeDismissed&&!busy&&!operationBusy&&!missionSending&&state.phase==='draft'&&canSeeCurrentRound()&&canDraw()&&(!remoteMode||remoteReady);
  }
  function scheduleAutomaticMission(){
-  const shouldSend=()=>tab==='play'&&canFinalizeCard()&&state.round.catalogueVersion===G.currentCatalogueVersion&&missionError!==state.round.id&&!canRerollCurrentCard();
+  const shouldSend=()=>tab==='play'&&canFinalizeCard()&&state.round.catalogueVersion===G.currentCatalogueVersion&&!state.round.duoChoice&&missionError!==state.round.id&&!canRerollCurrentCard();
   if(missionScheduled||!shouldSend())return;
   const roundId=state.round.id;
   missionScheduled=true;
@@ -1209,12 +1284,13 @@
   const taskId=state.round.id;
   missionSending=true;
   try{
-   const starPenalty=!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds);
+   const starPenalty=!state.round.duoChoice&&(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds));
    const changed=await dispatch({type:'SEND',...(starPenalty?{starPenalty:true}:{})},false);
    const queued=(ownState?.tasks||state.tasks||[]).some(task=>task.id===taskId);
    missionError=!queued&&state.phase==='draft'&&state.round.id===taskId?taskId:null;
    if(queued)tab='tasks';
    if(changed&&queued)announce('Proposition ajoutée aux Missions.');
+   if(changed&&!queued){announce('Carte proposée à ton compagnon.');toast('CARTE ENVOYÉE · À SON TOUR DE JOUER !');}
   }finally{missionSending=false;render();}
  }
  async function rerollCategory(){
@@ -1234,11 +1310,11 @@
   const expectedPhase=state.phase,expectedRound=state.round.id;if(!remoteMode){pullShared();if(state.phase!==expectedPhase||state.round.id!==expectedRound){render();return;}}
   if(!hasRollStar()){render();return;}
   const phase=state.phase,actor=state.activePlayer,roundId=state.round.id;
-  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round),hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
+  const context={actor,roundId,roomId:remote?.connection?.roomId,epoch:presentationEpoch,categoryId:state.round.categoryId,catalogueVersion:state.round.catalogueVersion??1,intimacyPool:state.round.intimacyPool,hasVariant:G.needsVariant(state.round)&&!state.round.duoChoice,hand:[...state.round.hand],discarded:reroll?{cardId:state.round.cardId,slot:state.round.cardRoll}:null};
   let sides,action,faceValue,next,resultLabel,settled=false;
   if(remoteMode&&phase==='category'&&remoteSnapshot?.quota?.remaining===0)return;
   if(reroll){if(!canRerollCurrentCard())return;sides=G.cardSides(state);action={type:'REROLL_CARD'};}
-  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:drawVersion()};}
+  else if(phase==='category'&&canDraw()){sides=G.rules.categorySides;action={type:'ROLL_CATEGORY',catalogueVersion:drawVersion(),...(!remoteMode?{companionChoice:true}:{})};}
   else if(phase==='card'&&canDraw()){sides=G.cardSides(state);action={type:'ROLL_CARD'};}
   else if(phase==='variant'&&canDraw()){sides=G.rules.variantSides;action={type:'ROLL_VARIANT'};}
   else return;
@@ -1384,13 +1460,13 @@
 
  function rules(){
   const version=drawVersion(),stars=version===G.currentCatalogueVersion;
-  const cardRule=stars?'Le D8 choisit la carte, puis le D6 donne la variante.':
+  const cardRule=stars?'Le D8 choisit l’action à proposer. Ton compagnon lance ensuite le D6 et choisit parmi autant de variantes distinctes que son résultat.':
    (version===4?'Cocon utilise le D8. Les autres thèmes utilisent le D6.':'Le D6 choisit une carte parmi six.')+
    ' Les cartes classiques ont ensuite une variante D6. Le lot Hardcore contient des cartes prêtes à jouer.';
   const rerollRule=stars?'Une relance de carte coûte une étoile. Chacun en gagne une toutes les 12 h, avec une réserve de trois et une dépense par jour.':'Une fois par tour, la carte peut être relancée avant d’être gardée.';
-  const missionRule=stars?'La carte gardée rejoint les Missions. Elle y passe automatiquement quand la relance est épuisée.':'La carte gardée rejoint les Missions.';
+  const missionRule=stars?'Le choix confirmé par le compagnon démarre les 24 h et place la variante dans les Missions. Passer est gratuit et offre une relance à l’expéditeur, une seule fois pour cette proposition.':'La carte gardée rejoint les Missions.';
   const penaltyRule=(!remoteMode||Array.isArray(remoteSnapshot?.penaltyTaskIds))?
-   ' Sur une nouvelle mission, une case vide à l’échéance peut coûter une étoile à son destinataire, une fois par jour. À zéro étoile, les dés reprennent à la recharge.':'';
+   ' Une case vide à l’échéance peut coûter une étoile au destinataire, une fois par jour. Le passage gratuit se fait avant de confirmer la variante.':'';
   openSheet('Les règles.',
    '<div class="oa-rule"><b>↗</b><div><h3>Lancer le dé.</h3><p>Appuie sur le dé ou fais-le glisser dans la direction de ton choix. Maintiens avant de relâcher pour lui donner plus d’élan.</p></div></div>'+
    '<div class="oa-rule"><b>D4</b><div><h3>La catégorie.</h3><p>Le D4 choisit l’une des quatre catégories.</p></div></div>'+
@@ -1451,6 +1527,31 @@
   }
   if(action==='own-draw'){tab='play';selectedIncomingRoundId=null;openedInvitation=null;if(remoteMode)selectDisplayState();else syncLocalView();render();return;}
   if(action==='open-invitation'){if(isParallel()&&incomingStates.some(incoming=>incoming.round.id===el.dataset.round)){selectedIncomingRoundId=el.dataset.round;selectDisplayState();}if(remoteMode){try{flushRemote(await remote.refresh(),false);}catch(error){remoteError(error);}}else pullShared();if(el.dataset.round===state.round.id&&G.canRespond(state))openedInvitation=invitationKey();render();return;}
+  if(action==='duo-open'){
+   selectedIncomingRoundId=el.dataset.round;selectDisplayState();openedInvitation=invitationKey();selectedDuoVariant=null;render();return;
+  }
+  if(action==='duo-roll'){await rollDuo('ROLL_CHOICES');return;}
+  if(action==='duo-bonus'){await rollDuo('BONUS_CARD');return;}
+  if(action==='duo-select'){
+   const face=Number(el.dataset.choice);
+   if(state.round.duoChoice?.options.includes(face)){selectedDuoVariant={roundId:state.round.id,face};render();}
+   return;
+  }
+  if(action==='duo-confirm'){
+   if(!selectedDuoVariant||selectedDuoVariant.roundId!==state.round.id)return;
+   const changed=await dispatch({type:'PICK_CHOICE',choice:selectedDuoVariant.face},false);
+   if(changed){selectedDuoVariant=null;tab='tasks';toast('C’EST CHOISI · VOTRE MOMENT VOUS ATTEND !');}
+   render();return;
+  }
+  if(action==='duo-pass'){
+   const changed=await dispatch({type:'PASS_CHOICE'},false);
+   if(changed){selectedIncomingRoundId=null;selectDisplayState();toast('UNE AUTRE IDÉE · LA BALLE CHANGE DE CAMP !');}
+   render();return;
+  }
+  if(action==='duo-send-bonus'){
+   const changed=await dispatch({type:'SEND_BONUS'},false);
+   if(changed)toast('NOUVELLE CARTE · NOUVEAU SUSPENSE !');render();return;
+  }
   if(action==='send'){await sendCurrentCard();return;}
   if(action==='extend-task-confirm'){
    const task=state.tasks.find(item=>item.id===el.dataset.task);

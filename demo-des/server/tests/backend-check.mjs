@@ -866,7 +866,7 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
  saved.forceRace=true;
  const actions=[intent('TOGGLE_TASK_CHECK',2200,view(saved,'a').round.id,{taskId:third.taskId,checked:true}),intent('TOGGLE_TASK_CHECK',2201,view(saved,'b').round.id,{taskId:third.taskId,checked:true})];
  const applied=await Promise.all([deliver(actions[0]),deliver(actions[1],tokenB)]);equal(applied.map(result=>result.status),[200,200]);
- equal(saved.state.progression.catalogueVersion,3);equal(saved.state.progression.epoch,epoch);equal(saved.state.stats.totalCompleted,3);equal(saved.state.progression.shared.completedByCard['hardcore-01'],3);equal(saved.receipts.size,2);
+ equal(saved.state.progression.catalogueVersion,4);equal(saved.state.progression.epoch,epoch);equal(saved.state.stats.totalCompleted,3);equal(saved.state.progression.shared.completedByCard['hardcore-01'],3);equal(saved.receipts.size,2);
  const award=saved.state.progression.awards.shared[badgeId];equal(award.at,time);equal(award.source,undefined);
  for(const [id,old] of Object.entries(oldAwards.shared))equal(saved.state.progression.awards.shared[id],old);
  for(const actor of ['a','b'])for(const [id,old] of Object.entries(oldAwards.individual[actor]))equal(saved.state.progression.awards.individual[actor][id],old);
@@ -883,7 +883,7 @@ for(const [ticket,face] of [[1,1],[12,2],[22,3],[32,4]]){
  const draw=await reader(intent('ROLL_CATEGORY',2202,view(previous,'a').round.id));equal(draw.status,200);
  equal(draw.body.badges.items.find(item=>item.id===badgeId).award,first.body.badges.items.find(item=>item.id===badgeId).award);
  equal(previous.state.progression.awards.shared[badgeId].at,null);equal(previous.state.progression.awards.shared[badgeId].source,'imported');equal(previous.state.stats,old.stats);equal(previous.state.players,old.players);
- equal(previous.state.progression.epoch,old.progression.epoch);equal(previous.state.progression.catalogueVersion,3);
+ equal(previous.state.progression.epoch,old.progression.epoch);equal(previous.state.progression.catalogueVersion,4);
  const calls=previous.calls.length;
  const obsolete=await reader({...intent('ROLL_CATEGORY',2202,view(previous,'a').round.id),gameVersion:5});
  equal(obsolete.status,409);equal(obsolete.body.error.code,'upgrade_required');equal(previous.calls.length,calls,'v5 cannot replay a saved request after v6 migration');

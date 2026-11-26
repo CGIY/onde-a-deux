@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "count": 120,
+  "count": 144,
   "assets": [
     {
       "id": "ind-draws-1",
@@ -961,6 +961,198 @@
       "description": "Valider ensemble 3 fois « Anal · Plug », avec vos deux coches.",
       "file": "duo-anal-plug-3.svg",
       "sha256": "6e9401bd394bb61f83eb0764d3f00a041bdef2a11b72b8b1c91f170b01e734c7"
+    },
+    {
+      "id": "duo-choice-completed-1",
+      "title": "L’étoile du choix",
+      "scope": "shared",
+      "description": "Réaliser une mission dont la variante a été choisie par le compagnon.",
+      "file": "duo-choice-completed-1.svg",
+      "sha256": "3312bbe46b47d2af77670bb5e2c71de9857f800b98befc58431662793fe4ae4d"
+    },
+    {
+      "id": "duo-choice-completed-5",
+      "title": "Premiers alignements",
+      "scope": "shared",
+      "description": "Réaliser 5 missions dont la variante a été choisie par le compagnon.",
+      "file": "duo-choice-completed-5.svg",
+      "sha256": "e2b91eede56a67c98be691b6aa1ce8d522e48f7fce374424d7f37192a377edd8"
+    },
+    {
+      "id": "duo-choice-completed-10",
+      "title": "Une même trajectoire",
+      "scope": "shared",
+      "description": "Réaliser 10 missions dont la variante a été choisie par le compagnon.",
+      "file": "duo-choice-completed-10.svg",
+      "sha256": "2a75736b981727999cf449c928d6c26938e2ea96221d17174cb7f8b9f9bdf30f"
+    },
+    {
+      "id": "duo-choice-completed-25",
+      "title": "Nos nuits dessinées",
+      "scope": "shared",
+      "description": "Réaliser 25 missions dont la variante a été choisie par le compagnon.",
+      "file": "duo-choice-completed-25.svg",
+      "sha256": "ba87879d0ed3a1d112ce94a8bded09a126fe9d8a4f3a4ae358f6eaab47cb25b4"
+    },
+    {
+      "id": "duo-choice-completed-50",
+      "title": "La lumière accumulée",
+      "scope": "shared",
+      "description": "Réaliser 50 missions dont la variante a été choisie par le compagnon.",
+      "file": "duo-choice-completed-50.svg",
+      "sha256": "2b6c16eb4714d888028a6c1efc59e455706acfd239c44c7c7013467270e835e3"
+    },
+    {
+      "id": "duo-choice-completed-100",
+      "title": "Un ciel à notre image",
+      "scope": "shared",
+      "description": "Réaliser 100 missions dont la variante a été choisie par le compagnon.",
+      "file": "duo-choice-completed-100.svg",
+      "sha256": "f279493af4d96a8dea134dce85f26595eec0d30469b998a2ac0d4c5d18298725"
+    },
+    {
+      "id": "duo-choice-face-1",
+      "title": "L’unique étoile",
+      "scope": "shared",
+      "description": "Réaliser 3 missions avec un résultat 1 au dé des variantes.",
+      "file": "duo-choice-face-1.svg",
+      "sha256": "1e31679335ed6fb2614e77f55d3640692ec20d86ce1e799903c132233c6f6d61"
+    },
+    {
+      "id": "duo-choice-face-2",
+      "title": "Deux possibles",
+      "scope": "shared",
+      "description": "Réaliser 3 missions avec un résultat 2 au dé des variantes.",
+      "file": "duo-choice-face-2.svg",
+      "sha256": "357def19b0fbbdb79594a2820c4881e9b1c4b37d493a8bde2514256ad86951c8"
+    },
+    {
+      "id": "duo-choice-face-3",
+      "title": "Triangle de lumière",
+      "scope": "shared",
+      "description": "Réaliser 3 missions avec un résultat 3 au dé des variantes.",
+      "file": "duo-choice-face-3.svg",
+      "sha256": "c3175c7aa491b9e679f03fdbeff3dc082fcb4159f9ef1e98d45ab521cec61a32"
+    },
+    {
+      "id": "duo-choice-face-4",
+      "title": "Les quatre fenêtres",
+      "scope": "shared",
+      "description": "Réaliser 3 missions avec un résultat 4 au dé des variantes.",
+      "file": "duo-choice-face-4.svg",
+      "sha256": "2d106c1d7fbf9d4da59f0173421526f00559904c8903a96addd26da5a0681f28"
+    },
+    {
+      "id": "duo-choice-face-5",
+      "title": "Une poignée d’astres",
+      "scope": "shared",
+      "description": "Réaliser 3 missions avec un résultat 5 au dé des variantes.",
+      "file": "duo-choice-face-5.svg",
+      "sha256": "5abc316d127021c0a32f526f6c8da235bd0a8dd4b8d4b381f21d019b04104b15"
+    },
+    {
+      "id": "duo-choice-face-6",
+      "title": "Six horizons",
+      "scope": "shared",
+      "description": "Réaliser 3 missions avec un résultat 6 au dé des variantes.",
+      "file": "duo-choice-face-6.svg",
+      "sha256": "82d03215c0843d5cd5eaf724823aafd726c7c864daf2e42195e1616de3feedd8"
+    },
+    {
+      "id": "duo-choice-both-1",
+      "title": "Premiers échos",
+      "scope": "shared",
+      "description": "Chacun a choisi la variante d’une mission réalisée à deux.",
+      "file": "duo-choice-both-1.svg",
+      "sha256": "ec74660e2dda793c8f567e5c74c6d57e76fb85f0271277a694dee78515f376eb"
+    },
+    {
+      "id": "duo-choice-both-3",
+      "title": "Signaux réciproques",
+      "scope": "shared",
+      "description": "Chacun a choisi la variante de 3 missions réalisées à deux.",
+      "file": "duo-choice-both-3.svg",
+      "sha256": "a555dfb390c6f7f8050d66a6d14fa4d340f9b11c455c448c7c15707eb7f4d917"
+    },
+    {
+      "id": "duo-choice-both-5",
+      "title": "Échos croisés",
+      "scope": "shared",
+      "description": "Chacun a choisi la variante de 5 missions réalisées à deux.",
+      "file": "duo-choice-both-5.svg",
+      "sha256": "59cf4d246c31bea22daae9e2f4c411a78604d40ea0ff47e8355e987a46a4d762"
+    },
+    {
+      "id": "duo-choice-both-10",
+      "title": "L’orbite réciproque",
+      "scope": "shared",
+      "description": "Chacun a choisi la variante de 10 missions réalisées à deux.",
+      "file": "duo-choice-both-10.svg",
+      "sha256": "f7a63196d933c5966be0728c619d29ea2a6c7111558971d77394c4d38bd4502b"
+    },
+    {
+      "id": "duo-choice-both-20",
+      "title": "Deux voix dans la nuit",
+      "scope": "shared",
+      "description": "Chacun a choisi la variante de 20 missions réalisées à deux.",
+      "file": "duo-choice-both-20.svg",
+      "sha256": "50e59e039f3e5ccdab9ff2d66b34b2ec5d82deed3841846ce18efddf20df3216"
+    },
+    {
+      "id": "duo-choice-both-50",
+      "title": "Nos lumières se répondent",
+      "scope": "shared",
+      "description": "Chacun a choisi la variante de 50 missions réalisées à deux.",
+      "file": "duo-choice-both-50.svg",
+      "sha256": "cf62f389632dea8931dd2c2bf699b235080550a56ee504932c3a0f27223defb5"
+    },
+    {
+      "id": "duo-choice-bonus-1",
+      "title": "Une autre éclaircie",
+      "scope": "shared",
+      "description": "Réaliser une mission issue d’une relance offerte par Passer.",
+      "file": "duo-choice-bonus-1.svg",
+      "sha256": "bf520d91af5c1181b82cbf1d78777eca6a9992e0d7d7495b1046daa863cdfe02"
+    },
+    {
+      "id": "duo-choice-bonus-3",
+      "title": "Second souffle",
+      "scope": "shared",
+      "description": "Réaliser 3 missions issues d’une relance offerte par Passer.",
+      "file": "duo-choice-bonus-3.svg",
+      "sha256": "402171c8a82edb0034243dc6e8a11b05c1a32eaa4965d6b24bced44a07ee8f67"
+    },
+    {
+      "id": "duo-choice-bonus-10",
+      "title": "Les détours heureux",
+      "scope": "shared",
+      "description": "Réaliser 10 missions issues d’une relance offerte par Passer.",
+      "file": "duo-choice-bonus-10.svg",
+      "sha256": "ef4068dd36405c46471378d3cbf0f1b9c156210cf00f816b7158a209a884c92e"
+    },
+    {
+      "id": "duo-choice-categories",
+      "title": "Les quatre saisons du ciel",
+      "scope": "shared",
+      "description": "Réaliser une mission avec variante choisie dans chacune des quatre catégories.",
+      "file": "duo-choice-categories.svg",
+      "sha256": "787b005d1b47306b6e2057d5d4f1a7ba95892412dee89d3975980a03fe22f255"
+    },
+    {
+      "id": "duo-choice-cards",
+      "title": "Les chemins multiples",
+      "scope": "shared",
+      "description": "Réaliser six cartes différentes avec une variante choisie.",
+      "file": "duo-choice-cards.svg",
+      "sha256": "881ced17aef392a382de4bb172a79c5d5523335ff98451bccb6b283d930d6de6"
+    },
+    {
+      "id": "duo-choice-variants",
+      "title": "La palette des possibles",
+      "scope": "shared",
+      "description": "Réaliser douze variantes distinctes choisies par le compagnon.",
+      "file": "duo-choice-variants.svg",
+      "sha256": "2157b3899ce31e3b30be2aab258aa0d44d81e3ce7bb7d0be79831b75bc2be155"
     }
   ]
 }

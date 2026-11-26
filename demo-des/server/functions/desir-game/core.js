@@ -418,7 +418,23 @@
     if(!previous) return variant;
     return typeof round.proposal==='string' && round.proposal.trim()?round.proposal:previous;
   };
-  const validSelectedVariant = entry => hasVariants(getCard(entry.cardId,entry.catalogueVersion))?getVariant(entry)!==null:entry.variantRoll===undefined;
+  const blankDuoChoice = () => ({roll:null,options:[],chosen:null,passed:false,bonus:false,ready:false});
+  function validDuoChoice(choice){
+    return choice===undefined || !!choice && typeof choice==='object' &&
+      Object.keys(choice).sort().join(',')==='bonus,chosen,options,passed,ready,roll' &&
+      ['passed','bonus','ready'].every(key=>typeof choice[key]==='boolean') &&
+      (choice.roll===null || Number.isInteger(choice.roll)&&choice.roll>=1&&choice.roll<=6) &&
+      Array.isArray(choice.options) && choice.options.length===(choice.roll??0) &&
+      new Set(choice.options).size===choice.options.length && choice.options.every(value=>Number.isInteger(value)&&value>=1&&value<=6) &&
+      (choice.chosen===null || choice.options.includes(choice.chosen)) &&
+      (!choice.ready || choice.bonus) && (!choice.passed || !choice.bonus);
+  }
+  const unchosenDuo = entry => entry.duoChoice && entry.duoChoice.chosen===null && entry.variantRoll===null;
+  function validSelectedVariant(entry){
+    if(unchosenDuo(entry))return validDuoChoice(entry.duoChoice);
+    if(hasVariants(getCard(entry.cardId,entry.catalogueVersion)))return getVariant(entry)!==null;
+    return entry.variantRoll===undefined;
+  }
   const needsVariant = stateOrRound => {
     const round=stateOrRound?.round||stateOrRound;
     return modernCatalogue(round?.catalogueVersion) && !(hasIntimacyPools(round.catalogueVersion) && round.intimacyPool==='hardcore');
@@ -622,10 +638,11 @@
     if(!Array.isArray(s.tasks) || new Set(s.tasks.map(task=>task&&task.id)).size!==s.tasks.length) return false;
     const keys=['id','cardId','categoryId','from','to','createdAt','expiresAt','checks','proposal'];
     return s.tasks.every(task=>{
-      if(!task || typeof task!=='object' || Array.isArray(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
+      if(!task || typeof task!=='object' || Array.isArray(task) || !validDuoChoice(task.duoChoice) || unchosenDuo(task) || !validSelectedVariant(task) || !validCatalogueEntry(task)) return false;
+      if(task.duoChoice && task.duoChoice.chosen!==task.variantRoll)return false;
       if(task.starPenalty!==undefined && task.starPenalty!==true)return false;
       if(task.failedRefusalRoll!==undefined && (!Number.isInteger(task.failedRefusalRoll)||task.failedRefusalRoll<1||task.failedRefusalRoll>10))return false;
-      const expectedKeys=[...keys,...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[]),...(task.failedRefusalRoll===undefined?[]:['failedRefusalRoll'])];
+      const expectedKeys=[...keys,...(task.duoChoice===undefined?[]:['duoChoice']),...(task.variantRoll===undefined?[]:['variantRoll']),...(storedCatalogue(task.catalogueVersion)?['catalogueVersion','intimacyPool']:[]),...(task.starPenalty===true?['starPenalty']:[]),...(task.failedRefusalRoll===undefined?[]:['failedRefusalRoll'])];
       if(Object.keys(task).length!==expectedKeys.length || expectedKeys.some(key=>!Object.prototype.hasOwnProperty.call(task,key))) return false;
       const card=getCard(task.cardId),sequence=typeof task.id==='string'&&/^onde-[1-9]\d*$/.test(task.id)?Number(task.id.slice(5)):NaN;
       if(!Number.isSafeInteger(sequence) || sequence>s.sequence || !card || task.categoryId!==card.categoryId || !['a','b'].includes(task.from) || task.to!==otherPlayer(task.from)) return false;
@@ -654,6 +671,8 @@
     if (!Array.isArray(s.players) || s.players.length !== 2 || s.players.some((p,i) => !p || p.id !== players[i].id || typeof p.name !== 'string' || !p.name.trim() || p.name.length>60)) return false;
     if (s.history.some(item=>!item || typeof item.id!=='string' || !getCard(item.cardId) || item.categoryId!==undefined&&item.categoryId!==getCard(item.cardId).categoryId || !['passed','defended','queued','expired','completed'].includes(item.status) || !['a','b'].includes(item.from) || item.to!==otherPlayer(item.from) || !Array.isArray(item.rolls) || item.rolls.length>2 || item.rolls.some(v=>!Number.isInteger(v) || v<1 || v>20) || !validCardReroll(item) || !validSelectedVariant(item) || !validCatalogueEntry(item))) return false;
     const r=s.round;
+    if(!validDuoChoice(r.duoChoice) || s.history.some(item=>!validDuoChoice(item.duoChoice)))return false;
+    if(r.duoChoice?.chosen!==null && r.duoChoice!==undefined && r.duoChoice.chosen!==r.variantRoll)return false;
     if(r.directQueued!==undefined && typeof r.directQueued!=='boolean') return false;
     if(r.dailyFree!==undefined && typeof r.dailyFree!=='boolean') return false;
     if(r.refusalRoll!==undefined && (!Number.isInteger(r.refusalRoll) || r.refusalRoll<1 || r.refusalRoll>20)) return false;
@@ -681,7 +700,7 @@
     // rewrite an in-progress challenge or invalidate an already won one.
     if (!card || !Number.isInteger(r.cardRoll) || r.cardRoll<1 || r.cardRoll>cardSides(r) || r.hand[r.cardRoll-1]!==r.cardId || card.categoryId!==cat.id || (hardcore?r.hp!==null:!Number.isInteger(r.hp) || r.hp<1 || r.hp>40)) return false;
     if(s.phase==='variant') return variant && r.variantRoll===null && beforeCard && r.status==='drawing' && r.awaiting===null;
-    if(!validSelectedVariant(r)) return false;
+    if(!validSelectedVariant(r) || unchosenDuo(r)&&!['draft','pending','resolved'].includes(s.phase)) return false;
     const total=r.rolls.reduce((sum,v)=>sum+v,0),draftTotal=r.draftRolls.reduce((sum,v)=>sum+v,0);
     if(s.phase==='draft') return r.status==='draft' && r.awaiting===null && beforeCard;
     if(s.phase==='pending' && (r.status!=='pending' || r.awaiting!==r.to || r.challengeUsed || r.toConfirmed || !r.fromConfirmed || r.autoProposed)) return false;
@@ -911,6 +930,7 @@
       createdAt:acceptedAt,expiresAt:new Date(Date.parse(acceptedAt)+rules.taskLifetimeMs).toISOString(),
       checks:{a:false,b:false},proposal:r.adapted?r.proposal:previousCoconVariant(r)?getVariant(r):null,...(needsVariant(r)?{variantRoll:r.variantRoll}:{}),
       ...(storedCatalogue(r.catalogueVersion)?{catalogueVersion:r.catalogueVersion,intimacyPool:r.intimacyPool}:{}),
+      ...(r.duoChoice?{duoChoice:JSON.parse(JSON.stringify(r.duoChoice))}:{}),
       ...(starPenalty===true?{starPenalty:true}:{})});
     recordHistory(s,{...r,status:'queued'});
   }
@@ -1037,6 +1057,7 @@
         if(!cat || !validCategoryAction(action,cat)) return state;
         r.from=actor; r.to=otherPlayer(actor);
         setCategoryRound(s,action,cat);
+        if(action.companionChoice===true)r.duoChoice=blankDuoChoice();
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
         s.phase='card';
         return s;
@@ -1050,6 +1071,7 @@
         const used=s.dailyReroll && s.dailyReroll.dateKey===dayKey && Array.isArray(s.dailyReroll.used) ? s.dailyReroll.used : [];
         if(used.includes(actor)) return state;
         setCategoryRound(s,action,cat);
+        if(action.companionChoice===true)r.duoChoice=blankDuoChoice();
         s.dailyReroll={dateKey:dayKey,used:[...used,actor]};
         return s;
       }
@@ -1064,6 +1086,7 @@
         r.from=actor; r.to=otherPlayer(actor);
         setCategoryRound(s,action,cat);
         if(action.daily && validDaily(action.daily) && action.daily.dateKey===parisDateKey(action.at) && (!s.daily || s.daily.dateKey!==action.daily.dateKey)) s.daily=JSON.parse(JSON.stringify(action.daily));
+        if(action.companionChoice===true)r.duoChoice=blankDuoChoice();
         s.joker={weekKey,usedBy:actor};
         s.phase='card';
         return s;
@@ -1096,7 +1119,7 @@
         r.cardRoll=action.value; r.cardId=r.hand[action.value-1]; r.hp=getCard(r.cardId,r.catalogueVersion).hp??null;
         if(reroll) { r.cardRerolled=true; if(needsVariant(r)) r.variantRoll=null; }
         s.seen[r.categoryId]=[r.cardId,...(s.seen[r.categoryId] || []).filter(id=>id!==r.cardId)].slice(0,8);
-        s.phase=needsVariant(r)?'variant':'draft';
+        s.phase=needsVariant(r)&&!r.duoChoice?'variant':'draft';
         r.status=s.phase==='variant'?'drawing':'draft';
         return s;
       }
@@ -1109,7 +1132,7 @@
         return s;
       case 'SEND':
         if(s.phase!=='draft' || actor!==r.from) return state;
-        if(action.directQueue===true) {
+        if(action.directQueue===true && !r.duoChoice) {
           if(!taskStartTime(action.at)) return state;
           // "accepted" is the historical task phase, not recipient consent.
           Object.assign(r,{directQueued:true,fromConfirmed:true,toConfirmed:false,autoProposed:false,
@@ -1119,8 +1142,34 @@
         r.fromConfirmed=true; r.toConfirmed=false; r.autoProposed=false;
         r.status='pending'; r.awaiting=r.to; r.sentAt=action.at || null; s.phase='pending';
         return s;
+      case 'ROLL_CHOICES': {
+        if(s.phase!=='pending'||actor!==r.to||!r.duoChoice||r.duoChoice.passed||r.duoChoice.ready||r.duoChoice.roll!==null||!Number.isInteger(action.value)||action.value<1||action.value>6)return state;
+        const choice={...r.duoChoice,roll:action.value,options:action.options};
+        if(!validDuoChoice(choice))return state;
+        r.duoChoice=choice;return s;
+      }
+      case 'PICK_CHOICE': {
+        if(s.phase!=='pending'||actor!==r.to||!r.duoChoice||r.duoChoice.passed||r.duoChoice.ready||r.duoChoice.chosen!==null||!r.duoChoice.options.includes(action.choice)||!isoTime(action.at))return state;
+        r.duoChoice.chosen=action.choice;r.variantRoll=action.choice;
+        r.toConfirmed=true;r.status='accepted';r.awaiting=null;r.acceptedAt=action.at;s.phase='accepted';
+        enqueueTask(s,action.at,true);return s;
+      }
+      case 'PASS_CHOICE': {
+        if(s.phase!=='pending'||actor!==r.to||!r.duoChoice||r.duoChoice.passed||r.duoChoice.ready||!isoTime(action.at))return state;
+        if(r.duoChoice.bonus){closeRound(s,'passed',action);return s;}
+        r.duoChoice={...blankDuoChoice(),passed:true};r.variantRoll=null;return s;
+      }
+      case 'BONUS_CARD': {
+        if(s.phase!=='pending'||actor!==r.from||!r.duoChoice?.passed||!Number.isInteger(action.value)||action.value<1||action.value>r.hand.length||action.value===r.cardRoll)return state;
+        r.cardRoll=action.value;r.cardId=r.hand[action.value-1];r.hp=getCard(r.cardId,r.catalogueVersion).hp??null;
+        r.variantRoll=null;r.duoChoice={...blankDuoChoice(),bonus:true,ready:true};return s;
+      }
+      case 'SEND_BONUS': {
+        if(s.phase!=='pending'||actor!==r.from||!r.duoChoice?.ready||!isoTime(action.at))return state;
+        r.duoChoice.ready=false;r.sentAt=action.at;return s;
+      }
       case 'ACCEPT': {
-        if(!canRespond(s)) return state;
+        if(!canRespond(s)||r.duoChoice) return state;
         const acceptedAt=action.at===undefined?fallbackTime:taskStartTime(action.at)?action.at:null;
         if(!acceptedAt) return state;
         r.toConfirmed=true;
@@ -1131,7 +1180,7 @@
       case 'PASS':
       case 'CANCEL':
         // Le destinataire passe l'invitation : la carte est écartée, sans défi ni pénalité.
-        if(s.phase!=='pending' || !r.cardId || !canRespond(s)) return state;
+        if(s.phase!=='pending' || !r.cardId || !canRespond(s) || r.duoChoice) return state;
         closeRound(s,'passed',action);
         return s;
       case 'COMPLETE':
@@ -1401,6 +1450,374 @@
       order:previousBadgeCount+index+1,icon,target:threshold
     };
   });
+  const choiceBadges=[
+  {
+    "id": "duo-choice-completed-1",
+    "scope": "shared",
+    "title": "L’étoile du choix",
+    "description": "Réaliser une mission dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 1
+    },
+    "order": 121,
+    "icon": "spark",
+    "target": 1
+  },
+  {
+    "id": "duo-choice-completed-5",
+    "scope": "shared",
+    "title": "Premiers alignements",
+    "description": "Réaliser 5 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 5
+    },
+    "order": 122,
+    "icon": "spark",
+    "target": 5
+  },
+  {
+    "id": "duo-choice-completed-10",
+    "scope": "shared",
+    "title": "Une même trajectoire",
+    "description": "Réaliser 10 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 10
+    },
+    "order": 123,
+    "icon": "spark",
+    "target": 10
+  },
+  {
+    "id": "duo-choice-completed-25",
+    "scope": "shared",
+    "title": "Nos nuits dessinées",
+    "description": "Réaliser 25 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 25
+    },
+    "order": 124,
+    "icon": "spark",
+    "target": 25
+  },
+  {
+    "id": "duo-choice-completed-50",
+    "scope": "shared",
+    "title": "La lumière accumulée",
+    "description": "Réaliser 50 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 50
+    },
+    "order": 125,
+    "icon": "spark",
+    "target": 50
+  },
+  {
+    "id": "duo-choice-completed-100",
+    "scope": "shared",
+    "title": "Un ciel à notre image",
+    "description": "Réaliser 100 missions dont la variante a été choisie par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCompleted",
+      "threshold": 100
+    },
+    "order": 126,
+    "icon": "spark",
+    "target": 100
+  },
+  {
+    "id": "duo-choice-face-1",
+    "scope": "shared",
+    "title": "L’unique étoile",
+    "description": "Réaliser 3 missions avec un résultat 1 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 1
+    },
+    "order": 127,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-2",
+    "scope": "shared",
+    "title": "Deux possibles",
+    "description": "Réaliser 3 missions avec un résultat 2 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 2
+    },
+    "order": 128,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-3",
+    "scope": "shared",
+    "title": "Triangle de lumière",
+    "description": "Réaliser 3 missions avec un résultat 3 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 3
+    },
+    "order": 129,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-4",
+    "scope": "shared",
+    "title": "Les quatre fenêtres",
+    "description": "Réaliser 3 missions avec un résultat 4 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 4
+    },
+    "order": 130,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-5",
+    "scope": "shared",
+    "title": "Une poignée d’astres",
+    "description": "Réaliser 3 missions avec un résultat 5 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 5
+    },
+    "order": 131,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-face-6",
+    "scope": "shared",
+    "title": "Six horizons",
+    "description": "Réaliser 3 missions avec un résultat 6 au dé des variantes.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoFace",
+      "threshold": 3,
+      "face": 6
+    },
+    "order": 132,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-both-1",
+    "scope": "shared",
+    "title": "Premiers échos",
+    "description": "Chacun a choisi la variante d’une mission réalisée à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 1
+    },
+    "order": 133,
+    "icon": "spark",
+    "target": 1
+  },
+  {
+    "id": "duo-choice-both-3",
+    "scope": "shared",
+    "title": "Signaux réciproques",
+    "description": "Chacun a choisi la variante de 3 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 3
+    },
+    "order": 134,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-both-5",
+    "scope": "shared",
+    "title": "Échos croisés",
+    "description": "Chacun a choisi la variante de 5 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 5
+    },
+    "order": 135,
+    "icon": "spark",
+    "target": 5
+  },
+  {
+    "id": "duo-choice-both-10",
+    "scope": "shared",
+    "title": "L’orbite réciproque",
+    "description": "Chacun a choisi la variante de 10 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 10
+    },
+    "order": 136,
+    "icon": "spark",
+    "target": 10
+  },
+  {
+    "id": "duo-choice-both-20",
+    "scope": "shared",
+    "title": "Deux voix dans la nuit",
+    "description": "Chacun a choisi la variante de 20 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 20
+    },
+    "order": 137,
+    "icon": "spark",
+    "target": 20
+  },
+  {
+    "id": "duo-choice-both-50",
+    "scope": "shared",
+    "title": "Nos lumières se répondent",
+    "description": "Chacun a choisi la variante de 50 missions réalisées à deux.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBoth",
+      "threshold": 50
+    },
+    "order": 138,
+    "icon": "spark",
+    "target": 50
+  },
+  {
+    "id": "duo-choice-bonus-1",
+    "scope": "shared",
+    "title": "Une autre éclaircie",
+    "description": "Réaliser une mission issue d’une relance offerte par Passer.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBonus",
+      "threshold": 1
+    },
+    "order": 139,
+    "icon": "spark",
+    "target": 1
+  },
+  {
+    "id": "duo-choice-bonus-3",
+    "scope": "shared",
+    "title": "Second souffle",
+    "description": "Réaliser 3 missions issues d’une relance offerte par Passer.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBonus",
+      "threshold": 3
+    },
+    "order": 140,
+    "icon": "spark",
+    "target": 3
+  },
+  {
+    "id": "duo-choice-bonus-10",
+    "scope": "shared",
+    "title": "Les détours heureux",
+    "description": "Réaliser 10 missions issues d’une relance offerte par Passer.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoBonus",
+      "threshold": 10
+    },
+    "order": 141,
+    "icon": "spark",
+    "target": 10
+  },
+  {
+    "id": "duo-choice-categories",
+    "scope": "shared",
+    "title": "Les quatre saisons du ciel",
+    "description": "Réaliser une mission avec variante choisie dans chacune des quatre catégories.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCategories",
+      "threshold": 4
+    },
+    "order": 142,
+    "icon": "spark",
+    "target": 4
+  },
+  {
+    "id": "duo-choice-cards",
+    "scope": "shared",
+    "title": "Les chemins multiples",
+    "description": "Réaliser six cartes différentes avec une variante choisie.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoCards",
+      "threshold": 6
+    },
+    "order": 143,
+    "icon": "spark",
+    "target": 6
+  },
+  {
+    "id": "duo-choice-variants",
+    "scope": "shared",
+    "title": "La palette des possibles",
+    "description": "Réaliser douze variantes distinctes choisies par le compagnon.",
+    "family": "duo-choice",
+    "tier": 2,
+    "criterion": {
+      "metric": "duoVariants",
+      "threshold": 12
+    },
+    "order": 144,
+    "icon": "spark",
+    "target": 12
+  }
+];
   const badgeCatalog=[
     {"id":"ind-draws-1","scope":"individual","title":"Premier lancer, premier sourire","description":"Effectuer un premier tirage de catégorie.","family":"draws","tier":1,"criterion":{"metric":"draws","threshold":1},"order":1,"icon":"dice","target":1},
     {"id":"ind-draws-5","scope":"individual","title":"Dés en confiance","description":"Effectuer 5 tirages de catégorie.","family":"draws","tier":1,"criterion":{"metric":"draws","threshold":5},"order":2,"icon":"dice","target":5},
@@ -1492,12 +1909,13 @@
     {"id":"duo-hc-studio-3","scope":"shared","title":"Studio sous tension","description":"Valider ensemble 3 fois « Séance photo BDSM », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-13"},"order":88,"icon":"spark","target":3},
     {"id":"duo-hc-glide-3","scope":"shared","title":"Glissement de terrain","description":"Valider ensemble 3 fois « Massage Nuru », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-15"},"order":89,"icon":"spark","target":3},
     {"id":"duo-hc-remake-3","scope":"shared","title":"Oscar du meilleur remake maison","description":"Valider ensemble 3 fois « Reproduction d’un film porno », avec vos deux coches.","family":"hardcore-specific","tier":2,"criterion":{"metric":"completed","threshold":3,"cardId":"hardcore-16"},"order":90,"icon":"spark","target":3},
-    ...challengeBadges
+    ...challengeBadges,
+    ...choiceBadges
   ];
 
   // Cumulative progression is private room data. It is deliberately excluded
   // from roomSharedKeys; only badgeView exposes the reader's own collection.
-  const badgeCatalogueVersion=3;
+  const badgeCatalogueVersion=4;
   const expansionBadges=badgeCatalog.slice(60,previousBadgeCount);
   // Keep existing badges earnable where their activity still exists on a new
   // face. The stored counters keep their original card/variant identities.
@@ -1538,11 +1956,12 @@
     calendar.streak=last!==null&&day===last+1?Math.min(Number.MAX_SAFE_INTEGER,calendar.streak+1):1;
     calendar.best=Math.max(calendar.best,calendar.streak);calendar.lastDay=key;
   }
+  const blankDuoProgress=()=>({completed:0,faces:{},chosenBy:{a:0,b:0},bonus:0,categories:{},cards:{},variants:{}});
   function blankIndividual(){
     return {...Object.fromEntries(progressMetrics.map(metric=>[metric,0])),byCategory:Object.fromEntries(progressCategories.map(id=>[id,Object.fromEntries(progressMetrics.map(metric=>[metric,0]))])),completedByCard:{},completedByVariant:{},activity:blankCalendar()};
   }
   function blankProgression(epoch){
-    return {version:1,catalogueVersion:badgeCatalogueVersion,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
+    return {version:1,catalogueVersion:badgeCatalogueVersion,epoch,individual:{a:blankIndividual(),b:blankIndividual()},shared:{duo:blankDuoProgress(),completed:0,byCategory:Object.fromEntries(progressCategories.map(id=>[id,0])),completedByCard:{},completedByVariant:{},completion:blankCalendar(),weekendCompleted:0},awards:{individual:{a:{},b:{}},shared:{}},sequences:{a:0,b:0}};
   }
   function progressCategory(record){return mergedCategory(record.categoryId||getCard(record.cardId)?.categoryId);}
   function completedVariantKey(record){
@@ -1557,6 +1976,13 @@
   }
   function addCompletionDetails(progress,task,at){
     const categoryId=progressCategory(task),variant=completedVariantKey(task);
+    if(task.duoChoice?.chosen!==null && task.duoChoice?.chosen!==undefined){
+      const duo=progress.shared.duo??=blankDuoProgress();
+      countUp(duo,'completed');countUp(duo.faces,task.duoChoice.roll);countUp(duo.chosenBy,task.to);
+      countUp(duo.categories,categoryId);countUp(duo.cards,task.cardId);
+      if(variant)countUp(duo.variants,variant);
+      if(task.duoChoice.bonus)countUp(duo,'bonus');
+    }
     countUp(progress.shared.completedByCard,task.cardId);
     if(variant)countUp(progress.shared.completedByVariant,variant);
     for(const actor of roomActors){
@@ -1573,6 +1999,14 @@
   function badgeMetric(progress,actor,badge){
     const criterion=badge.criterion,individual=badge.scope==='individual',data=individual?progress.individual[actor]:progress.shared;
     const category=criterion.categoryId;
+    const duo=progress.shared.duo||blankDuoProgress();
+    if(criterion.metric==='duoCompleted')return duo.completed;
+    if(criterion.metric==='duoFace')return duo.faces[criterion.face]||0;
+    if(criterion.metric==='duoBoth')return Math.min(duo.chosenBy.a,duo.chosenBy.b);
+    if(criterion.metric==='duoBonus')return duo.bonus;
+    if(criterion.metric==='duoCategories')return Object.keys(duo.categories).length;
+    if(criterion.metric==='duoCards')return Object.keys(duo.cards).length;
+    if(criterion.metric==='duoVariants')return Object.keys(duo.variants).length;
     if(['participations','completed'].includes(criterion.metric)){
       if(criterion.cardId){
         const variant=criterion.variantRoll!==undefined;
@@ -1610,6 +2044,7 @@
   function currentProgression(progress){
     if(progress.catalogueVersion===badgeCatalogueVersion)return progress;
     const upgraded=progressCopy(progress);
+    upgraded.shared.duo??=blankDuoProgress();
     // Import gains silently, preserving previous award order across both expansions.
     if((progress.catalogueVersion??1)<2)awardBadges(upgraded,null,true,expansionBadges);
     awardBadges(upgraded,null,true,challengeBadges);
@@ -1676,8 +2111,19 @@
   }
   function validProgression(progress,sequence){
     if(!progressObject(progress)||progress.version!==1||!Number.isSafeInteger(progress.epoch)||progress.epoch<1||progress.epoch>sequence||!progressObject(progress.individual)||!progressObject(progress.shared)||!progressObject(progress.awards)||!progressObject(progress.awards.individual)||!progressObject(progress.awards.shared)||!progressObject(progress.sequences))return false;
-    if(progress.catalogueVersion!==undefined&&![1,2,badgeCatalogueVersion].includes(progress.catalogueVersion))return false;
+    if(progress.catalogueVersion!==undefined&&![1,2,3,badgeCatalogueVersion].includes(progress.catalogueVersion))return false;
     const shared=progress.shared;
+    if(shared.duo!==undefined){
+      const d=shared.duo;
+      if(!progressObject(d)||!progressCounter(d.completed)||!progressCounter(d.bonus)||d.bonus>d.completed)return false;
+      if(!progressObject(d.faces)||!Object.entries(d.faces).every(([key,value])=>/^[1-6]$/.test(key)&&progressCounter(value)))return false;
+      if(!progressObject(d.chosenBy)||Object.keys(d.chosenBy).sort().join(',')!=='a,b'||!roomActors.every(actor=>progressCounter(d.chosenBy[actor])))return false;
+      if(d.chosenBy.a+d.chosenBy.b!==d.completed)return false;
+      if(!progressObject(d.categories)||!Object.entries(d.categories).every(([key,value])=>progressCategories.includes(key)&&progressCounter(value)))return false;
+      if(!validProgressMap(d.cards)||!validProgressMap(d.variants,true))return false;
+      if(Object.values(d.faces).reduce((a,b)=>a+b,0)!==d.completed)return false;
+      if(Object.values(d.categories).reduce((a,b)=>a+b,0)!==d.completed)return false;
+    }
     if(!progressCounter(shared.completed)||!progressCounter(shared.weekendCompleted)||shared.weekendCompleted>shared.completed||!progressObject(shared.byCategory)||Object.keys(shared.byCategory).sort().join(',')!==progressCategories.slice().sort().join(',')||!progressCategories.every(id=>progressCounter(shared.byCategory[id]))||!validProgressMap(shared.completedByCard)||!validProgressMap(shared.completedByVariant,true)||!validCalendar(shared.completion))return false;
     if(progressCategories.reduce((total,id)=>total+shared.byCategory[id],0)!==shared.completed)return false;
     const visibleSequences={a:[],b:[]};
@@ -1753,23 +2199,23 @@
     const today=calendarOrdinal(parisDateKey(at)),last=calendarOrdinal(activity.lastDay);
     return today!==null&&last!==null&&(today===last||today===last+1)?activity.streak:0;
   }
-  function badgeView(state,actor,{legacy=false}={}){
+  function badgeView(state,actor,{legacy=false,choiceLegacy=false}={}){
     if(!roomActors.includes(actor)||!(state?.version===2?validateRoom(state):validateState(state)))return null;
     const progress=state.progression?currentProgression(state.progression):initialProgression(state);
-    const catalogue=legacy?badgeCatalog.slice(0,previousBadgeCount):badgeCatalog;
+    const catalogue=legacy?badgeCatalog.slice(0,previousBadgeCount):choiceLegacy?badgeCatalog.slice(0,120):badgeCatalog;
     const items=catalogue.map(badge=>{
       const shared=badge.scope==='shared',stored=shared?progress.awards.shared[badge.id]:progress.awards.individual[actor][badge.id];
       const award=stored?{id:progress.epoch+':'+badge.scope+':'+(shared?'':actor+':')+badge.id,at:stored.at,sequence:shared?stored.sequenceByActor[actor]:stored.sequence,...(stored.source?{source:stored.source}:{})}:null;
       return {id:badge.id,progress:{value:badgeMetric(progress,actor,badge),target:badge.target},award};
     });
-    if(legacy){
+    if(legacy||choiceLegacy){
       const awards=items.map(item=>item.award).filter(Boolean).sort((a,b)=>a.sequence-b.sequence);
       awards.forEach((award,index)=>{award.sequence=index+1;});
     }
     return {version:1,epoch:progress.epoch,items};
   }
   function validateBadgeView(view,actor){
-    if(!progressObject(view)||Object.keys(view).sort().join(',')!=='epoch,items,version'||view.version!==1||!Number.isSafeInteger(view.epoch)||view.epoch<1||!Array.isArray(view.items)||![previousBadgeCount,badgeCatalog.length].includes(view.items.length)||actor!==undefined&&!roomActors.includes(actor))return false;
+    if(!progressObject(view)||Object.keys(view).sort().join(',')!=='epoch,items,version'||view.version!==1||!Number.isSafeInteger(view.epoch)||view.epoch<1||!Array.isArray(view.items)||![previousBadgeCount,120,badgeCatalog.length].includes(view.items.length)||actor!==undefined&&!roomActors.includes(actor))return false;
     const sequences=[];
     for(let index=0;index<view.items.length;index++){
       const badge=badgeCatalog[index],item=view.items[index];

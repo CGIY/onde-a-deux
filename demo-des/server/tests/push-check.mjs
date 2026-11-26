@@ -75,23 +75,34 @@ const sandbox={URL,Request,Response,Set,Object,Promise,self:{location:{origin:'h
 vm.runInNewContext(fs.readFileSync(new URL('../../sw.js',import.meta.url),'utf8'),sandbox);
 async function event(name,data){let pending;handlers[name]({...data,waitUntil:promise=>{pending=promise;}});await pending;}
 await event('push',{data:{json:()=>({kind:'invitation',eventId:'fixture',title:'DO NOT DISPLAY',body:'secret title',url:'https://attacker.example'})}});
-check(()=>assert.equal(shown[0].title,'D6 à deux'));
-check(()=>assert.equal(shown[0].options.body,'Un nouveau challenge t’attend.'));
+check(()=>assert.equal(shown[0].title,shown[0].title.toLocaleUpperCase('fr-FR')));
+check(()=>assert.match(shown[0].options.body,/CARTE|COMPAGNON|PROPOSITION|DÉCOUVRIR/));
 check(()=>assert.equal(shown[0].options.tag,'desir-fixture'));
 check(()=>assert.equal(shown[0].options.body.includes('secret'),false));
 check(()=>assert.equal(messages[0].type,'desir-state-refresh'));
 await event('push',{data:{json:()=>({kind:'draw-available',eventId:'draw'})}});
-check(()=>assert.equal(shown.at(-1).options.body,'Ton dé est prêt.'));
+check(()=>assert.match(shown.at(-1).options.body,/DÉ|TIRAGE|HASARD|CHANCE/));
 await event('pushsubscriptionchange',{});
 check(()=>assert.equal(messages.at(-1).type,'desir-subscription-changed','Only app windows are asked to reconcile their push subscription'));
 await event('push',{data:{json:()=>({kind:'task-reminder',eventId:'reminder',expiresAt:new Date(Date.now()+90*60000).toISOString(),body:'private'})}});
-check(()=>assert.equal(shown.at(-1).options.body,'Il reste 1 h 30 pour votre action.'));
+check(()=>assert.match(shown.at(-1).options.body,/ENCORE 1 H 30 POUR VOTRE MOMENT/));
 await event('push',{data:{json:()=>({kind:'task-reminder',eventId:'penalty',expiresAt:new Date(Date.now()+3*3600000).toISOString(),starPenalty:true})}});
-check(()=>assert.equal(shown.at(-1).options.body,'Il te reste 3 h pour cocher ta case. Si elle reste vide, tu peux perdre 1 étoile.'));
+check(()=>assert.match(shown.at(-1).options.body,/ENCORE 3 H POUR COCHER TA CASE.*UNE ÉTOILE/));
 const shownCount=shown.length;
 await event('push',{data:{json:()=>({kind:'task-reminder',eventId:'expired',expiresAt:new Date(Date.now()-60000).toISOString()})}});
 check(()=>assert.equal(shown.length,shownCount+1));
-check(()=>assert.equal(shown.at(-1).options.body,'Vos actions ont été actualisées.'));
+check(()=>assert.match(shown.at(-1).options.body,/VOTRE JEU A ÉTÉ ACTUALISÉ/));
+const notificationTitles=vm.runInContext('NOTIFICATION_TITLES',vm.createContext(sandbox));
+check(()=>assert.equal(notificationTitles.length,50));
+check(()=>assert.equal(new Set(notificationTitles).size,50));
+for(const kind of ['invitation','confirmation','task-ready','shared-moment','draw-available','task-reminder']){
+ for(let index=0;index<60;index++){
+  await event('push',{data:{json:()=>({kind,eventId:kind+'-'+index,expiresAt:new Date(Date.now()+3600000).toISOString()})}});
+  const shownNotice=shown.at(-1);
+  check(()=>assert.equal(shownNotice.title,shownNotice.title.toLocaleUpperCase('fr-FR')));
+  check(()=>assert.equal(shownNotice.options.body,shownNotice.options.body.toLocaleUpperCase('fr-FR')));
+ }
+}
 await event('notificationclick',{notification:{close(){},data:{url:'https://attacker.example'}}});
 check(()=>assert.equal(focused,1));check(()=>assert.equal(opened.length,0));
 clients=[];

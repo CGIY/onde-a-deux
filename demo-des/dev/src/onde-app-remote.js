@@ -1,9 +1,9 @@
 /* D6 à deux — device-bound connection to the authoritative game service. */
 (function(scope){
  'use strict';
- const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK']);
- const GAME_VERSION=8;
- const SUPPORTED_GAME_VERSIONS=[6,7,GAME_VERSION];
+ const TYPES=new Set(['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','NEW_ROUND','TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK','ROLL_CHOICES','PICK_CHOICE','PASS_CHOICE','BONUS_CARD','SEND_BONUS']);
+ const GAME_VERSION=9;
+ const SUPPORTED_GAME_VERSIONS=[6,7,8,GAME_VERSION];
  const TOKEN=/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  const REQUEST_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -56,7 +56,7 @@
    if(!SUPPORTED_GAME_VERSIONS.includes(raw.gameVersion))throw failure('invalid_response','La version reçue est invalide.');
    if(!Array.isArray(raw.incoming)||raw.incoming.length>80||state.round.from!==identity.actor)throw failure('invalid_response','Les tirages reçus sont invalides.');
    const incoming=raw.incoming.map(value=>G.normalizeState(value));
-   if(incoming.some(value=>!value||value.activePlayer!==identity.actor||value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
+   if(incoming.some(value=>!value||value.activePlayer!==identity.actor||!value.round.duoChoice&&value.round.from===identity.actor||value.phase!=='pending'||!G.canSeeRound(value,identity.actor))||new Set(incoming.map(value=>value.round.id)).size!==incoming.length)throw failure('invalid_response','L’invitation reçue est invalide.');
    const pendingOutgoing=raw.pendingOutgoing===undefined?0:raw.pendingOutgoing;
    if(!Number.isInteger(pendingOutgoing)||pendingOutgoing<0||pendingOutgoing>80)throw failure('invalid_response','Les invitations envoyées sont invalides.');
    const pairingCode=raw.paired?null:(typeof raw.pairingCode==='string'?raw.pairingCode:identity.pairingCode||null);
@@ -64,7 +64,7 @@
    let roll;
    if(raw.roll!==undefined){
     const kind=raw.roll?.kind,value=raw.roll?.value;
-    const validD8=kind===8&&raw.gameVersion>=7&&G.cardSides(state)===8&&state.round.cardRoll===value;
+    const validD8=kind===8&&raw.gameVersion>=7&&[state,...incoming].some(view=>G.cardSides(view)===8&&view.round.cardRoll===value);
     if(!([4,6,20].includes(kind)||validD8)||!Number.isInteger(value)||value<1||value>kind)throw failure('invalid_response','Le résultat du dé n’a pas pu être confirmé.');
     roll={kind,value};
    }
@@ -160,6 +160,7 @@
    if(!action||!TYPES.has(action.type))throw failure('not_allowed','Cette action n’est pas disponible.');
    if(typeof action.roundId!=='string'||!ROUND_ID.test(action.roundId))throw failure('invalid_action','Le tour n’a pas pu être identifié. Actualise la partie.');
    const value={type:action.type,roundId:action.roundId};
+   if(action.type==='PICK_CHOICE'){if(!Number.isInteger(action.choice)||action.choice<1||action.choice>6)throw failure('invalid_action','Variante invalide.');value.choice=action.choice;}
    if(action.type==='SEND' && action.starPenalty===true)value.starPenalty=true;
    if(action.type==='JOKER_DRAW'){
     if(!Number.isInteger(action.category)||action.category<1||action.category>4)throw failure('invalid_action','La catégorie n’a pas pu être identifiée.');

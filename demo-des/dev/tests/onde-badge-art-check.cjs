@@ -28,7 +28,7 @@ function inspect(svg,id){
 }
 
 assert.equal(Art.version,3);
-assert.equal(Art.ids.length,120);
+assert.equal(Art.ids.length,144);
 assert.deepEqual(Art.ids,G.badgeCatalog.map(badge=>badge.id),'the artwork follows the full catalogue order');
 assert.deepEqual(Art.catalogue.map(item=>item.id),Art.ids);
 assert.equal(new Set(Art.ids).size,Art.ids.length);

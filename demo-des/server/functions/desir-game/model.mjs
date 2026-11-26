@@ -3,12 +3,13 @@ export class HttpError extends Error {
 }
 const copy=value=>JSON.parse(JSON.stringify(value));
 const commonTypes=['ROLL_CATEGORY','ROLL_CARD','ROLL_VARIANT','REROLL_CARD','REROLL_CATEGORY','JOKER_DRAW','SEND','REFUSE_TASK','NEW_ROUND','TOGGLE_TASK_CHECK'];
-const allowedTypes=new Set([...commonTypes,'EXTEND_TASK']);
+const choiceTypes=['ROLL_CHOICES','PICK_CHOICE','PASS_CHOICE','BONUS_CARD','SEND_BONUS'];
+const allowedTypes=new Set([...commonTypes,'EXTEND_TASK',...choiceTypes]);
 const legacyTypes=new Set([...commonTypes,'SEND_DAILY','ACCEPT','PASS']);
 const taskTypes=new Set(['TOGGLE_TASK_CHECK','REFUSE_TASK','EXTEND_TASK']);
 // Pin the catalogue to the client capability so older clients keep drawing
 // cards they can display after a server upgrade.
-const catalogueForGame=new Map([[6,3],[7,4],[8,5]]);
+const catalogueForGame=new Map([[6,3],[7,4],[8,5],[9,5]]);
 export const supportsParallelGame=version=>catalogueForGame.has(version);
 const requiresNewCatalogue=(entry,version)=>catalogueForGame.has(version)&&entry?.catalogueVersion>catalogueForGame.get(version);
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -29,11 +30,16 @@ function parseKnownAction(input,types){
   if(input.type==='REFUSE_TASK')keys.push('starCost');
   if(input.type==='JOKER_DRAW')keys.push('category');
   if(input.type==='SEND')keys.push('starPenalty');
+  if(input.type==='PICK_CHOICE')keys.push('choice');
   if(Object.keys(input).some(key=>!keys.includes(key))||typeof input.roundId!=='string'||!/^onde-[1-9]\d*$/.test(input.roundId))throw new HttpError(400,'invalid_action','Action invalide.');
   const action={type:input.type,roundId:input.roundId};
   if(input.type==='SEND' && Object.hasOwn(input,'starPenalty')){
     if(input.starPenalty!==true)throw new HttpError(400,'invalid_action','Action invalide.');
     action.starPenalty=true;
+  }
+  if(input.type==='PICK_CHOICE'){
+    if(!Number.isInteger(input.choice)||input.choice<1||input.choice>6)throw new HttpError(400,'invalid_action','Variante invalide.');
+    action.choice=input.choice;
   }
   if(input.type==='TOGGLE_TASK_CHECK'){
     if(typeof input.taskId!=='string'||!/^onde-[1-9]\d*$/.test(input.taskId)||typeof input.checked!=='boolean')throw new HttpError(400,'invalid_action','Case invalide.');
@@ -55,6 +61,7 @@ function parseKnownAction(input,types){
 }
 export function assertClientCompatibility(G,full,actor,gameVersion){
   const requiresUpgrade=entry=>requiresNewCatalogue(entry,gameVersion);
+  if(gameVersion<9 && (full.pendingRounds?.some(lane=>lane.round.duoChoice)||full.tasks?.some(task=>task.duoChoice)))throw new HttpError(409,'upgrade_required','Une nouvelle façon de jouer vous attend. Rouvre D6 à deux.');
   if(full?.version===2){
     if(!supportsParallelGame(gameVersion))throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
     if(requiresUpgrade(full.lanes[actor]?.round)||full.tasks.some(requiresUpgrade)||full.pendingRounds.some(lane=>requiresUpgrade(lane.round))){
@@ -79,7 +86,7 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
   delete projected.progression;
   delete projected.taskPenaltyDays;
   for(const task of projected.tasks){delete task.starPenalty;delete task.failedRefusalRoll;}
-  if(gameVersion!==8)delete projected.cardRerollWallets;
+  if(gameVersion<8)delete projected.cardRerollWallets;
   projected.history=projected.history.filter(round=>
     (gameVersion>=2||!(round.catalogueVersion>=2)) &&
     !requiresNewCatalogue(round,gameVersion) &&
@@ -101,14 +108,14 @@ export function projectState(G,full,actor,gameVersion=2,roundId){
 export function snapshot(G,context,extra={},gameVersion=2){
   const full=context.room.state,actor=context.member.actor;
   assertClientCompatibility(G,full,actor,gameVersion);
-  const badges=G.badgeView(full,actor,{legacy:gameVersion<8});
+  const badges=G.badgeView(full,actor,{legacy:gameVersion<8,choiceLegacy:gameVersion<9});
   if(full?.version===2){
     if(!G.validateRoom(full))throw new Error('Invalid authoritative room');
     const own=G.roomView(full,actor);
     const invitations=full.pendingRounds.map(item=>G.roomView(full,actor,item.round.id)).filter(value=>value?.phase==='pending'&&G.canSeeRound(value,actor));
-    const incoming=invitations.filter(value=>value.round.from!==actor).map(value=>projectState(G,value,actor,gameVersion));
+    const incoming=invitations.filter(value=>value.round.duoChoice||value.round.from!==actor).map(value=>projectState(G,value,actor,gameVersion));
     const pendingOutgoing=invitations.filter(value=>value.round.from===actor).length;
-    const missionFeatures=gameVersion===8?{
+    const missionFeatures=gameVersion>=8?{
       canExtendTasks:true,
       penaltyTaskIds:own.tasks.filter(task=>task.starPenalty&&task.failedRefusalRoll===undefined).map(task=>task.id),
       failedRefusals:Object.fromEntries(own.tasks.filter(task=>task.to===actor&&task.failedRefusalRoll!==undefined).map(task=>[task.id,task.failedRefusalRoll]))
@@ -139,6 +146,7 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   if(gameVersion===3||gameVersion===4||gameVersion===5)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(!supportsParallelGame(gameVersion))return applyLegacyAction(G,full,actor,input,requestId,at,randomInt,gameVersion);
   const action=parseAction(input);
+  if(choiceTypes.includes(action.type)&&gameVersion<9)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour choisir une variante.');
   if((action.type==='EXTEND_TASK'||action.starPenalty)&&gameVersion<8)throw new HttpError(409,'upgrade_required','Rouvre D6 à deux pour utiliser la nouvelle version.');
   if(!validRequestId(requestId))throw new HttpError(400,'invalid_request_id','Identifiant de requête invalide.');
   const room=G.normalizeRoom(full,{at});
@@ -153,8 +161,32 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   const boost=activeCategoryBoost(G,room,at);
   const boosted=!!boost&&boost.actor===actor&&['ROLL_CATEGORY','REROLL_CATEGORY'].includes(action.type);
   let roll;
-  if(action.type==='SEND')action.directQueue=true;
-  if(action.type==='REFUSE_TASK'){
+  if(action.type==='SEND')action.directQueue=!target.round.duoChoice;
+  if(gameVersion>=9 && ['ROLL_CATEGORY','REROLL_CATEGORY','JOKER_DRAW'].includes(action.type))action.companionChoice=true;
+  if(choiceTypes.includes(action.type)){
+    const r=target.round,c=r.duoChoice;
+    if(target.phase!=='pending'||!c)throw new HttpError(409,'invalid_phase','Cette proposition a changé.');
+    if(['ROLL_CHOICES','PICK_CHOICE','PASS_CHOICE'].includes(action.type)&&(actor!==r.to||c.passed||c.ready))throw new HttpError(409,'invalid_phase','Cette proposition attend ton compagnon.');
+    if(['BONUS_CARD','SEND_BONUS'].includes(action.type)&&actor!==r.from)throw new HttpError(409,'invalid_phase','Cette relance appartient à ton compagnon.');
+    if(action.type==='ROLL_CHOICES'){
+      if(c.roll!==null)throw new HttpError(409,'invalid_phase','Les variantes sont déjà révélées.');
+      const value=randomInt(6),pool=[1,2,3,4,5,6];
+      if(!Number.isInteger(value)||value<1||value>6)throw new Error('Invalid choice die');
+      const options=[];
+      for(let i=0;i<value;i++){
+        const rank=randomInt(pool.length);
+        if(!Number.isInteger(rank)||rank<1||rank>pool.length)throw new Error('Invalid choice sampling');
+        options.push(pool.splice(rank-1,1)[0]);
+      }
+      Object.assign(action,{value,options});roll={kind:6,value};
+    }
+    if(action.type==='BONUS_CARD'){
+      if(!c.passed)throw new HttpError(409,'invalid_phase','Cette relance est déjà utilisée.');
+      const options=r.hand.map((_,index)=>index+1).filter(face=>face!==r.cardRoll),rank=randomInt(options.length);
+      if(!Number.isInteger(rank)||rank<1||rank>options.length)throw new Error('Invalid bonus roll');
+      action.value=options[rank-1];roll={kind:r.hand.length,value:action.value};
+    }
+  }else if(action.type==='REFUSE_TASK'){
     if(action.roundId!==target.round.id)throw new HttpError(409,'stale_round','Le tour a changé.');
     const task=room.tasks.find(item=>item.id===action.taskId);
     if(!task||task.to!==actor||Date.parse(task.expiresAt)<=Date.parse(at))throw new HttpError(409,'invalid_phase','Ce défi n’est plus disponible.');
@@ -197,7 +229,10 @@ export function applyAction(G,full,actor,input,requestId,at,randomInt=G.randomIn
   if(boost&&(!boosted||boost.remaining>1))next.categoryBoost={...boost,remaining:boost.remaining-(boosted?1:0)};
   if(!G.validateRoom(next))throw new Error('Core returned an invalid room');
   const queued=action.type==='SEND'?next.tasks.find(task=>task.id===target.round.id):null;
-  const notification=queued?{actor:queued.to,kind:'invitation',roundId:queued.id}:null;
+  let notification=queued?{actor:queued.to,kind:'invitation',roundId:queued.id}:null;
+  if(action.type==='SEND'&&target.round.duoChoice||action.type==='SEND_BONUS')notification={actor:target.round.to,kind:'invitation',roundId:target.round.id};
+  if(action.type==='PICK_CHOICE')notification={actor:target.round.from,kind:'confirmation',roundId:target.round.id};
+  if(action.type==='PASS_CHOICE')notification={actor:target.round.from,kind:'confirmation',roundId:target.round.id};
   return {state:next,roll,notification,consumeTicket:['ROLL_CATEGORY','JOKER_DRAW'].includes(action.type)};
 }
 function applyLegacyAction(G,full,actor,input,requestId,at,randomInt=G.randomInt,gameVersion=1){

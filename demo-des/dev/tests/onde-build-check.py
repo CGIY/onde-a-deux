@@ -165,12 +165,12 @@ class BadgeArtworkBuild(BuildFixture):
         folder = self.demo / 'badges'
         manifest = json.loads((folder / 'manifest.json').read_text())
         self.assertEqual(manifest['version'], 2)
-        self.assertEqual(manifest['count'], 120)
+        self.assertEqual(manifest['count'], 144)
         rows = manifest['assets']
-        self.assertEqual(len(rows), 120)
-        self.assertEqual(len({row['id'] for row in rows}), 120)
+        self.assertEqual(len(rows), 144)
+        self.assertEqual(len({row['id'] for row in rows}), 144)
         self.assertEqual(sum(row['scope'] == 'individual' for row in rows), 30)
-        self.assertEqual(sum(row['scope'] == 'shared' for row in rows), 90)
+        self.assertEqual(sum(row['scope'] == 'shared' for row in rows), 114)
         with zipfile.ZipFile(folder / 'desir-badges.zip') as archive:
             self.assertEqual(set(archive.namelist()), {row['file'] for row in rows} | {'manifest.json'})
             for row in rows:

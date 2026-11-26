@@ -32,10 +32,10 @@ function complete(room,actor='a',cardId=G.cards[0].id,variantRoll=1,time=at){
 }
 // Catalogue checks use real cards and fixed IDs. The one approved description
 // differs intentionally from the source JSON supplied during catalogue review.
-eq(G.badgeCatalog.length,120);eq(new Set(G.badgeCatalog.map(badge=>badge.id)).size,120);
-eq(new Set(G.badgeCatalog.map(badge=>badge.title)).size,120);
+eq(G.badgeCatalog.length,144);eq(new Set(G.badgeCatalog.map(badge=>badge.id)).size,144);
+eq(new Set(G.badgeCatalog.map(badge=>badge.title)).size,144);
 eq(createHash('sha256').update(JSON.stringify(G.badgeCatalog.slice(0,60))).digest('hex'),'07e582394b90cb521db7cfd3c430f2a4dbbfcd54d8c96da95c7411d7a13cdae9','all original definitions remain byte-for-byte equivalent');
-for(const scope of ['individual','shared'])eq(G.badgeCatalog.filter(badge=>badge.scope===scope).length,scope==='individual'?30:90);
+for(const scope of ['individual','shared'])eq(G.badgeCatalog.filter(badge=>badge.scope===scope).length,scope==='individual'?30:114);
 for(const badge of G.badgeCatalog){
  ok(Number.isSafeInteger(badge.target)&&badge.target>0);eq(badge.target,badge.criterion.threshold);
  if(badge.criterion.categoryId)ok(G.categories.some(category=>category.id===badge.criterion.categoryId));

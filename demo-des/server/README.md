@@ -1,3 +1,17 @@
+# Mise à jour du parcours — protocole 9
+
+Les nouvelles manches utilisent le catalogue 5 existant et portent une propriété `duoChoice`. `SEND` conserve la proposition dans `pendingRounds`. Le destinataire appelle `ROLL_CHOICES`, puis `PICK_CHOICE` avec un numéro inclus dans les options confirmées. Le serveur produit le D6 et l’échantillonnage sans doublon. La mission et les 24 h commencent au choix confirmé.
+
+`PASS_CHOICE` est gratuit. Le premier passage ouvre `BONUS_CARD` pour l’expéditeur, puis `SEND_BONUS` propose le résultat. Le second passage termine cette proposition. Le bonus exclut la première carte, reste dans la même catégorie et ne consomme ni quota ni étoile. Les cinq commandes utilisent les reçus, la révision et la transaction existants.
+
+La projection `incoming` contient aussi les propositions `duoChoice` envoyées par le lecteur pour leur suivi et leur relance. Les tirages personnels des autres profils restent privés. Un client antérieur au protocole 9 est invité à recharger lorsqu’une proposition ou une mission de ce parcours est active. Les reçus des protocoles 6 à 8 restent repris avec leur version d’origine.
+
+Le registre de progression ajoute des compteurs cumulatifs facultatifs pour les 24 nouvelles constellations. Les anciens compteurs et attributions restent valides. Les gains du nouveau parcours sont crédités après les deux coches, avec le destinataire comme auteur du choix. La collection complète contient 144 définitions.
+
+Les événements utilisent les types de notification existants `invitation` et `confirmation`. Aucune migration SQL supplémentaire n’est requise. Déployer la fonction avec son moteur synchronisé avant de publier le client 0.5.0.
+
+Les sections suivantes documentent également les protocoles précédents.
+
 # D6 à deux — service de jeu
 
 Le service utilise le moteur canonique `demo-des/dev/src/onde-app-core.js`, copié dans `functions/desir-game/core.js` avant déploiement. Les tirages, les dates et les deux coches sont traités côté serveur. Le navigateur reçoit uniquement la projection autorisée pour son compte.

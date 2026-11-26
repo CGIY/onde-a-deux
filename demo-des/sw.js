@@ -3,7 +3,7 @@
 const APP_URL = new URL('./', self.registration.scope).href;
 const APP_PATH = new URL(APP_URL).pathname;
 const CACHE_PREFIX = 'desir-shell:' + APP_PATH + ':';
-const RELEASE_VERSION = '0.4.17';
+const RELEASE_VERSION = '0.5.0';
 const CACHE_NAME = CACHE_PREFIX + 'connected-' + RELEASE_VERSION;
 const INDEX_URL = new URL('./index.html', APP_URL).href;
 const RELEASE_KEY = 'd6-release';
@@ -87,35 +87,125 @@ self.addEventListener('fetch', event => {
   })());
 });
 
+const NOTIFICATION_TITLES = Object.freeze([
+  "À TON TOUR DE BRILLER !",
+  "LE HASARD FRAPPE À LA PORTE !",
+  "IL SE PASSE UN TRUC PAR ICI !",
+  "PETIT SIGNAL, GRANDE CURIOSITÉ !",
+  "TON DUO FAIT DES ÉTINCELLES !",
+  "LA SUITE SE JOUE À DEUX !",
+  "UN CLIN D’ŒIL DANS TA POCHE !",
+  "LES DÉS ONT DE LA SUITE DANS LES IDÉES !",
+  "ÇA BOUGE SOUS LES ÉTOILES !",
+  "TOC TOC, C’EST VOTRE JEU !",
+  "UNE PETITE PARENTHÈSE VOUS ATTEND !",
+  "LE CIEL A UN MESSAGE POUR TOI !",
+  "PETITE ALERTE COMPLICITÉ !",
+  "LA BALLE REBONDIT ENTRE VOUS !",
+  "UN NOUVEAU CHAPITRE S’ALLUME !",
+  "VOTRE DUO EST DANS LA PLACE !",
+  "IL Y A DU MOUVEMENT EN ORBITE !",
+  "LA CURIOSITÉ A SONNÉ !",
+  "DU NOUVEAU DANS VOTRE GALAXIE !",
+  "UN PETIT TOUR DU CÔTÉ DE VOUS ?",
+  "LES ASTRES ONT QUELQUE CHOSE À DIRE !",
+  "VOTRE HISTOIRE FAIT UN PETIT BOND !",
+  "BONJOUR LES POSSIBLES !",
+  "LA COMPLICITÉ ENVOIE UN SIGNAL !",
+  "UN RENDEZ-VOUS AVEC LE HASARD !",
+  "LA PETITE ÉTINCELLE DU JOUR !",
+  "ÇA MÉRITE UN PETIT COUP D’ŒIL !",
+  "VOTRE JEU REPREND LA PAROLE !",
+  "EN APPROCHE DE VOTRE DUO !",
+  "UN MESSAGE DE VOTRE PETITE PLANÈTE !",
+  "LA SURPRISE A TROUVÉ LE CHEMIN !",
+  "VOTRE BULLE FAIT COUCOU !",
+  "QUELQUE CHOSE SE DESSINE À DEUX !",
+  "LE HASARD A MIS SA PLUS BELLE TENUE !",
+  "UN NOUVEAU SIGNAL SUR LE RADAR !",
+  "PETIT DÉTOUR PAR VOTRE UNIVERS !",
+  "ON A QUELQUE CHOSE POUR VOUS !",
+  "LE FIL DE VOTRE JEU CONTINUE !",
+  "VOTRE CONSTELLATION S’AGITE !",
+  "LA CHANCE VOUS FAIT UN SIGNE !",
+  "DEUX JOUEURS, UN PETIT SUSPENSE !",
+  "VOTRE PROCHAINE PARENTHÈSE S’ANNONCE !",
+  "UNE ONDE COMPLICE PASSE PAR ICI !",
+  "LES POSSIBLES FONT LEUR ENTRÉE !",
+  "PETITE NOUVELLE DE VOTRE DUO !",
+  "ÇA S’ANIME DANS VOTRE COIN DU CIEL !",
+  "LE JEU VOUS ADRESSE UN SOURIRE !",
+  "QUELQUES ÉTOILES DANS LE QUOTIDIEN !",
+  "UNE PETITE SURPRISE SE GLISSE ICI !",
+  "LA SUITE VOUS FAIT DE L’ŒIL !"
+]);
 const MESSAGES = Object.freeze({
-  invitation: 'Un nouveau challenge t’attend.',
-  confirmation: 'Vos challenges ont été actualisés.',
-  'task-ready': 'Une mission vous attend.',
-  'shared-moment': 'Un moment partagé a été validé.',
-  'draw-available': 'Ton dé est prêt.',
-  'task-reminder': 'Une mission vous attend.'
+  "invitation": [
+    "UNE CARTE T’ATTEND. VIENS DÉCOUVRIR LES POSSIBLES !",
+    "TON COMPAGNON A UNE IDÉE. À TOI D’ENTRER EN JEU !",
+    "UNE PROPOSITION VIENT D’ARRIVER. CURIEUX ?",
+    "UNE CARTE POUR VOUS DEUX. VIENS Y JETER UN ŒIL !",
+    "À TON TOUR DE DÉCOUVRIR CE QUI SE PRÉPARE !"
+  ],
+  "confirmation": [
+    "VOTRE PROPOSITION A ÉVOLUÉ. VIENS VOIR LA SUITE !",
+    "LA BALLE CHANGE DE CAMP. UN PETIT TOUR DANS LE JEU ?",
+    "DU NOUVEAU SUR VOTRE CARTE. LES POSSIBLES CONTINUENT !",
+    "VOTRE MANCHE A BOUGÉ. LA SUITE EST DANS LE JEU !",
+    "UN CHANGEMENT VOUS ATTEND. ON CONTINUE ?"
+  ],
+  "task-ready": [
+    "UNE VARIANTE EST CHOISIE. VOTRE MOMENT VOUS ATTEND !",
+    "VOTRE MISSION EST PRÊTE. À VOUS D’EN FAIRE UN MOMENT !",
+    "LE CHOIX EST FAIT. UNE NOUVELLE PARENTHÈSE S’OUVRE !",
+    "C’EST CHOISI. RETROUVEZ VOTRE IDÉE DANS LES MISSIONS !",
+    "VOTRE CARTE A TROUVÉ SA FAÇON DE JOUER !"
+  ],
+  "shared-moment": [
+    "DEUX COCHES, UN POINT. BIEN JOUÉ LE DUO !",
+    "UN MOMENT PARTAGÉ REJOINT VOTRE HISTOIRE !",
+    "VOUS L’AVEZ FAIT À DEUX. UNE ÉTOILE DANS LE QUOTIDIEN !",
+    "VOTRE SCORE COMMUN VIENT DE GRANDIR !",
+    "UNE MISSION VALIDÉE. VOTRE COMPLICITÉ PREND FORME !"
+  ],
+  "draw-available": [
+    "TON DÉ EST PRÊT. QUELLE IDÉE VA-T-IL TROUVER ?",
+    "LE HASARD EST DE RETOUR. ENVIE DE JOUER ?",
+    "UN NOUVEAU TIRAGE T’ATTEND. À TOI DE LANCER !",
+    "LES DÉS SONT PRÊTS POUR VOTRE PROCHAINE IDÉE !",
+    "UNE NOUVELLE CHANCE DE VOUS SURPRENDRE EST DISPONIBLE !"
+  ],
+  "task-reminder": [
+    "UNE MISSION EST ENCORE OUVERTE. ENVIE D’Y REVENIR ?",
+    "VOTRE PETITE PARENTHÈSE EST TOUJOURS AU PROGRAMME !",
+    "UN MOMENT À DEUX ATTEND SA SUITE !",
+    "VOTRE CARTE EST ENCORE LÀ. UN COUP D’ŒIL ?",
+    "UN PETIT RAPPEL DE VOTRE JEU À DEUX !"
+  ]
 });
+function notificationSeed(value){let hash=2166136261;for(const char of value)hash=Math.imul(hash^char.charCodeAt(0),16777619);return hash>>>0;}
 function safeNotification(raw) {
   const data = raw && typeof raw === 'object' ? raw : {};
   const kind = Object.prototype.hasOwnProperty.call(MESSAGES, data.kind) ? data.kind : 'invitation';
-  let body = MESSAGES[kind];
+  const seed=notificationSeed(String(data.eventId||kind));
+  let body = MESSAGES[kind][Math.floor(seed / NOTIFICATION_TITLES.length) % MESSAGES[kind].length];
   if (kind === 'task-reminder') {
     const remaining = Date.parse(data.expiresAt) - Date.now();
     if (remaining > 0) {
       const minutes = Math.max(1, Math.ceil(remaining / 60000));
       const hours = Math.floor(minutes / 60), rest = minutes % 60;
       const time = hours ? hours + ' h' + (rest ? ' ' + rest : '') : minutes + ' min';
-      body = 'Il reste ' + time + ' pour votre action.';
-      if(data.starPenalty===true)body='Il te reste '+time+' pour cocher ta case. Si elle reste vide, tu peux perdre 1 étoile.';
+      body += ' ENCORE ' + time.toLocaleUpperCase('fr-FR') + ' POUR VOTRE MOMENT.';
+      if(data.starPenalty===true)body+=' ENCORE '+time.toLocaleUpperCase('fr-FR')+' POUR COCHER TA CASE. UNE ÉTOILE EST EN JEU À L’ÉCHÉANCE.';
     } else {
       // WebKit requires every received push to show a notification. A delayed
       // message must not revoke the subscription or advertise an expired task.
-      body = 'Vos actions ont été actualisées.';
+      body = 'VOTRE JEU A ÉTÉ ACTUALISÉ. VIENS DÉCOUVRIR LA SUITE !';
     }
   }
   const eventId = typeof data.eventId === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(data.eventId) ? data.eventId : kind;
   return {
-    title: 'D6 à deux',
+    title: NOTIFICATION_TITLES[seed % NOTIFICATION_TITLES.length],
     options: {
       body,
       icon: new URL('./icons/desir-192.png', APP_URL).href,
