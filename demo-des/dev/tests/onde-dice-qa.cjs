@@ -37,6 +37,22 @@ for(const kind of [4,6,8,20])for(let value=1;value<=kind;value++){
 function advance(t){now=t;const callbacks=[...queue.values()];queue.clear();for(const callback of callbacks)callback(t);return {m:uniforms.uRotation.slice(),p:uniforms.uPosition.slice(),s:uniforms.uScale.slice(),ink:uniforms.uResultLight};}
 let worstJoin=0,joins=0,inkJoins=0,boundSamples=0;
 (async()=>{
+ // Cosmic material follows the existing clock, never the confirmed face.
+ {
+  const shader=q.FRAGMENT.split('if(uCosmic>0.){')[1].split('outputAlpha=coverage')[0];
+  assert.doesNotMatch(shader,/uValue|resultFace|idx|mark/,'the cosmic material cannot encode the result');
+  const die=window.OndeDice.create(makeCanvas(),{kind:6});
+  const levels=[];
+  for(const face of [1,6]){
+   now+=3000;const start=now,work=die.roll(face);
+   advance(start+400);levels.push(uniforms.uCosmic);assert(uniforms.uCosmic>.9);
+   advance(start+2000);await work;assert.equal(uniforms.uCosmic,0,'the final face returns to readable mineral');
+   assert.equal(die.value,face);
+  }
+  assert.equal(levels[0],levels[1],'identical material envelope for different results');
+  die.setReducedMotion(true);const work=die.roll(3);await work;assert.equal(uniforms.uCosmic,0);
+  die.destroy();queue.clear();now=0;
+ }
  // ResizeObserver can report the same box again after the canvas is reattached.
  {
   let resize,disconnected=false;

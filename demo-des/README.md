@@ -1,8 +1,8 @@
-# D6 à deux — version web 0.5.1
+# D6 à deux — version web 0.5.2
 
-## Filaments cosmiques des dés
+## Matière cosmique des dés
 
-Des filaments fins, arcs d’orbite et poussières lumineuses se dissipent autour du dé. La couche reste derrière le dé et n’encode aucun résultat : quantité et palette constantes, tracés choisis indépendamment avant le lancer. Aucun délai supplémentaire ; réduction des mouvements et arrière-plan respectés.
+Pendant le lancer WebGL, la matière du dé devient un nuage de particules lumineuses traversé de filaments et de nappes spectrales. L'effet est calculé dans les coordonnées du dé et limité à sa géométrie réelle : aucun dessin flottant ajouté autour. La matière et la face lisible reviennent progressivement à la fin du lancer. L'effet ne dépend ni du résultat ni de la face choisie ; réduction des mouvements, arrière-plan et durées existantes sont respectés. Le rendu de secours conserve le dé minéral.
 
 ## Le choix du compagnon — 0.5.0
 

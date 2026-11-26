@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.5.1">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.5.2">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -3406,7 +3406,7 @@ uniform mat3 uRotation;
 uniform vec3 uPosition,uScale,uColor,uRimColor;
 uniform int uType,uCount;
 uniform vec3 uNormals[20],uTangents[20],uBitangents[20];
-uniform float uOffset,uBound,uValue,uResultLight;
+uniform float uOffset,uBound,uValue,uResultLight,uCosmic,uCosmicTime;
 uniform vec2 uIconScale;
 uniform float uAtlasRows;
 uniform sampler2D uAtlas;
@@ -3425,6 +3425,15 @@ vec3 worldGradient(vec3 lp){return (uRotation*localGradient(lp))/uScale*min(uSca
 // The padded, black cell edge keeps adjacent numerals out of both ink and bump samples.
 float stamp(vec2 uv,float idx){vec2 cell=vec2(mod(idx,4.),floor(idx/4.));vec2 inset=clamp(uv,vec2(.035),vec2(.965));return texture2D(uAtlas,(cell+vec2(inset.x,1.-inset.y))/vec2(4.,uAtlasRows)).r;}
 float grain(vec3 p){return sin(p.x*71.)*sin(p.y*59.+sin(p.z*43.))*sin(p.z*67.+p.x*13.);}
+// Dust is sampled in die space: the cloud follows the actual polyhedron.
+// No result, face index or atlas value enters this material.
+vec3 starCell(vec3 p){return fract(sin(vec3(dot(p,vec3(127.1,311.7,74.7)),dot(p,vec3(269.5,183.3,246.1)),dot(p,vec3(113.5,271.9,124.6))))*43758.5453);}
+float cosmicDust(vec3 p,float time){
+ vec3 grid=p*34.+vec3(time*.11,-time*.08,time*.06);
+ vec3 cell=floor(grid),seed=starCell(cell),delta=fract(grid)-(.2+.6*seed);
+ float d=length(delta);
+ return (1.-smoothstep(.025,.145,d))*(.65+.35*sin(time*1.5+seed.x*6.28));
+}
 void main(){
  vec2 uv=(gl_FragCoord.xy/uResolution-.5)*vec2(uResolution.x/uResolution.y,1.);
  vec3 eye=vec3(${CAMERA_EYE}),target=vec3(${CAMERA_TARGET});vec3 f=normalize(target-eye),right=normalize(cross(f,vec3(0.,1.,0.))),up=cross(right,f);
@@ -3523,6 +3532,23 @@ void main(){
    color*=1.-min(.42,max(-wall,0.)*.72);
    color+=vec3(.67,.71,.77)*.13*max(wall,0.);
    color*=1.+cavity*(micro*.30+fine*.22);
+   if(uCosmic>0.){
+    float time=uCosmicTime;
+    vec3 flow=vec3(sin(lp.z*2.6+time*.7),sin(lp.x*3.2-time*.5),cos(lp.y*2.5+time*.6));
+    float field=lp.y*4.6+lp.x*.9+lp.z*1.3+flow.x*.65+flow.y*.35-time*.8;
+    float line=exp(-pow(sin(field),2.)*75.);
+    float veil=exp(-pow(sin(field+.3),2.)*3.);
+    vec3 spectrum=.5+.5*cos(vec3(.2,2.3,4.4)+field*.7+lp.x*1.4+time*.24);
+    spectrum=mix(vec3(.38,.58,.78),spectrum,.72);
+    float dust=cosmicDust(lp,time)+cosmicDust(lp*1.39+3.7,-time*.7)*.45;
+    float edge=pow(1.-max(dot(normalize(gradient),v),0.),3.);
+    vec3 nebula=spectrum*(.035+veil*.10+line*.58)+vec3(.72,.86,1.)*dust*1.8;
+    nebula+=spectrum*edge*.11;
+    color=mix(color,nebula,uCosmic);
+    // Dissolve the material into light; nothing exists outside the die's ray hit.
+    coverage*=mix(1.,clamp(.10+veil*.16+line*.25+dust*.8+edge*.12,.0,1.),uCosmic);
+    shadowAlpha*=1.-uCosmic*.75;
+   }
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
    color=(color*coverage+shadowColor*shadowAlpha*(1.-coverage))/max(outputAlpha,.0001);
   }
@@ -4337,7 +4363,7 @@ void main(){
     let breathing=false,breatheAt=0,waiting=false,waitAt=0,waitStart=null,returning=false,returnStart=null,returnAt=0,resolveReturn=null,visible=true,throwDirection=null;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
-    let resultLight=1,hasSettledResult=false;
+    let resultLight=1,hasSettledResult=false,lastCosmic=0,cosmicFrom=0;
     let gl=null,program=null,buffer=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='',surfaceWidth=0,surfaceHeight=0;
     const textures=new Map();
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0,spreadBias:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
@@ -4409,7 +4435,7 @@ void main(){
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Shader link: '+String(gl.getProgramInfoLog(program)||'Link failed without driver log.'));
         gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
         const attr=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
-        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uRimColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas','uAtlasRows','uValue','uResultLight','uIconScale'])uniforms[name]=gl.getUniformLocation(program,name);
+        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uRimColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas','uAtlasRows','uValue','uResultLight','uCosmic','uCosmicTime','uIconScale'])uniforms[name]=gl.getUniformLocation(program,name);
         mode='webgl';setAtlas();setGeometry();renderError='';rendererStatus();
       } catch(error) {
         mode='fallback';renderError=String(error.message||error).slice(0,1800);rendererStatus();try{if(gl){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}
@@ -4573,7 +4599,12 @@ void main(){
       const fieldScale=poly?poly.fieldScale:CUBE_RADIUS;
       const fringe=Math.max(.0008,1.4*CAMERA_SPAN/Math.max(1,canvas.height))+.0005;
       const bound=radius*Math.max(...scale)*(1+fringe*fieldScale/Math.min(...scale));
-      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
+      const clock=performance.now();
+      const enter=smooth(Math.min(1,Math.max(0,(clock-rollAt)/240)));
+      const leave=1-smooth(Math.min(1,Math.max(0,((clock-rollAt)/activeDuration-.67)/.33)));
+      lastCosmic=reduced?0:waiting?smooth(Math.min(1,Math.max(0,(clock-waitAt)/320))):busy?(cosmicFrom+(1-cosmicFrom)*enter)*leave:returning?cosmicFrom*(1-smooth(Math.min(1,Math.max(0,(clock-returnAt)/270)))):charge*.65;
+      gl.useProgram(program);gl.uniform1f(uniforms.uCosmic,lastCosmic);gl.uniform1f(uniforms.uCosmicTime,(clock%600000)/1000);
+      gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }
     // Fractions from the canvas's top-left corner, independent of device pixel ratio.
     function getResultAnchor() {
@@ -4643,7 +4674,7 @@ void main(){
     }
     function stopWaiting(){
       if(!waiting)return Promise.resolve();
-      returnStart={...lastFrame};cancelFrame();
+      returnStart={...lastFrame};cosmicFrom=lastCosmic;cancelFrame();
       if(!alive||reduced||document.hidden||!visible||canvas.isConnected===false){pressScale=1;resultLight=1;draw();return Promise.resolve();}
       returning=true;returnAt=performance.now();
       const promise=new Promise(resolve=>{resolveReturn=resolve;});raf=requestAnimationFrame(animateWaitingReturn);return promise;
@@ -4733,7 +4764,7 @@ void main(){
       },
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;startLift=lastFrame.lift;startX=lastFrame.x;startZ=lastFrame.z;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
+        const next=validValue(value,type);cosmicFrom=lastCosmic;cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;startLift=lastFrame.lift;startX=lastFrame.x;startZ=lastFrame.z;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
@@ -4743,51 +4774,6 @@ void main(){
   }
   const iconPath=key=>Object.prototype.hasOwnProperty.call(ICON_PATHS,key)?ICON_PATHS[key]:null;
   global.OndeDice=Object.freeze({create,iconPath});
-})(window);
-
-</script>
-
-<script>
-/* Fine orbital filaments and dust: decorative, independent of dice results. */
-(function(scope){
- 'use strict';
- const filaments=[
-  'M2 28C18 4 45 4 77 14','M2 19C24 30 42 1 78 9',
-  'M4 31C12 12 49 0 76 19','M2 12C28 1 43 33 78 22',
-  'M3 25C24 4 56 31 77 6','M3 8C22 28 54 0 78 17',
-  'M2 24C36 30 41 2 78 10','M4 29C23 1 61 2 76 25'
- ];
- let previous=-1;
- function roll(canvas,launch,{reducedMotion=false}={}){
-  const host=canvas.parentElement,query=scope.matchMedia?.('(prefers-reduced-motion: reduce)');
-  if(reducedMotion||query?.matches||scope.document.hidden||!host||!canvas.animate)return launch();
-  // Fixed dust count and palette, chosen before launch: nothing encodes a face.
-  const variant=(previous+1+Math.floor(Math.random()*7))%8;previous=variant;
-  const layer=scope.document.createElement('span'),animations=[];
-  layer.className='oa-dice-fx';layer.setAttribute('aria-hidden','true');
-  Object.assign(layer.style,{position:'absolute',inset:'0',overflow:'hidden',pointerEvents:'none',zIndex:'-1'});
-  host.append(layer);
-  let cleaned=false;
-  const cleanup=()=>{if(cleaned)return;cleaned=true;animations.forEach(a=>a.cancel());layer.remove();scope.document.removeEventListener('visibilitychange',hide);scope.removeEventListener('pagehide',cleanup);query?.removeEventListener?.('change',cleanup);};
-  const hide=()=>{if(scope.document.hidden)cleanup();};
-  scope.document.addEventListener('visibilitychange',hide);scope.addEventListener('pagehide',cleanup);query?.addEventListener?.('change',cleanup);
-  try{
-   for(let i=0;i<12;i++){
-    const angle=i*Math.PI/6,side=i%2?-1:1,particle=scope.document.createElement('i');
-    const dust=i>=4;
-    const x=Math.cos(angle)*(dust?131:111),y=Math.sin(angle)*(dust?100:94);
-    Object.assign(particle.style,{position:'absolute',left:'50%',top:'50%',width:dust?'2px':'80px',height:dust?'2px':'36px',color:['#c7e3ef','#d3c6e9','#e9dfcd'][i%3],transformOrigin:'center',borderRadius:'50%',background:dust?'currentColor':'none'});
-    if(!dust)particle.innerHTML='<svg viewBox="0 0 80 36" width="80" height="36" fill="none" aria-hidden="true"><path d="'+filaments[(variant+i)%8]+'" stroke="currentColor" stroke-width=".55" stroke-linecap="round"/><path d="'+filaments[(variant+i+3)%8]+'" stroke="currentColor" stroke-width=".35" opacity=".35"/></svg>';
-    layer.append(particle);
-    const from='translate('+x+'px,'+(y+12)+'px) scale(.8) rotate('+(-side*12)+'deg)';
-    const middle='translate('+(x+side*9)+'px,'+(y-3)+'px) scale(1) rotate('+(side*4)+'deg)';
-    const end='translate('+(x+side*24)+'px,'+(y-25)+'px) scale(1.08) rotate('+(side*18)+'deg)';
-    animations.push(particle.animate([{opacity:0,transform:from},{opacity:dust?.65:.44,transform:middle,offset:.4},{opacity:0,transform:end}],{duration:dust?820:1040,delay:(i%4)*110,easing:'cubic-bezier(.22,.65,.35,1)',fill:'both'}));
-   }
-   return Promise.resolve(launch()).finally(cleanup);
-  }catch(error){cleanup();throw error;}
- }
- scope.OndeDiceFX=Object.freeze({roll});
 })(window);
 
 </script>
@@ -5424,7 +5410,6 @@ void main(){
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
  const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,maxPixels:200000,reducedMotion:!!systemReduce,idleMotion:true,interactive:false});
- const rollDie=(value,options)=>window.OndeDiceFX?window.OndeDiceFX.roll(canvas,()=>die.roll(value,options),{reducedMotion:systemReduce}):die.roll(value,options);
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
@@ -6041,7 +6026,7 @@ void main(){
    }
    if(presentationValid(context)&&!document.hidden&&!presentationHidden){
     softSound();activeRollFace={kind:type==='ROLL_CHOICES'?6:G.cardSides(state),value:face};
-    await rollDie(face,{duration:systemReduce?0:1250});
+    await die.roll(face,{duration:systemReduce?0:1250});
    }
    if(presentationValid(context))announce(type==='ROLL_CHOICES'?face+' variantes à choisir.':'Nouvelle carte tirée.');
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
@@ -6691,7 +6676,7 @@ void main(){
    if(!document.hidden&&!presentationHidden){
     activeRollFace={kind:sides,value:faceValue};softSound();
     const timing=waitingStartedAt===null?{duration:systemReduce?0:1650}:{durationMs:Math.max(900,1650+850*visualPower-Math.min(750,Math.max(0,performance.now()-waitingStartedAt)))};
-    await rollDie(faceValue,{...timing,power:visualPower,...(direction?{direction}:{})});activeRollFace=null;
+    await die.roll(faceValue,{...timing,power:visualPower,...(direction?{direction}:{})});activeRollFace=null;
    }else die.setKind(sides,faceValue);
    settled=true;
    if(serial===animationSerial&&presentationValid(context)){
@@ -6748,7 +6733,7 @@ void main(){
    if(!presentationValid(context))return;
    if(!refusal)return;
    refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='';
-   if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await rollDie(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
+   if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
    if(presentationValid(context)){
     const result=face>10?'Défi retiré.':'Le défi reste actif.';
     announce('D20 : '+face+'. '+result+' Une étoile dépensée.');

@@ -10,7 +10,7 @@ uniform mat3 uRotation;
 uniform vec3 uPosition,uScale,uColor,uRimColor;
 uniform int uType,uCount;
 uniform vec3 uNormals[20],uTangents[20],uBitangents[20];
-uniform float uOffset,uBound,uValue,uResultLight;
+uniform float uOffset,uBound,uValue,uResultLight,uCosmic,uCosmicTime;
 uniform vec2 uIconScale;
 uniform float uAtlasRows;
 uniform sampler2D uAtlas;
@@ -29,6 +29,15 @@ vec3 worldGradient(vec3 lp){return (uRotation*localGradient(lp))/uScale*min(uSca
 // The padded, black cell edge keeps adjacent numerals out of both ink and bump samples.
 float stamp(vec2 uv,float idx){vec2 cell=vec2(mod(idx,4.),floor(idx/4.));vec2 inset=clamp(uv,vec2(.035),vec2(.965));return texture2D(uAtlas,(cell+vec2(inset.x,1.-inset.y))/vec2(4.,uAtlasRows)).r;}
 float grain(vec3 p){return sin(p.x*71.)*sin(p.y*59.+sin(p.z*43.))*sin(p.z*67.+p.x*13.);}
+// Dust is sampled in die space: the cloud follows the actual polyhedron.
+// No result, face index or atlas value enters this material.
+vec3 starCell(vec3 p){return fract(sin(vec3(dot(p,vec3(127.1,311.7,74.7)),dot(p,vec3(269.5,183.3,246.1)),dot(p,vec3(113.5,271.9,124.6))))*43758.5453);}
+float cosmicDust(vec3 p,float time){
+ vec3 grid=p*34.+vec3(time*.11,-time*.08,time*.06);
+ vec3 cell=floor(grid),seed=starCell(cell),delta=fract(grid)-(.2+.6*seed);
+ float d=length(delta);
+ return (1.-smoothstep(.025,.145,d))*(.65+.35*sin(time*1.5+seed.x*6.28));
+}
 void main(){
  vec2 uv=(gl_FragCoord.xy/uResolution-.5)*vec2(uResolution.x/uResolution.y,1.);
  vec3 eye=vec3(${CAMERA_EYE}),target=vec3(${CAMERA_TARGET});vec3 f=normalize(target-eye),right=normalize(cross(f,vec3(0.,1.,0.))),up=cross(right,f);
@@ -127,6 +136,23 @@ void main(){
    color*=1.-min(.42,max(-wall,0.)*.72);
    color+=vec3(.67,.71,.77)*.13*max(wall,0.);
    color*=1.+cavity*(micro*.30+fine*.22);
+   if(uCosmic>0.){
+    float time=uCosmicTime;
+    vec3 flow=vec3(sin(lp.z*2.6+time*.7),sin(lp.x*3.2-time*.5),cos(lp.y*2.5+time*.6));
+    float field=lp.y*4.6+lp.x*.9+lp.z*1.3+flow.x*.65+flow.y*.35-time*.8;
+    float line=exp(-pow(sin(field),2.)*75.);
+    float veil=exp(-pow(sin(field+.3),2.)*3.);
+    vec3 spectrum=.5+.5*cos(vec3(.2,2.3,4.4)+field*.7+lp.x*1.4+time*.24);
+    spectrum=mix(vec3(.38,.58,.78),spectrum,.72);
+    float dust=cosmicDust(lp,time)+cosmicDust(lp*1.39+3.7,-time*.7)*.45;
+    float edge=pow(1.-max(dot(normalize(gradient),v),0.),3.);
+    vec3 nebula=spectrum*(.035+veil*.10+line*.58)+vec3(.72,.86,1.)*dust*1.8;
+    nebula+=spectrum*edge*.11;
+    color=mix(color,nebula,uCosmic);
+    // Dissolve the material into light; nothing exists outside the die's ray hit.
+    coverage*=mix(1.,clamp(.10+veil*.16+line*.25+dust*.8+edge*.12,.0,1.),uCosmic);
+    shadowAlpha*=1.-uCosmic*.75;
+   }
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
    color=(color*coverage+shadowColor*shadowAlpha*(1.-coverage))/max(outputAlpha,.0001);
   }
@@ -941,7 +967,7 @@ void main(){
     let breathing=false,breatheAt=0,waiting=false,waitAt=0,waitStart=null,returning=false,returnStart=null,returnAt=0,resolveReturn=null,visible=true,throwDirection=null;
     let reduced=typeof options.reducedMotion==='boolean'?options.reducedMotion:!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let manualReduced=typeof options.reducedMotion==='boolean',pending=null,resolveRoll=null;
-    let resultLight=1,hasSettledResult=false;
+    let resultLight=1,hasSettledResult=false,lastCosmic=0,cosmicFrom=0;
     let gl=null,program=null,buffer=null,shaders=[],uniforms={},mode='fallback',renderError='',contextMessage='',surfaceWidth=0,surfaceHeight=0;
     const textures=new Map();
     let lastFrame={q:rotation,sy:1,lift:0,x:0,z:0,spreadBias:0},fallbackCanvas=null,fallbackCtx=null,fallbackTargetCtx=null;
@@ -1013,7 +1039,7 @@ void main(){
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Shader link: '+String(gl.getProgramInfoLog(program)||'Link failed without driver log.'));
         gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
         const attr=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
-        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uRimColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas','uAtlasRows','uValue','uResultLight','uIconScale'])uniforms[name]=gl.getUniformLocation(program,name);
+        for(const name of ['uResolution','uRotation','uPosition','uScale','uColor','uRimColor','uType','uCount','uNormals','uTangents','uBitangents','uOffset','uBound','uAtlas','uAtlasRows','uValue','uResultLight','uCosmic','uCosmicTime','uIconScale'])uniforms[name]=gl.getUniformLocation(program,name);
         mode='webgl';setAtlas();setGeometry();renderError='';rendererStatus();
       } catch(error) {
         mode='fallback';renderError=String(error.message||error).slice(0,1800);rendererStatus();try{if(gl){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}}catch(_){}
@@ -1177,7 +1203,12 @@ void main(){
       const fieldScale=poly?poly.fieldScale:CUBE_RADIUS;
       const fringe=Math.max(.0008,1.4*CAMERA_SPAN/Math.max(1,canvas.height))+.0005;
       const bound=radius*Math.max(...scale)*(1+fringe*fieldScale/Math.min(...scale));
-      gl.useProgram(program);gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
+      const clock=performance.now();
+      const enter=smooth(Math.min(1,Math.max(0,(clock-rollAt)/240)));
+      const leave=1-smooth(Math.min(1,Math.max(0,((clock-rollAt)/activeDuration-.67)/.33)));
+      lastCosmic=reduced?0:waiting?smooth(Math.min(1,Math.max(0,(clock-waitAt)/320))):busy?(cosmicFrom+(1-cosmicFrom)*enter)*leave:returning?cosmicFrom*(1-smooth(Math.min(1,Math.max(0,(clock-returnAt)/270)))):charge*.65;
+      gl.useProgram(program);gl.uniform1f(uniforms.uCosmic,lastCosmic);gl.uniform1f(uniforms.uCosmicTime,(clock%600000)/1000);
+      gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }
     // Fractions from the canvas's top-left corner, independent of device pixel ratio.
     function getResultAnchor() {
@@ -1247,7 +1278,7 @@ void main(){
     }
     function stopWaiting(){
       if(!waiting)return Promise.resolve();
-      returnStart={...lastFrame};cancelFrame();
+      returnStart={...lastFrame};cosmicFrom=lastCosmic;cancelFrame();
       if(!alive||reduced||document.hidden||!visible||canvas.isConnected===false){pressScale=1;resultLight=1;draw();return Promise.resolve();}
       returning=true;returnAt=performance.now();
       const promise=new Promise(resolve=>{resolveReturn=resolve;});raf=requestAnimationFrame(animateWaitingReturn);return promise;
@@ -1337,7 +1368,7 @@ void main(){
       },
       roll(value,rollOptions={}) {
         if(!alive)return Promise.resolve(result);if(busy)return pending;
-        const next=validValue(value,type);cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;startLift=lastFrame.lift;startX=lastFrame.x;startZ=lastFrame.z;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
+        const next=validValue(value,type);cosmicFrom=lastCosmic;cancelFrame();pressed=false;pointerId=null;charge=0;busy=true;resultLight=0;hasSettledResult=false;startQ=lastFrame.q;pressScale=lastFrame.sy;startBias=lastFrame.spreadBias;startLift=lastFrame.lift;startX=lastFrame.x;startZ=lastFrame.z;result=next;goalQ=targetRotation(type,result,.3+Math.random()*.8);activePower=clampPower(rollOptions.power);const direction=rollOptions.direction,dx=Number(direction?.x),dy=Number(direction?.y),length=Math.hypot(dx,dy);throwDirection=Number.isFinite(length)&&length>0?norm([CAMERA_RIGHT[0]*dx-CAMERA_UP[0]*dy,0,CAMERA_RIGHT[2]*dx-CAMERA_UP[2]*dy]).filter((_,i)=>i!==1):null;spinTurns=2+Math.round(activePower*3);activeDuration=Number.isFinite(rollOptions.durationMs)?Math.max(100,Math.min(10000,rollOptions.durationMs)):rollDuration(rollOptions.duration??duration,activePower);rollAt=performance.now()-(Number.isFinite(rollOptions.elapsedMs)?Math.max(0,Math.min(activeDuration,rollOptions.elapsedMs)):0);updateLabel(true);
         const promise=new Promise(resolve=>{resolveRoll=resolve;});pending=promise;
         if(reduced){finish();}else raf=requestAnimationFrame(animate);return promise;
       },
