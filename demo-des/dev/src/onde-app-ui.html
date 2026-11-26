@@ -1080,3 +1080,46 @@
 #onde-app-v1 .oa-duo-pass strong{font-size:14px;letter-spacing:.07em;color:var(--oa-rose)}
 #onde-app-v1 .oa-duo-pass span{font-size:15px;color:var(--oa-muted)}
 </style>
+
+<style>
+/* Persistent mineral iridescence: translucent light, never an opaque overlay. */
+#onde-app-v1 :is(.oa-playing-card,.oa-task,.oa-duo-option){
+ background:radial-gradient(ellipse at 0 0,#91cbd914,transparent 62%),radial-gradient(ellipse at 100% 100%,#d0a6d51a,transparent 64%),var(--oa-panel-glass,var(--oa-glass));
+ border-top-color:#c1dee45c;border-right-color:#c6a7d047;
+ box-shadow:inset 0 1px #c8e7ed20,inset -1px 0 #d1afd71c,0 8px 24px #050a172c;
+}
+#onde-app-v1 .oa-duo-option.is-selected{border-color:#c2c9e4;box-shadow:inset 0 0 0 1px #c4b7d463,0 0 13px #b8c7df13}
+#onde-app-v1 .oa-card-title,#onde-app-v1 .oa-duo-option.is-selected{color:#ede7f2;text-shadow:1px 0 10px #a6d8df20,-1px 0 14px #d3a6d520}
+#onde-app-v1 .oa-nav{box-shadow:inset 0 1px #b6d6e81a;background-image:linear-gradient(100deg,#98d0dc07,#c8abd80a,#d4b29707)}
+#onde-app-v1 .oa-nav>button[aria-current=page]{text-shadow:-2px 0 12px #a4dbe75e,2px 0 13px #d2b0df5e}
+#onde-app-v1 .oa-roll-callout{color:#c9d4e7}
+#onde-app-v1 .oa-roll-callout path{filter:drop-shadow(0 0 2px #b9dfe67a)}
+#onde-app-v1 .oa-roll-callout span{color:#f0e9f4;text-shadow:-1px 0 9px #abdde970,1px 0 12px #d0afe06b}
+#onde-app-v1 .oa-roll-callout circle{filter:drop-shadow(0 0 3px #d8d4ee99)}
+#onde-app-v1 .oa-roll-callout span::after{content:"";position:absolute;left:0;bottom:-7px;width:min(150px,70%);height:1px;background:linear-gradient(90deg,#aee2eb91,#d6b7e8a6,#d9b99d70,transparent);pointer-events:none}
+#onde-app-v1 .oa-persona-stars i.is-lit{color:#ede8e1;filter:drop-shadow(0 0 3px #e6ccbb75)}
+@media(prefers-reduced-motion:no-preference){
+ #onde-app-v1 .oa-persona-stars i.is-lit{animation:oa-distant-star 8.7s ease-in-out infinite;animation-delay:-1.8s}
+ #onde-app-v1 .oa-persona-stars i.is-lit:nth-child(2){animation-duration:11.3s;animation-delay:-6.1s}
+ #onde-app-v1 .oa-persona-stars i.is-lit:nth-child(3){animation-duration:9.9s;animation-delay:-3.7s}
+ #onde-app-v1 .oa-persona-stars[data-stars-for=b] i.is-lit{animation-delay:-5.2s;animation-duration:10.4s}
+ #onde-app-v1 .oa-persona-stars[data-stars-for=b] i.is-lit:nth-child(2){animation-delay:-2.4s;animation-duration:8.1s}
+ #onde-app-v1 .oa-persona-stars[data-stars-for=b] i.is-lit:nth-child(3){animation-delay:-7.3s;animation-duration:12.7s}
+ #onde-app-v1 .oa-roll-callout:not([hidden]) path{animation:oa-hud-trace .28s var(--oa-ease) 35ms backwards,oa-hud-iris 5.8s ease-in-out .3s infinite}
+ #onde-app-v1 .oa-roll-callout:not([hidden]) span::after{animation:oa-iris-breathe 6.2s ease-in-out infinite}
+}
+#onde-app-v1:is(.oa-ambient-paused,.oa-duo-suspended) :is(.oa-persona-stars i,.oa-roll-callout path),
+#onde-app-v1:has(.oa-sheet-backdrop:not([hidden])) :is(.oa-persona-stars i,.oa-roll-callout path){animation-play-state:paused}
+#onde-app-v1:is(.oa-ambient-paused,.oa-duo-suspended) .oa-roll-callout span::after,
+#onde-app-v1:has(.oa-sheet-backdrop:not([hidden])) .oa-roll-callout span::after{animation-play-state:paused}
+@keyframes oa-distant-star{
+ 0%,100%{opacity:.62;color:#dcc9c2;transform:scale(.92)}
+ 15%{opacity:.8;color:#d39489;transform:scale(.98)}
+ 28%{opacity:1;color:#fff3e6;transform:scale(1.08)}
+ 42%,62%{opacity:.52;color:#c9857f;transform:scale(.88)}
+ 78%{opacity:.96;color:#e5a69a;transform:scale(1.04)}
+ 88%{opacity:.72;color:#f1ece1;transform:scale(.97)}
+}
+@keyframes oa-hud-iris{0%,100%{stroke:#b8dbe6;opacity:.72}50%{stroke:#d5b6df;opacity:.95}}
+@keyframes oa-iris-breathe{0%,100%{opacity:.5;transform:scaleX(.88);transform-origin:left}50%{opacity:.9;transform:scaleX(1);transform-origin:left}}
+</style>

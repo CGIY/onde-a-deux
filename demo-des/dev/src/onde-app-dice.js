@@ -148,9 +148,10 @@ void main(){
     float edge=pow(1.-max(dot(normalize(gradient),v),0.),3.);
     vec3 nebula=spectrum*(.035+veil*.10+line*.58)+vec3(.72,.86,1.)*dust*1.8;
     nebula+=spectrum*edge*.11;
-    color=mix(color,nebula,uCosmic);
+    float material=uCosmic*(1.-mark*.9*uResultLight);
+    color=mix(color,nebula,material);
     // Dissolve the material into light; nothing exists outside the die's ray hit.
-    coverage*=mix(1.,clamp(.10+veil*.16+line*.25+dust*.8+edge*.12,.0,1.),uCosmic);
+    coverage*=mix(1.,clamp(.10+veil*.16+line*.25+dust*.8+edge*.12,.0,1.),material);
     shadowAlpha*=1.-uCosmic*.75;
    }
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
@@ -1206,7 +1207,7 @@ void main(){
       const clock=performance.now();
       const enter=smooth(Math.min(1,Math.max(0,(clock-rollAt)/240)));
       const leave=1-smooth(Math.min(1,Math.max(0,((clock-rollAt)/activeDuration-.67)/.33)));
-      lastCosmic=reduced?0:waiting?smooth(Math.min(1,Math.max(0,(clock-waitAt)/320))):busy?(cosmicFrom+(1-cosmicFrom)*enter)*leave:returning?cosmicFrom*(1-smooth(Math.min(1,Math.max(0,(clock-returnAt)/270)))):charge*.65;
+      lastCosmic=reduced?0:waiting?smooth(Math.min(1,Math.max(0,(clock-waitAt)/320))):busy?(cosmicFrom+(1-cosmicFrom)*enter)*leave+.28*(1-leave):returning?cosmicFrom*(1-smooth(Math.min(1,Math.max(0,(clock-returnAt)/270)))):charge>0?charge*.65:hasSettledResult?.28:0;
       gl.useProgram(program);gl.uniform1f(uniforms.uCosmic,lastCosmic);gl.uniform1f(uniforms.uCosmicTime,(clock%600000)/1000);
       gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }

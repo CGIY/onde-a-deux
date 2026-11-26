@@ -40,13 +40,13 @@ let worstJoin=0,joins=0,inkJoins=0,boundSamples=0;
  // Cosmic material follows the existing clock, never the confirmed face.
  {
   const shader=q.FRAGMENT.split('if(uCosmic>0.){')[1].split('outputAlpha=coverage')[0];
-  assert.doesNotMatch(shader,/uValue|resultFace|idx|mark/,'the cosmic material cannot encode the result');
+  assert.doesNotMatch(shader,/uValue|resultFace|idx/,'the cosmic material cannot encode the result');
   const die=window.OndeDice.create(makeCanvas(),{kind:6});
   const levels=[];
   for(const face of [1,6]){
    now+=3000;const start=now,work=die.roll(face);
    advance(start+400);levels.push(uniforms.uCosmic);assert(uniforms.uCosmic>.9);
-   advance(start+2000);await work;assert.equal(uniforms.uCosmic,0,'the final face returns to readable mineral');
+   advance(start+2000);await work;assert.equal(uniforms.uCosmic,.28,'a restrained iridescent finish persists with a readable final face');
    assert.equal(die.value,face);
   }
   assert.equal(levels[0],levels[1],'identical material envelope for different results');

@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1421"><meta name="color-scheme" content="dark">
-<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.5.2">
+<meta name="robots" content="noindex, nofollow"><meta name="onde-version" content="0.5.3">
 <meta name="application-name" content="D6 à deux"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="D6 à deux">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./icons/desir-180.png">
@@ -1089,6 +1089,49 @@
 #onde-app-v1 .oa-duo-pass{display:grid;gap:6px;text-align:left;border:1px dashed var(--oa-line);background:transparent;border-radius:20px;padding:20px;width:100%;margin:18px 0;color:var(--oa-text);min-height:76px}
 #onde-app-v1 .oa-duo-pass strong{font-size:14px;letter-spacing:.07em;color:var(--oa-rose)}
 #onde-app-v1 .oa-duo-pass span{font-size:15px;color:var(--oa-muted)}
+</style>
+
+<style>
+/* Persistent mineral iridescence: translucent light, never an opaque overlay. */
+#onde-app-v1 :is(.oa-playing-card,.oa-task,.oa-duo-option){
+ background:radial-gradient(ellipse at 0 0,#91cbd914,transparent 62%),radial-gradient(ellipse at 100% 100%,#d0a6d51a,transparent 64%),var(--oa-panel-glass,var(--oa-glass));
+ border-top-color:#c1dee45c;border-right-color:#c6a7d047;
+ box-shadow:inset 0 1px #c8e7ed20,inset -1px 0 #d1afd71c,0 8px 24px #050a172c;
+}
+#onde-app-v1 .oa-duo-option.is-selected{border-color:#c2c9e4;box-shadow:inset 0 0 0 1px #c4b7d463,0 0 13px #b8c7df13}
+#onde-app-v1 .oa-card-title,#onde-app-v1 .oa-duo-option.is-selected{color:#ede7f2;text-shadow:1px 0 10px #a6d8df20,-1px 0 14px #d3a6d520}
+#onde-app-v1 .oa-nav{box-shadow:inset 0 1px #b6d6e81a;background-image:linear-gradient(100deg,#98d0dc07,#c8abd80a,#d4b29707)}
+#onde-app-v1 .oa-nav>button[aria-current=page]{text-shadow:-2px 0 12px #a4dbe75e,2px 0 13px #d2b0df5e}
+#onde-app-v1 .oa-roll-callout{color:#c9d4e7}
+#onde-app-v1 .oa-roll-callout path{filter:drop-shadow(0 0 2px #b9dfe67a)}
+#onde-app-v1 .oa-roll-callout span{color:#f0e9f4;text-shadow:-1px 0 9px #abdde970,1px 0 12px #d0afe06b}
+#onde-app-v1 .oa-roll-callout circle{filter:drop-shadow(0 0 3px #d8d4ee99)}
+#onde-app-v1 .oa-roll-callout span::after{content:"";position:absolute;left:0;bottom:-7px;width:min(150px,70%);height:1px;background:linear-gradient(90deg,#aee2eb91,#d6b7e8a6,#d9b99d70,transparent);pointer-events:none}
+#onde-app-v1 .oa-persona-stars i.is-lit{color:#ede8e1;filter:drop-shadow(0 0 3px #e6ccbb75)}
+@media(prefers-reduced-motion:no-preference){
+ #onde-app-v1 .oa-persona-stars i.is-lit{animation:oa-distant-star 8.7s ease-in-out infinite;animation-delay:-1.8s}
+ #onde-app-v1 .oa-persona-stars i.is-lit:nth-child(2){animation-duration:11.3s;animation-delay:-6.1s}
+ #onde-app-v1 .oa-persona-stars i.is-lit:nth-child(3){animation-duration:9.9s;animation-delay:-3.7s}
+ #onde-app-v1 .oa-persona-stars[data-stars-for=b] i.is-lit{animation-delay:-5.2s;animation-duration:10.4s}
+ #onde-app-v1 .oa-persona-stars[data-stars-for=b] i.is-lit:nth-child(2){animation-delay:-2.4s;animation-duration:8.1s}
+ #onde-app-v1 .oa-persona-stars[data-stars-for=b] i.is-lit:nth-child(3){animation-delay:-7.3s;animation-duration:12.7s}
+ #onde-app-v1 .oa-roll-callout:not([hidden]) path{animation:oa-hud-trace .28s var(--oa-ease) 35ms backwards,oa-hud-iris 5.8s ease-in-out .3s infinite}
+ #onde-app-v1 .oa-roll-callout:not([hidden]) span::after{animation:oa-iris-breathe 6.2s ease-in-out infinite}
+}
+#onde-app-v1:is(.oa-ambient-paused,.oa-duo-suspended) :is(.oa-persona-stars i,.oa-roll-callout path),
+#onde-app-v1:has(.oa-sheet-backdrop:not([hidden])) :is(.oa-persona-stars i,.oa-roll-callout path){animation-play-state:paused}
+#onde-app-v1:is(.oa-ambient-paused,.oa-duo-suspended) .oa-roll-callout span::after,
+#onde-app-v1:has(.oa-sheet-backdrop:not([hidden])) .oa-roll-callout span::after{animation-play-state:paused}
+@keyframes oa-distant-star{
+ 0%,100%{opacity:.62;color:#dcc9c2;transform:scale(.92)}
+ 15%{opacity:.8;color:#d39489;transform:scale(.98)}
+ 28%{opacity:1;color:#fff3e6;transform:scale(1.08)}
+ 42%,62%{opacity:.52;color:#c9857f;transform:scale(.88)}
+ 78%{opacity:.96;color:#e5a69a;transform:scale(1.04)}
+ 88%{opacity:.72;color:#f1ece1;transform:scale(.97)}
+}
+@keyframes oa-hud-iris{0%,100%{stroke:#b8dbe6;opacity:.72}50%{stroke:#d5b6df;opacity:.95}}
+@keyframes oa-iris-breathe{0%,100%{opacity:.5;transform:scaleX(.88);transform-origin:left}50%{opacity:.9;transform:scaleX(1);transform-origin:left}}
 </style>
 
 <script>window.DesirInfoQuestions={"complicite": ["Où cacherais-tu un mot pour que je le trouve au bon moment ?", "Quel compliment aimerais-tu entendre un jour tout à fait ordinaire ?", "Quel surnom ridicule ne pourrait faire rire que nous deux ?", "Quel souvenir de nous tiendrait dans une seule phrase sur un petit papier ?", "Quel mot du dictionnaire mériterait une définition inventée rien que pour nous ?", "Qu’est-ce qu’une photo de nos mains pourrait raconter de notre journée ?", "Quelle vieille photo de nous aimerais-tu refaire à l’identique ?", "Quel détail d’une journée banale mériterait un selfie souvenir ?", "Quel moment préfères-tu garder en mémoire sans sortir le téléphone ?", "Après une journée debout, tu choisirais un massage des pieds, du dos ou de la tête ?", "Quel est le meilleur moment de la journée pour un câlin sous le plaid ?", "Quand tu es tendu·e, quel geste te fait sentir que je suis là ?", "Si je te posais du vernis, quelle couleur choisirais-tu ?", "Quel soin un peu banal te ferait plaisir si on le faisait à deux ?", "Quelle odeur te fait tout de suite penser à une soirée tranquille ?", "Quel film peux-tu revoir uniquement pour une scène ?", "Dans quelle série accepterais-tu de passer une soirée en personnage secondaire ?", "À quel jeu coopératif formerions-nous une équipe redoutable ?", "Quel jeu d’ambiance révèle le mieux ton côté mauvais perdant ?", "Que ferions-nous de quinze minutes ensemble en silence ?", "Quelle habitude de téléphone aimerais-tu suspendre pendant un repas à deux ?", "Quel rituel du retour à la maison te ferait sentir attendu·e ?", "Quel moment de la semaine voudrais-tu réserver à notre soirée à deux ?", "Quel petit effort de ma part te rend la vie plus douce sans que je m’en rende compte ?", "À quoi reconnais-tu qu’une soirée t’a vraiment reposé·e ?"], "attention": ["Quel livre m’offrirais-tu pour me faire découvrir un de tes goûts ?", "Quel cadeau à moins de dix euros te ferait rire pour de bon ?", "Quel jeu vidéo aimerais-tu que je découvre en te regardant jouer ?", "Quel jeu de société offrirais-tu à quelqu’un qui déteste lire les règles ?", "Pour une surprise, préfères-tu qu’on devine ton envie ou qu’on te laisse choisir ?", "Quelle pièce de seconde main chercherais-tu pour moi sur Vinted ?", "Quelle tenue aimerais-tu qu’on choisisse ensemble pour une occasion inventée ?", "Quel indice me donnerais-tu pour choisir un cadeau à ta taille sans gâcher la surprise ?", "Si on partage un burger, quel ingrédient doit absolument y être ?", "Quelle garniture de pizza mériterait qu’on tente une demi-pizza chacun ?", "Quel sushi ferais-tu goûter à quelqu’un qui n’en a jamais mangé ?", "Quel sandwich réunit pour toi le meilleur pain et la meilleure garniture ?", "Pour une pause café dehors, qu’est-ce qui compte le plus pour toi, la boisson ou l’endroit ?", "Quel plat mexicain te donnerait envie de cuisiner ensemble un soir de semaine ?", "Quel ingrédient de cuisine indienne ou thaïlandaise aimerais-tu apprendre à utiliser ?", "Pour une soirée grecque ou italienne, quel plat mettrais-tu au milieu de la table ?", "À quel fruit ferais-tu une tarte en plein cœur de sa saison ?", "Pour des cookies maison, tu préfères les bords croustillants ou le centre fondant ?", "Quelle garniture de crêpe défendrais-tu même si personne n’était d’accord ?", "Quel gâteau te rappelle un goûter précis de ton enfance ?", "Qu’est-ce que tu voudrais trouver sur un plateau de petit-déjeuner un dimanche ?", "Quel apéro improviserais-tu avec seulement trois choses du placard ?", "Quel thé ou quelle infusion servirais-tu à quelqu’un qui a besoin de souffler ?", "Avec un chocolat chaud sur le canapé, de quoi aimerais-tu parler ?", "Si je t’apportais un goûter sans prévenir, à quel moment ferait-il vraiment plaisir ?"], "projets": ["Quelle rue du quartier aimerais-tu redécouvrir comme si on venait d’y emménager ?", "En forêt, tu choisirais un itinéraire connu ou le premier sentier qui nous intrigue ?", "Dans quel parc aimerais-tu faire une pause assez longue pour oublier l’heure ?", "À trente minutes de route, quel endroit mérite selon toi un détour ?", "En sortie photo, quel détail de la ville aimerais-tu qu’on s’amuse à chercher ?", "Quelle scène de pluie ou de brouillard voudrais-tu apprendre à photographier ?", "Pour une photo à deux sur le même sujet, quel cadre choisirais-tu pour qu’on obtienne deux images très différentes ?", "Quel lieu industriel ouvert au public aimerais-tu voir pour ses textures ou sa lumière ?", "Quel animal te ferait pardonner un portrait à l’aquarelle complètement raté ?", "Quelle plante aimerais-tu peindre avant qu’elle change de forme ou de couleur ?", "Si on se peignait l’un l’autre, quel détail voudrais-tu que j’observe mieux ?", "À quoi servirait la première coupelle en argile que nous fabriquerions ?", "Quel symbole graverais-tu sur un médaillon pour qu’il n’ait de sens que pour nous ?", "Si on ne pouvait emporter qu’un sac pour une nuit ailleurs, qu’est-ce qui y entrerait en premier ?", "Quelle escapade d’une demi-journée serait possible dès notre prochain créneau libre ?", "En vacances, quel jour aimerais-tu garder complètement vide ?", "Pour une soirée dans une ville voisine, quel serait le seul arrêt à prévoir ?", "Quel indice nous dirait qu’un week-end à deux mérite d’être refait au même endroit ?", "Quel meuble déplacerais-tu d’abord pour que la pièce soit plus agréable à vivre ?", "Quel mur aimerais-tu revoir avec une couleur différente, et laquelle ?", "Quel objet exposerais-tu chez nous pour raconter un projet qu’on a fait ensemble ?", "Quel rangement mériterait une place fixe parce qu’on y cherche toujours la même chose ?", "Quel objet laisserais-tu partir aujourd’hui sans hésiter ?", "Quel objet inutilisé garderais-tu quand même pour l’histoire qu’il porte ?", "Quel petit chantier voudrait-on pouvoir montrer du doigt dimanche en disant qu’on l’a fini ensemble ?"], "intimite": ["Quel baiser te plaît le plus pour dire bonsoir ?", "Quel signe te fait comprendre que j’ai envie de t’embrasser ?", "Quel compliment te fait te sentir désiré·e au-delà de ton apparence ?", "Tu préfères être surpris·e par une invitation ou l’attendre depuis le matin ?", "Quelle lumière te met le plus à l’aise dans un moment intime ?", "Quel rôle joue la musique pour toi quand on se rapproche ?", "Quel vêtement te plaît autant à porter qu’à me laisser découvrir ?", "Dans un jeu de rôle, tu préfères inventer les personnages ou commencer par le décor ?", "Si on jouait à se rencontrer pour la première fois, quelle serait la première phrase ?", "Quand tu imagines prendre les commandes, qu’est-ce qui te plaît dans ce rôle ?", "Quand tu préfères que je prenne l’initiative, de quelle façon aimerais-tu que je te la propose ?", "Quelle phrase te semblerait naturelle pour dire « moins vite » en plein moment ?", "Comment aimerais-tu que je vérifie que le défi te plaît toujours ?", "Quel genre de scénario te plaît à imaginer et te suffit tel quel ?", "À quel endroit privé associes-tu le plus la sensation de pouvoir prendre ton temps ?", "Pour une nuit ailleurs, qu’est-ce qui t’aiderait à te sentir vraiment à l’abri des regards ?", "Pour des photos à deux, qu’aimerais-tu décider à l’avance sur ce qu’on garde ou efface ?", "En photo, tu te sens plus à l’aise dans un portrait serré ou en silhouette ?", "Qu’est-ce qui te donnerait envie de choisir un accessoire ensemble ?", "Si on essaie un jouet à télécommande, qui aimerais-tu voir tenir la commande en premier ?", "Si une carte propose une variante qui te tente peu, comment voudrais-tu qu’on l’adapte ?", "À quel rythme aimerais-tu qu’on reparle de ce qui nous a plu dans nos moments intimes ?", "Après un moment intense, tu préfères parler, te blottir ou avoir un peu d’espace ?", "Quelle différence fais-tu entre une envie pour ce soir et une idée à garder pour plus tard ?", "Quel mot utiliserais-tu pour proposer de mettre le jeu de côté et rester simplement ensemble ?"]};</script>
@@ -3544,9 +3587,10 @@ void main(){
     float edge=pow(1.-max(dot(normalize(gradient),v),0.),3.);
     vec3 nebula=spectrum*(.035+veil*.10+line*.58)+vec3(.72,.86,1.)*dust*1.8;
     nebula+=spectrum*edge*.11;
-    color=mix(color,nebula,uCosmic);
+    float material=uCosmic*(1.-mark*.9*uResultLight);
+    color=mix(color,nebula,material);
     // Dissolve the material into light; nothing exists outside the die's ray hit.
-    coverage*=mix(1.,clamp(.10+veil*.16+line*.25+dust*.8+edge*.12,.0,1.),uCosmic);
+    coverage*=mix(1.,clamp(.10+veil*.16+line*.25+dust*.8+edge*.12,.0,1.),material);
     shadowAlpha*=1.-uCosmic*.75;
    }
    outputAlpha=coverage+shadowAlpha*(1.-coverage);
@@ -4602,7 +4646,7 @@ void main(){
       const clock=performance.now();
       const enter=smooth(Math.min(1,Math.max(0,(clock-rollAt)/240)));
       const leave=1-smooth(Math.min(1,Math.max(0,((clock-rollAt)/activeDuration-.67)/.33)));
-      lastCosmic=reduced?0:waiting?smooth(Math.min(1,Math.max(0,(clock-waitAt)/320))):busy?(cosmicFrom+(1-cosmicFrom)*enter)*leave:returning?cosmicFrom*(1-smooth(Math.min(1,Math.max(0,(clock-returnAt)/270)))):charge*.65;
+      lastCosmic=reduced?0:waiting?smooth(Math.min(1,Math.max(0,(clock-waitAt)/320))):busy?(cosmicFrom+(1-cosmicFrom)*enter)*leave+.28*(1-leave):returning?cosmicFrom*(1-smooth(Math.min(1,Math.max(0,(clock-returnAt)/270)))):charge>0?charge*.65:hasSettledResult?.28:0;
       gl.useProgram(program);gl.uniform1f(uniforms.uCosmic,lastCosmic);gl.uniform1f(uniforms.uCosmicTime,(clock%600000)/1000);
       gl.uniformMatrix3fv(uniforms.uRotation,false,new Float32Array(m));gl.uniform3fv(uniforms.uScale,scale);gl.uniform3f(uniforms.uPosition,...position);gl.uniform1f(uniforms.uBound,bound);gl.uniform1f(uniforms.uValue,result);gl.uniform1f(uniforms.uResultLight,resultLight);gl.drawArrays(gl.TRIANGLES,0,6);
     }

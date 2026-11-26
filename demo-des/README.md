@@ -1,8 +1,8 @@
-# D6 à deux — version web 0.5.2
+# D6 à deux — version web 0.5.3
 
 ## Matière cosmique des dés
 
-Pendant le lancer WebGL, la matière du dé devient un nuage de particules lumineuses traversé de filaments et de nappes spectrales. L'effet est calculé dans les coordonnées du dé et limité à sa géométrie réelle : aucun dessin flottant ajouté autour. La matière et la face lisible reviennent progressivement à la fin du lancer. L'effet ne dépend ni du résultat ni de la face choisie ; réduction des mouvements, arrière-plan et durées existantes sont respectés. Le rendu de secours conserve le dé minéral.
+Pendant le lancer WebGL, la matière du dé devient un nuage de particules lumineuses traversé de filaments et de nappes spectrales. L'effet est calculé dans les coordonnées du dé et limité à sa géométrie réelle : aucun dessin flottant ajouté autour. La face redevient lisible à la fin du lancer et garde une irisation légère. Les cartes et le menu reprennent ces reflets ; le trait de liaison et le texte du résultat restent lumineux. Les étoiles disponibles scintillent lentement entre blanc et corail, avec des rythmes différents. L'effet ne dépend ni du résultat ni de la face choisie ; réduction des mouvements, arrière-plan et durées existantes sont respectés. Le rendu de secours conserve le dé minéral.
 
 ## Le choix du compagnon — 0.5.0
 
