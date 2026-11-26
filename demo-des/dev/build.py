@@ -104,7 +104,7 @@ if canonical_hardcore != hardcore:
     raise SystemExit('The unified Hardcore catalogue must exactly match its existing card data.')
 artwork = badge_source(source)
 badges = badge_bundle(source, artwork)
-for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-remote.js', 'onde-badge-art.js', 'onde-app-ui.js', 'onde-app-sky.js']:
+for filename in ['onde-app-core.js', 'onde-app-dice.js', 'onde-app-dice-fx.js', 'onde-app-remote.js', 'onde-badge-art.js', 'onde-app-ui.js', 'onde-app-sky.js']:
     html += '\n<script>\n' + (artwork if filename == 'onde-badge-art.js' else (source / filename).read_text()) + '\n</script>\n'
 html = html.replace('onde-couple-prototype-v1', 'onde-public-demo-v010')
 html = '''<!doctype html><html lang="fr"><head><meta charset="utf-8">

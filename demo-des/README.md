@@ -1,5 +1,9 @@
 # D6 à deux — version web 0.5.0
 
+## Effets comiques des dés
+
+Huit familles de petits effets accompagnent les lancers : étoiles étourdies, gouttes, ressorts, petits pops, cœurs, surprise, éclairs et confettis. Les effets restent autour du dé, sans changer sa face ni prolonger le lancer. Ils s’arrêtent avec la réduction des mouvements et le passage en arrière-plan.
+
 ## Le choix du compagnon — 0.5.0
 
 Le compagnon tire le nombre de variantes possibles puis choisit celle à réaliser. La carte Passer offre une seconde chance à l’expéditeur. Vingt-quatre constellations supplémentaires portent la collection à 144 titres. Les notifications disposent de cinquante titres en majuscules.

@@ -108,6 +108,7 @@
  const canvas=document.createElement('canvas');
  canvas.id='oa-dice';canvas.className='cursor-interaction';canvas.setAttribute('role','img');
  const die=window.OndeDice.create(canvas,{kind:G.rules.categorySides,value:3,duration:1650,maxPixelRatio:2,maxPixels:200000,reducedMotion:!!systemReduce,idleMotion:true,interactive:false});
+ const rollDie=(value,options)=>window.OndeDiceFX?window.OndeDiceFX.roll(canvas,()=>die.roll(value,options),{reducedMotion:systemReduce}):die.roll(value,options);
  const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const name=id=>(state.players.find(p=>p.id===id)||{}).name||'Partenaire';
  const now=()=>new Date().toISOString();
@@ -724,7 +725,7 @@
    }
    if(presentationValid(context)&&!document.hidden&&!presentationHidden){
     softSound();activeRollFace={kind:type==='ROLL_CHOICES'?6:G.cardSides(state),value:face};
-    await die.roll(face,{duration:systemReduce?0:1250});
+    await rollDie(face,{duration:systemReduce?0:1250});
    }
    if(presentationValid(context))announce(type==='ROLL_CHOICES'?face+' variantes à choisir.':'Nouvelle carte tirée.');
   }catch(error){if(remoteMode)remoteError(error);else lastError=String(error);}
@@ -1374,7 +1375,7 @@
    if(!document.hidden&&!presentationHidden){
     activeRollFace={kind:sides,value:faceValue};softSound();
     const timing=waitingStartedAt===null?{duration:systemReduce?0:1650}:{durationMs:Math.max(900,1650+850*visualPower-Math.min(750,Math.max(0,performance.now()-waitingStartedAt)))};
-    await die.roll(faceValue,{...timing,power:visualPower,...(direction?{direction}:{})});activeRollFace=null;
+    await rollDie(faceValue,{...timing,power:visualPower,...(direction?{direction}:{})});activeRollFace=null;
    }else die.setKind(sides,faceValue);
    settled=true;
    if(serial===animationSerial&&presentationValid(context)){
@@ -1431,7 +1432,7 @@
    if(!presentationValid(context))return;
    if(!refusal)return;
    refusal.face=face;const status=main.querySelector('[data-refusal-status]');if(status)status.textContent='';
-   if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await die.roll(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
+   if(!document.hidden&&!presentationHidden){activeRollFace={kind:20,value:face};softSound();await rollDie(face,{duration:systemReduce?0:1650});activeRollFace=null;}else die.setKind(20,face);
    if(presentationValid(context)){
     const result=face>10?'Défi retiré.':'Le défi reste actif.';
     announce('D20 : '+face+'. '+result+' Une étoile dépensée.');
